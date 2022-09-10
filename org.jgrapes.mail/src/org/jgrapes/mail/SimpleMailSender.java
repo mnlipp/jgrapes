@@ -18,31 +18,28 @@
 
 package org.jgrapes.mail;
 
-import jakarta.mail.Address;
 import jakarta.mail.Authenticator;
 import jakarta.mail.Message;
 import jakarta.mail.MessagingException;
-import jakarta.mail.NoSuchProviderException;
 import jakarta.mail.PasswordAuthentication;
 import jakarta.mail.Session;
 import jakarta.mail.Transport;
 import jakarta.mail.internet.MimeMessage;
+import java.time.Duration;
 import java.util.Date;
 import java.util.Map;
-import java.util.Properties;
+import java.util.Optional;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jgrapes.core.Channel;
-import org.jgrapes.core.Component;
-import org.jgrapes.core.Event;
+import org.jgrapes.core.Components;
+import org.jgrapes.core.Components.Timer;
 import org.jgrapes.core.Manager;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.annotation.HandlerDefinition.ChannelReplacements;
 import org.jgrapes.core.events.Start;
 import org.jgrapes.core.events.Stop;
-import org.jgrapes.mail.events.ReceivedMailMessage;
 import org.jgrapes.mail.events.SendMailMessage;
-import org.jgrapes.util.JsonConfigurationStore;
-import org.jgrapes.util.events.ConfigurationUpdate;
 
 /**
  * A component that sends mail.
@@ -50,16 +47,17 @@ import org.jgrapes.util.events.ConfigurationUpdate;
  * to connect to a mail server.
  */
 @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
-public class SimpleMailSender extends Component {
+public class SimpleMailSender extends MailComponent {
 
     @SuppressWarnings("PMD.FieldNamingConventions")
     private static final Logger logger
         = Logger.getLogger(SimpleMailSender.class.getName());
 
-    private final Properties mailProps = new Properties();
     private String password;
     private Session session;
     private Transport transport;
+    private Duration maxIdleTime = Duration.ofMinutes(1);
+    private Timer idleTimer;
 
     /**
      * Creates a new component with its channel set to itself.
@@ -123,57 +121,42 @@ public class SimpleMailSender extends Component {
     }
 
     /**
-     * Configure the component, using any values found under the 
-     * {@link #componentPath()}. Properties for configuring
-     * Jakarta Mail are taken from a sub-section "`mail`". The
-     * valid keys are the properties defined for
-     * [Jakarta Mail](https://jakarta.ee/specifications/mail/2.0/apidocs/jakarta.mail/jakarta/mail/package-summary.html)
-     * with the prefix "`mail.`" removed to avoid unnecessary redundancy.
-     * 
-     * Here's an example configuration file for the 
-     * {@link JsonConfigurationStore}.
-     * 
-     * ```json
-     * {
-     *     "/SendMail": {
-     *         "/MailSender": {
-     *             "/mail": {
-     *                 "host": "...",
-     *                 "transport.protocol": "smtp",
-     *                 "smtp.ssl.enable": "true",
-     *                 "smtp.port": 465,
-     *                 "smtp.auth": true,
-     *                 "user": "...",
-     *                 "debug": true
-     *              },
-     *              "password": "..."
-     *         }
-     *     }
-     * }
-     * ```
+     * Sets the maximum idle time. A running {@link IMAPFolder#idle()}
+     * is terminated and renewed after this time.
      *
-     * @param event the event
+     * @param maxIdleTime the new max idle time
      */
-    @Handler
-    public void onConfigUpdate(ConfigurationUpdate event) {
-        event.values(componentPath()).ifPresent(c -> {
-            setPassword(c.get("password"));
-        });
-        event.values(componentPath() + "/mail").ifPresent(c -> {
-            for (var e : c.entrySet()) {
-                mailProps.put("mail." + e.getKey(), e.getValue());
-            }
-        });
+    public SimpleMailSender setMaxIdleTime(Duration maxIdleTime) {
+        this.maxIdleTime = maxIdleTime;
+        return this;
     }
 
     /**
-     * Run the monitor.
+     * Returns the max idle time.
+     *
+     * @return the duration
+     */
+    public Duration maxIdleTime() {
+        return maxIdleTime;
+    }
+
+    @Override
+    protected void configureComponent(Map<String, String> values) {
+        Optional.ofNullable(values.get("password"))
+            .ifPresent(this::setPassword);
+        Optional.ofNullable(values.get("maxIdleTime"))
+            .map(Integer::parseInt).map(Duration::ofSeconds)
+            .ifPresent(d -> setMaxIdleTime(d));
+    }
+
+    /**
+     * Start the component.
      *
      * @param event the event
-     * @throws NoSuchProviderException 
+     * @throws MessagingException 
      */
     @Handler
-    public void onStart(Start event) throws NoSuchProviderException {
+    public void onStart(Start event) throws MessagingException {
         session = Session.getInstance(mailProps, new Authenticator() {
             @Override
             protected PasswordAuthentication
@@ -183,44 +166,80 @@ public class SimpleMailSender extends Component {
             }
         });
         transport = session.getTransport();
+        transport.connect();
+        idleTimer
+            = Components.schedule(timer -> closeConnection(), maxIdleTime);
     }
 
+    @SuppressWarnings("PMD.GuardLogStatement")
+    private void closeConnection() {
+        synchronized (transport) {
+            if (idleTimer != null) {
+                idleTimer.cancel();
+                idleTimer = null;
+            }
+            if (transport.isConnected()) {
+                try {
+                    transport.close();
+                } catch (MessagingException e) {
+                    logger.log(Level.WARNING,
+                        "Cannot close connection: " + e.getMessage(), e);
+                }
+            }
+        }
+    }
+
+    /**
+     * Sends the message as specified by the event.
+     *
+     * @param event the event
+     * @throws MessagingException the messaging exception
+     */
     @Handler
     public void onMessage(SendMailMessage event) throws MessagingException {
+        synchronized (transport) {
+            if (idleTimer != null) {
+                idleTimer.cancel();
+                idleTimer = null;
+            }
+        }
         Message msg = new MimeMessage(session);
         if (event.from() != null) {
             msg.setFrom(event.from());
         } else {
             msg.setFrom();
         }
-        msg.setRecipients(Message.RecipientType.TO,
-            event.to().toArray(new Address[0]));
-//        msg.setRecipients(Message.RecipientType.CC,
-//            event.cc().toArray(new Address[0]));
-//        msg.setRecipients(Message.RecipientType.BCC,
-//            event.bcc().toArray(new Address[0]));
+        msg.setRecipients(Message.RecipientType.TO, event.to());
+        msg.setRecipients(Message.RecipientType.CC, event.cc());
+        msg.setRecipients(Message.RecipientType.BCC, event.bcc());
         msg.setSentDate(new Date());
         for (var header : event.headers().entrySet()) {
             msg.setHeader(header.getKey(), header.getValue());
         }
         msg.setSubject(event.subject());
-        msg.setText("Test");
-//        msg.setContent(event.body());
+        msg.setContent(event.content());
 
-        if (!transport.isConnected()) {
-            transport.connect();
+        synchronized (transport) {
+            if (!transport.isConnected()) {
+                transport.connect();
+            }
+            idleTimer
+                = Components.schedule(timer -> closeConnection(), maxIdleTime);
         }
-        Transport.send(msg);
+        msg.saveChanges();
+        transport.sendMessage(msg, msg.getAllRecipients());
     }
 
     /**
      * Stop the monitor.
      *
      * @param event the event
+     * @throws MessagingException 
      */
     @Handler
     @SuppressWarnings("PMD.GuardLogStatement")
     public void onStop(Stop event) {
+        closeConnection();
     }
 
 }

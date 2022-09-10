@@ -33,11 +33,9 @@ import jakarta.mail.event.MessageCountEvent;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jgrapes.core.Channel;
-import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.Components.Timer;
 import org.jgrapes.core.Event;
@@ -47,8 +45,6 @@ import org.jgrapes.core.annotation.HandlerDefinition.ChannelReplacements;
 import org.jgrapes.core.events.Start;
 import org.jgrapes.core.events.Stop;
 import org.jgrapes.mail.events.ReceivedMailMessage;
-import org.jgrapes.util.JsonConfigurationStore;
-import org.jgrapes.util.events.ConfigurationUpdate;
 
 /**
  * A component that monitors the INBOX of a mail account.
@@ -56,16 +52,15 @@ import org.jgrapes.util.events.ConfigurationUpdate;
  * to connect to a mail server.
  */
 @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
-public class SimpleMailMonitor extends Component {
+public class SimpleMailMonitor extends MailComponent {
 
     @SuppressWarnings("PMD.FieldNamingConventions")
     private static final Logger logger
         = Logger.getLogger(SimpleMailMonitor.class.getName());
 
-    private final Properties mailProps = new Properties();
     private String password;
-    private Duration maxIdleTime;
-    private Duration pollInterval;
+    private Duration maxIdleTime = Duration.ofMinutes(25);
+    private Duration pollInterval = Duration.ofMinutes(5);
     private Store store;
     private Thread monitorThread;
     private boolean running;
@@ -119,17 +114,6 @@ public class SimpleMailMonitor extends Component {
     }
 
     /**
-     * Sets the maximum idle time. A running {@link IMAPFolder#idle()}
-     * is terminated and renewed after this time.
-     *
-     * @param maxIdleTime the new max idle time
-     */
-    public SimpleMailMonitor setMaxIdleTime(Duration maxIdleTime) {
-        this.maxIdleTime = maxIdleTime;
-        return this;
-    }
-
-    /**
      * Sets the mail properties. See 
      * [the Jakarta Mail](https://jakarta.ee/specifications/mail/2.0/apidocs/jakarta.mail/jakarta/mail/package-summary.html)
      * documentation for available settings.
@@ -139,6 +123,17 @@ public class SimpleMailMonitor extends Component {
      */
     public SimpleMailMonitor setMailProperties(Map<String, String> props) {
         mailProps.putAll(props);
+        return this;
+    }
+
+    /**
+     * Sets the maximum idle time. A running {@link IMAPFolder#idle()}
+     * is terminated and renewed after this time.
+     *
+     * @param maxIdleTime the new max idle time
+     */
+    public SimpleMailMonitor setMaxIdleTime(Duration maxIdleTime) {
+        this.maxIdleTime = maxIdleTime;
         return this;
     }
 
@@ -170,52 +165,16 @@ public class SimpleMailMonitor extends Component {
         return pollInterval;
     }
 
-    /**
-     * Configure the component, using any values found under the 
-     * {@link #componentPath()}. Properties for configuring
-     * Jakarta Mail are taken from a sub-section "`mail`". The
-     * valid keys are the properties defined for
-     * [Jakarta Mail](https://jakarta.ee/specifications/mail/2.0/apidocs/jakarta.mail/jakarta/mail/package-summary.html)
-     * with the prefix "`mail.`" removed to avoid unnecessary redundancy.
-     * 
-     * Here's an example configuration file for the 
-     * {@link JsonConfigurationStore}.
-     * 
-     * ```json
-     * {
-     *     "/CleanMailsUntilStop": {
-     *         "/SimpleMailMonitor": {
-     *             "/mail": {
-     *                 "host": "...",
-     *                 "store.protocol": "imap",
-     *                 "imap.ssl.enable": "true",
-     *                 "imap.port": 993,
-     *                 "user": "..."
-     *             },
-     *             "password": "..."
-     *         }
-     *     }
-     * }
-     * ```
-     *
-     * @param event the event
-     */
-    @Handler
-    public void onConfigUpdate(ConfigurationUpdate event) {
-        event.values(componentPath()).ifPresent(c -> {
-            setPassword(c.get("password"));
-            setMaxIdleTime(Optional.ofNullable(c.get("maxIdleTime"))
-                .map(Integer::parseInt).map(Duration::ofSeconds)
-                .orElse(Duration.ofMinutes(25)));
-            setPollInterval(Optional.ofNullable(c.get("pollInterval"))
-                .map(Integer::parseInt).map(Duration::ofSeconds)
-                .orElse(Duration.ofMinutes(5)));
-        });
-        event.values(componentPath() + "/mail").ifPresent(c -> {
-            for (var e : c.entrySet()) {
-                mailProps.put("mail." + e.getKey(), e.getValue());
-            }
-        });
+    @Override
+    protected void configureComponent(Map<String, String> values) {
+        Optional.ofNullable(values.get("password"))
+            .ifPresent(this::setPassword);
+        Optional.ofNullable(values.get("maxIdleTime"))
+            .map(Integer::parseInt).map(Duration::ofSeconds)
+            .ifPresent(d -> setMaxIdleTime(d));
+        Optional.ofNullable(values.get("pollInterval"))
+            .map(Integer::parseInt).map(Duration::ofSeconds)
+            .ifPresent(d -> setPollInterval(d));
     }
 
     /**
@@ -301,7 +260,6 @@ public class SimpleMailMonitor extends Component {
                 start = end + 1;
                 end = folder.getMessageCount();
             }
-            folder.expunge();
 
             // Add MessageCountListener to listen for new messages.
             // The listener will only be invoked when we do another
@@ -312,12 +270,6 @@ public class SimpleMailMonitor extends Component {
                     Message[] msgs = countEvent.getMessages();
                     for (Message msg : msgs) {
                         processMessage(msg);
-                    }
-                    try {
-                        folder.expunge();
-                    } catch (MessagingException e) {
-                        logger.log(Level.WARNING,
-                            "Problem expunging folder: " + e.getMessage(), e);
                     }
                 }
             });

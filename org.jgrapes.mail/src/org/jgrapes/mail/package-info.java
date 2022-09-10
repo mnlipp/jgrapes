@@ -17,6 +17,54 @@
  */
 
 /**
- * Components for handling mail.
+ * Components for handling mail. All components handle 
+ * {@link org.jgrapes.util.events.ConfigurationUpdate} events. They
+ * process properties from three paths:
+ * 
+ *  1. `/org.jgrapes.mail/Component` 
+ *  2. `/org.jgrapes.mail/` + component class name 
+ *  3. The path return by {@link org.jgrapes.core.Manager#componentPath()}
+ *  
+ * With the properties from the later sources taking precedence.
+ *  
+ * In each source, there can be a sub-section "`.../mail`". The valid keys 
+ * in this sub-section are all properties defined for 
+ * [Jakarta Mail](https://jakarta.ee/specifications/mail/2.0/apidocs/jakarta.mail/jakarta/mail/package-summary.html)
+ * with the prefix "`mail.`" removed to avoid unnecessary redundancy.
+ * 
+ * The additional key/value defined with the paths above are used to
+ * call the respective setter methods of the component.
+ * 
+ * Example configuration using 
+ * {@link org.jgrapes.util.JsonConfigurationStore}:
+ * ```json
+ * {
+ *     "/org.jgrapes.mail": {
+ *         "/Component": {
+ *             "/mail": {
+ *                 "user": "..."
+ *             },
+ *             "password": "..."
+ *         },
+ *         "/SimpleMailMonitor": {
+ *             "/mail": {
+ *                 "host": "...",
+ *                 "store.protocol": "imap",
+ *                 "imap.ssl.enable": "true",
+ *                 "imap.port": 993
+ *             }
+ *         },
+ *         "/SimpleMailSender": {
+ *             "/mail": {
+ *                 "host": "...",
+ *                 "transport.protocol": "smtp",
+ *                 "smtp.ssl.enable": "true",
+ *                 "smtp.port": 465,
+ *                 "smtp.auth": true
+ *             }
+ *         }
+ *     }
+ * }
+ * ```
  */
 package org.jgrapes.mail;

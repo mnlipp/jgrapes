@@ -22,8 +22,6 @@ import jakarta.mail.Address;
 import jakarta.mail.BodyPart;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMultipart;
-
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,14 +36,14 @@ public class SendMailMessage extends Event<Void> {
 
     private Address from;
     @SuppressWarnings({ "PMD.ShortVariable", "PMD.AvoidDuplicateLiterals" })
-    private List<Address> to;
+    private Address[] to;
     @SuppressWarnings("PMD.ShortVariable")
-    private List<Address> cc = Collections.emptyList();
-    private List<Address> bcc = Collections.emptyList();
+    private Address[] cc = new Address[0];
+    private Address[] bcc = new Address[0];
     @SuppressWarnings("PMD.UseConcurrentHashMap")
     private final Map<String, String> headers = new HashMap<>();
     private String subject;
-    private MimeMultipart body;
+    private MimeMultipart content;
 
     /**
      * Creates a new event.
@@ -80,9 +78,21 @@ public class SendMailMessage extends Event<Void> {
      *
      * @return the to
      */
-    @SuppressWarnings("PMD.ShortMethodName")
-    public List<Address> to() {
+    @SuppressWarnings({ "PMD.ShortMethodName",
+        "PMD.MethodReturnsInternalArray" })
+    public Address[] to() {
         return to;
+    }
+
+    /**
+     * Sets the to addresses.
+     *
+     * @param to the to addresses to set
+     */
+    @SuppressWarnings({ "PMD.ShortVariable", "PMD.ArrayIsStoredDirectly" })
+    public SendMailMessage setTo(Address... to) {
+        this.to = to;
+        return this;
     }
 
     /**
@@ -92,7 +102,7 @@ public class SendMailMessage extends Event<Void> {
      */
     @SuppressWarnings("PMD.ShortVariable")
     public SendMailMessage setTo(List<Address> to) {
-        this.to = to;
+        this.to = to.toArray(new Address[0]);
         return this;
     }
 
@@ -101,9 +111,21 @@ public class SendMailMessage extends Event<Void> {
      *
      * @return the cc
      */
-    @SuppressWarnings("PMD.ShortMethodName")
-    public List<Address> cc() {
+    @SuppressWarnings({ "PMD.ShortMethodName",
+        "PMD.MethodReturnsInternalArray" })
+    public Address[] cc() {
         return cc;
+    }
+
+    /**
+     * Sets the cc addresses.
+     *
+     * @param cc the cc adresses to set
+     */
+    @SuppressWarnings({ "PMD.ShortVariable", "PMD.ArrayIsStoredDirectly" })
+    public SendMailMessage setCc(Address... cc) {
+        this.cc = cc;
+        return this;
     }
 
     /**
@@ -113,7 +135,7 @@ public class SendMailMessage extends Event<Void> {
      */
     @SuppressWarnings("PMD.ShortVariable")
     public SendMailMessage setCc(List<Address> cc) {
-        this.cc = cc;
+        this.cc = cc.toArray(new Address[0]);
         return this;
     }
 
@@ -122,7 +144,8 @@ public class SendMailMessage extends Event<Void> {
      *
      * @return the bcc
      */
-    public List<Address> bcc() {
+    @SuppressWarnings("PMD.MethodReturnsInternalArray")
+    public Address[] bcc() {
         return bcc;
     }
 
@@ -131,8 +154,19 @@ public class SendMailMessage extends Event<Void> {
      *
      * @param bcc the bcc addresses to set
      */
-    public SendMailMessage setBcc(List<Address> bcc) {
+    @SuppressWarnings("PMD.ArrayIsStoredDirectly")
+    public SendMailMessage setBcc(Address... bcc) {
         this.bcc = bcc;
+        return this;
+    }
+
+    /**
+     * Sets the bcc addresses.
+     *
+     * @param bcc the bcc addresses to set
+     */
+    public SendMailMessage setBcc(List<Address> bcc) {
+        this.bcc = bcc.toArray(new Address[0]);
         return this;
     }
 
@@ -177,37 +211,38 @@ public class SendMailMessage extends Event<Void> {
     }
 
     /**
-     * Gets the body.
+     * Returns the content.
      *
-     * @return the body
+     * @return the mime multipart
      */
-    public MimeMultipart body() {
-        return body;
+    public MimeMultipart content() {
+        return content;
     }
 
     /**
-     * Sets the body.
+     * Sets the content.
      *
-     * @param body the body to set
+     * @param content the content
+     * @return the send mail message
      */
-    public SendMailMessage setBody(MimeMultipart body) {
-        this.body = body;
+    public SendMailMessage setContent(MimeMultipart content) {
+        this.content = content;
         return this;
     }
 
     /**
-     * Adds the part to the body.
+     * Adds the part to the content.
      *
      * @param part the part
      * @return the send mail message
      * @throws MessagingException the messaging exception
      */
-    public SendMailMessage addBodyPart(BodyPart part)
+    public SendMailMessage addContent(BodyPart part)
             throws MessagingException {
-        if (body == null) {
-            body = new MimeMultipart();
+        if (content == null) {
+            content = new MimeMultipart();
         }
-        body.addBodyPart(part);
+        content.addBodyPart(part);
         return this;
     }
 }

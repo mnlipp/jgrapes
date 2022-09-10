@@ -20,41 +20,31 @@ package org.jgrapes.examples.mail;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
+import org.jgrapes.mail.SimpleMailMonitor;
 import org.jgrapes.mail.SimpleMailSender;
-import org.jgrapes.mail.events.SendMailMessage;
 import org.jgrapes.util.JsonConfigurationStore;
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.InternetAddress;
-import jakarta.mail.internet.MimeBodyPart;
 
 /**
- * An application that deletes all received mails.
+ * An application that replies to all received mails.
  */
-public class SendMail extends Component {
+public class AutoResponder extends Component {
 
     /**
      * @param args
      * @throws IOException 
      * @throws InterruptedException 
-     * @throws MessagingException 
      */
     public static void main(String[] args)
-            throws IOException, InterruptedException, MessagingException {
-        var app = new SendMail();
+            throws IOException, InterruptedException {
+        var app = new AutoResponder();
         app.attach(new JsonConfigurationStore(app,
             new File("mail-examples-config.json")));
+        app.attach(new SimpleMailMonitor(app));
         app.attach(new SimpleMailSender(app));
+        app.attach(new ReplyGenerator(app));
         Components.start(app);
-        var bp1 = new MimeBodyPart();
-        bp1.setText("Test mail.");
-        app.fire(new SendMailMessage()
-            .setFrom(new InternetAddress("test@jgrapes.org"))
-            .setTo(List.of(new InternetAddress("mnl@mnl.de")))
-            .setSubject("Mail Test")
-            .addContent(bp1));
         Components.awaitExhaustion();
     }
 
