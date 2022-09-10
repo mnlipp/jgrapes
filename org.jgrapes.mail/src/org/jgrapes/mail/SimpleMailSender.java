@@ -121,8 +121,8 @@ public class SimpleMailSender extends MailComponent {
     }
 
     /**
-     * Sets the maximum idle time. A running {@link IMAPFolder#idle()}
-     * is terminated and renewed after this time.
+     * Sets the maximum idle time. An open connection to the mail server
+     * is closed after this time.
      *
      * @param maxIdleTime the new max idle time
      */
