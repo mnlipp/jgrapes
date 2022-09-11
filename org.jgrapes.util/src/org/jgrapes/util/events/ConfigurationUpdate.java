@@ -18,20 +18,16 @@
 
 package org.jgrapes.util.events;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.StringTokenizer;
-import java.util.TreeMap;
-import java.util.regex.Pattern;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.Manager;
+import org.jgrapes.util.ConfigurationStore;
 
 /**
  * An event to indicate that configuration information has been
@@ -68,115 +64,12 @@ import org.jgrapes.core.Manager;
 @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 public class ConfigurationUpdate extends Event<Void> {
 
-    public static final Pattern NUMBER = Pattern.compile("^\\d+$");
-
     @SuppressWarnings({ "PMD.UseConcurrentHashMap",
         "PMD.AvoidDuplicateLiterals" })
     private final Map<String, Map<String, String>> flatValues = new HashMap<>();
     @SuppressWarnings("PMD.UseConcurrentHashMap")
     private final Map<String, Map<String, ?>> structuredValues
         = new HashMap<>();
-
-    /**
-     * Each value in the map passed as argument represents properties
-     * as a map of keys and (possibly) structured values (value, 
-     * collection or map). Each such map of properties is converted
-     * to a (possibly larger) map of properties where the structural
-     * information has been added to the keys.
-     *
-     * @param structured the map with structured properties
-     * @return the map with flattened properties
-     */
-    private static Map<String, String> flatten(Map<String, ?> structured) {
-        @SuppressWarnings("PMD.UseConcurrentHashMap")
-        Map<String, String> result = new HashMap<>();
-        flattenObject(result, null, structured);
-        return result;
-    }
-
-    @SuppressWarnings({ "unchecked", "PMD.AvoidDuplicateLiterals" })
-    private static void flattenObject(Map<String, String> result,
-            String prefix, Object value) {
-        if (value == null) {
-            result.put(prefix, null);
-            return;
-        }
-        if (value instanceof Map) {
-            for (var entry : ((Map<String, ?>) value).entrySet()) {
-                flattenObject(result,
-                    Optional.ofNullable(prefix).map(p -> p + ".").orElse("")
-                        + entry.getKey(),
-                    entry.getValue());
-            }
-            return;
-        }
-        if (value instanceof Collection) {
-            int count = 0;
-            for (var item : (Collection<?>) value) {
-                flattenObject(result, prefix + "." + count++, item);
-            }
-            return;
-        }
-        result.put(prefix, value.toString());
-    }
-
-    @SuppressWarnings({ "PMD.AvoidInstantiatingObjectsInLoops",
-        "PMD.ReturnEmptyCollectionRatherThanNull" })
-    private static Map<String, ?>
-            structure(Map<String, String> flatProperties) {
-        if (flatProperties == null) {
-            return null;
-        }
-        @SuppressWarnings("PMD.UseConcurrentHashMap")
-        Map<Object, Object> result = new HashMap<>();
-        for (var entry : flatProperties.entrySet()) {
-            Map<Object, Object> target = result;
-            // Original key (optionally) consists of dot separated parts
-            StringTokenizer parts = new StringTokenizer(entry.getKey(), ".");
-            while (true) {
-                var part = parts.nextToken();
-                Object key = NUMBER.matcher(part).find()
-                    ? Integer.parseInt(part)
-                    : part;
-                if (!parts.hasMoreTokens()) {
-                    // Last part (of key), store value
-                    target.put(key, entry.getValue());
-                    break;
-                }
-                @SuppressWarnings("unchecked")
-                var newTarget = (Map<Object, Object>) target
-                    .computeIfAbsent(part, k -> new TreeMap<Object, Object>());
-                target = newTarget;
-            }
-        }
-
-        // Now convert all maps that have only Integer keys to lists
-        for (var entry : result.entrySet()) {
-            entry.setValue(maybeConvert(entry.getValue()));
-        }
-
-        // Return result
-        @SuppressWarnings({ "unchecked", "rawtypes" })
-        Map<String, ?> res = (Map<String, ?>) (Map) result;
-        return res;
-    }
-
-    @SuppressWarnings({ "unchecked", "PMD.ConfusingTernary" })
-    private static Object maybeConvert(Object value) {
-        if (!(value instanceof Map)) {
-            return value;
-        }
-        List<Object> converted = new ArrayList<>();
-        for (var entry : ((Map<Object, Object>) value).entrySet()) {
-            entry.setValue(maybeConvert(entry.getValue()));
-            if (converted != null && entry.getKey() instanceof Integer) {
-                converted.add(entry.getValue());
-                continue;
-            }
-            converted = null;
-        }
-        return converted != null ? converted : value;
-    }
 
     /**
      * Set new (updated) structured configuration values for the event.
@@ -210,7 +103,7 @@ public class ConfigurationUpdate extends Event<Void> {
             if (!structuredValues.containsKey(path)
                 && flatValues.containsKey(path)) {
                 // Synchronize to structured and return
-                result = structure(flatValues.get(path));
+                result = ConfigurationStore.structure(flatValues.get(path));
                 structuredValues.put(path, result);
             } else {
                 result = structuredValues.get(path);
@@ -238,7 +131,8 @@ public class ConfigurationUpdate extends Event<Void> {
             if (!flatValues.containsKey(path)
                 && structuredValues.containsKey(path)) {
                 // Flattened version becomes current, invalidate structured
-                flatValues.put(path, flatten(structuredValues.get(path)));
+                flatValues.put(path,
+                    ConfigurationStore.flatten(structuredValues.get(path)));
             }
             structuredValues.remove(path);
             @SuppressWarnings("PMD.UseConcurrentHashMap")
@@ -294,7 +188,7 @@ public class ConfigurationUpdate extends Event<Void> {
             if (!flatValues.containsKey(path)
                 && structuredValues.containsKey(path)) {
                 // Synchronize to flatValues and return
-                result = flatten(structuredValues.get(path));
+                result = ConfigurationStore.flatten(structuredValues.get(path));
                 flatValues.put(path, result);
             } else {
                 result = flatValues.get(path);
@@ -316,7 +210,8 @@ public class ConfigurationUpdate extends Event<Void> {
     public Optional<String> value(String path, String key) {
         if (!flatValues.containsKey(path)
             && structuredValues.containsKey(path)) {
-            flatValues.put(path, flatten(structuredValues.get(path)));
+            flatValues.put(path,
+                ConfigurationStore.flatten(structuredValues.get(path)));
         }
         return Optional.ofNullable(flatValues.get(path))
             .flatMap(map -> Optional.ofNullable(map.get(key)));

@@ -35,7 +35,6 @@ import org.jdrupes.json.JsonBeanDecoder;
 import org.jdrupes.json.JsonBeanEncoder;
 import org.jdrupes.json.JsonDecodeException;
 import org.jgrapes.core.Channel;
-import org.jgrapes.core.Component;
 import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Start;
@@ -73,7 +72,7 @@ import org.jgrapes.util.events.InitialPreferences;
  */
 @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",
     "PMD.AvoidDuplicateLiterals" })
-public class JsonConfigurationStore extends Component {
+public class JsonConfigurationStore extends ConfigurationStore {
 
     private File file;
     private Map<String, Object> cache;
@@ -239,17 +238,9 @@ public class JsonConfigurationStore extends Component {
         return changed;
     }
 
-    /**
-     * Return the properties for a given path if they exists. This
-     * method should only be used in cases where configuration values
-     * are needed before the {@link InitialConfiguration} event is
-     * fired, e.g. while creating the component tree. 
-     * 
-     * @param path the path
-     * @return the values, if defined for the given path
-     */
     @SuppressWarnings({ "unchecked",
         "PMD.AvoidBranchingStatementAsLastInLoop" })
+    @Override
     public Optional<Map<String, String>> values(String path) {
         if (!path.startsWith("/")) {
             throw new IllegalArgumentException("Path must start with \"/\".");

@@ -18,39 +18,34 @@
 
 package org.jgrapes.util.test;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.Reader;
-import java.io.UnsupportedEncodingException;
-import java.io.Writer;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import org.jdrupes.json.JsonBeanDecoder;
-import org.jdrupes.json.JsonDecodeException;
+import java.util.prefs.BackingStoreException;
+import java.util.prefs.Preferences;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.annotation.Handler;
-import org.jgrapes.util.JsonConfigurationStore;
+import org.jgrapes.util.PreferencesStore;
 import org.jgrapes.util.events.ConfigurationUpdate;
+import org.jgrapes.util.events.InitialPreferences;
 import static org.junit.Assert.*;
 import org.junit.Test;
 
-public class JsonConfigTests {
+public class PreferencesTests {
 
     public class UpdateTrigger extends Event<Void> {
     }
 
     public class App extends Component {
 
+        public String appPath;
         public int value = 0;
         public int subValue = 0;
+
+        @Handler
+        public void onInitialPrefs(InitialPreferences event) {
+            appPath = event.applicationPath();
+        }
 
         @Handler
         public void onConfigurationUpdate(ConfigurationUpdate event) {
@@ -79,19 +74,21 @@ public class JsonConfigTests {
 
     @SuppressWarnings("unchecked")
     @Test
-    public void testInit() throws InterruptedException,
-            UnsupportedEncodingException, FileNotFoundException, IOException,
-            JsonDecodeException {
+    public void testInit() throws InterruptedException, BackingStoreException {
 
-        // Create app and initial file
+        // Set values in Java Preferences
+        Preferences base = Preferences.userNodeForPackage(getClass())
+            .node("PreferencesStore");
+        base.put("answer", "42");
+        base.node("sub/tree").put("value", "24");
+        base.node("sub/tree").put("list.0", "1");
+        base.node("sub/tree").put("list.1", "2");
+        base.node("sub/tree").put("list.2", "3");
+        base.flush();
+
+        // Create app
         App app = new App();
-        File file = new File("testConfig.json");
-        try (Writer out
-            = new OutputStreamWriter(new FileOutputStream(file), "utf-8")) {
-            out.write("{\"answer\":42, \"/sub\":{\"/tree\":{\"value\":24,"
-                + "\"list.0\":1,\"list.1\":2,\"list.2\":3}}}");
-        }
-        var conf = new JsonConfigurationStore(app, file);
+        var conf = new PreferencesStore(app, getClass());
         assertEquals("42", conf.values("/").get().get("answer"));
         assertEquals("24", conf.values("/sub/tree").get().get("value"));
         var list
@@ -104,6 +101,8 @@ public class JsonConfigTests {
 
         Components.start(app);
         Components.awaitExhaustion();
+        assertEquals(app.appPath, Preferences.userNodeForPackage(getClass())
+            .absolutePath());
         assertEquals(42, app.value);
         assertEquals(24, app.subValue);
 
@@ -116,40 +115,27 @@ public class JsonConfigTests {
         // Check storage update
         app.fire(new UpdateTrigger(), app);
         Components.awaitExhaustion();
-        Map<String, Object> root;
-        try (Reader input
-            = new InputStreamReader(new FileInputStream(file), "utf-8")) {
-            root = JsonBeanDecoder.create(input)
-                .readObject(HashMap.class);
-        }
-
-        // File must have been updated
-        assertEquals("new", root.get("updated"));
+        assertEquals("new", base.get("updated", ""));
 
         // Remove sub tree event
         app.fire(new ConfigurationUpdate().removePath("/sub"), app);
         Components.awaitExhaustion();
-        try (Reader input
-            = new InputStreamReader(new FileInputStream(file), "utf-8")) {
-            root = JsonBeanDecoder.create(input).readObject(HashMap.class);
-        }
 
-        // Sub tree must have been removed in file
-        assertFalse(root.containsKey("/sub"));
+        // Sub tree must have been removed in Java Preferences
+        assertFalse(base.nodeExists("sub"));
+        assertTrue(base.nodeExists(""));
 
         // Remove test preferences
         app.fire(new ConfigurationUpdate().removePath("/"), app);
         Components.awaitExhaustion();
-        try (Reader input
-            = new InputStreamReader(new FileInputStream(file), "utf-8")) {
-            root = JsonBeanDecoder.create(input).readObject(HashMap.class);
-        }
 
         // Data must have been removed
-        assertTrue(root.isEmpty());
+        assertFalse(base.nodeExists(""));
 
         // Cleanup
-        file.delete();
+        Preferences.userNodeForPackage(getClass())
+            .node(getClass().getSimpleName()).removeNode();
+
     }
 
 }

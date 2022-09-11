@@ -1,6 +1,6 @@
 /*
  * JGrapes Event Driven Framework
- * Copyright (C) 2017-2018 Michael N. Lipp
+ * Copyright (C) 2017-2022 Michael N. Lipp
  * 
  * This program is free software; you can redistribute it and/or modify it 
  * under the terms of the GNU Affero General Public License as published by 
@@ -19,12 +19,12 @@
 package org.jgrapes.util;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 import org.jgrapes.core.Channel;
-import org.jgrapes.core.Component;
 import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Start;
@@ -60,7 +60,7 @@ import org.jgrapes.util.events.InitialPreferences;
  * on its channel and updates the preferences store (may be suppressed).
  */
 @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
-public class PreferencesStore extends Component {
+public class PreferencesStore extends ConfigurationStore {
 
     private Preferences preferences;
 
@@ -160,5 +160,26 @@ public class PreferencesStore extends Component {
             }
         }
         preferences.flush();
+    }
+
+    @Override
+    public Optional<Map<String, String>> values(String path) {
+        if (!path.startsWith("/")) {
+            throw new IllegalArgumentException("Path must start with \"/\".");
+        }
+        try {
+            var relPath = path.substring(1);
+            if (!preferences.nodeExists(relPath)) {
+                return Optional.empty();
+            }
+            var node = preferences.node(relPath);
+            var result = new HashMap<String, String>();
+            for (String key : node.keys()) {
+                result.put(key, node.get(key, null));
+            }
+            return Optional.of(result);
+        } catch (BackingStoreException e) {
+            throw new IllegalStateException(e);
+        }
     }
 }
