@@ -48,241 +48,232 @@
 <span class="source-line-no">035</span><span id="line-35">import org.jdrupes.json.JsonBeanEncoder;</span>
 <span class="source-line-no">036</span><span id="line-36">import org.jdrupes.json.JsonDecodeException;</span>
 <span class="source-line-no">037</span><span id="line-37">import org.jgrapes.core.Channel;</span>
-<span class="source-line-no">038</span><span id="line-38">import org.jgrapes.core.Component;</span>
-<span class="source-line-no">039</span><span id="line-39">import org.jgrapes.core.EventPipeline;</span>
-<span class="source-line-no">040</span><span id="line-40">import org.jgrapes.core.annotation.Handler;</span>
-<span class="source-line-no">041</span><span id="line-41">import org.jgrapes.core.events.Start;</span>
-<span class="source-line-no">042</span><span id="line-42">import org.jgrapes.util.events.ConfigurationUpdate;</span>
-<span class="source-line-no">043</span><span id="line-43">import org.jgrapes.util.events.InitialConfiguration;</span>
-<span class="source-line-no">044</span><span id="line-44">import org.jgrapes.util.events.InitialPreferences;</span>
-<span class="source-line-no">045</span><span id="line-45"></span>
-<span class="source-line-no">046</span><span id="line-46">/**</span>
-<span class="source-line-no">047</span><span id="line-47"> * This component provides a store for an application's configuration</span>
-<span class="source-line-no">048</span><span id="line-48"> * backed by a JSON file. The JSON object described by this file </span>
-<span class="source-line-no">049</span><span id="line-49"> * represents the root directory. If an entry does not start with a</span>
-<span class="source-line-no">050</span><span id="line-50"> * slash, it represents the key of a key value pair. If it does</span>
-<span class="source-line-no">051</span><span id="line-51"> * starts with a slash, the value is another JSON object that</span>
-<span class="source-line-no">052</span><span id="line-52"> * describes the respective subdirectory.</span>
-<span class="source-line-no">053</span><span id="line-53"> * </span>
-<span class="source-line-no">054</span><span id="line-54"> * The component reads the initial values from {@link File} passed</span>
-<span class="source-line-no">055</span><span id="line-55"> * to the constructor. During application bootstrap, it </span>
-<span class="source-line-no">056</span><span id="line-56"> * intercepts the {@link Start} event using a handler with  priority </span>
-<span class="source-line-no">057</span><span id="line-57"> * 999999. When receiving this event, it fires all known preferences </span>
-<span class="source-line-no">058</span><span id="line-58"> * values on the channels of the start event as a </span>
-<span class="source-line-no">059</span><span id="line-59"> * {@link InitialPreferences} event, using a new {@link EventPipeline}</span>
-<span class="source-line-no">060</span><span id="line-60"> * and waiting for its completion. Then, allows the intercepted </span>
-<span class="source-line-no">061</span><span id="line-61"> * {@link Start} event to continue. </span>
-<span class="source-line-no">062</span><span id="line-62"> * </span>
-<span class="source-line-no">063</span><span id="line-63"> * Components that depend on configuration values define handlers</span>
-<span class="source-line-no">064</span><span id="line-64"> * for {@link ConfigurationUpdate} events and adapt themselves to the values </span>
-<span class="source-line-no">065</span><span id="line-65"> * received. Note that due to the intercepted {@link Start} event, the initial</span>
-<span class="source-line-no">066</span><span id="line-66"> * preferences values are received before the {@link Start} event, so</span>
-<span class="source-line-no">067</span><span id="line-67"> * components' configurations can be rearranged before they actually</span>
-<span class="source-line-no">068</span><span id="line-68"> * start doing something.</span>
-<span class="source-line-no">069</span><span id="line-69"> *</span>
-<span class="source-line-no">070</span><span id="line-70"> * Besides initially publishing the stored preferences values,</span>
-<span class="source-line-no">071</span><span id="line-71"> * the component also listens for {@link ConfigurationUpdate} events</span>
-<span class="source-line-no">072</span><span id="line-72"> * on its channel and updates the JSON file (may be suppressed).</span>
-<span class="source-line-no">073</span><span id="line-73"> */</span>
-<span class="source-line-no">074</span><span id="line-74">@SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",</span>
-<span class="source-line-no">075</span><span id="line-75">    "PMD.AvoidDuplicateLiterals" })</span>
-<span class="source-line-no">076</span><span id="line-76">public class JsonConfigurationStore extends Component {</span>
-<span class="source-line-no">077</span><span id="line-77"></span>
-<span class="source-line-no">078</span><span id="line-78">    private File file;</span>
-<span class="source-line-no">079</span><span id="line-79">    private Map&lt;String, Object&gt; cache;</span>
-<span class="source-line-no">080</span><span id="line-80"></span>
-<span class="source-line-no">081</span><span id="line-81">    /**</span>
-<span class="source-line-no">082</span><span id="line-82">     * Creates a new component with its channel set to the given </span>
-<span class="source-line-no">083</span><span id="line-83">     * channel and the given file.</span>
-<span class="source-line-no">084</span><span id="line-84">     * </span>
-<span class="source-line-no">085</span><span id="line-85">     * @param componentChannel the channel </span>
-<span class="source-line-no">086</span><span id="line-86">     * @param file the file used to store the JSON</span>
-<span class="source-line-no">087</span><span id="line-87">     * @throws JsonDecodeException</span>
-<span class="source-line-no">088</span><span id="line-88">     */</span>
-<span class="source-line-no">089</span><span id="line-89">    public JsonConfigurationStore(Channel componentChannel, File file)</span>
-<span class="source-line-no">090</span><span id="line-90">            throws IOException {</span>
-<span class="source-line-no">091</span><span id="line-91">        this(componentChannel, file, true);</span>
-<span class="source-line-no">092</span><span id="line-92">    }</span>
-<span class="source-line-no">093</span><span id="line-93"></span>
-<span class="source-line-no">094</span><span id="line-94">    /**</span>
-<span class="source-line-no">095</span><span id="line-95">     * Creates a new component with its channel set to the given </span>
-<span class="source-line-no">096</span><span id="line-96">     * channel and the given file.</span>
-<span class="source-line-no">097</span><span id="line-97">     * </span>
-<span class="source-line-no">098</span><span id="line-98">     * @param componentChannel the channel </span>
-<span class="source-line-no">099</span><span id="line-99">     * @param file the file used to store the JSON</span>
-<span class="source-line-no">100</span><span id="line-100">     * @throws JsonDecodeException</span>
-<span class="source-line-no">101</span><span id="line-101">     */</span>
-<span class="source-line-no">102</span><span id="line-102">    @SuppressWarnings("PMD.ShortVariable")</span>
-<span class="source-line-no">103</span><span id="line-103">    public JsonConfigurationStore(Channel componentChannel, File file,</span>
-<span class="source-line-no">104</span><span id="line-104">            boolean update) throws IOException {</span>
-<span class="source-line-no">105</span><span id="line-105">        super(componentChannel);</span>
-<span class="source-line-no">106</span><span id="line-106">        if (update) {</span>
-<span class="source-line-no">107</span><span id="line-107">            Handler.Evaluator.add(this, "onConfigurationUpdate",</span>
-<span class="source-line-no">108</span><span id="line-108">                channel().defaultCriterion());</span>
-<span class="source-line-no">109</span><span id="line-109">        }</span>
-<span class="source-line-no">110</span><span id="line-110">        this.file = file;</span>
-<span class="source-line-no">111</span><span id="line-111">        if (!file.exists()) {</span>
-<span class="source-line-no">112</span><span id="line-112">            cache = new HashMap&lt;&gt;();</span>
-<span class="source-line-no">113</span><span id="line-113">            return;</span>
-<span class="source-line-no">114</span><span id="line-114">        }</span>
-<span class="source-line-no">115</span><span id="line-115">        try (Reader in = new InputStreamReader(</span>
-<span class="source-line-no">116</span><span id="line-116">            Files.newInputStream(file.toPath()), "utf-8")) {</span>
-<span class="source-line-no">117</span><span id="line-117">            @SuppressWarnings({ "unchecked", "PMD.AvoidDuplicateLiterals" })</span>
-<span class="source-line-no">118</span><span id="line-118">            Map&lt;String, Object&gt; confCache</span>
-<span class="source-line-no">119</span><span id="line-119">                = (Map&lt;String, Object&gt;) JsonBeanDecoder.create(in).readObject();</span>
-<span class="source-line-no">120</span><span id="line-120">            cache = confCache;</span>
-<span class="source-line-no">121</span><span id="line-121">        } catch (JsonDecodeException e) {</span>
-<span class="source-line-no">122</span><span id="line-122">            throw new IOException(e);</span>
-<span class="source-line-no">123</span><span id="line-123">        }</span>
-<span class="source-line-no">124</span><span id="line-124">    }</span>
-<span class="source-line-no">125</span><span id="line-125"></span>
-<span class="source-line-no">126</span><span id="line-126">    /**</span>
-<span class="source-line-no">127</span><span id="line-127">     * Intercepts the {@link Start} event and fires a</span>
-<span class="source-line-no">128</span><span id="line-128">     * {@link ConfigurationUpdate} event.</span>
-<span class="source-line-no">129</span><span id="line-129">     *</span>
-<span class="source-line-no">130</span><span id="line-130">     * @param event the event</span>
-<span class="source-line-no">131</span><span id="line-131">     * @throws BackingStoreException the backing store exception</span>
-<span class="source-line-no">132</span><span id="line-132">     * @throws InterruptedException the interrupted exception</span>
-<span class="source-line-no">133</span><span id="line-133">     */</span>
-<span class="source-line-no">134</span><span id="line-134">    @Handler(priority = 999_999, channels = Channel.class)</span>
-<span class="source-line-no">135</span><span id="line-135">    public void onStart(Start event)</span>
-<span class="source-line-no">136</span><span id="line-136">            throws BackingStoreException, InterruptedException {</span>
-<span class="source-line-no">137</span><span id="line-137">        ConfigurationUpdate updEvt = new InitialConfiguration();</span>
-<span class="source-line-no">138</span><span id="line-138">        addPrefs(updEvt, "/", cache);</span>
-<span class="source-line-no">139</span><span id="line-139">        newEventPipeline().fire(updEvt, event.channels()).get();</span>
-<span class="source-line-no">140</span><span id="line-140">    }</span>
-<span class="source-line-no">141</span><span id="line-141"></span>
-<span class="source-line-no">142</span><span id="line-142">    private void addPrefs(</span>
-<span class="source-line-no">143</span><span id="line-143">            ConfigurationUpdate updEvt, String path, Map&lt;String, ?&gt; map) {</span>
-<span class="source-line-no">144</span><span id="line-144">        for (Map.Entry&lt;String, ?&gt; e : map.entrySet()) {</span>
-<span class="source-line-no">145</span><span id="line-145">            if (e.getValue() instanceof Map) {</span>
-<span class="source-line-no">146</span><span id="line-146">                @SuppressWarnings("unchecked")</span>
-<span class="source-line-no">147</span><span id="line-147">                Map&lt;String, ?&gt; value = (Map&lt;String, ?&gt;) e.getValue();</span>
-<span class="source-line-no">148</span><span id="line-148">                addPrefs(updEvt, ("/".equals(path) ? "" : path)</span>
-<span class="source-line-no">149</span><span id="line-149">                    + e.getKey(), value);</span>
-<span class="source-line-no">150</span><span id="line-150">                continue;</span>
-<span class="source-line-no">151</span><span id="line-151">            }</span>
-<span class="source-line-no">152</span><span id="line-152">            updEvt.add(path, e.getKey(), e.getValue().toString());</span>
-<span class="source-line-no">153</span><span id="line-153">        }</span>
-<span class="source-line-no">154</span><span id="line-154">    }</span>
-<span class="source-line-no">155</span><span id="line-155"></span>
-<span class="source-line-no">156</span><span id="line-156">    /**</span>
-<span class="source-line-no">157</span><span id="line-157">     * Merges and saves configuration updates.</span>
-<span class="source-line-no">158</span><span id="line-158">     *</span>
-<span class="source-line-no">159</span><span id="line-159">     * @param event the event</span>
-<span class="source-line-no">160</span><span id="line-160">     * @throws IOException Signals that an I/O exception has occurred.</span>
-<span class="source-line-no">161</span><span id="line-161">     */</span>
-<span class="source-line-no">162</span><span id="line-162">    @Handler(dynamic = true)</span>
-<span class="source-line-no">163</span><span id="line-163">    @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",</span>
-<span class="source-line-no">164</span><span id="line-164">        "PMD.AvoidLiteralsInIfCondition",</span>
-<span class="source-line-no">165</span><span id="line-165">        "PMD.AvoidInstantiatingObjectsInLoops" })</span>
-<span class="source-line-no">166</span><span id="line-166">    public void onConfigurationUpdate(ConfigurationUpdate event)</span>
-<span class="source-line-no">167</span><span id="line-167">            throws IOException {</span>
-<span class="source-line-no">168</span><span id="line-168">        boolean changed = false;</span>
-<span class="source-line-no">169</span><span id="line-169">        for (String path : event.paths()) {</span>
-<span class="source-line-no">170</span><span id="line-170">            if ("/".equals(path) &amp;&amp; !event.values(path).isPresent()) {</span>
-<span class="source-line-no">171</span><span id="line-171">                // Special case, "remove root", i.e. all configuration data</span>
-<span class="source-line-no">172</span><span id="line-172">                cache.clear();</span>
-<span class="source-line-no">173</span><span id="line-173">                changed = true;</span>
-<span class="source-line-no">174</span><span id="line-174">            }</span>
-<span class="source-line-no">175</span><span id="line-175">            changed = changed || handleSegment(cache,</span>
-<span class="source-line-no">176</span><span id="line-176">                new StringTokenizer(path, "/"), event.values(path));</span>
-<span class="source-line-no">177</span><span id="line-177">        }</span>
-<span class="source-line-no">178</span><span id="line-178">        if (changed) {</span>
-<span class="source-line-no">179</span><span id="line-179">            try (Writer out = new OutputStreamWriter(</span>
-<span class="source-line-no">180</span><span id="line-180">                Files.newOutputStream(file.toPath()), "utf-8");</span>
-<span class="source-line-no">181</span><span id="line-181">                    JsonBeanEncoder enc = JsonBeanEncoder.create(out)) {</span>
-<span class="source-line-no">182</span><span id="line-182">                enc.writeObject(cache);</span>
-<span class="source-line-no">183</span><span id="line-183">            }</span>
-<span class="source-line-no">184</span><span id="line-184">        }</span>
-<span class="source-line-no">185</span><span id="line-185">    }</span>
-<span class="source-line-no">186</span><span id="line-186"></span>
-<span class="source-line-no">187</span><span id="line-187">    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")</span>
-<span class="source-line-no">188</span><span id="line-188">    private boolean handleSegment(Map&lt;String, Object&gt; currentMap,</span>
-<span class="source-line-no">189</span><span id="line-189">            StringTokenizer tokenizer, Optional&lt;Map&lt;String, String&gt;&gt; values) {</span>
-<span class="source-line-no">190</span><span id="line-190">        if (!tokenizer.hasMoreTokens()) {</span>
-<span class="source-line-no">191</span><span id="line-191">            // "Leave" map</span>
-<span class="source-line-no">192</span><span id="line-192">            return mergeValues(currentMap, values.get());</span>
-<span class="source-line-no">193</span><span id="line-193">        }</span>
-<span class="source-line-no">194</span><span id="line-194">        boolean changed = false;</span>
-<span class="source-line-no">195</span><span id="line-195">        String nextSegment = "/" + tokenizer.nextToken();</span>
-<span class="source-line-no">196</span><span id="line-196">        if (!tokenizer.hasMoreTokens() &amp;&amp; !values.isPresent()) {</span>
-<span class="source-line-no">197</span><span id="line-197">            // Next segment is last segment from path and we must remove</span>
-<span class="source-line-no">198</span><span id="line-198">            if (currentMap.containsKey(nextSegment)) {</span>
-<span class="source-line-no">199</span><span id="line-199">                // Delete sub-map.</span>
-<span class="source-line-no">200</span><span id="line-200">                currentMap.remove(nextSegment);</span>
-<span class="source-line-no">201</span><span id="line-201">                changed = true;</span>
-<span class="source-line-no">202</span><span id="line-202">            }</span>
-<span class="source-line-no">203</span><span id="line-203">            return changed;</span>
-<span class="source-line-no">204</span><span id="line-204">        }</span>
-<span class="source-line-no">205</span><span id="line-205">        // Check if next map exists</span>
-<span class="source-line-no">206</span><span id="line-206">        @SuppressWarnings("unchecked")</span>
-<span class="source-line-no">207</span><span id="line-207">        Map&lt;String, Object&gt; nextMap</span>
-<span class="source-line-no">208</span><span id="line-208">            = (Map&lt;String, Object&gt;) currentMap.get(nextSegment);</span>
-<span class="source-line-no">209</span><span id="line-209">        if (nextMap == null) {</span>
-<span class="source-line-no">210</span><span id="line-210">            // Doesn't exist, new sub-map</span>
-<span class="source-line-no">211</span><span id="line-211">            changed = true;</span>
-<span class="source-line-no">212</span><span id="line-212">            nextMap = new HashMap&lt;&gt;();</span>
-<span class="source-line-no">213</span><span id="line-213">            currentMap.put(nextSegment, nextMap);</span>
-<span class="source-line-no">214</span><span id="line-214">        }</span>
-<span class="source-line-no">215</span><span id="line-215">        // Continue with sub-map</span>
-<span class="source-line-no">216</span><span id="line-216">        return changed || handleSegment(nextMap, tokenizer, values);</span>
-<span class="source-line-no">217</span><span id="line-217">    }</span>
-<span class="source-line-no">218</span><span id="line-218"></span>
-<span class="source-line-no">219</span><span id="line-219">    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")</span>
-<span class="source-line-no">220</span><span id="line-220">    private boolean mergeValues(Map&lt;String, Object&gt; currentMap,</span>
-<span class="source-line-no">221</span><span id="line-221">            Map&lt;String, String&gt; values) {</span>
-<span class="source-line-no">222</span><span id="line-222">        boolean changed = false;</span>
-<span class="source-line-no">223</span><span id="line-223">        for (Map.Entry&lt;String, String&gt; e : values.entrySet()) {</span>
-<span class="source-line-no">224</span><span id="line-224">            if (e.getValue() == null) {</span>
-<span class="source-line-no">225</span><span id="line-225">                // Delete from map</span>
-<span class="source-line-no">226</span><span id="line-226">                if (currentMap.containsKey(e.getKey())) {</span>
-<span class="source-line-no">227</span><span id="line-227">                    currentMap.remove(e.getKey());</span>
-<span class="source-line-no">228</span><span id="line-228">                    changed = true;</span>
-<span class="source-line-no">229</span><span id="line-229">                }</span>
-<span class="source-line-no">230</span><span id="line-230">                continue;</span>
-<span class="source-line-no">231</span><span id="line-231">            }</span>
-<span class="source-line-no">232</span><span id="line-232">            String oldValue = Optional.ofNullable(currentMap.get(e.getKey()))</span>
-<span class="source-line-no">233</span><span id="line-233">                .map(val -&gt; val.toString()).orElse(null);</span>
-<span class="source-line-no">234</span><span id="line-234">            if (oldValue == null || !e.getValue().equals(oldValue)) {</span>
-<span class="source-line-no">235</span><span id="line-235">                currentMap.put(e.getKey(), e.getValue());</span>
-<span class="source-line-no">236</span><span id="line-236">                changed = true;</span>
-<span class="source-line-no">237</span><span id="line-237">            }</span>
-<span class="source-line-no">238</span><span id="line-238">        }</span>
-<span class="source-line-no">239</span><span id="line-239">        return changed;</span>
-<span class="source-line-no">240</span><span id="line-240">    }</span>
-<span class="source-line-no">241</span><span id="line-241"></span>
-<span class="source-line-no">242</span><span id="line-242">    /**</span>
-<span class="source-line-no">243</span><span id="line-243">     * Return the properties for a given path if they exists. This</span>
-<span class="source-line-no">244</span><span id="line-244">     * method should only be used in cases where configuration values</span>
-<span class="source-line-no">245</span><span id="line-245">     * are needed before the {@link InitialConfiguration} event is</span>
-<span class="source-line-no">246</span><span id="line-246">     * fired, e.g. while creating the component tree. </span>
-<span class="source-line-no">247</span><span id="line-247">     * </span>
-<span class="source-line-no">248</span><span id="line-248">     * @param path the path</span>
-<span class="source-line-no">249</span><span id="line-249">     * @return the values, if defined for the given path</span>
-<span class="source-line-no">250</span><span id="line-250">     */</span>
-<span class="source-line-no">251</span><span id="line-251">    @SuppressWarnings({ "unchecked",</span>
-<span class="source-line-no">252</span><span id="line-252">        "PMD.AvoidBranchingStatementAsLastInLoop" })</span>
-<span class="source-line-no">253</span><span id="line-253">    public Optional&lt;Map&lt;String, String&gt;&gt; values(String path) {</span>
-<span class="source-line-no">254</span><span id="line-254">        if (!path.startsWith("/")) {</span>
-<span class="source-line-no">255</span><span id="line-255">            throw new IllegalArgumentException("Path must start with \"/\".");</span>
-<span class="source-line-no">256</span><span id="line-256">        }</span>
-<span class="source-line-no">257</span><span id="line-257">        var segs = new StringTokenizer(path, "/");</span>
-<span class="source-line-no">258</span><span id="line-258">        Map&lt;String, Object&gt; cur = cache;</span>
-<span class="source-line-no">259</span><span id="line-259">        while (segs.hasMoreTokens()) {</span>
-<span class="source-line-no">260</span><span id="line-260">            Object next = cur.get("/" + segs.nextToken());</span>
-<span class="source-line-no">261</span><span id="line-261">            if (next instanceof Map) {</span>
-<span class="source-line-no">262</span><span id="line-262">                cur = (Map&lt;String, Object&gt;) next;</span>
-<span class="source-line-no">263</span><span id="line-263">                continue;</span>
-<span class="source-line-no">264</span><span id="line-264">            }</span>
-<span class="source-line-no">265</span><span id="line-265">            return Optional.empty();</span>
-<span class="source-line-no">266</span><span id="line-266">        }</span>
-<span class="source-line-no">267</span><span id="line-267">        return Optional.of(cur.entrySet().stream()</span>
-<span class="source-line-no">268</span><span id="line-268">            .filter(e -&gt; !(e.getValue() instanceof Map))</span>
-<span class="source-line-no">269</span><span id="line-269">            .collect(Collectors.toMap(Map.Entry::getKey,</span>
-<span class="source-line-no">270</span><span id="line-270">                e -&gt; e.getValue().toString())));</span>
-<span class="source-line-no">271</span><span id="line-271">    }</span>
-<span class="source-line-no">272</span><span id="line-272">}</span>
+<span class="source-line-no">038</span><span id="line-38">import org.jgrapes.core.EventPipeline;</span>
+<span class="source-line-no">039</span><span id="line-39">import org.jgrapes.core.annotation.Handler;</span>
+<span class="source-line-no">040</span><span id="line-40">import org.jgrapes.core.events.Start;</span>
+<span class="source-line-no">041</span><span id="line-41">import org.jgrapes.util.events.ConfigurationUpdate;</span>
+<span class="source-line-no">042</span><span id="line-42">import org.jgrapes.util.events.InitialConfiguration;</span>
+<span class="source-line-no">043</span><span id="line-43">import org.jgrapes.util.events.InitialPreferences;</span>
+<span class="source-line-no">044</span><span id="line-44"></span>
+<span class="source-line-no">045</span><span id="line-45">/**</span>
+<span class="source-line-no">046</span><span id="line-46"> * This component provides a store for an application's configuration</span>
+<span class="source-line-no">047</span><span id="line-47"> * backed by a JSON file. The JSON object described by this file </span>
+<span class="source-line-no">048</span><span id="line-48"> * represents the root directory. If an entry does not start with a</span>
+<span class="source-line-no">049</span><span id="line-49"> * slash, it represents the key of a key value pair. If it does</span>
+<span class="source-line-no">050</span><span id="line-50"> * starts with a slash, the value is another JSON object that</span>
+<span class="source-line-no">051</span><span id="line-51"> * describes the respective subdirectory.</span>
+<span class="source-line-no">052</span><span id="line-52"> * </span>
+<span class="source-line-no">053</span><span id="line-53"> * The component reads the initial values from {@link File} passed</span>
+<span class="source-line-no">054</span><span id="line-54"> * to the constructor. During application bootstrap, it </span>
+<span class="source-line-no">055</span><span id="line-55"> * intercepts the {@link Start} event using a handler with  priority </span>
+<span class="source-line-no">056</span><span id="line-56"> * 999999. When receiving this event, it fires all known preferences </span>
+<span class="source-line-no">057</span><span id="line-57"> * values on the channels of the start event as a </span>
+<span class="source-line-no">058</span><span id="line-58"> * {@link InitialPreferences} event, using a new {@link EventPipeline}</span>
+<span class="source-line-no">059</span><span id="line-59"> * and waiting for its completion. Then, allows the intercepted </span>
+<span class="source-line-no">060</span><span id="line-60"> * {@link Start} event to continue. </span>
+<span class="source-line-no">061</span><span id="line-61"> * </span>
+<span class="source-line-no">062</span><span id="line-62"> * Components that depend on configuration values define handlers</span>
+<span class="source-line-no">063</span><span id="line-63"> * for {@link ConfigurationUpdate} events and adapt themselves to the values </span>
+<span class="source-line-no">064</span><span id="line-64"> * received. Note that due to the intercepted {@link Start} event, the initial</span>
+<span class="source-line-no">065</span><span id="line-65"> * preferences values are received before the {@link Start} event, so</span>
+<span class="source-line-no">066</span><span id="line-66"> * components' configurations can be rearranged before they actually</span>
+<span class="source-line-no">067</span><span id="line-67"> * start doing something.</span>
+<span class="source-line-no">068</span><span id="line-68"> *</span>
+<span class="source-line-no">069</span><span id="line-69"> * Besides initially publishing the stored preferences values,</span>
+<span class="source-line-no">070</span><span id="line-70"> * the component also listens for {@link ConfigurationUpdate} events</span>
+<span class="source-line-no">071</span><span id="line-71"> * on its channel and updates the JSON file (may be suppressed).</span>
+<span class="source-line-no">072</span><span id="line-72"> */</span>
+<span class="source-line-no">073</span><span id="line-73">@SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",</span>
+<span class="source-line-no">074</span><span id="line-74">    "PMD.AvoidDuplicateLiterals" })</span>
+<span class="source-line-no">075</span><span id="line-75">public class JsonConfigurationStore extends ConfigurationStore {</span>
+<span class="source-line-no">076</span><span id="line-76"></span>
+<span class="source-line-no">077</span><span id="line-77">    private File file;</span>
+<span class="source-line-no">078</span><span id="line-78">    private Map&lt;String, Object&gt; cache;</span>
+<span class="source-line-no">079</span><span id="line-79"></span>
+<span class="source-line-no">080</span><span id="line-80">    /**</span>
+<span class="source-line-no">081</span><span id="line-81">     * Creates a new component with its channel set to the given </span>
+<span class="source-line-no">082</span><span id="line-82">     * channel and the given file.</span>
+<span class="source-line-no">083</span><span id="line-83">     * </span>
+<span class="source-line-no">084</span><span id="line-84">     * @param componentChannel the channel </span>
+<span class="source-line-no">085</span><span id="line-85">     * @param file the file used to store the JSON</span>
+<span class="source-line-no">086</span><span id="line-86">     * @throws JsonDecodeException</span>
+<span class="source-line-no">087</span><span id="line-87">     */</span>
+<span class="source-line-no">088</span><span id="line-88">    public JsonConfigurationStore(Channel componentChannel, File file)</span>
+<span class="source-line-no">089</span><span id="line-89">            throws IOException {</span>
+<span class="source-line-no">090</span><span id="line-90">        this(componentChannel, file, true);</span>
+<span class="source-line-no">091</span><span id="line-91">    }</span>
+<span class="source-line-no">092</span><span id="line-92"></span>
+<span class="source-line-no">093</span><span id="line-93">    /**</span>
+<span class="source-line-no">094</span><span id="line-94">     * Creates a new component with its channel set to the given </span>
+<span class="source-line-no">095</span><span id="line-95">     * channel and the given file.</span>
+<span class="source-line-no">096</span><span id="line-96">     * </span>
+<span class="source-line-no">097</span><span id="line-97">     * @param componentChannel the channel </span>
+<span class="source-line-no">098</span><span id="line-98">     * @param file the file used to store the JSON</span>
+<span class="source-line-no">099</span><span id="line-99">     * @throws JsonDecodeException</span>
+<span class="source-line-no">100</span><span id="line-100">     */</span>
+<span class="source-line-no">101</span><span id="line-101">    @SuppressWarnings("PMD.ShortVariable")</span>
+<span class="source-line-no">102</span><span id="line-102">    public JsonConfigurationStore(Channel componentChannel, File file,</span>
+<span class="source-line-no">103</span><span id="line-103">            boolean update) throws IOException {</span>
+<span class="source-line-no">104</span><span id="line-104">        super(componentChannel);</span>
+<span class="source-line-no">105</span><span id="line-105">        if (update) {</span>
+<span class="source-line-no">106</span><span id="line-106">            Handler.Evaluator.add(this, "onConfigurationUpdate",</span>
+<span class="source-line-no">107</span><span id="line-107">                channel().defaultCriterion());</span>
+<span class="source-line-no">108</span><span id="line-108">        }</span>
+<span class="source-line-no">109</span><span id="line-109">        this.file = file;</span>
+<span class="source-line-no">110</span><span id="line-110">        if (!file.exists()) {</span>
+<span class="source-line-no">111</span><span id="line-111">            cache = new HashMap&lt;&gt;();</span>
+<span class="source-line-no">112</span><span id="line-112">            return;</span>
+<span class="source-line-no">113</span><span id="line-113">        }</span>
+<span class="source-line-no">114</span><span id="line-114">        try (Reader in = new InputStreamReader(</span>
+<span class="source-line-no">115</span><span id="line-115">            Files.newInputStream(file.toPath()), "utf-8")) {</span>
+<span class="source-line-no">116</span><span id="line-116">            @SuppressWarnings({ "unchecked", "PMD.AvoidDuplicateLiterals" })</span>
+<span class="source-line-no">117</span><span id="line-117">            Map&lt;String, Object&gt; confCache</span>
+<span class="source-line-no">118</span><span id="line-118">                = (Map&lt;String, Object&gt;) JsonBeanDecoder.create(in).readObject();</span>
+<span class="source-line-no">119</span><span id="line-119">            cache = confCache;</span>
+<span class="source-line-no">120</span><span id="line-120">        } catch (JsonDecodeException e) {</span>
+<span class="source-line-no">121</span><span id="line-121">            throw new IOException(e);</span>
+<span class="source-line-no">122</span><span id="line-122">        }</span>
+<span class="source-line-no">123</span><span id="line-123">    }</span>
+<span class="source-line-no">124</span><span id="line-124"></span>
+<span class="source-line-no">125</span><span id="line-125">    /**</span>
+<span class="source-line-no">126</span><span id="line-126">     * Intercepts the {@link Start} event and fires a</span>
+<span class="source-line-no">127</span><span id="line-127">     * {@link ConfigurationUpdate} event.</span>
+<span class="source-line-no">128</span><span id="line-128">     *</span>
+<span class="source-line-no">129</span><span id="line-129">     * @param event the event</span>
+<span class="source-line-no">130</span><span id="line-130">     * @throws BackingStoreException the backing store exception</span>
+<span class="source-line-no">131</span><span id="line-131">     * @throws InterruptedException the interrupted exception</span>
+<span class="source-line-no">132</span><span id="line-132">     */</span>
+<span class="source-line-no">133</span><span id="line-133">    @Handler(priority = 999_999, channels = Channel.class)</span>
+<span class="source-line-no">134</span><span id="line-134">    public void onStart(Start event)</span>
+<span class="source-line-no">135</span><span id="line-135">            throws BackingStoreException, InterruptedException {</span>
+<span class="source-line-no">136</span><span id="line-136">        ConfigurationUpdate updEvt = new InitialConfiguration();</span>
+<span class="source-line-no">137</span><span id="line-137">        addPrefs(updEvt, "/", cache);</span>
+<span class="source-line-no">138</span><span id="line-138">        newEventPipeline().fire(updEvt, event.channels()).get();</span>
+<span class="source-line-no">139</span><span id="line-139">    }</span>
+<span class="source-line-no">140</span><span id="line-140"></span>
+<span class="source-line-no">141</span><span id="line-141">    private void addPrefs(</span>
+<span class="source-line-no">142</span><span id="line-142">            ConfigurationUpdate updEvt, String path, Map&lt;String, ?&gt; map) {</span>
+<span class="source-line-no">143</span><span id="line-143">        for (Map.Entry&lt;String, ?&gt; e : map.entrySet()) {</span>
+<span class="source-line-no">144</span><span id="line-144">            if (e.getValue() instanceof Map) {</span>
+<span class="source-line-no">145</span><span id="line-145">                @SuppressWarnings("unchecked")</span>
+<span class="source-line-no">146</span><span id="line-146">                Map&lt;String, ?&gt; value = (Map&lt;String, ?&gt;) e.getValue();</span>
+<span class="source-line-no">147</span><span id="line-147">                addPrefs(updEvt, ("/".equals(path) ? "" : path)</span>
+<span class="source-line-no">148</span><span id="line-148">                    + e.getKey(), value);</span>
+<span class="source-line-no">149</span><span id="line-149">                continue;</span>
+<span class="source-line-no">150</span><span id="line-150">            }</span>
+<span class="source-line-no">151</span><span id="line-151">            updEvt.add(path, e.getKey(), e.getValue().toString());</span>
+<span class="source-line-no">152</span><span id="line-152">        }</span>
+<span class="source-line-no">153</span><span id="line-153">    }</span>
+<span class="source-line-no">154</span><span id="line-154"></span>
+<span class="source-line-no">155</span><span id="line-155">    /**</span>
+<span class="source-line-no">156</span><span id="line-156">     * Merges and saves configuration updates.</span>
+<span class="source-line-no">157</span><span id="line-157">     *</span>
+<span class="source-line-no">158</span><span id="line-158">     * @param event the event</span>
+<span class="source-line-no">159</span><span id="line-159">     * @throws IOException Signals that an I/O exception has occurred.</span>
+<span class="source-line-no">160</span><span id="line-160">     */</span>
+<span class="source-line-no">161</span><span id="line-161">    @Handler(dynamic = true)</span>
+<span class="source-line-no">162</span><span id="line-162">    @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",</span>
+<span class="source-line-no">163</span><span id="line-163">        "PMD.AvoidLiteralsInIfCondition",</span>
+<span class="source-line-no">164</span><span id="line-164">        "PMD.AvoidInstantiatingObjectsInLoops" })</span>
+<span class="source-line-no">165</span><span id="line-165">    public void onConfigurationUpdate(ConfigurationUpdate event)</span>
+<span class="source-line-no">166</span><span id="line-166">            throws IOException {</span>
+<span class="source-line-no">167</span><span id="line-167">        boolean changed = false;</span>
+<span class="source-line-no">168</span><span id="line-168">        for (String path : event.paths()) {</span>
+<span class="source-line-no">169</span><span id="line-169">            if ("/".equals(path) &amp;&amp; !event.values(path).isPresent()) {</span>
+<span class="source-line-no">170</span><span id="line-170">                // Special case, "remove root", i.e. all configuration data</span>
+<span class="source-line-no">171</span><span id="line-171">                cache.clear();</span>
+<span class="source-line-no">172</span><span id="line-172">                changed = true;</span>
+<span class="source-line-no">173</span><span id="line-173">            }</span>
+<span class="source-line-no">174</span><span id="line-174">            changed = changed || handleSegment(cache,</span>
+<span class="source-line-no">175</span><span id="line-175">                new StringTokenizer(path, "/"), event.values(path));</span>
+<span class="source-line-no">176</span><span id="line-176">        }</span>
+<span class="source-line-no">177</span><span id="line-177">        if (changed) {</span>
+<span class="source-line-no">178</span><span id="line-178">            try (Writer out = new OutputStreamWriter(</span>
+<span class="source-line-no">179</span><span id="line-179">                Files.newOutputStream(file.toPath()), "utf-8");</span>
+<span class="source-line-no">180</span><span id="line-180">                    JsonBeanEncoder enc = JsonBeanEncoder.create(out)) {</span>
+<span class="source-line-no">181</span><span id="line-181">                enc.writeObject(cache);</span>
+<span class="source-line-no">182</span><span id="line-182">            }</span>
+<span class="source-line-no">183</span><span id="line-183">        }</span>
+<span class="source-line-no">184</span><span id="line-184">    }</span>
+<span class="source-line-no">185</span><span id="line-185"></span>
+<span class="source-line-no">186</span><span id="line-186">    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")</span>
+<span class="source-line-no">187</span><span id="line-187">    private boolean handleSegment(Map&lt;String, Object&gt; currentMap,</span>
+<span class="source-line-no">188</span><span id="line-188">            StringTokenizer tokenizer, Optional&lt;Map&lt;String, String&gt;&gt; values) {</span>
+<span class="source-line-no">189</span><span id="line-189">        if (!tokenizer.hasMoreTokens()) {</span>
+<span class="source-line-no">190</span><span id="line-190">            // "Leave" map</span>
+<span class="source-line-no">191</span><span id="line-191">            return mergeValues(currentMap, values.get());</span>
+<span class="source-line-no">192</span><span id="line-192">        }</span>
+<span class="source-line-no">193</span><span id="line-193">        boolean changed = false;</span>
+<span class="source-line-no">194</span><span id="line-194">        String nextSegment = "/" + tokenizer.nextToken();</span>
+<span class="source-line-no">195</span><span id="line-195">        if (!tokenizer.hasMoreTokens() &amp;&amp; !values.isPresent()) {</span>
+<span class="source-line-no">196</span><span id="line-196">            // Next segment is last segment from path and we must remove</span>
+<span class="source-line-no">197</span><span id="line-197">            if (currentMap.containsKey(nextSegment)) {</span>
+<span class="source-line-no">198</span><span id="line-198">                // Delete sub-map.</span>
+<span class="source-line-no">199</span><span id="line-199">                currentMap.remove(nextSegment);</span>
+<span class="source-line-no">200</span><span id="line-200">                changed = true;</span>
+<span class="source-line-no">201</span><span id="line-201">            }</span>
+<span class="source-line-no">202</span><span id="line-202">            return changed;</span>
+<span class="source-line-no">203</span><span id="line-203">        }</span>
+<span class="source-line-no">204</span><span id="line-204">        // Check if next map exists</span>
+<span class="source-line-no">205</span><span id="line-205">        @SuppressWarnings("unchecked")</span>
+<span class="source-line-no">206</span><span id="line-206">        Map&lt;String, Object&gt; nextMap</span>
+<span class="source-line-no">207</span><span id="line-207">            = (Map&lt;String, Object&gt;) currentMap.get(nextSegment);</span>
+<span class="source-line-no">208</span><span id="line-208">        if (nextMap == null) {</span>
+<span class="source-line-no">209</span><span id="line-209">            // Doesn't exist, new sub-map</span>
+<span class="source-line-no">210</span><span id="line-210">            changed = true;</span>
+<span class="source-line-no">211</span><span id="line-211">            nextMap = new HashMap&lt;&gt;();</span>
+<span class="source-line-no">212</span><span id="line-212">            currentMap.put(nextSegment, nextMap);</span>
+<span class="source-line-no">213</span><span id="line-213">        }</span>
+<span class="source-line-no">214</span><span id="line-214">        // Continue with sub-map</span>
+<span class="source-line-no">215</span><span id="line-215">        return changed || handleSegment(nextMap, tokenizer, values);</span>
+<span class="source-line-no">216</span><span id="line-216">    }</span>
+<span class="source-line-no">217</span><span id="line-217"></span>
+<span class="source-line-no">218</span><span id="line-218">    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")</span>
+<span class="source-line-no">219</span><span id="line-219">    private boolean mergeValues(Map&lt;String, Object&gt; currentMap,</span>
+<span class="source-line-no">220</span><span id="line-220">            Map&lt;String, String&gt; values) {</span>
+<span class="source-line-no">221</span><span id="line-221">        boolean changed = false;</span>
+<span class="source-line-no">222</span><span id="line-222">        for (Map.Entry&lt;String, String&gt; e : values.entrySet()) {</span>
+<span class="source-line-no">223</span><span id="line-223">            if (e.getValue() == null) {</span>
+<span class="source-line-no">224</span><span id="line-224">                // Delete from map</span>
+<span class="source-line-no">225</span><span id="line-225">                if (currentMap.containsKey(e.getKey())) {</span>
+<span class="source-line-no">226</span><span id="line-226">                    currentMap.remove(e.getKey());</span>
+<span class="source-line-no">227</span><span id="line-227">                    changed = true;</span>
+<span class="source-line-no">228</span><span id="line-228">                }</span>
+<span class="source-line-no">229</span><span id="line-229">                continue;</span>
+<span class="source-line-no">230</span><span id="line-230">            }</span>
+<span class="source-line-no">231</span><span id="line-231">            String oldValue = Optional.ofNullable(currentMap.get(e.getKey()))</span>
+<span class="source-line-no">232</span><span id="line-232">                .map(val -&gt; val.toString()).orElse(null);</span>
+<span class="source-line-no">233</span><span id="line-233">            if (oldValue == null || !e.getValue().equals(oldValue)) {</span>
+<span class="source-line-no">234</span><span id="line-234">                currentMap.put(e.getKey(), e.getValue());</span>
+<span class="source-line-no">235</span><span id="line-235">                changed = true;</span>
+<span class="source-line-no">236</span><span id="line-236">            }</span>
+<span class="source-line-no">237</span><span id="line-237">        }</span>
+<span class="source-line-no">238</span><span id="line-238">        return changed;</span>
+<span class="source-line-no">239</span><span id="line-239">    }</span>
+<span class="source-line-no">240</span><span id="line-240"></span>
+<span class="source-line-no">241</span><span id="line-241">    @SuppressWarnings({ "unchecked",</span>
+<span class="source-line-no">242</span><span id="line-242">        "PMD.AvoidBranchingStatementAsLastInLoop" })</span>
+<span class="source-line-no">243</span><span id="line-243">    @Override</span>
+<span class="source-line-no">244</span><span id="line-244">    public Optional&lt;Map&lt;String, String&gt;&gt; values(String path) {</span>
+<span class="source-line-no">245</span><span id="line-245">        if (!path.startsWith("/")) {</span>
+<span class="source-line-no">246</span><span id="line-246">            throw new IllegalArgumentException("Path must start with \"/\".");</span>
+<span class="source-line-no">247</span><span id="line-247">        }</span>
+<span class="source-line-no">248</span><span id="line-248">        var segs = new StringTokenizer(path, "/");</span>
+<span class="source-line-no">249</span><span id="line-249">        Map&lt;String, Object&gt; cur = cache;</span>
+<span class="source-line-no">250</span><span id="line-250">        while (segs.hasMoreTokens()) {</span>
+<span class="source-line-no">251</span><span id="line-251">            Object next = cur.get("/" + segs.nextToken());</span>
+<span class="source-line-no">252</span><span id="line-252">            if (next instanceof Map) {</span>
+<span class="source-line-no">253</span><span id="line-253">                cur = (Map&lt;String, Object&gt;) next;</span>
+<span class="source-line-no">254</span><span id="line-254">                continue;</span>
+<span class="source-line-no">255</span><span id="line-255">            }</span>
+<span class="source-line-no">256</span><span id="line-256">            return Optional.empty();</span>
+<span class="source-line-no">257</span><span id="line-257">        }</span>
+<span class="source-line-no">258</span><span id="line-258">        return Optional.of(cur.entrySet().stream()</span>
+<span class="source-line-no">259</span><span id="line-259">            .filter(e -&gt; !(e.getValue() instanceof Map))</span>
+<span class="source-line-no">260</span><span id="line-260">            .collect(Collectors.toMap(Map.Entry::getKey,</span>
+<span class="source-line-no">261</span><span id="line-261">                e -&gt; e.getValue().toString())));</span>
+<span class="source-line-no">262</span><span id="line-262">    }</span>
+<span class="source-line-no">263</span><span id="line-263">}</span>
 
 
 
