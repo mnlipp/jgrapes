@@ -25,12 +25,12 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
 import java.nio.file.Files;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.StringTokenizer;
 import java.util.prefs.BackingStoreException;
-import java.util.stream.Collectors;
 import org.jdrupes.json.JsonBeanDecoder;
 import org.jdrupes.json.JsonBeanEncoder;
 import org.jdrupes.json.JsonDecodeException;
@@ -140,15 +140,20 @@ public class JsonConfigurationStore extends ConfigurationStore {
 
     private void addPrefs(
             ConfigurationUpdate updEvt, String path, Map<String, ?> map) {
+        @SuppressWarnings("PMD.UseConcurrentHashMap")
+        Map<String, Object> toFlatten = new HashMap<>();
         for (Map.Entry<String, ?> e : map.entrySet()) {
-            if (e.getValue() instanceof Map) {
+            if (e.getKey().startsWith("/") && e.getValue() instanceof Map) {
                 @SuppressWarnings("unchecked")
                 Map<String, ?> value = (Map<String, ?>) e.getValue();
                 addPrefs(updEvt, ("/".equals(path) ? "" : path)
                     + e.getKey(), value);
                 continue;
             }
-            updEvt.add(path, e.getKey(), e.getValue().toString());
+            toFlatten.put(e.getKey(), e.getValue());
+        }
+        for (var e : flatten(toFlatten).entrySet()) {
+            updEvt.add(path, e.getKey(), e.getValue());
         }
     }
 
@@ -255,9 +260,36 @@ public class JsonConfigurationStore extends ConfigurationStore {
             }
             return Optional.empty();
         }
-        return Optional.of(cur.entrySet().stream()
-            .filter(e -> !(e.getValue() instanceof Map))
-            .collect(Collectors.toMap(Map.Entry::getKey,
-                e -> e.getValue().toString())));
+        var result = new HashMap<String, String>();
+        for (var e : cur.entrySet()) {
+            if (e.getKey().startsWith("/") && e.getValue() instanceof Map) {
+                // Skip map of next path level
+                continue;
+            }
+            addValue(result, e.getKey(), e.getValue());
+        }
+        return Optional.of(result);
+    }
+
+    private void addValue(Map<String, String> result, String key,
+            Object value) {
+        if (value instanceof Collection) {
+            @SuppressWarnings("unchecked")
+            var values = (Collection<Object>) value;
+            var valIter = values.iterator();
+            for (int i = 0; i < values.size(); i++) {
+                addValue(result, key + "." + i, valIter.next());
+            }
+            return;
+        }
+        if (value instanceof Map) {
+            @SuppressWarnings("unchecked")
+            var values = (Map<String, Object>) value;
+            for (var e : values.entrySet()) {
+                addValue(result, key + "." + e.getKey(), e.getValue());
+            }
+            return;
+        }
+        result.put(key, value.toString());
     }
 }

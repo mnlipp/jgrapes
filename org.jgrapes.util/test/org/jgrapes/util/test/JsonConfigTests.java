@@ -89,17 +89,23 @@ public class JsonConfigTests {
         try (Writer out
             = new OutputStreamWriter(new FileOutputStream(file), "utf-8")) {
             out.write("{\"answer\":42, \"/sub\":{\"/tree\":{\"value\":24,"
-                + "\"list.0\":1,\"list.1\":2,\"list.2\":3}}}");
+                + "\"list\":[1,2,3],\"map\":{\"one\":1,\"two\":2}}}}");
         }
         var conf = new JsonConfigurationStore(app, file);
         assertEquals("42", conf.values("/").get().get("answer"));
         assertEquals("24", conf.values("/sub/tree").get().get("value"));
+        assertEquals("1", conf.values("/sub/tree").get().get("list.0"));
+        assertEquals("1", conf.values("/sub/tree").get().get("map.one"));
         var list
             = (List<String>) conf.structured("/sub/tree").get().get("list");
         assertEquals(3, list.size());
         for (int i = 1; i <= 3; i++) {
             assertEquals(i, Integer.parseInt(list.get(i - 1)));
         }
+        var map = (Map<String, String>) conf.structured("/sub/tree").get()
+            .get("map");
+        assertEquals("1", map.get("one"));
+        assertEquals("2", map.get("two"));
         app.attach(conf);
 
         Components.start(app);
