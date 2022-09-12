@@ -169,6 +169,9 @@ public class JsonConfigurationStore extends ConfigurationStore {
         "PMD.AvoidInstantiatingObjectsInLoops" })
     public void onConfigurationUpdate(ConfigurationUpdate event)
             throws IOException {
+        if (event instanceof InitialConfiguration) {
+            return;
+        }
         boolean changed = false;
         for (String path : event.paths()) {
             if ("/".equals(path) && !event.values(path).isPresent()) {
@@ -192,7 +195,7 @@ public class JsonConfigurationStore extends ConfigurationStore {
     private boolean handleSegment(Map<String, Object> currentMap,
             StringTokenizer tokenizer, Optional<Map<String, String>> values) {
         if (!tokenizer.hasMoreTokens()) {
-            // "Leave" map
+            // "Leaf" map
             return mergeValues(currentMap, values.get());
         }
         boolean changed = false;
