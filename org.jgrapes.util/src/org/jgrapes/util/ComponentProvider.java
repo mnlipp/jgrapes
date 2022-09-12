@@ -171,7 +171,7 @@ public class ComponentProvider extends Component {
      * @return the configuration information as provided by
      * {@link ConfigurationUpdate#structured(String)} if it exists
      */
-    protected Optional<Map<String, ?>>
+    protected Optional<Map<String, Object>>
             providerConfiguration(ConfigurationUpdate evt) {
         return evt.structured(componentPath());
     }

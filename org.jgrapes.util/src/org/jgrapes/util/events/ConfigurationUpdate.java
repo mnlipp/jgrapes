@@ -97,7 +97,7 @@ public class ConfigurationUpdate extends Event<Void> {
      * @return the updated values or `null` if the path has been
      * removed (implies the removal of all values for that path).
      */
-    public Optional<Map<String, ?>> structured(String path) {
+    public Optional<Map<String, Object>> structured(String path) {
         synchronized (this) {
             Map<String, ?> result;
             if (!structuredValues.containsKey(path)
