@@ -39,6 +39,7 @@ import org.jgrapes.core.Event;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.util.JsonConfigurationStore;
 import org.jgrapes.util.events.ConfigurationUpdate;
+import org.jgrapes.util.events.InitialConfiguration;
 import static org.junit.Assert.*;
 import org.junit.Test;
 
@@ -49,20 +50,32 @@ public class JsonConfigTests {
 
     public class App extends Component {
 
-        public int value = 0;
-        public int subValue = 0;
-
+        @SuppressWarnings("unchecked")
         @Handler
         public void onConfigurationUpdate(ConfigurationUpdate event) {
-            event.value("/", "answer")
-                .ifPresent(it -> value = Integer.parseInt(it));
-            event.values("/sub/tree")
-                .ifPresent(it -> subValue = Integer.parseInt(it.get("value")));
+            if (event instanceof InitialConfiguration) {
+                assertEquals("42", event.value("/", "answer").get());
+                assertEquals("24", event.value("/sub/tree", "value").get());
+                assertEquals("1", event.value("/sub/tree", "list.0").get());
+                assertEquals("1", event.value("/sub/tree", "map.one").get());
+                var list = (List<String>) event.structured("/sub/tree").get()
+                    .get("list");
+                assertEquals(3, list.size());
+                for (int i = 1; i <= 3; i++) {
+                    assertEquals(i, Integer.parseInt(list.get(i - 1)));
+                }
+                var map = (Map<String, Object>) event.structured("/sub/tree")
+                    .get().get("map");
+                assertEquals("1", map.get("one"));
+                assertEquals("2", ((List<String>) map.get("more")).get(0));
+                assertEquals("3", ((List<String>) map.get("more")).get(1));
+            }
         }
 
         @Handler
         public void onTriggerUpdate(UpdateTrigger event) {
-            fire(new ConfigurationUpdate().add("/", "updated", "new"));
+            fire(new ConfigurationUpdate().add("/", "updated", "new")
+                .add("/sub/tree", "map.more.1", "4"));
         }
     }
 
@@ -89,9 +102,11 @@ public class JsonConfigTests {
         try (Writer out
             = new OutputStreamWriter(new FileOutputStream(file), "utf-8")) {
             out.write("{\"answer\":42, \"/sub\":{\"/tree\":{\"value\":24,"
-                + "\"list\":[1,2,3],\"map\":{\"one\":1,\"two\":2}}}}");
+                + "\"list\":[1,2,3],\"map\":{\"one\":1,\"more\":[2,3]}}}}");
         }
         var conf = new JsonConfigurationStore(app, file);
+
+        // Check direct access to store
         assertEquals("42", conf.values("/").get().get("answer"));
         assertEquals("24", conf.values("/sub/tree").get().get("value"));
         assertEquals("1", conf.values("/sub/tree").get().get("list.0"));
@@ -102,16 +117,16 @@ public class JsonConfigTests {
         for (int i = 1; i <= 3; i++) {
             assertEquals(i, Integer.parseInt(list.get(i - 1)));
         }
-        var map = (Map<String, String>) conf.structured("/sub/tree").get()
+        var map = (Map<String, Object>) conf.structured("/sub/tree").get()
             .get("map");
         assertEquals("1", map.get("one"));
-        assertEquals("2", map.get("two"));
+        assertEquals("2", ((List<String>) map.get("more")).get(0));
+        assertEquals("3", ((List<String>) map.get("more")).get(1));
         app.attach(conf);
 
         Components.start(app);
         Components.awaitExhaustion();
-        assertEquals(42, app.value);
-        assertEquals(24, app.subValue);
+        Components.checkAssertions();
 
         // Does attached child get (initial) configuration?
         Child child = new Child();
@@ -122,6 +137,8 @@ public class JsonConfigTests {
         // Check storage update
         app.fire(new UpdateTrigger(), app);
         Components.awaitExhaustion();
+        assertEquals("4", conf.values("/sub/tree").get().get("map.more.1"));
+
         Map<String, Object> root;
         try (Reader input
             = new InputStreamReader(new FileInputStream(file), "utf-8")) {

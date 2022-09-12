@@ -107,6 +107,9 @@ public abstract class ConfigurationStore extends Component {
         }
         if (value instanceof Map) {
             for (var entry : ((Map<String, ?>) value).entrySet()) {
+                if (entry.getKey().startsWith("/")) {
+                    continue;
+                }
                 flattenObject(result,
                     Optional.ofNullable(prefix).map(p -> p + ".").orElse("")
                         + entry.getKey(),

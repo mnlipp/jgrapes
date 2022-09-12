@@ -70,8 +70,8 @@ import org.jgrapes.util.events.InitialPreferences;
  * the component also listens for {@link ConfigurationUpdate} events
  * on its channel and updates the JSON file (may be suppressed).
  */
-@SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",
-    "PMD.AvoidDuplicateLiterals" })
+@SuppressWarnings({ "PMD.DataflowAnomalyAnalysis", "PMD.AvoidDuplicateLiterals",
+    "PMD.GodClass" })
 public class JsonConfigurationStore extends ConfigurationStore {
 
     private File file;
@@ -178,9 +178,12 @@ public class JsonConfigurationStore extends ConfigurationStore {
                 // Special case, "remove root", i.e. all configuration data
                 cache.clear();
                 changed = true;
+                continue;
             }
-            changed = changed || handleSegment(cache,
-                new StringTokenizer(path, "/"), event.values(path));
+            if (handleSegment(cache, new StringTokenizer(path, "/"),
+                event.values(path))) {
+                changed = true;
+            }
         }
         if (changed) {
             try (Writer out = new OutputStreamWriter(
@@ -227,22 +230,28 @@ public class JsonConfigurationStore extends ConfigurationStore {
     private boolean mergeValues(Map<String, Object> currentMap,
             Map<String, String> values) {
         boolean changed = false;
+        Map<String, String> curValues = flatten(currentMap);
         for (Map.Entry<String, String> e : values.entrySet()) {
             if (e.getValue() == null) {
                 // Delete from map
-                if (currentMap.containsKey(e.getKey())) {
-                    currentMap.remove(e.getKey());
+                if (curValues.containsKey(e.getKey())) {
+                    curValues.remove(e.getKey());
                     changed = true;
                 }
                 continue;
             }
-            String oldValue = Optional.ofNullable(currentMap.get(e.getKey()))
-                .map(val -> val.toString()).orElse(null);
+            String oldValue = curValues.get(e.getKey());
             if (oldValue == null || !e.getValue().equals(oldValue)) {
-                currentMap.put(e.getKey(), e.getValue());
+                curValues.put(e.getKey(), e.getValue());
                 changed = true;
             }
         }
+        for (var itr = currentMap.entrySet().iterator(); itr.hasNext();) {
+            if (!itr.next().getKey().startsWith("/")) {
+                itr.remove();
+            }
+        }
+        currentMap.putAll(structure(curValues));
         return changed;
     }
 
