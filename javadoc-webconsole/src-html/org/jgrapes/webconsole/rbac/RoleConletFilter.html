@@ -79,144 +79,143 @@
 <span class="source-line-no">066</span><span id="line-66">     *</span>
 <span class="source-line-no">067</span><span id="line-67">     * Supported properties are:</span>
 <span class="source-line-no">068</span><span id="line-68">     * </span>
-<span class="source-line-no">069</span><span id="line-69">     *  * *rolesByUser*: see {@link #setRolesByUser(Map)}.</span>
-<span class="source-line-no">070</span><span id="line-70">     *  * *conletTypesByRole*: see {@link #setConletTypesByRole(Map)}.</span>
-<span class="source-line-no">071</span><span id="line-71">     *</span>
-<span class="source-line-no">072</span><span id="line-72">     * @param componentChannel the channel that the component's</span>
-<span class="source-line-no">073</span><span id="line-73">     * handlers listen on by default and that </span>
-<span class="source-line-no">074</span><span id="line-74">     * {@link Manager#fire(Event, Channel...)} sends the event to</span>
-<span class="source-line-no">075</span><span id="line-75">     * @param properties the properties used to configure the component</span>
-<span class="source-line-no">076</span><span id="line-76">     */</span>
-<span class="source-line-no">077</span><span id="line-77">    @SuppressWarnings({ "unchecked", "PMD.ConstructorCallsOverridableMethod" })</span>
-<span class="source-line-no">078</span><span id="line-78">    public RoleConletFilter(Channel componentChannel,</span>
-<span class="source-line-no">079</span><span id="line-79">            Map&lt;?, ?&gt; properties) {</span>
-<span class="source-line-no">080</span><span id="line-80">        super(componentChannel);</span>
-<span class="source-line-no">081</span><span id="line-81">        setConletTypesByRole((Map&lt;String, Set&lt;String&gt;&gt;) properties</span>
-<span class="source-line-no">082</span><span id="line-82">            .get("conletTypesByRole"));</span>
-<span class="source-line-no">083</span><span id="line-83">    }</span>
-<span class="source-line-no">084</span><span id="line-84"></span>
-<span class="source-line-no">085</span><span id="line-85">    /**</span>
-<span class="source-line-no">086</span><span id="line-86">     * Sets the permitted conlet types by role. The parameter</span>
-<span class="source-line-no">087</span><span id="line-87">     * is a Map&lt;String, Set&lt;String&gt;&gt; holding the conlet types </span>
-<span class="source-line-no">088</span><span id="line-88">     * {@link AddConletType#conletType()} to be added for the given role.</span>
-<span class="source-line-no">089</span><span id="line-89">     * Conlets that are not restricted to at least one role are </span>
-<span class="source-line-no">090</span><span id="line-90">     * implicitly available to all users.</span>
-<span class="source-line-no">091</span><span id="line-91">     *</span>
-<span class="source-line-no">092</span><span id="line-92">     * @param acl the acl</span>
-<span class="source-line-no">093</span><span id="line-93">     * @return the user role conlet filter</span>
-<span class="source-line-no">094</span><span id="line-94">     */</span>
-<span class="source-line-no">095</span><span id="line-95">    @SuppressWarnings({ "PMD.LinguisticNaming",</span>
-<span class="source-line-no">096</span><span id="line-96">        "PMD.AvoidInstantiatingObjectsInLoops" })</span>
-<span class="source-line-no">097</span><span id="line-97">    public RoleConletFilter</span>
-<span class="source-line-no">098</span><span id="line-98">            setConletTypesByRole(Map&lt;String, Set&lt;String&gt;&gt; acl) {</span>
-<span class="source-line-no">099</span><span id="line-99">        // Deep copy (and cleanup)</span>
-<span class="source-line-no">100</span><span id="line-100">        this.acl.clear();</span>
-<span class="source-line-no">101</span><span id="line-101">        this.acl.putAll(acl);</span>
-<span class="source-line-no">102</span><span id="line-102">        for (var e : this.acl.entrySet()) {</span>
-<span class="source-line-no">103</span><span id="line-103">            e.setValue(e.getValue().stream().map(String::trim)</span>
-<span class="source-line-no">104</span><span id="line-104">                .collect(Collectors.toSet()));</span>
-<span class="source-line-no">105</span><span id="line-105">        }</span>
-<span class="source-line-no">106</span><span id="line-106">        return this;</span>
-<span class="source-line-no">107</span><span id="line-107">    }</span>
-<span class="source-line-no">108</span><span id="line-108"></span>
-<span class="source-line-no">109</span><span id="line-109">    /**</span>
-<span class="source-line-no">110</span><span id="line-110">     * The component can be configured with events that include</span>
-<span class="source-line-no">111</span><span id="line-111">     * a path (see @link {@link ConfigurationUpdate#paths()})</span>
-<span class="source-line-no">112</span><span id="line-112">     * that matches this components path (see {@link Manager#componentPath()}).</span>
-<span class="source-line-no">113</span><span id="line-113">     * </span>
-<span class="source-line-no">114</span><span id="line-114">     * The following properties are recognized:</span>
-<span class="source-line-no">115</span><span id="line-115">     * </span>
-<span class="source-line-no">116</span><span id="line-116">     * `conletTypesByRole`</span>
-<span class="source-line-no">117</span><span id="line-117">     * : Invokes {@link #setConletTypesByRole(Map)} with the</span>
-<span class="source-line-no">118</span><span id="line-118">     *   given values.</span>
-<span class="source-line-no">119</span><span id="line-119">     * </span>
-<span class="source-line-no">120</span><span id="line-120">     * @param event the event</span>
-<span class="source-line-no">121</span><span id="line-121">     */</span>
-<span class="source-line-no">122</span><span id="line-122">    @SuppressWarnings("unchecked")</span>
-<span class="source-line-no">123</span><span id="line-123">    @Handler</span>
-<span class="source-line-no">124</span><span id="line-124">    public void onConfigUpdate(ConfigurationUpdate event) {</span>
-<span class="source-line-no">125</span><span id="line-125">        event.structured(componentPath())</span>
-<span class="source-line-no">126</span><span id="line-126">            .map(c -&gt; (Map&lt;String, Collection&lt;String&gt;&gt;) c</span>
-<span class="source-line-no">127</span><span id="line-127">                .get("conletTypesByRole"))</span>
-<span class="source-line-no">128</span><span id="line-128">            // Adjust type (Collection -&gt; Set)</span>
-<span class="source-line-no">129</span><span id="line-129">            .map(m -&gt; m.entrySet().stream()</span>
-<span class="source-line-no">130</span><span id="line-130">                .collect(Collectors.toMap(Map.Entry::getKey,</span>
-<span class="source-line-no">131</span><span id="line-131">                    e -&gt; e.getValue().stream().collect(Collectors.toSet()))))</span>
-<span class="source-line-no">132</span><span id="line-132">            .ifPresent(this::setConletTypesByRole);</span>
-<span class="source-line-no">133</span><span id="line-133">    }</span>
-<span class="source-line-no">134</span><span id="line-134"></span>
-<span class="source-line-no">135</span><span id="line-135">    /**</span>
-<span class="source-line-no">136</span><span id="line-136">     * Collect known types for wildcard handling</span>
-<span class="source-line-no">137</span><span id="line-137">     *</span>
-<span class="source-line-no">138</span><span id="line-138">     * @param event the event</span>
-<span class="source-line-no">139</span><span id="line-139">     */</span>
-<span class="source-line-no">140</span><span id="line-140">    @Handler</span>
-<span class="source-line-no">141</span><span id="line-141">    public void onAddConletType(AddConletType event) {</span>
-<span class="source-line-no">142</span><span id="line-142">        knownTypes.add(event.conletType());</span>
-<span class="source-line-no">143</span><span id="line-143">    }</span>
-<span class="source-line-no">144</span><span id="line-144"></span>
-<span class="source-line-no">145</span><span id="line-145">    /**</span>
-<span class="source-line-no">146</span><span id="line-146">     * Disable all conlets that the user is not allowed to use</span>
-<span class="source-line-no">147</span><span id="line-147">     * by firing {@link UpdateConletType} events with no render modes.</span>
-<span class="source-line-no">148</span><span id="line-148">     * The current user is obtained from </span>
-<span class="source-line-no">149</span><span id="line-149">     * {@link WebConsoleUtils#userFromSession(org.jgrapes.http.Session)}.</span>
-<span class="source-line-no">150</span><span id="line-150">     *</span>
-<span class="source-line-no">151</span><span id="line-151">     * @param event the event</span>
-<span class="source-line-no">152</span><span id="line-152">     * @param channel the channel</span>
-<span class="source-line-no">153</span><span id="line-153">     */</span>
-<span class="source-line-no">154</span><span id="line-154">    @Handler(priority = 800)</span>
-<span class="source-line-no">155</span><span id="line-155">    @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")</span>
-<span class="source-line-no">156</span><span id="line-156">    public void onConsolePrepared(ConsolePrepared event,</span>
-<span class="source-line-no">157</span><span id="line-157">            ConsoleConnection channel) {</span>
-<span class="source-line-no">158</span><span id="line-158">        var allowed = new HashSet&lt;String&gt;();</span>
-<span class="source-line-no">159</span><span id="line-159">        WebConsoleUtils.rolesFromSession(channel.session()).forEach(</span>
-<span class="source-line-no">160</span><span id="line-160">            role -&gt; {</span>
-<span class="source-line-no">161</span><span id="line-161">                var maybe = new HashSet&lt;&gt;(knownTypes);</span>
-<span class="source-line-no">162</span><span id="line-162">                acl.getOrDefault(role.getName(), Collections.emptySet())</span>
-<span class="source-line-no">163</span><span id="line-163">                    .forEach(p -&gt; {</span>
-<span class="source-line-no">164</span><span id="line-164">                        if (p.startsWith("!")) {</span>
-<span class="source-line-no">165</span><span id="line-165">                            maybe.remove(p.substring(1).trim());</span>
-<span class="source-line-no">166</span><span id="line-166">                        } else if ("*".equals(p)) {</span>
-<span class="source-line-no">167</span><span id="line-167">                            allowed.addAll(maybe);</span>
-<span class="source-line-no">168</span><span id="line-168">                        } else {</span>
-<span class="source-line-no">169</span><span id="line-169">                            if (knownTypes.contains(p)) {</span>
-<span class="source-line-no">170</span><span id="line-170">                                allowed.add(p);</span>
-<span class="source-line-no">171</span><span id="line-171">                            }</span>
-<span class="source-line-no">172</span><span id="line-172">                        }</span>
-<span class="source-line-no">173</span><span id="line-173">                    });</span>
-<span class="source-line-no">174</span><span id="line-174">            });</span>
-<span class="source-line-no">175</span><span id="line-175">        channel.setAssociated(this, allowed);</span>
-<span class="source-line-no">176</span><span id="line-176">        Set&lt;String&gt; toRemove = new HashSet&lt;&gt;(knownTypes);</span>
-<span class="source-line-no">177</span><span id="line-177">        toRemove.removeAll(allowed);</span>
-<span class="source-line-no">178</span><span id="line-178">        for (var type : toRemove) {</span>
-<span class="source-line-no">179</span><span id="line-179">            channel.respond(new UpdateConletType(type));</span>
-<span class="source-line-no">180</span><span id="line-180">        }</span>
-<span class="source-line-no">181</span><span id="line-181">    }</span>
-<span class="source-line-no">182</span><span id="line-182"></span>
-<span class="source-line-no">183</span><span id="line-183">    /**</span>
-<span class="source-line-no">184</span><span id="line-184">     * If the request originates from a client </span>
-<span class="source-line-no">185</span><span id="line-185">     * (see {@link AddConletRequest#isFrontendRequest()}, verifies that</span>
-<span class="source-line-no">186</span><span id="line-186">     * the user is allowed to create a conlet of the given type.</span>
-<span class="source-line-no">187</span><span id="line-187">     * </span>
-<span class="source-line-no">188</span><span id="line-188">     * As the conlets that he user is not allowed to use are disabled,</span>
-<span class="source-line-no">189</span><span id="line-189">     * it should be impossible to create such requests in the first place.</span>
-<span class="source-line-no">190</span><span id="line-190">     * However, the frontend code is open to manipulation and therefore</span>
-<span class="source-line-no">191</span><span id="line-191">     * this additional check is introduced to increase security.  </span>
-<span class="source-line-no">192</span><span id="line-192">     *</span>
-<span class="source-line-no">193</span><span id="line-193">     * @param event the event</span>
-<span class="source-line-no">194</span><span id="line-194">     * @param channel the channel</span>
-<span class="source-line-no">195</span><span id="line-195">     */</span>
-<span class="source-line-no">196</span><span id="line-196">    @Handler(priority = 1000)</span>
-<span class="source-line-no">197</span><span id="line-197">    public void onAddConlet(AddConletRequest event, ConsoleConnection channel) {</span>
-<span class="source-line-no">198</span><span id="line-198">        if (!event.isFrontendRequest()) {</span>
-<span class="source-line-no">199</span><span id="line-199">            return;</span>
-<span class="source-line-no">200</span><span id="line-200">        }</span>
-<span class="source-line-no">201</span><span id="line-201">        var allowed = channel.associated(this, Set.class);</span>
-<span class="source-line-no">202</span><span id="line-202">        if (allowed.isEmpty() || !allowed.get().contains(event.conletType())) {</span>
-<span class="source-line-no">203</span><span id="line-203">            event.cancel(true);</span>
-<span class="source-line-no">204</span><span id="line-204">        }</span>
-<span class="source-line-no">205</span><span id="line-205">    }</span>
-<span class="source-line-no">206</span><span id="line-206">}</span>
+<span class="source-line-no">069</span><span id="line-69">     *  * *conletTypesByRole*: see {@link #setConletTypesByRole(Map)}.</span>
+<span class="source-line-no">070</span><span id="line-70">     *</span>
+<span class="source-line-no">071</span><span id="line-71">     * @param componentChannel the channel that the component's</span>
+<span class="source-line-no">072</span><span id="line-72">     * handlers listen on by default and that </span>
+<span class="source-line-no">073</span><span id="line-73">     * {@link Manager#fire(Event, Channel...)} sends the event to</span>
+<span class="source-line-no">074</span><span id="line-74">     * @param properties the properties used to configure the component</span>
+<span class="source-line-no">075</span><span id="line-75">     */</span>
+<span class="source-line-no">076</span><span id="line-76">    @SuppressWarnings({ "unchecked", "PMD.ConstructorCallsOverridableMethod" })</span>
+<span class="source-line-no">077</span><span id="line-77">    public RoleConletFilter(Channel componentChannel,</span>
+<span class="source-line-no">078</span><span id="line-78">            Map&lt;?, ?&gt; properties) {</span>
+<span class="source-line-no">079</span><span id="line-79">        super(componentChannel);</span>
+<span class="source-line-no">080</span><span id="line-80">        setConletTypesByRole((Map&lt;String, Set&lt;String&gt;&gt;) properties</span>
+<span class="source-line-no">081</span><span id="line-81">            .get("conletTypesByRole"));</span>
+<span class="source-line-no">082</span><span id="line-82">    }</span>
+<span class="source-line-no">083</span><span id="line-83"></span>
+<span class="source-line-no">084</span><span id="line-84">    /**</span>
+<span class="source-line-no">085</span><span id="line-85">     * Sets the permitted conlet types by role. The parameter</span>
+<span class="source-line-no">086</span><span id="line-86">     * is a Map&lt;String, Set&lt;String&gt;&gt; holding the conlet types </span>
+<span class="source-line-no">087</span><span id="line-87">     * {@link AddConletType#conletType()} to be added for the given role.</span>
+<span class="source-line-no">088</span><span id="line-88">     * Conlets that are not restricted to at least one role are </span>
+<span class="source-line-no">089</span><span id="line-89">     * implicitly available to all users.</span>
+<span class="source-line-no">090</span><span id="line-90">     *</span>
+<span class="source-line-no">091</span><span id="line-91">     * @param acl the acl</span>
+<span class="source-line-no">092</span><span id="line-92">     * @return the user role conlet filter</span>
+<span class="source-line-no">093</span><span id="line-93">     */</span>
+<span class="source-line-no">094</span><span id="line-94">    @SuppressWarnings({ "PMD.LinguisticNaming",</span>
+<span class="source-line-no">095</span><span id="line-95">        "PMD.AvoidInstantiatingObjectsInLoops" })</span>
+<span class="source-line-no">096</span><span id="line-96">    public RoleConletFilter</span>
+<span class="source-line-no">097</span><span id="line-97">            setConletTypesByRole(Map&lt;String, Set&lt;String&gt;&gt; acl) {</span>
+<span class="source-line-no">098</span><span id="line-98">        // Deep copy (and cleanup)</span>
+<span class="source-line-no">099</span><span id="line-99">        this.acl.clear();</span>
+<span class="source-line-no">100</span><span id="line-100">        this.acl.putAll(acl);</span>
+<span class="source-line-no">101</span><span id="line-101">        for (var e : this.acl.entrySet()) {</span>
+<span class="source-line-no">102</span><span id="line-102">            e.setValue(e.getValue().stream().map(String::trim)</span>
+<span class="source-line-no">103</span><span id="line-103">                .collect(Collectors.toSet()));</span>
+<span class="source-line-no">104</span><span id="line-104">        }</span>
+<span class="source-line-no">105</span><span id="line-105">        return this;</span>
+<span class="source-line-no">106</span><span id="line-106">    }</span>
+<span class="source-line-no">107</span><span id="line-107"></span>
+<span class="source-line-no">108</span><span id="line-108">    /**</span>
+<span class="source-line-no">109</span><span id="line-109">     * The component can be configured with events that include</span>
+<span class="source-line-no">110</span><span id="line-110">     * a path (see @link {@link ConfigurationUpdate#paths()})</span>
+<span class="source-line-no">111</span><span id="line-111">     * that matches this components path (see {@link Manager#componentPath()}).</span>
+<span class="source-line-no">112</span><span id="line-112">     * </span>
+<span class="source-line-no">113</span><span id="line-113">     * The following properties are recognized:</span>
+<span class="source-line-no">114</span><span id="line-114">     * </span>
+<span class="source-line-no">115</span><span id="line-115">     * `conletTypesByRole`</span>
+<span class="source-line-no">116</span><span id="line-116">     * : Invokes {@link #setConletTypesByRole(Map)} with the</span>
+<span class="source-line-no">117</span><span id="line-117">     *   given values.</span>
+<span class="source-line-no">118</span><span id="line-118">     * </span>
+<span class="source-line-no">119</span><span id="line-119">     * @param event the event</span>
+<span class="source-line-no">120</span><span id="line-120">     */</span>
+<span class="source-line-no">121</span><span id="line-121">    @SuppressWarnings("unchecked")</span>
+<span class="source-line-no">122</span><span id="line-122">    @Handler</span>
+<span class="source-line-no">123</span><span id="line-123">    public void onConfigUpdate(ConfigurationUpdate event) {</span>
+<span class="source-line-no">124</span><span id="line-124">        event.structured(componentPath())</span>
+<span class="source-line-no">125</span><span id="line-125">            .map(c -&gt; (Map&lt;String, Collection&lt;String&gt;&gt;) c</span>
+<span class="source-line-no">126</span><span id="line-126">                .get("conletTypesByRole"))</span>
+<span class="source-line-no">127</span><span id="line-127">            // Adjust type (Collection -&gt; Set)</span>
+<span class="source-line-no">128</span><span id="line-128">            .map(m -&gt; m.entrySet().stream()</span>
+<span class="source-line-no">129</span><span id="line-129">                .collect(Collectors.toMap(Map.Entry::getKey,</span>
+<span class="source-line-no">130</span><span id="line-130">                    e -&gt; e.getValue().stream().collect(Collectors.toSet()))))</span>
+<span class="source-line-no">131</span><span id="line-131">            .ifPresent(this::setConletTypesByRole);</span>
+<span class="source-line-no">132</span><span id="line-132">    }</span>
+<span class="source-line-no">133</span><span id="line-133"></span>
+<span class="source-line-no">134</span><span id="line-134">    /**</span>
+<span class="source-line-no">135</span><span id="line-135">     * Collect known types for wildcard handling</span>
+<span class="source-line-no">136</span><span id="line-136">     *</span>
+<span class="source-line-no">137</span><span id="line-137">     * @param event the event</span>
+<span class="source-line-no">138</span><span id="line-138">     */</span>
+<span class="source-line-no">139</span><span id="line-139">    @Handler</span>
+<span class="source-line-no">140</span><span id="line-140">    public void onAddConletType(AddConletType event) {</span>
+<span class="source-line-no">141</span><span id="line-141">        knownTypes.add(event.conletType());</span>
+<span class="source-line-no">142</span><span id="line-142">    }</span>
+<span class="source-line-no">143</span><span id="line-143"></span>
+<span class="source-line-no">144</span><span id="line-144">    /**</span>
+<span class="source-line-no">145</span><span id="line-145">     * Disable all conlets that the user is not allowed to use</span>
+<span class="source-line-no">146</span><span id="line-146">     * by firing {@link UpdateConletType} events with no render modes.</span>
+<span class="source-line-no">147</span><span id="line-147">     * The current user is obtained from </span>
+<span class="source-line-no">148</span><span id="line-148">     * {@link WebConsoleUtils#userFromSession(org.jgrapes.http.Session)}.</span>
+<span class="source-line-no">149</span><span id="line-149">     *</span>
+<span class="source-line-no">150</span><span id="line-150">     * @param event the event</span>
+<span class="source-line-no">151</span><span id="line-151">     * @param channel the channel</span>
+<span class="source-line-no">152</span><span id="line-152">     */</span>
+<span class="source-line-no">153</span><span id="line-153">    @Handler(priority = 800)</span>
+<span class="source-line-no">154</span><span id="line-154">    @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")</span>
+<span class="source-line-no">155</span><span id="line-155">    public void onConsolePrepared(ConsolePrepared event,</span>
+<span class="source-line-no">156</span><span id="line-156">            ConsoleConnection channel) {</span>
+<span class="source-line-no">157</span><span id="line-157">        var allowed = new HashSet&lt;String&gt;();</span>
+<span class="source-line-no">158</span><span id="line-158">        WebConsoleUtils.rolesFromSession(channel.session()).forEach(</span>
+<span class="source-line-no">159</span><span id="line-159">            role -&gt; {</span>
+<span class="source-line-no">160</span><span id="line-160">                var maybe = new HashSet&lt;&gt;(knownTypes);</span>
+<span class="source-line-no">161</span><span id="line-161">                acl.getOrDefault(role.getName(), Collections.emptySet())</span>
+<span class="source-line-no">162</span><span id="line-162">                    .forEach(p -&gt; {</span>
+<span class="source-line-no">163</span><span id="line-163">                        if (p.startsWith("!")) {</span>
+<span class="source-line-no">164</span><span id="line-164">                            maybe.remove(p.substring(1).trim());</span>
+<span class="source-line-no">165</span><span id="line-165">                        } else if ("*".equals(p)) {</span>
+<span class="source-line-no">166</span><span id="line-166">                            allowed.addAll(maybe);</span>
+<span class="source-line-no">167</span><span id="line-167">                        } else {</span>
+<span class="source-line-no">168</span><span id="line-168">                            if (knownTypes.contains(p)) {</span>
+<span class="source-line-no">169</span><span id="line-169">                                allowed.add(p);</span>
+<span class="source-line-no">170</span><span id="line-170">                            }</span>
+<span class="source-line-no">171</span><span id="line-171">                        }</span>
+<span class="source-line-no">172</span><span id="line-172">                    });</span>
+<span class="source-line-no">173</span><span id="line-173">            });</span>
+<span class="source-line-no">174</span><span id="line-174">        channel.setAssociated(this, allowed);</span>
+<span class="source-line-no">175</span><span id="line-175">        Set&lt;String&gt; toRemove = new HashSet&lt;&gt;(knownTypes);</span>
+<span class="source-line-no">176</span><span id="line-176">        toRemove.removeAll(allowed);</span>
+<span class="source-line-no">177</span><span id="line-177">        for (var type : toRemove) {</span>
+<span class="source-line-no">178</span><span id="line-178">            channel.respond(new UpdateConletType(type));</span>
+<span class="source-line-no">179</span><span id="line-179">        }</span>
+<span class="source-line-no">180</span><span id="line-180">    }</span>
+<span class="source-line-no">181</span><span id="line-181"></span>
+<span class="source-line-no">182</span><span id="line-182">    /**</span>
+<span class="source-line-no">183</span><span id="line-183">     * If the request originates from a client </span>
+<span class="source-line-no">184</span><span id="line-184">     * (see {@link AddConletRequest#isFrontendRequest()}, verifies that</span>
+<span class="source-line-no">185</span><span id="line-185">     * the user is allowed to create a conlet of the given type.</span>
+<span class="source-line-no">186</span><span id="line-186">     * </span>
+<span class="source-line-no">187</span><span id="line-187">     * As the conlets that he user is not allowed to use are disabled,</span>
+<span class="source-line-no">188</span><span id="line-188">     * it should be impossible to create such requests in the first place.</span>
+<span class="source-line-no">189</span><span id="line-189">     * However, the frontend code is open to manipulation and therefore</span>
+<span class="source-line-no">190</span><span id="line-190">     * this additional check is introduced to increase security.  </span>
+<span class="source-line-no">191</span><span id="line-191">     *</span>
+<span class="source-line-no">192</span><span id="line-192">     * @param event the event</span>
+<span class="source-line-no">193</span><span id="line-193">     * @param channel the channel</span>
+<span class="source-line-no">194</span><span id="line-194">     */</span>
+<span class="source-line-no">195</span><span id="line-195">    @Handler(priority = 1000)</span>
+<span class="source-line-no">196</span><span id="line-196">    public void onAddConlet(AddConletRequest event, ConsoleConnection channel) {</span>
+<span class="source-line-no">197</span><span id="line-197">        if (!event.isFrontendRequest()) {</span>
+<span class="source-line-no">198</span><span id="line-198">            return;</span>
+<span class="source-line-no">199</span><span id="line-199">        }</span>
+<span class="source-line-no">200</span><span id="line-200">        var allowed = channel.associated(this, Set.class);</span>
+<span class="source-line-no">201</span><span id="line-201">        if (allowed.isEmpty() || !allowed.get().contains(event.conletType())) {</span>
+<span class="source-line-no">202</span><span id="line-202">            event.cancel(true);</span>
+<span class="source-line-no">203</span><span id="line-203">        }</span>
+<span class="source-line-no">204</span><span id="line-204">    }</span>
+<span class="source-line-no">205</span><span id="line-205">}</span>
 
 
 
