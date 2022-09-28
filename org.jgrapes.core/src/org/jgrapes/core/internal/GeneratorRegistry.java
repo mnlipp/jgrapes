@@ -139,27 +139,35 @@ public class GeneratorRegistry {
     @SuppressWarnings({ "PMD.CollapsibleIfStatements",
         "PMD.GuardLogStatement" })
     public void awaitExhaustion() throws InterruptedException {
-        synchronized (this) {
-            if (generators != null) {
+        if (generators != null) {
+            synchronized (this) {
                 if (running != generators.size()) {
                     generatorTracking
                         .severe(() -> "Generator count doesn't match tracked.");
                 }
             }
-            while (running > 0) {
-                if (generators != null) {
-                    generatorTracking
-                        .fine(() -> "Thread " + Thread.currentThread().getName()
-                            + " is waiting, " + generators.size()
-                            + " generators registered: "
-                            + generators.keySet());
-                }
-                wait();
-            }
-            generatorTracking
-                .finest("Thread " + Thread.currentThread().getName()
-                    + " continues.");
         }
+        while (running > 0) {
+            // generators.keySet() may call EventProcessor.toString()
+            // which locks on the EventProcessor which may want a lock
+            // on the registry (deadlock). So keep this out of the
+            // synchronized.
+            if (generators != null) {
+                generatorTracking
+                    .fine(() -> "Thread " + Thread.currentThread().getName()
+                        + " is waiting, " + generators.size()
+                        + " generators registered: "
+                        + generators.keySet());
+            }
+            synchronized (this) {
+                if (running > 0) {
+                    wait();
+                }
+            }
+        }
+        generatorTracking
+            .finest("Thread " + Thread.currentThread().getName()
+                + " continues.");
     }
 
     /**

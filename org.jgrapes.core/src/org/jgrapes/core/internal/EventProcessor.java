@@ -298,8 +298,10 @@ public class EventProcessor implements InternalEventPipeline, Runnable {
         builder.append(Components.objectName(this))
             .append(" [");
         if (queue != null) {
-            builder.append("queue=")
-                .append(queue);
+            // Avoid concurrency for queue.toString().
+            synchronized (this) {
+                builder.append("queue=").append(queue);
+            }
         }
         builder.append(']');
         return builder.toString();
