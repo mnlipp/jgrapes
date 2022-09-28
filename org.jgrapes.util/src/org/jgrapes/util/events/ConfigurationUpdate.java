@@ -18,13 +18,13 @@
 
 package org.jgrapes.util.events;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.Manager;
 import org.jgrapes.util.ConfigurationStore;
@@ -34,7 +34,7 @@ import org.jgrapes.util.ConfigurationStore;
  * updated.
  * 
  * Configuration information provided by this event is organized
- * by paths and provided as key/value pairs. The path information
+ * by paths and associated key/value pairs. The path information
  * should be used by components to select the information important
  * to them. Often, a component simply matches the path from the event
  * with its own path in the component hierarchy 
@@ -42,56 +42,104 @@ import org.jgrapes.util.ConfigurationStore;
  * to structure information in a way that is completely independent of
  * the implementation's structure as the filtering is completely up
  * to the component.
- * 
- * Configuration information should be kept simple. Sometimes, however,
- * it is unavoidable to structure the information associated
- * with a (logical) key. This should be done by reflecting the structure
- * in the names of the keys. Names "key.0", "key.1", "key.2"
- * can be used to express that the value associated with "key" is 
- * actually a list of values. "key.a", "key.b", "key.c" can be used
- * to associate "key" with a map from "a", "b", "c" to some values.
- * To support this kind of structuring by keys, the method 
- * {@link #set(String, Map)} can be used to associate a path with
- * structured information, consisting of (nested) {@link Map}s and 
- * {@link Collection}s. The leaf nodes in this structures are used
- * as values after applying {@link Object#toString()} to them.
- * Method {@link #structured(String)} can be used to retrieve information
- * as structured value, no matter if the information was initially provided
- * by {@link #set(String, Map)} or by several invocations of
- * {@link #add(String, String, String)}.
- * 
  */
 @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 public class ConfigurationUpdate extends Event<Void> {
 
     @SuppressWarnings({ "PMD.UseConcurrentHashMap",
         "PMD.AvoidDuplicateLiterals" })
-    private final Map<String, Map<String, String>> flatValues = new HashMap<>();
+    private final Map<String, Map<String, Object>> flatValues = new HashMap<>();
     @SuppressWarnings("PMD.UseConcurrentHashMap")
     private final Map<String, Map<String, ?>> structuredValues
         = new HashMap<>();
 
     /**
-     * Set new (updated) structured configuration values for the event.
-     * Any information associated with the path before the invocation
-     * of this method is replaced.  
+     * Return all paths affected by this event.
      * 
-     * @param path the value's path
-     * @return the event for easy chaining
+     * @return the paths
      */
-    public ConfigurationUpdate set(String path, Map<String, ?> values) {
-        if (path == null || !path.startsWith("/")) {
-            throw new IllegalArgumentException("Path must start with \"/\".");
-        }
+    @SuppressWarnings("PMD.ConfusingTernary")
+    public Set<String> paths() {
         synchronized (this) {
-            flatValues.remove(path);
-            structuredValues.put(path, values);
+            Set<String> result = new HashSet<>(flatValues.keySet());
+            result.addAll(structuredValues.keySet());
+            return result;
         }
-        return this;
     }
 
     /**
-     * Return the structured properties for a given path if they exists.
+     * Return the properties for a given path if any exist.
+     * If a property has a structured value (list or collection),
+     * the values are returned as several entries as described in
+     * {@link ConfigurationStore#flatten(Map)}. All values are
+     * converted to their string representation.
+     * 
+     * @param path the path
+     * @return the updated values or `null` if the path has been
+     * removed (implies the removal of all values for that path).
+     */
+    public Optional<Map<String, String>> values(String path) {
+        synchronized (this) {
+            Map<String, Object> result;
+            if (!flatValues.containsKey(path)
+                && structuredValues.containsKey(path)) {
+                // Synchronize to flatValues and return
+                result = ConfigurationStore.flatten(structuredValues.get(path));
+                flatValues.put(path, result);
+            } else {
+                result = flatValues.get(path);
+            }
+            if (result == null) {
+                return Optional.empty();
+            }
+            return Optional.of(result).map(o -> o.entrySet().stream()
+                .collect(
+                    Collectors.toMap(Map.Entry::getKey, e -> ConfigurationStore
+                        .as(e.getValue(), String.class).orElse(null))));
+        }
+    }
+
+    /**
+     * Return the value with the given path and key if it exists
+     * and is of or can be converted to the requested type.
+     *
+     * @param <T> the generic type
+     * @param path the path
+     * @param key the key
+     * @param as the as
+     * @return the optional
+     */
+    @SuppressWarnings("PMD.ShortVariable")
+    public <T> Optional<T> value(String path, String key, Class<T> as) {
+        if (!flatValues.containsKey(path)
+            && structuredValues.containsKey(path)) {
+            flatValues.put(path,
+                ConfigurationStore.flatten(structuredValues.get(path)));
+        }
+        return Optional.ofNullable(flatValues.get(path))
+            .flatMap(map -> ConfigurationStore.as(map.get(key), as));
+    }
+
+    /**
+     * Return the value with the given path and key if it exists as string.
+     * 
+     * @param path the path
+     * @param key the key
+     * @return the value
+     */
+    public Optional<String> value(String path, String key) {
+        return value(path, key, String.class);
+    }
+
+    /**
+     * Return the properties for a given path if they exists as
+     * a map with (possibly) structured values (see 
+     * {@link ConfigurationStore#structured(String)}). The type
+     * of the value depends on the configuration store used.
+     * Some configuration stores support types other than string,
+     * some don't. Too avoid any problems, it is strongly recommended
+     * to call {@link ConfigurationStore#as(Object, Class)} for any
+     * value obtained from the result of this method.
      * 
      * @param path the path
      * @return the updated values or `null` if the path has been
@@ -116,14 +164,35 @@ public class ConfigurationUpdate extends Event<Void> {
     }
 
     /**
-     * Add a new (or updated) configuration value to the event.
+     * Set new (updated), possibly structured configuration values (see
+     * {@link ConfigurationStore#structure(Map)} for the given path.
+     * Any information associated with the path before the invocation
+     * of this method is replaced.  
+     * 
+     * @param path the value's path
+     * @return the event for easy chaining
+     */
+    public ConfigurationUpdate set(String path, Map<String, ?> values) {
+        if (path == null || !path.startsWith("/")) {
+            throw new IllegalArgumentException("Path must start with \"/\".");
+        }
+        synchronized (this) {
+            flatValues.remove(path);
+            structuredValues.put(path, values);
+        }
+        return this;
+    }
+
+    /**
+     * Add a new (or updated) configuration value for the given path
+     * and key.
      * 
      * @param path the value's path
      * @param key the key of the value
      * @param value the value
      * @return the event for easy chaining
      */
-    public ConfigurationUpdate add(String path, String key, String value) {
+    public ConfigurationUpdate add(String path, String key, Object value) {
         if (path == null || !path.startsWith("/")) {
             throw new IllegalArgumentException("Path must start with \"/\".");
         }
@@ -136,16 +205,16 @@ public class ConfigurationUpdate extends Event<Void> {
             }
             structuredValues.remove(path);
             @SuppressWarnings("PMD.UseConcurrentHashMap")
-            Map<String, String> scoped = flatValues
-                .computeIfAbsent(path, newKey -> new HashMap<String, String>());
+            Map<String, Object> scoped = flatValues
+                .computeIfAbsent(path, newKey -> new HashMap<String, Object>());
             scoped.put(key, value);
         }
         return this;
     }
 
     /**
-     * Signal to handlers that a path has been removed from the 
-     * configuration.
+     * Associate the given path with `null`. This signals to handlers 
+     * that the path has been removed from the configuration.
      * 
      * @param path the path that has been removed
      * @return the event for easy chaining
@@ -161,59 +230,4 @@ public class ConfigurationUpdate extends Event<Void> {
         return this;
     }
 
-    /**
-     * Return all paths affected by this event.
-     * 
-     * @return the paths
-     */
-    @SuppressWarnings("PMD.ConfusingTernary")
-    public Set<String> paths() {
-        synchronized (this) {
-            Set<String> result = new HashSet<>(flatValues.keySet());
-            result.addAll(structuredValues.keySet());
-            return result;
-        }
-    }
-
-    /**
-     * Return the properties for a given path if they exists.
-     * 
-     * @param path the path
-     * @return the updated values or `null` if the path has been
-     * removed (implies the removal of all values for that path).
-     */
-    public Optional<Map<String, String>> values(String path) {
-        synchronized (this) {
-            Map<String, String> result;
-            if (!flatValues.containsKey(path)
-                && structuredValues.containsKey(path)) {
-                // Synchronize to flatValues and return
-                result = ConfigurationStore.flatten(structuredValues.get(path));
-                flatValues.put(path, result);
-            } else {
-                result = flatValues.get(path);
-            }
-            if (result == null) {
-                return Optional.empty();
-            }
-            return Optional.of(Collections.unmodifiableMap(result));
-        }
-    }
-
-    /**
-     * Return the value with the given path and key if it exists.
-     * 
-     * @param path the path
-     * @param key the key
-     * @return the value
-     */
-    public Optional<String> value(String path, String key) {
-        if (!flatValues.containsKey(path)
-            && structuredValues.containsKey(path)) {
-            flatValues.put(path,
-                ConfigurationStore.flatten(structuredValues.get(path)));
-        }
-        return Optional.ofNullable(flatValues.get(path))
-            .flatMap(map -> Optional.ofNullable(map.get(key)));
-    }
 }

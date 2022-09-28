@@ -18,6 +18,7 @@
 
 package org.jgrapes.util.test;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -25,25 +26,22 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.jdrupes.json.JsonBeanDecoder;
 import org.jdrupes.json.JsonDecodeException;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.annotation.Handler;
-import org.jgrapes.util.JsonConfigurationStore;
+import org.jgrapes.util.TomlConfigurationStore;
 import org.jgrapes.util.events.ConfigurationUpdate;
 import org.jgrapes.util.events.InitialConfiguration;
 import static org.junit.Assert.*;
 import org.junit.Test;
 
-public class JsonConfigTests {
+public class TomlConfigTests {
 
     public class UpdateTrigger extends Event<Void> {
     }
@@ -77,7 +75,7 @@ public class JsonConfigTests {
         @Handler
         public void onTriggerUpdate(UpdateTrigger event) {
             fire(new ConfigurationUpdate().add("/", "updated", "new")
-                .add("/sub/tree", "map.more.1", "4"));
+                .add("/sub/tree", "map.more.1", 4));
         }
     }
 
@@ -100,13 +98,20 @@ public class JsonConfigTests {
 
         // Create app and initial file
         App app = new App();
-        File file = new File("testConfig.json");
+        File file = new File("testConfig.toml");
+        // In case we have a "left over"
+        file.delete();
         try (Writer out
             = new OutputStreamWriter(new FileOutputStream(file), "utf-8")) {
-            out.write("{\"answer\":42, \"/sub\":{\"/tree\":{\"value\":24,"
-                + "\"list\":[1,2,3],\"map\":{\"one\":1,\"more\":[2,3]}}}}");
+            out.write("answer = 42\n"
+                + "[_sub.\"/tree\"]\n"
+                + "value = 24\n"
+                + "list = [1, 2, 3]\n"
+                + "map.one = 1\n"
+                + "map.more = [2, 3]");
+            // \"list\":[1,2,3],\"map\":{\"one\":1,\"more\":[2,3]}}}}
         }
-        var conf = new JsonConfigurationStore(app, file);
+        var conf = new TomlConfigurationStore(app, file);
 
         // Check direct access to store
         assertEquals("42", conf.values("/").get().get("answer"));
@@ -138,44 +143,73 @@ public class JsonConfigTests {
         assertEquals(42, child.value);
 
         // Check storage update
-        app.fire(new UpdateTrigger(), app);
+        app.fire(new UpdateTrigger(), app).get();
         Components.awaitExhaustion();
         Components.checkAssertions();
-        assertEquals("4", conf.values("/sub/tree").get().get("map.more.1"));
+        assertEquals("4",
+            conf.values("/sub/tree").get().get("map.more.1").toString());
 
-        Map<String, Object> root;
-        try (Reader input
-            = new InputStreamReader(new FileInputStream(file), "utf-8")) {
-            root = JsonBeanDecoder.create(input)
-                .readObject(HashMap.class);
+        boolean found = false;
+        try (BufferedReader input = new BufferedReader(
+            new InputStreamReader(new FileInputStream(file), "utf-8"))) {
+            while (true) {
+                String line = input.readLine();
+                if (line == null) {
+                    break;
+                }
+                if (line.contains("update") && line.contains("\"new\"")) {
+                    found = true;
+                    break;
+                }
+            }
         }
 
         // File must have been updated
-        assertEquals("new", root.get("updated"));
+        assertTrue(found);
 
         // Remove sub tree event
         app.fire(new ConfigurationUpdate().removePath("/sub"), app);
         Components.awaitExhaustion();
         Components.checkAssertions();
-        try (Reader input
-            = new InputStreamReader(new FileInputStream(file), "utf-8")) {
-            root = JsonBeanDecoder.create(input).readObject(HashMap.class);
+        found = false;
+        try (BufferedReader input = new BufferedReader(
+            new InputStreamReader(new FileInputStream(file), "utf-8"))) {
+            while (true) {
+                String line = input.readLine();
+                if (line == null) {
+                    break;
+                }
+                if (line.contains("list")) {
+                    found = true;
+                    break;
+                }
+            }
         }
 
         // Sub tree must have been removed in file
-        assertFalse(root.containsKey("/sub"));
+        assertFalse(found);
 
         // Remove test preferences
         app.fire(new ConfigurationUpdate().removePath("/"), app);
         Components.awaitExhaustion();
         Components.checkAssertions();
-        try (Reader input
-            = new InputStreamReader(new FileInputStream(file), "utf-8")) {
-            root = JsonBeanDecoder.create(input).readObject(HashMap.class);
+        found = false;
+        try (BufferedReader input = new BufferedReader(
+            new InputStreamReader(new FileInputStream(file), "utf-8"))) {
+            while (true) {
+                String line = input.readLine();
+                if (line == null) {
+                    break;
+                }
+                if (!line.trim().isEmpty()) {
+                    found = true;
+                    break;
+                }
+            }
         }
 
         // Data must have been removed
-        assertTrue(root.isEmpty());
+        assertFalse(found);
 
         // Cleanup
         file.delete();
