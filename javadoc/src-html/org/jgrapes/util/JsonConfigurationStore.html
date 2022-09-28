@@ -38,12 +38,12 @@
 <span class="source-line-no">025</span><span id="line-25">import java.io.Reader;</span>
 <span class="source-line-no">026</span><span id="line-26">import java.io.Writer;</span>
 <span class="source-line-no">027</span><span id="line-27">import java.nio.file.Files;</span>
-<span class="source-line-no">028</span><span id="line-28">import java.util.Collection;</span>
-<span class="source-line-no">029</span><span id="line-29">import java.util.HashMap;</span>
-<span class="source-line-no">030</span><span id="line-30">import java.util.Map;</span>
-<span class="source-line-no">031</span><span id="line-31">import java.util.Optional;</span>
-<span class="source-line-no">032</span><span id="line-32">import java.util.StringTokenizer;</span>
-<span class="source-line-no">033</span><span id="line-33">import java.util.prefs.BackingStoreException;</span>
+<span class="source-line-no">028</span><span id="line-28">import java.util.HashMap;</span>
+<span class="source-line-no">029</span><span id="line-29">import java.util.Map;</span>
+<span class="source-line-no">030</span><span id="line-30">import java.util.Optional;</span>
+<span class="source-line-no">031</span><span id="line-31">import java.util.StringTokenizer;</span>
+<span class="source-line-no">032</span><span id="line-32">import java.util.prefs.BackingStoreException;</span>
+<span class="source-line-no">033</span><span id="line-33">import java.util.stream.Collectors;</span>
 <span class="source-line-no">034</span><span id="line-34">import org.jdrupes.json.JsonBeanDecoder;</span>
 <span class="source-line-no">035</span><span id="line-35">import org.jdrupes.json.JsonBeanEncoder;</span>
 <span class="source-line-no">036</span><span id="line-36">import org.jdrupes.json.JsonDecodeException;</span>
@@ -194,7 +194,7 @@
 <span class="source-line-no">181</span><span id="line-181">                continue;</span>
 <span class="source-line-no">182</span><span id="line-182">            }</span>
 <span class="source-line-no">183</span><span id="line-183">            if (handleSegment(cache, new StringTokenizer(path, "/"),</span>
-<span class="source-line-no">184</span><span id="line-184">                event.values(path))) {</span>
+<span class="source-line-no">184</span><span id="line-184">                event.structured(path).map(ConfigurationStore::flatten))) {</span>
 <span class="source-line-no">185</span><span id="line-185">                changed = true;</span>
 <span class="source-line-no">186</span><span id="line-186">            }</span>
 <span class="source-line-no">187</span><span id="line-187">        }</span>
@@ -209,7 +209,7 @@
 <span class="source-line-no">196</span><span id="line-196"></span>
 <span class="source-line-no">197</span><span id="line-197">    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")</span>
 <span class="source-line-no">198</span><span id="line-198">    private boolean handleSegment(Map&lt;String, Object&gt; currentMap,</span>
-<span class="source-line-no">199</span><span id="line-199">            StringTokenizer tokenizer, Optional&lt;Map&lt;String, String&gt;&gt; values) {</span>
+<span class="source-line-no">199</span><span id="line-199">            StringTokenizer tokenizer, Optional&lt;Map&lt;String, Object&gt;&gt; values) {</span>
 <span class="source-line-no">200</span><span id="line-200">        if (!tokenizer.hasMoreTokens()) {</span>
 <span class="source-line-no">201</span><span id="line-201">            // "Leaf" map</span>
 <span class="source-line-no">202</span><span id="line-202">            return mergeValues(currentMap, values.get());</span>
@@ -236,15 +236,15 @@
 <span class="source-line-no">223</span><span id="line-223">            currentMap.put(nextSegment, nextMap);</span>
 <span class="source-line-no">224</span><span id="line-224">        }</span>
 <span class="source-line-no">225</span><span id="line-225">        // Continue with sub-map</span>
-<span class="source-line-no">226</span><span id="line-226">        return changed || handleSegment(nextMap, tokenizer, values);</span>
+<span class="source-line-no">226</span><span id="line-226">        return handleSegment(nextMap, tokenizer, values) || changed;</span>
 <span class="source-line-no">227</span><span id="line-227">    }</span>
 <span class="source-line-no">228</span><span id="line-228"></span>
 <span class="source-line-no">229</span><span id="line-229">    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")</span>
 <span class="source-line-no">230</span><span id="line-230">    private boolean mergeValues(Map&lt;String, Object&gt; currentMap,</span>
-<span class="source-line-no">231</span><span id="line-231">            Map&lt;String, String&gt; values) {</span>
+<span class="source-line-no">231</span><span id="line-231">            Map&lt;String, Object&gt; values) {</span>
 <span class="source-line-no">232</span><span id="line-232">        boolean changed = false;</span>
-<span class="source-line-no">233</span><span id="line-233">        Map&lt;String, String&gt; curValues = flatten(currentMap);</span>
-<span class="source-line-no">234</span><span id="line-234">        for (Map.Entry&lt;String, String&gt; e : values.entrySet()) {</span>
+<span class="source-line-no">233</span><span id="line-233">        Map&lt;String, Object&gt; curValues = flatten(currentMap);</span>
+<span class="source-line-no">234</span><span id="line-234">        for (Map.Entry&lt;String, Object&gt; e : values.entrySet()) {</span>
 <span class="source-line-no">235</span><span id="line-235">            if (e.getValue() == null) {</span>
 <span class="source-line-no">236</span><span id="line-236">                // Delete from map</span>
 <span class="source-line-no">237</span><span id="line-237">                if (curValues.containsKey(e.getKey())) {</span>
@@ -253,7 +253,7 @@
 <span class="source-line-no">240</span><span id="line-240">                }</span>
 <span class="source-line-no">241</span><span id="line-241">                continue;</span>
 <span class="source-line-no">242</span><span id="line-242">            }</span>
-<span class="source-line-no">243</span><span id="line-243">            String oldValue = curValues.get(e.getKey());</span>
+<span class="source-line-no">243</span><span id="line-243">            Object oldValue = curValues.get(e.getKey());</span>
 <span class="source-line-no">244</span><span id="line-244">            if (oldValue == null || !e.getValue().equals(oldValue)) {</span>
 <span class="source-line-no">245</span><span id="line-245">                curValues.put(e.getKey(), e.getValue());</span>
 <span class="source-line-no">246</span><span id="line-246">                changed = true;</span>
@@ -271,7 +271,7 @@
 <span class="source-line-no">258</span><span id="line-258">    @SuppressWarnings({ "unchecked",</span>
 <span class="source-line-no">259</span><span id="line-259">        "PMD.AvoidBranchingStatementAsLastInLoop" })</span>
 <span class="source-line-no">260</span><span id="line-260">    @Override</span>
-<span class="source-line-no">261</span><span id="line-261">    public Optional&lt;Map&lt;String, String&gt;&gt; values(String path) {</span>
+<span class="source-line-no">261</span><span id="line-261">    public Optional&lt;Map&lt;String, Object&gt;&gt; structured(String path) {</span>
 <span class="source-line-no">262</span><span id="line-262">        if (!path.startsWith("/")) {</span>
 <span class="source-line-no">263</span><span id="line-263">            throw new IllegalArgumentException("Path must start with \"/\".");</span>
 <span class="source-line-no">264</span><span id="line-264">        }</span>
@@ -285,39 +285,11 @@
 <span class="source-line-no">272</span><span id="line-272">            }</span>
 <span class="source-line-no">273</span><span id="line-273">            return Optional.empty();</span>
 <span class="source-line-no">274</span><span id="line-274">        }</span>
-<span class="source-line-no">275</span><span id="line-275">        var result = new HashMap&lt;String, String&gt;();</span>
-<span class="source-line-no">276</span><span id="line-276">        for (var e : cur.entrySet()) {</span>
-<span class="source-line-no">277</span><span id="line-277">            if (e.getKey().startsWith("/") &amp;&amp; e.getValue() instanceof Map) {</span>
-<span class="source-line-no">278</span><span id="line-278">                // Skip map of next path level</span>
-<span class="source-line-no">279</span><span id="line-279">                continue;</span>
-<span class="source-line-no">280</span><span id="line-280">            }</span>
-<span class="source-line-no">281</span><span id="line-281">            addValue(result, e.getKey(), e.getValue());</span>
-<span class="source-line-no">282</span><span id="line-282">        }</span>
-<span class="source-line-no">283</span><span id="line-283">        return Optional.of(result);</span>
-<span class="source-line-no">284</span><span id="line-284">    }</span>
-<span class="source-line-no">285</span><span id="line-285"></span>
-<span class="source-line-no">286</span><span id="line-286">    private void addValue(Map&lt;String, String&gt; result, String key,</span>
-<span class="source-line-no">287</span><span id="line-287">            Object value) {</span>
-<span class="source-line-no">288</span><span id="line-288">        if (value instanceof Collection) {</span>
-<span class="source-line-no">289</span><span id="line-289">            @SuppressWarnings("unchecked")</span>
-<span class="source-line-no">290</span><span id="line-290">            var values = (Collection&lt;Object&gt;) value;</span>
-<span class="source-line-no">291</span><span id="line-291">            var valIter = values.iterator();</span>
-<span class="source-line-no">292</span><span id="line-292">            for (int i = 0; i &lt; values.size(); i++) {</span>
-<span class="source-line-no">293</span><span id="line-293">                addValue(result, key + "." + i, valIter.next());</span>
-<span class="source-line-no">294</span><span id="line-294">            }</span>
-<span class="source-line-no">295</span><span id="line-295">            return;</span>
-<span class="source-line-no">296</span><span id="line-296">        }</span>
-<span class="source-line-no">297</span><span id="line-297">        if (value instanceof Map) {</span>
-<span class="source-line-no">298</span><span id="line-298">            @SuppressWarnings("unchecked")</span>
-<span class="source-line-no">299</span><span id="line-299">            var values = (Map&lt;String, Object&gt;) value;</span>
-<span class="source-line-no">300</span><span id="line-300">            for (var e : values.entrySet()) {</span>
-<span class="source-line-no">301</span><span id="line-301">                addValue(result, key + "." + e.getKey(), e.getValue());</span>
-<span class="source-line-no">302</span><span id="line-302">            }</span>
-<span class="source-line-no">303</span><span id="line-303">            return;</span>
-<span class="source-line-no">304</span><span id="line-304">        }</span>
-<span class="source-line-no">305</span><span id="line-305">        result.put(key, value.toString());</span>
-<span class="source-line-no">306</span><span id="line-306">    }</span>
-<span class="source-line-no">307</span><span id="line-307">}</span>
+<span class="source-line-no">275</span><span id="line-275">        return Optional.of(cur.entrySet().stream().filter(</span>
+<span class="source-line-no">276</span><span id="line-276">            e -&gt; !e.getKey().startsWith("/") || !(e.getValue() instanceof Map))</span>
+<span class="source-line-no">277</span><span id="line-277">            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));</span>
+<span class="source-line-no">278</span><span id="line-278">    }</span>
+<span class="source-line-no">279</span><span id="line-279">}</span>
 
 
 

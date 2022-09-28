@@ -311,14 +311,16 @@
 <span class="source-line-no">298</span><span id="line-298">        builder.append(Components.objectName(this))</span>
 <span class="source-line-no">299</span><span id="line-299">            .append(" [");</span>
 <span class="source-line-no">300</span><span id="line-300">        if (queue != null) {</span>
-<span class="source-line-no">301</span><span id="line-301">            builder.append("queue=")</span>
-<span class="source-line-no">302</span><span id="line-302">                .append(queue);</span>
-<span class="source-line-no">303</span><span id="line-303">        }</span>
-<span class="source-line-no">304</span><span id="line-304">        builder.append(']');</span>
-<span class="source-line-no">305</span><span id="line-305">        return builder.toString();</span>
-<span class="source-line-no">306</span><span id="line-306">    }</span>
-<span class="source-line-no">307</span><span id="line-307"></span>
-<span class="source-line-no">308</span><span id="line-308">}</span>
+<span class="source-line-no">301</span><span id="line-301">            // Avoid concurrency for queue.toString().</span>
+<span class="source-line-no">302</span><span id="line-302">            synchronized (this) {</span>
+<span class="source-line-no">303</span><span id="line-303">                builder.append("queue=").append(queue);</span>
+<span class="source-line-no">304</span><span id="line-304">            }</span>
+<span class="source-line-no">305</span><span id="line-305">        }</span>
+<span class="source-line-no">306</span><span id="line-306">        builder.append(']');</span>
+<span class="source-line-no">307</span><span id="line-307">        return builder.toString();</span>
+<span class="source-line-no">308</span><span id="line-308">    }</span>
+<span class="source-line-no">309</span><span id="line-309"></span>
+<span class="source-line-no">310</span><span id="line-310">}</span>
 
 
 
