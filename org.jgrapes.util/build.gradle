@@ -1,9 +1,10 @@
 dependencies {
 	api project(':org.jgrapes.core')
-	api 'org.jdrupes.json:json:[2.0.0,2.1.0)'
 	
     implementation 'com.electronwill.night-config:toml:3.6.6'
+    implementation 'com.electronwill.night-config:json:3.6.6'
 
+    testImplementation 'org.jdrupes.json:json:[2.0.0,2.1.0)'
 	testRuntimeOnly project.files('test-resources')
 }
 	

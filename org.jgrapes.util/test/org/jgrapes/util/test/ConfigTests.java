@@ -18,6 +18,7 @@
 
 package org.jgrapes.util.test;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -37,13 +38,16 @@ import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.annotation.Handler;
+import org.jgrapes.util.ConfigurationStore;
 import org.jgrapes.util.JsonConfigurationStore;
+import org.jgrapes.util.TomlConfigurationStore;
 import org.jgrapes.util.events.ConfigurationUpdate;
 import org.jgrapes.util.events.InitialConfiguration;
 import static org.junit.Assert.*;
-import org.junit.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
-public class JsonConfigTests {
+public class ConfigTests {
 
     public class UpdateTrigger extends Event<Void> {
     }
@@ -93,20 +97,40 @@ public class JsonConfigTests {
     }
 
     @SuppressWarnings("unchecked")
-    @Test
-    public void testMisc() throws InterruptedException,
+    @ParameterizedTest
+    @ValueSource(strings = { "json", "toml" })
+    public void testMisc(String format) throws InterruptedException,
             UnsupportedEncodingException, FileNotFoundException, IOException,
             JsonDecodeException {
 
         // Create app and initial file
         App app = new App();
-        File file = new File("testConfig.json");
+        File file = new File("testConfig." + format);
+        Map<String, String> initial = Map.of("json",
+            "{\"answer\":42, \"/sub\":{\"/tree\":{\"value\":24,"
+                + "\"list\":[1,2,3],\"map\":{\"one\":1,\"more\":[2,3]}}}}",
+            "toml",
+            "answer = 42\n"
+                + "[_sub.\"/tree\"]\n"
+                + "value = 24\n"
+                + "list = [1, 2, 3]\n"
+                + "map.one = 1\n"
+                + "map.more = [2, 3]");
         try (Writer out
             = new OutputStreamWriter(new FileOutputStream(file), "utf-8")) {
-            out.write("{\"answer\":42, \"/sub\":{\"/tree\":{\"value\":24,"
-                + "\"list\":[1,2,3],\"map\":{\"one\":1,\"more\":[2,3]}}}}");
+            out.write(initial.get(format));
         }
-        var conf = new JsonConfigurationStore(app, file);
+        ConfigurationStore conf = null;
+        switch (format) {
+        case "json":
+            conf = new JsonConfigurationStore(app, file);
+            break;
+        case "toml":
+            conf = new TomlConfigurationStore(app, file);
+            break;
+        default:
+            fail();
+        }
 
         // Check direct access to store
         assertEquals("42", conf.values("/").get().get("answer"));
@@ -142,21 +166,86 @@ public class JsonConfigTests {
         Components.awaitExhaustion();
         Components.checkAssertions();
         assertEquals("4", conf.values("/sub/tree").get().get("map.more.1"));
-
-        Map<String, Object> root;
-        try (Reader input
-            = new InputStreamReader(new FileInputStream(file), "utf-8")) {
-            root = JsonBeanDecoder.create(input)
-                .readObject(HashMap.class);
+        switch (format) {
+        case "json":
+            jsonFindUpdated(file);
+            break;
+        case "toml":
+            tomlFindUpdated(file);
+            break;
+        default:
+            fail();
         }
-
-        // File must have been updated
-        assertEquals("new", root.get("updated"));
 
         // Remove sub tree event
         app.fire(new ConfigurationUpdate().removePath("/sub"), app);
         Components.awaitExhaustion();
         Components.checkAssertions();
+        switch (format) {
+        case "json":
+            jsonCheckRemove(file);
+            break;
+        case "toml":
+            tomlCheckRemove(file);
+            break;
+        default:
+            fail();
+        }
+
+        // Remove test preferences
+        app.fire(new ConfigurationUpdate().removePath("/"), app);
+        Components.awaitExhaustion();
+        Components.checkAssertions();
+        switch (format) {
+        case "json":
+            jsonCheckRemoveAll(file);
+            break;
+        default:
+            checkEmpty(file);
+            break;
+        }
+
+        // Cleanup
+        file.delete();
+    }
+
+    @SuppressWarnings("unchecked")
+    private void jsonFindUpdated(File file) throws JsonDecodeException,
+            IOException, UnsupportedEncodingException, FileNotFoundException {
+        Map<String, Object> root;
+        try (Reader input
+            = new InputStreamReader(new FileInputStream(file), "utf-8")) {
+            root = JsonBeanDecoder.create(input).readObject(HashMap.class);
+        }
+
+        // File must have been updated
+        assertEquals("new", root.get("updated"));
+    }
+
+    private void tomlFindUpdated(File file) throws UnsupportedEncodingException,
+            FileNotFoundException, IOException {
+        boolean found = false;
+        try (BufferedReader input = new BufferedReader(
+            new InputStreamReader(new FileInputStream(file), "utf-8"))) {
+            while (true) {
+                String line = input.readLine();
+                if (line == null) {
+                    break;
+                }
+                if (line.contains("update") && line.contains("\"new\"")) {
+                    found = true;
+                    break;
+                }
+            }
+        }
+        // File must have been updated
+        assertTrue(found);
+    }
+
+    @SuppressWarnings("unchecked")
+    private void jsonCheckRemove(File file) throws JsonDecodeException,
+            IOException, UnsupportedEncodingException, FileNotFoundException {
+        Map<String, Object> root;
         try (Reader input
             = new InputStreamReader(new FileInputStream(file), "utf-8")) {
             root = JsonBeanDecoder.create(input).readObject(HashMap.class);
@@ -164,11 +253,34 @@ public class JsonConfigTests {
 
         // Sub tree must have been removed in file
         assertFalse(root.containsKey("/sub"));
+    }
 
-        // Remove test preferences
-        app.fire(new ConfigurationUpdate().removePath("/"), app);
-        Components.awaitExhaustion();
-        Components.checkAssertions();
+    private void tomlCheckRemove(File file) throws UnsupportedEncodingException,
+            FileNotFoundException, IOException {
+        boolean found = false;
+        try (BufferedReader input = new BufferedReader(
+            new InputStreamReader(new FileInputStream(file), "utf-8"))) {
+            while (true) {
+                String line = input.readLine();
+                if (line == null) {
+                    break;
+                }
+                if (line.contains("list")) {
+                    found = true;
+                    break;
+                }
+            }
+        }
+
+        // Sub tree must have been removed in file
+        assertFalse(found);
+
+    }
+
+    @SuppressWarnings("unchecked")
+    private void jsonCheckRemoveAll(File file) throws JsonDecodeException,
+            IOException, UnsupportedEncodingException, FileNotFoundException {
+        Map<String, Object> root;
         try (Reader input
             = new InputStreamReader(new FileInputStream(file), "utf-8")) {
             root = JsonBeanDecoder.create(input).readObject(HashMap.class);
@@ -176,9 +288,26 @@ public class JsonConfigTests {
 
         // Data must have been removed
         assertTrue(root.isEmpty());
-
-        // Cleanup
-        file.delete();
     }
 
+    private void checkEmpty(File file) throws JsonDecodeException,
+            IOException, UnsupportedEncodingException, FileNotFoundException {
+        boolean found = false;
+        try (BufferedReader input = new BufferedReader(
+            new InputStreamReader(new FileInputStream(file), "utf-8"))) {
+            while (true) {
+                String line = input.readLine();
+                if (line == null) {
+                    break;
+                }
+                if (!line.trim().isEmpty()) {
+                    found = true;
+                    break;
+                }
+            }
+        }
+
+        // Data must have been removed
+        assertFalse(found);
+    }
 }

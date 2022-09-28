@@ -18,6 +18,7 @@
 
 package org.jgrapes.util;
 
+import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import java.io.File;
 import java.io.IOException;
 import org.jgrapes.core.Channel;
@@ -79,6 +80,8 @@ public class TomlConfigurationStore extends NightConfigStore {
     public TomlConfigurationStore(Channel componentChannel, File file,
             boolean update) throws IOException {
         super(componentChannel, file, update);
+        config = CommentedFileConfig.builder(file).sync().concurrent().build();
+        config.load();
     }
 
 }

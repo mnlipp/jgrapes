@@ -19,7 +19,7 @@
 package org.jgrapes.util;
 
 import com.electronwill.nightconfig.core.Config;
-import com.electronwill.nightconfig.core.file.CommentedFileConfig;
+import com.electronwill.nightconfig.core.file.FileConfig;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
@@ -42,7 +42,7 @@ import org.jgrapes.util.events.InitialConfiguration;
     "PMD.GodClass" })
 public abstract class NightConfigStore extends ConfigurationStore {
 
-    protected CommentedFileConfig config;
+    protected FileConfig config;
 
     /**
      * Creates a new component with its channel set to the given 
@@ -76,8 +76,6 @@ public abstract class NightConfigStore extends ConfigurationStore {
         if (!file.exists()) {
             file.createNewFile();
         }
-        config = CommentedFileConfig.builder(file).sync().concurrent().build();
-        config.load();
     }
 
     @Override
