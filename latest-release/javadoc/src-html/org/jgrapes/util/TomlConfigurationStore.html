@@ -31,70 +31,73 @@
 <span class="source-line-no">018</span><span id="line-18"></span>
 <span class="source-line-no">019</span><span id="line-19">package org.jgrapes.util;</span>
 <span class="source-line-no">020</span><span id="line-20"></span>
-<span class="source-line-no">021</span><span id="line-21">import java.io.File;</span>
-<span class="source-line-no">022</span><span id="line-22">import java.io.IOException;</span>
-<span class="source-line-no">023</span><span id="line-23">import org.jgrapes.core.Channel;</span>
-<span class="source-line-no">024</span><span id="line-24">import org.jgrapes.core.EventPipeline;</span>
-<span class="source-line-no">025</span><span id="line-25">import org.jgrapes.core.events.Start;</span>
-<span class="source-line-no">026</span><span id="line-26">import org.jgrapes.util.events.ConfigurationUpdate;</span>
-<span class="source-line-no">027</span><span id="line-27">import org.jgrapes.util.events.InitialPreferences;</span>
-<span class="source-line-no">028</span><span id="line-28"></span>
-<span class="source-line-no">029</span><span id="line-29">/**</span>
-<span class="source-line-no">030</span><span id="line-30"> * This component provides a store for an application's configuration</span>
-<span class="source-line-no">031</span><span id="line-31"> * backed by a TOML file. </span>
-<span class="source-line-no">032</span><span id="line-32"> * </span>
-<span class="source-line-no">033</span><span id="line-33"> * The component reads the initial values from {@link File} passed</span>
-<span class="source-line-no">034</span><span id="line-34"> * to the constructor. During application bootstrap, it </span>
-<span class="source-line-no">035</span><span id="line-35"> * intercepts the {@link Start} event using a handler with  priority </span>
-<span class="source-line-no">036</span><span id="line-36"> * 999999. When receiving this event, it fires all known preferences </span>
-<span class="source-line-no">037</span><span id="line-37"> * values on the channels of the start event as a </span>
-<span class="source-line-no">038</span><span id="line-38"> * {@link InitialPreferences} event, using a new {@link EventPipeline}</span>
-<span class="source-line-no">039</span><span id="line-39"> * and waiting for its completion. Then, allows the intercepted </span>
-<span class="source-line-no">040</span><span id="line-40"> * {@link Start} event to continue. </span>
-<span class="source-line-no">041</span><span id="line-41"> * </span>
-<span class="source-line-no">042</span><span id="line-42"> * Components that depend on configuration values define handlers</span>
-<span class="source-line-no">043</span><span id="line-43"> * for {@link ConfigurationUpdate} events and adapt themselves to the values </span>
-<span class="source-line-no">044</span><span id="line-44"> * received. Note that due to the intercepted {@link Start} event, the initial</span>
-<span class="source-line-no">045</span><span id="line-45"> * preferences values are received before the {@link Start} event, so</span>
-<span class="source-line-no">046</span><span id="line-46"> * components' configurations can be rearranged before they actually</span>
-<span class="source-line-no">047</span><span id="line-47"> * start doing something.</span>
-<span class="source-line-no">048</span><span id="line-48"> *</span>
-<span class="source-line-no">049</span><span id="line-49"> * Besides initially publishing the stored preferences values,</span>
-<span class="source-line-no">050</span><span id="line-50"> * the component also listens for {@link ConfigurationUpdate} events</span>
-<span class="source-line-no">051</span><span id="line-51"> * on its channel and updates the TOML file (may be suppressed).</span>
-<span class="source-line-no">052</span><span id="line-52"> */</span>
-<span class="source-line-no">053</span><span id="line-53">@SuppressWarnings({ "PMD.DataflowAnomalyAnalysis", "PMD.AvoidDuplicateLiterals",</span>
-<span class="source-line-no">054</span><span id="line-54">    "PMD.GodClass" })</span>
-<span class="source-line-no">055</span><span id="line-55">public class TomlConfigurationStore extends NightConfigStore {</span>
-<span class="source-line-no">056</span><span id="line-56"></span>
-<span class="source-line-no">057</span><span id="line-57">    /**</span>
-<span class="source-line-no">058</span><span id="line-58">     * Creates a new component with its channel set to the given </span>
-<span class="source-line-no">059</span><span id="line-59">     * channel and the given file.</span>
-<span class="source-line-no">060</span><span id="line-60">     * </span>
-<span class="source-line-no">061</span><span id="line-61">     * @param componentChannel the channel </span>
-<span class="source-line-no">062</span><span id="line-62">     * @param file the file used to store the TOML</span>
-<span class="source-line-no">063</span><span id="line-63">     * @throws IOException</span>
-<span class="source-line-no">064</span><span id="line-64">     */</span>
-<span class="source-line-no">065</span><span id="line-65">    public TomlConfigurationStore(Channel componentChannel, File file)</span>
-<span class="source-line-no">066</span><span id="line-66">            throws IOException {</span>
-<span class="source-line-no">067</span><span id="line-67">        this(componentChannel, file, true);</span>
-<span class="source-line-no">068</span><span id="line-68">    }</span>
-<span class="source-line-no">069</span><span id="line-69"></span>
-<span class="source-line-no">070</span><span id="line-70">    /**</span>
-<span class="source-line-no">071</span><span id="line-71">     * Creates a new component with its channel set to the given </span>
-<span class="source-line-no">072</span><span id="line-72">     * channel and the given file.</span>
-<span class="source-line-no">073</span><span id="line-73">     * </span>
-<span class="source-line-no">074</span><span id="line-74">     * @param componentChannel the channel </span>
-<span class="source-line-no">075</span><span id="line-75">     * @param file the file used to store the TOML</span>
-<span class="source-line-no">076</span><span id="line-76">     * @throws IOException</span>
-<span class="source-line-no">077</span><span id="line-77">     */</span>
-<span class="source-line-no">078</span><span id="line-78">    @SuppressWarnings("PMD.ShortVariable")</span>
-<span class="source-line-no">079</span><span id="line-79">    public TomlConfigurationStore(Channel componentChannel, File file,</span>
-<span class="source-line-no">080</span><span id="line-80">            boolean update) throws IOException {</span>
-<span class="source-line-no">081</span><span id="line-81">        super(componentChannel, file, update);</span>
-<span class="source-line-no">082</span><span id="line-82">    }</span>
-<span class="source-line-no">083</span><span id="line-83"></span>
-<span class="source-line-no">084</span><span id="line-84">}</span>
+<span class="source-line-no">021</span><span id="line-21">import com.electronwill.nightconfig.core.file.CommentedFileConfig;</span>
+<span class="source-line-no">022</span><span id="line-22">import java.io.File;</span>
+<span class="source-line-no">023</span><span id="line-23">import java.io.IOException;</span>
+<span class="source-line-no">024</span><span id="line-24">import org.jgrapes.core.Channel;</span>
+<span class="source-line-no">025</span><span id="line-25">import org.jgrapes.core.EventPipeline;</span>
+<span class="source-line-no">026</span><span id="line-26">import org.jgrapes.core.events.Start;</span>
+<span class="source-line-no">027</span><span id="line-27">import org.jgrapes.util.events.ConfigurationUpdate;</span>
+<span class="source-line-no">028</span><span id="line-28">import org.jgrapes.util.events.InitialPreferences;</span>
+<span class="source-line-no">029</span><span id="line-29"></span>
+<span class="source-line-no">030</span><span id="line-30">/**</span>
+<span class="source-line-no">031</span><span id="line-31"> * This component provides a store for an application's configuration</span>
+<span class="source-line-no">032</span><span id="line-32"> * backed by a TOML file. </span>
+<span class="source-line-no">033</span><span id="line-33"> * </span>
+<span class="source-line-no">034</span><span id="line-34"> * The component reads the initial values from {@link File} passed</span>
+<span class="source-line-no">035</span><span id="line-35"> * to the constructor. During application bootstrap, it </span>
+<span class="source-line-no">036</span><span id="line-36"> * intercepts the {@link Start} event using a handler with  priority </span>
+<span class="source-line-no">037</span><span id="line-37"> * 999999. When receiving this event, it fires all known preferences </span>
+<span class="source-line-no">038</span><span id="line-38"> * values on the channels of the start event as a </span>
+<span class="source-line-no">039</span><span id="line-39"> * {@link InitialPreferences} event, using a new {@link EventPipeline}</span>
+<span class="source-line-no">040</span><span id="line-40"> * and waiting for its completion. Then, allows the intercepted </span>
+<span class="source-line-no">041</span><span id="line-41"> * {@link Start} event to continue. </span>
+<span class="source-line-no">042</span><span id="line-42"> * </span>
+<span class="source-line-no">043</span><span id="line-43"> * Components that depend on configuration values define handlers</span>
+<span class="source-line-no">044</span><span id="line-44"> * for {@link ConfigurationUpdate} events and adapt themselves to the values </span>
+<span class="source-line-no">045</span><span id="line-45"> * received. Note that due to the intercepted {@link Start} event, the initial</span>
+<span class="source-line-no">046</span><span id="line-46"> * preferences values are received before the {@link Start} event, so</span>
+<span class="source-line-no">047</span><span id="line-47"> * components' configurations can be rearranged before they actually</span>
+<span class="source-line-no">048</span><span id="line-48"> * start doing something.</span>
+<span class="source-line-no">049</span><span id="line-49"> *</span>
+<span class="source-line-no">050</span><span id="line-50"> * Besides initially publishing the stored preferences values,</span>
+<span class="source-line-no">051</span><span id="line-51"> * the component also listens for {@link ConfigurationUpdate} events</span>
+<span class="source-line-no">052</span><span id="line-52"> * on its channel and updates the TOML file (may be suppressed).</span>
+<span class="source-line-no">053</span><span id="line-53"> */</span>
+<span class="source-line-no">054</span><span id="line-54">@SuppressWarnings({ "PMD.DataflowAnomalyAnalysis", "PMD.AvoidDuplicateLiterals",</span>
+<span class="source-line-no">055</span><span id="line-55">    "PMD.GodClass" })</span>
+<span class="source-line-no">056</span><span id="line-56">public class TomlConfigurationStore extends NightConfigStore {</span>
+<span class="source-line-no">057</span><span id="line-57"></span>
+<span class="source-line-no">058</span><span id="line-58">    /**</span>
+<span class="source-line-no">059</span><span id="line-59">     * Creates a new component with its channel set to the given </span>
+<span class="source-line-no">060</span><span id="line-60">     * channel and the given file.</span>
+<span class="source-line-no">061</span><span id="line-61">     * </span>
+<span class="source-line-no">062</span><span id="line-62">     * @param componentChannel the channel </span>
+<span class="source-line-no">063</span><span id="line-63">     * @param file the file used to store the TOML</span>
+<span class="source-line-no">064</span><span id="line-64">     * @throws IOException</span>
+<span class="source-line-no">065</span><span id="line-65">     */</span>
+<span class="source-line-no">066</span><span id="line-66">    public TomlConfigurationStore(Channel componentChannel, File file)</span>
+<span class="source-line-no">067</span><span id="line-67">            throws IOException {</span>
+<span class="source-line-no">068</span><span id="line-68">        this(componentChannel, file, true);</span>
+<span class="source-line-no">069</span><span id="line-69">    }</span>
+<span class="source-line-no">070</span><span id="line-70"></span>
+<span class="source-line-no">071</span><span id="line-71">    /**</span>
+<span class="source-line-no">072</span><span id="line-72">     * Creates a new component with its channel set to the given </span>
+<span class="source-line-no">073</span><span id="line-73">     * channel and the given file.</span>
+<span class="source-line-no">074</span><span id="line-74">     * </span>
+<span class="source-line-no">075</span><span id="line-75">     * @param componentChannel the channel </span>
+<span class="source-line-no">076</span><span id="line-76">     * @param file the file used to store the TOML</span>
+<span class="source-line-no">077</span><span id="line-77">     * @throws IOException</span>
+<span class="source-line-no">078</span><span id="line-78">     */</span>
+<span class="source-line-no">079</span><span id="line-79">    @SuppressWarnings("PMD.ShortVariable")</span>
+<span class="source-line-no">080</span><span id="line-80">    public TomlConfigurationStore(Channel componentChannel, File file,</span>
+<span class="source-line-no">081</span><span id="line-81">            boolean update) throws IOException {</span>
+<span class="source-line-no">082</span><span id="line-82">        super(componentChannel, file, update);</span>
+<span class="source-line-no">083</span><span id="line-83">        config = CommentedFileConfig.builder(file).sync().concurrent().build();</span>
+<span class="source-line-no">084</span><span id="line-84">        config.load();</span>
+<span class="source-line-no">085</span><span id="line-85">    }</span>
+<span class="source-line-no">086</span><span id="line-86"></span>
+<span class="source-line-no">087</span><span id="line-87">}</span>
 
 
 
