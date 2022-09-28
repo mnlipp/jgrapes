@@ -42,7 +42,7 @@ import org.jgrapes.util.events.InitialConfiguration;
 /**
  * A base class for configuration stores. Implementing classes must
  * override one of the methods {@link #structured(String)} or
- * {@link #preferences(String)} as the default implementations of either
+ * {@link #values(String)} as the default implementations of either
  * calls the other. 
  */
 @SuppressWarnings("PMD.DataflowAnomalyAnalysis")

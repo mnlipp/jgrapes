@@ -75,10 +75,12 @@ public class JsonConfigurationStore extends NightConfigStore {
     /**
      * Creates a new component with its channel set to the given 
      * channel and the given file.
-     * 
-     * @param componentChannel the channel 
+     *
+     * @param componentChannel the channel
      * @param file the file used to store the JSON
-     * @throws JsonDecodeException
+     * @param update if the file is to be updated when
+     * {@link ConfigurationUpdate} events are received
+     * @throws IOException Signals that an I/O exception has occurred.
      */
     @SuppressWarnings("PMD.ShortVariable")
     public JsonConfigurationStore(Channel componentChannel, File file,
