@@ -154,15 +154,30 @@ public abstract class ConfigurationStore extends Component {
     /**
      * The reverse operation to {@link #flatten(Map)}. Entries with
      * key names matching the pattern outlined in {@link #flatten(Map)}
-     * are combined to a single entry with a structured value (list or
-     * map).
+     * are combined to a single entry with a structured value (map or
+     * list).
+     *
+     * Usually, only key patterns with consecutive numbers starting 
+     * with zero are converted to lists (e.g. `key.0`, `key.1`, `key.2`).
+     * If entries are missing, the values at that level are converted to 
+     * a `Map<Integer,Object>` with the given entries instead. If 
+     * `convertSparse` is `true`, incomplete index sets such as `key.2`,
+     * `key.3`, `key.5` are converted to lists with the available number 
+     * of elements despite the missing entries. 
      * 
-     * If `convertSparse` is `true` incomplete index sets such as
-     * `key.2`, `key.3`, `key.5` are converted to lists with the
-     * available number of elements. Else, keys with consecutive
-     * indices starting with 0 must be provided. Otherwise the
-     * entries are converted to a {@link Map} with keys of type
-     * {@link Integer}.
+     * If the derived class overrides {@link #structured(String)},
+     * the leaf values in the returned structure are the values
+     * provided by the overriding implementation (while 
+     * {@link #values(String))} always provides {@link String}s). 
+     * Some configuration formats define types other then string and
+     * therefore value can be e.g. {@link Integer}s or {@link Instant}s.
+     * In order to support the usage of arbitrary configuration store
+     * implementations, values obtained from the data structure returned
+     * by {@link #structure(Map, boolean)} should always be passed 
+     * through {@link #as(Object, Class)}. This method preserves
+     * non-string objects if they match the requested type or
+     * converts the value from its string representation to the
+     * requested type, if possible.
      *
      * @param flatProperties the flat properties
      * @param convertSparse controls conversion to lists
@@ -251,7 +266,7 @@ public abstract class ConfigurationStore extends Component {
 
     /**
      * Return the properties for a given path if they exists
-     * as structured data. 
+     * as structured data, see {@link #structure(Map)}.
      * 
      * @param path the path
      * @return the values, if defined for the given path
@@ -269,6 +284,8 @@ public abstract class ConfigurationStore extends Component {
      * Supported types are:
      * * {@link String}
      * * {@link Number}
+     * * {@link Instant}
+     * * {@link Boolean}
      * 
      * @return the value
      */
