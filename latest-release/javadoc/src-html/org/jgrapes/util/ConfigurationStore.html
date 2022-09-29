@@ -323,7 +323,46 @@
 <span class="source-line-no">310</span><span id="line-310">        return Optional.empty();</span>
 <span class="source-line-no">311</span><span id="line-311">    }</span>
 <span class="source-line-no">312</span><span id="line-312"></span>
-<span class="source-line-no">313</span><span id="line-313">}</span>
+<span class="source-line-no">313</span><span id="line-313">    /**</span>
+<span class="source-line-no">314</span><span id="line-314">     * Short for `as(value, String.class)`.</span>
+<span class="source-line-no">315</span><span id="line-315">     *</span>
+<span class="source-line-no">316</span><span id="line-316">     * @param value the value</span>
+<span class="source-line-no">317</span><span id="line-317">     * @return the optional</span>
+<span class="source-line-no">318</span><span id="line-318">     */</span>
+<span class="source-line-no">319</span><span id="line-319">    public static Optional&lt;String&gt; asString(Object value) {</span>
+<span class="source-line-no">320</span><span id="line-320">        return as(value, String.class);</span>
+<span class="source-line-no">321</span><span id="line-321">    }</span>
+<span class="source-line-no">322</span><span id="line-322"></span>
+<span class="source-line-no">323</span><span id="line-323">    /**</span>
+<span class="source-line-no">324</span><span id="line-324">     * Short for `as(value, Number.class)`.</span>
+<span class="source-line-no">325</span><span id="line-325">     *</span>
+<span class="source-line-no">326</span><span id="line-326">     * @param value the value</span>
+<span class="source-line-no">327</span><span id="line-327">     * @return the optional</span>
+<span class="source-line-no">328</span><span id="line-328">     */</span>
+<span class="source-line-no">329</span><span id="line-329">    public static Optional&lt;Number&gt; asNumber(Object value) {</span>
+<span class="source-line-no">330</span><span id="line-330">        return as(value, Number.class);</span>
+<span class="source-line-no">331</span><span id="line-331">    }</span>
+<span class="source-line-no">332</span><span id="line-332"></span>
+<span class="source-line-no">333</span><span id="line-333">    /**</span>
+<span class="source-line-no">334</span><span id="line-334">     * Short for `as(value, Instant.class)`.</span>
+<span class="source-line-no">335</span><span id="line-335">     *</span>
+<span class="source-line-no">336</span><span id="line-336">     * @param value the value</span>
+<span class="source-line-no">337</span><span id="line-337">     * @return the optional</span>
+<span class="source-line-no">338</span><span id="line-338">     */</span>
+<span class="source-line-no">339</span><span id="line-339">    public static Optional&lt;Instant&gt; asInstant(Object value) {</span>
+<span class="source-line-no">340</span><span id="line-340">        return as(value, Instant.class);</span>
+<span class="source-line-no">341</span><span id="line-341">    }</span>
+<span class="source-line-no">342</span><span id="line-342"></span>
+<span class="source-line-no">343</span><span id="line-343">    /**</span>
+<span class="source-line-no">344</span><span id="line-344">     * Short for `as(value, Boolean.class)`.</span>
+<span class="source-line-no">345</span><span id="line-345">     *</span>
+<span class="source-line-no">346</span><span id="line-346">     * @param value the value</span>
+<span class="source-line-no">347</span><span id="line-347">     * @return the optional</span>
+<span class="source-line-no">348</span><span id="line-348">     */</span>
+<span class="source-line-no">349</span><span id="line-349">    public static Optional&lt;Boolean&gt; asBoolean(Object value) {</span>
+<span class="source-line-no">350</span><span id="line-350">        return as(value, Boolean.class);</span>
+<span class="source-line-no">351</span><span id="line-351">    }</span>
+<span class="source-line-no">352</span><span id="line-352">}</span>
 
 
 
