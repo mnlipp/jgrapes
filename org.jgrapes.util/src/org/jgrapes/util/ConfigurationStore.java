@@ -310,4 +310,43 @@ public abstract class ConfigurationStore extends Component {
         return Optional.empty();
     }
 
+    /**
+     * Short for `as(value, String.class)`.
+     *
+     * @param value the value
+     * @return the optional
+     */
+    public static Optional<String> asString(Object value) {
+        return as(value, String.class);
+    }
+
+    /**
+     * Short for `as(value, Number.class)`.
+     *
+     * @param value the value
+     * @return the optional
+     */
+    public static Optional<Number> asNumber(Object value) {
+        return as(value, Number.class);
+    }
+
+    /**
+     * Short for `as(value, Instant.class)`.
+     *
+     * @param value the value
+     * @return the optional
+     */
+    public static Optional<Instant> asInstant(Object value) {
+        return as(value, Instant.class);
+    }
+
+    /**
+     * Short for `as(value, Boolean.class)`.
+     *
+     * @param value the value
+     * @return the optional
+     */
+    public static Optional<Boolean> asBoolean(Object value) {
+        return as(value, Boolean.class);
+    }
 }
