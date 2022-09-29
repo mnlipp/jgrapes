@@ -41,6 +41,7 @@ import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.util.ConfigurationStore;
 import org.jgrapes.util.JsonConfigurationStore;
 import org.jgrapes.util.TomlConfigurationStore;
+import org.jgrapes.util.YamlConfigurationStore;
 import org.jgrapes.util.events.ConfigurationUpdate;
 import org.jgrapes.util.events.InitialConfiguration;
 import static org.junit.Assert.*;
@@ -98,7 +99,7 @@ public class ConfigTests {
 
     @SuppressWarnings("unchecked")
     @ParameterizedTest
-    @ValueSource(strings = { "json", "toml" })
+    @ValueSource(strings = { "json", "toml", "yaml" })
     public void testMisc(String format) throws InterruptedException,
             UnsupportedEncodingException, FileNotFoundException, IOException,
             JsonDecodeException {
@@ -109,13 +110,23 @@ public class ConfigTests {
         Map<String, String> initial = Map.of("json",
             "{\"answer\":42, \"/sub\":{\"/tree\":{\"value\":24,"
                 + "\"list\":[1,2,3],\"map\":{\"one\":1,\"more\":[2,3]}}}}",
-            "toml",
-            "answer = 42\n"
+            "toml", "answer = 42\n"
                 + "[_sub.\"/tree\"]\n"
                 + "value = 24\n"
                 + "list = [1, 2, 3]\n"
                 + "map.one = 1\n"
-                + "map.more = [2, 3]");
+                + "map.more = [2, 3]",
+            "yaml", "answer: 42\n"
+                + "_sub:\n"
+                + "  _tree:\n"
+                + "    value: 24\n"
+                + "    list: \n"
+                + "    - 1\n"
+                + "    - 2\n"
+                + "    - 3\n"
+                + "    map:\n"
+                + "      one: 1\n"
+                + "      more: [2,3]\n");
         try (Writer out
             = new OutputStreamWriter(new FileOutputStream(file), "utf-8")) {
             out.write(initial.get(format));
@@ -127,6 +138,9 @@ public class ConfigTests {
             break;
         case "toml":
             conf = new TomlConfigurationStore(app, file);
+            break;
+        case "yaml":
+            conf = new YamlConfigurationStore(app, file);
             break;
         default:
             fail();
@@ -171,7 +185,8 @@ public class ConfigTests {
             jsonFindUpdated(file);
             break;
         case "toml":
-            tomlFindUpdated(file);
+        case "yaml":
+            findUpdated(file);
             break;
         default:
             fail();
@@ -186,7 +201,8 @@ public class ConfigTests {
             jsonCheckRemove(file);
             break;
         case "toml":
-            tomlCheckRemove(file);
+        case "yaml":
+            checkRemove(file);
             break;
         default:
             fail();
@@ -198,6 +214,7 @@ public class ConfigTests {
         Components.checkAssertions();
         switch (format) {
         case "json":
+        case "yaml":
             jsonCheckRemoveAll(file);
             break;
         default:
@@ -222,7 +239,7 @@ public class ConfigTests {
         assertEquals("new", root.get("updated"));
     }
 
-    private void tomlFindUpdated(File file) throws UnsupportedEncodingException,
+    private void findUpdated(File file) throws UnsupportedEncodingException,
             FileNotFoundException, IOException {
         boolean found = false;
         try (BufferedReader input = new BufferedReader(
@@ -232,7 +249,7 @@ public class ConfigTests {
                 if (line == null) {
                     break;
                 }
-                if (line.contains("update") && line.contains("\"new\"")) {
+                if (line.contains("update") && line.contains("new")) {
                     found = true;
                     break;
                 }
@@ -255,7 +272,7 @@ public class ConfigTests {
         assertFalse(root.containsKey("/sub"));
     }
 
-    private void tomlCheckRemove(File file) throws UnsupportedEncodingException,
+    private void checkRemove(File file) throws UnsupportedEncodingException,
             FileNotFoundException, IOException {
         boolean found = false;
         try (BufferedReader input = new BufferedReader(
