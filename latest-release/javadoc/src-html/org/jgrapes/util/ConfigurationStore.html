@@ -167,202 +167,219 @@
 <span class="source-line-no">154</span><span id="line-154">    /**</span>
 <span class="source-line-no">155</span><span id="line-155">     * The reverse operation to {@link #flatten(Map)}. Entries with</span>
 <span class="source-line-no">156</span><span id="line-156">     * key names matching the pattern outlined in {@link #flatten(Map)}</span>
-<span class="source-line-no">157</span><span id="line-157">     * are combined to a single entry with a structured value (list or</span>
-<span class="source-line-no">158</span><span id="line-158">     * map).</span>
-<span class="source-line-no">159</span><span id="line-159">     * </span>
-<span class="source-line-no">160</span><span id="line-160">     * If `convertSparse` is `true` incomplete index sets such as</span>
-<span class="source-line-no">161</span><span id="line-161">     * `key.2`, `key.3`, `key.5` are converted to lists with the</span>
-<span class="source-line-no">162</span><span id="line-162">     * available number of elements. Else, keys with consecutive</span>
-<span class="source-line-no">163</span><span id="line-163">     * indices starting with 0 must be provided. Otherwise the</span>
-<span class="source-line-no">164</span><span id="line-164">     * entries are converted to a {@link Map} with keys of type</span>
-<span class="source-line-no">165</span><span id="line-165">     * {@link Integer}.</span>
-<span class="source-line-no">166</span><span id="line-166">     *</span>
-<span class="source-line-no">167</span><span id="line-167">     * @param flatProperties the flat properties</span>
-<span class="source-line-no">168</span><span id="line-168">     * @param convertSparse controls conversion to lists</span>
-<span class="source-line-no">169</span><span id="line-169">     * @return a map with structured values</span>
-<span class="source-line-no">170</span><span id="line-170">     */</span>
-<span class="source-line-no">171</span><span id="line-171">    @SuppressWarnings({ "PMD.AvoidInstantiatingObjectsInLoops",</span>
-<span class="source-line-no">172</span><span id="line-172">        "PMD.ReturnEmptyCollectionRatherThanNull" })</span>
-<span class="source-line-no">173</span><span id="line-173">    public static Map&lt;String, Object&gt;</span>
-<span class="source-line-no">174</span><span id="line-174">            structure(Map&lt;String, ?&gt; flatProperties, boolean convertSparse) {</span>
-<span class="source-line-no">175</span><span id="line-175">        if (flatProperties == null) {</span>
-<span class="source-line-no">176</span><span id="line-176">            return null;</span>
-<span class="source-line-no">177</span><span id="line-177">        }</span>
-<span class="source-line-no">178</span><span id="line-178">        @SuppressWarnings("PMD.UseConcurrentHashMap")</span>
-<span class="source-line-no">179</span><span id="line-179">        Map&lt;Object, Object&gt; result = new HashMap&lt;&gt;();</span>
-<span class="source-line-no">180</span><span id="line-180">        for (var entry : flatProperties.entrySet()) {</span>
-<span class="source-line-no">181</span><span id="line-181">            @SuppressWarnings("PMD.DataflowAnomalyAnalysis")</span>
-<span class="source-line-no">182</span><span id="line-182">            Map&lt;Object, Object&gt; target = result;</span>
-<span class="source-line-no">183</span><span id="line-183">            // Original key (optionally) consists of dot separated parts</span>
-<span class="source-line-no">184</span><span id="line-184">            StringTokenizer parts = new StringTokenizer(entry.getKey(), ".");</span>
-<span class="source-line-no">185</span><span id="line-185">            while (true) {</span>
-<span class="source-line-no">186</span><span id="line-186">                var part = parts.nextToken();</span>
-<span class="source-line-no">187</span><span id="line-187">                Object key = NUMBER.matcher(part).find()</span>
-<span class="source-line-no">188</span><span id="line-188">                    ? Integer.parseInt(part)</span>
-<span class="source-line-no">189</span><span id="line-189">                    : part;</span>
-<span class="source-line-no">190</span><span id="line-190">                if (!parts.hasMoreTokens()) {</span>
-<span class="source-line-no">191</span><span id="line-191">                    // Last part (of key), store value</span>
-<span class="source-line-no">192</span><span id="line-192">                    target.put(key, entry.getValue());</span>
-<span class="source-line-no">193</span><span id="line-193">                    break;</span>
-<span class="source-line-no">194</span><span id="line-194">                }</span>
-<span class="source-line-no">195</span><span id="line-195">                @SuppressWarnings("unchecked")</span>
-<span class="source-line-no">196</span><span id="line-196">                var newTarget = (Map&lt;Object, Object&gt;) target</span>
-<span class="source-line-no">197</span><span id="line-197">                    .computeIfAbsent(part, k -&gt; new TreeMap&lt;Object, Object&gt;());</span>
-<span class="source-line-no">198</span><span id="line-198">                target = newTarget;</span>
-<span class="source-line-no">199</span><span id="line-199">            }</span>
-<span class="source-line-no">200</span><span id="line-200">        }</span>
-<span class="source-line-no">201</span><span id="line-201"></span>
-<span class="source-line-no">202</span><span id="line-202">        // Now convert all maps that have only Integer keys to lists</span>
-<span class="source-line-no">203</span><span id="line-203">        for (var entry : result.entrySet()) {</span>
-<span class="source-line-no">204</span><span id="line-204">            entry.setValue(maybeConvert(entry.getValue(), convertSparse));</span>
-<span class="source-line-no">205</span><span id="line-205">        }</span>
-<span class="source-line-no">206</span><span id="line-206"></span>
-<span class="source-line-no">207</span><span id="line-207">        // Return result</span>
-<span class="source-line-no">208</span><span id="line-208">        @SuppressWarnings({ "unchecked", "rawtypes" })</span>
-<span class="source-line-no">209</span><span id="line-209">        Map&lt;String, Object&gt; res = (Map&lt;String, Object&gt;) (Map) result;</span>
-<span class="source-line-no">210</span><span id="line-210">        return res;</span>
-<span class="source-line-no">211</span><span id="line-211">    }</span>
-<span class="source-line-no">212</span><span id="line-212"></span>
-<span class="source-line-no">213</span><span id="line-213">    @SuppressWarnings({ "unchecked", "PMD.ConfusingTernary" })</span>
-<span class="source-line-no">214</span><span id="line-214">    private static Object maybeConvert(Object value, boolean convertSparse) {</span>
-<span class="source-line-no">215</span><span id="line-215">        if (!(value instanceof TreeMap)) {</span>
-<span class="source-line-no">216</span><span id="line-216">            return value;</span>
-<span class="source-line-no">217</span><span id="line-217">        }</span>
-<span class="source-line-no">218</span><span id="line-218">        List&lt;Object&gt; converted = new ArrayList&lt;&gt;();</span>
-<span class="source-line-no">219</span><span id="line-219">        for (var entry : ((Map&lt;Object, Object&gt;) value).entrySet()) {</span>
-<span class="source-line-no">220</span><span id="line-220">            entry.setValue(maybeConvert(entry.getValue(), convertSparse));</span>
-<span class="source-line-no">221</span><span id="line-221">            if (converted == null) {</span>
-<span class="source-line-no">222</span><span id="line-222">                continue;</span>
-<span class="source-line-no">223</span><span id="line-223">            }</span>
-<span class="source-line-no">224</span><span id="line-224">            if (!(entry.getKey() instanceof Integer)</span>
-<span class="source-line-no">225</span><span id="line-225">                || !convertSparse</span>
-<span class="source-line-no">226</span><span id="line-226">                    &amp;&amp; ((Integer) entry.getKey()) != converted.size()) {</span>
-<span class="source-line-no">227</span><span id="line-227">                // Don't convert, leave as Map.</span>
-<span class="source-line-no">228</span><span id="line-228">                converted = null;</span>
-<span class="source-line-no">229</span><span id="line-229">                continue;</span>
-<span class="source-line-no">230</span><span id="line-230">            }</span>
-<span class="source-line-no">231</span><span id="line-231">            converted.add(entry.getValue());</span>
+<span class="source-line-no">157</span><span id="line-157">     * are combined to a single entry with a structured value (map or</span>
+<span class="source-line-no">158</span><span id="line-158">     * list).</span>
+<span class="source-line-no">159</span><span id="line-159">     *</span>
+<span class="source-line-no">160</span><span id="line-160">     * Usually, only key patterns with consecutive numbers starting </span>
+<span class="source-line-no">161</span><span id="line-161">     * with zero are converted to lists (e.g. `key.0`, `key.1`, `key.2`).</span>
+<span class="source-line-no">162</span><span id="line-162">     * If entries are missing, the values at that level are converted to </span>
+<span class="source-line-no">163</span><span id="line-163">     * a `Map&lt;Integer,Object&gt;` with the given entries instead. If </span>
+<span class="source-line-no">164</span><span id="line-164">     * `convertSparse` is `true`, incomplete index sets such as `key.2`,</span>
+<span class="source-line-no">165</span><span id="line-165">     * `key.3`, `key.5` are converted to lists with the available number </span>
+<span class="source-line-no">166</span><span id="line-166">     * of elements despite the missing entries. </span>
+<span class="source-line-no">167</span><span id="line-167">     * </span>
+<span class="source-line-no">168</span><span id="line-168">     * If the derived class overrides {@link #structured(String)},</span>
+<span class="source-line-no">169</span><span id="line-169">     * the leaf values in the returned structure are the values</span>
+<span class="source-line-no">170</span><span id="line-170">     * provided by the overriding implementation (while </span>
+<span class="source-line-no">171</span><span id="line-171">     * {@link #values(String))} always provides {@link String}s). </span>
+<span class="source-line-no">172</span><span id="line-172">     * Some configuration formats define types other then string and</span>
+<span class="source-line-no">173</span><span id="line-173">     * therefore value can be e.g. {@link Integer}s or {@link Instant}s.</span>
+<span class="source-line-no">174</span><span id="line-174">     * In order to support the usage of arbitrary configuration store</span>
+<span class="source-line-no">175</span><span id="line-175">     * implementations, values obtained from the data structure returned</span>
+<span class="source-line-no">176</span><span id="line-176">     * by {@link #structure(Map, boolean)} should always be passed </span>
+<span class="source-line-no">177</span><span id="line-177">     * through {@link #as(Object, Class)}. This method preserves</span>
+<span class="source-line-no">178</span><span id="line-178">     * non-string objects if they match the requested type or</span>
+<span class="source-line-no">179</span><span id="line-179">     * converts the value from its string representation to the</span>
+<span class="source-line-no">180</span><span id="line-180">     * requested type, if possible.</span>
+<span class="source-line-no">181</span><span id="line-181">     *</span>
+<span class="source-line-no">182</span><span id="line-182">     * @param flatProperties the flat properties</span>
+<span class="source-line-no">183</span><span id="line-183">     * @param convertSparse controls conversion to lists</span>
+<span class="source-line-no">184</span><span id="line-184">     * @return a map with structured values</span>
+<span class="source-line-no">185</span><span id="line-185">     */</span>
+<span class="source-line-no">186</span><span id="line-186">    @SuppressWarnings({ "PMD.AvoidInstantiatingObjectsInLoops",</span>
+<span class="source-line-no">187</span><span id="line-187">        "PMD.ReturnEmptyCollectionRatherThanNull" })</span>
+<span class="source-line-no">188</span><span id="line-188">    public static Map&lt;String, Object&gt;</span>
+<span class="source-line-no">189</span><span id="line-189">            structure(Map&lt;String, ?&gt; flatProperties, boolean convertSparse) {</span>
+<span class="source-line-no">190</span><span id="line-190">        if (flatProperties == null) {</span>
+<span class="source-line-no">191</span><span id="line-191">            return null;</span>
+<span class="source-line-no">192</span><span id="line-192">        }</span>
+<span class="source-line-no">193</span><span id="line-193">        @SuppressWarnings("PMD.UseConcurrentHashMap")</span>
+<span class="source-line-no">194</span><span id="line-194">        Map&lt;Object, Object&gt; result = new HashMap&lt;&gt;();</span>
+<span class="source-line-no">195</span><span id="line-195">        for (var entry : flatProperties.entrySet()) {</span>
+<span class="source-line-no">196</span><span id="line-196">            @SuppressWarnings("PMD.DataflowAnomalyAnalysis")</span>
+<span class="source-line-no">197</span><span id="line-197">            Map&lt;Object, Object&gt; target = result;</span>
+<span class="source-line-no">198</span><span id="line-198">            // Original key (optionally) consists of dot separated parts</span>
+<span class="source-line-no">199</span><span id="line-199">            StringTokenizer parts = new StringTokenizer(entry.getKey(), ".");</span>
+<span class="source-line-no">200</span><span id="line-200">            while (true) {</span>
+<span class="source-line-no">201</span><span id="line-201">                var part = parts.nextToken();</span>
+<span class="source-line-no">202</span><span id="line-202">                Object key = NUMBER.matcher(part).find()</span>
+<span class="source-line-no">203</span><span id="line-203">                    ? Integer.parseInt(part)</span>
+<span class="source-line-no">204</span><span id="line-204">                    : part;</span>
+<span class="source-line-no">205</span><span id="line-205">                if (!parts.hasMoreTokens()) {</span>
+<span class="source-line-no">206</span><span id="line-206">                    // Last part (of key), store value</span>
+<span class="source-line-no">207</span><span id="line-207">                    target.put(key, entry.getValue());</span>
+<span class="source-line-no">208</span><span id="line-208">                    break;</span>
+<span class="source-line-no">209</span><span id="line-209">                }</span>
+<span class="source-line-no">210</span><span id="line-210">                @SuppressWarnings("unchecked")</span>
+<span class="source-line-no">211</span><span id="line-211">                var newTarget = (Map&lt;Object, Object&gt;) target</span>
+<span class="source-line-no">212</span><span id="line-212">                    .computeIfAbsent(part, k -&gt; new TreeMap&lt;Object, Object&gt;());</span>
+<span class="source-line-no">213</span><span id="line-213">                target = newTarget;</span>
+<span class="source-line-no">214</span><span id="line-214">            }</span>
+<span class="source-line-no">215</span><span id="line-215">        }</span>
+<span class="source-line-no">216</span><span id="line-216"></span>
+<span class="source-line-no">217</span><span id="line-217">        // Now convert all maps that have only Integer keys to lists</span>
+<span class="source-line-no">218</span><span id="line-218">        for (var entry : result.entrySet()) {</span>
+<span class="source-line-no">219</span><span id="line-219">            entry.setValue(maybeConvert(entry.getValue(), convertSparse));</span>
+<span class="source-line-no">220</span><span id="line-220">        }</span>
+<span class="source-line-no">221</span><span id="line-221"></span>
+<span class="source-line-no">222</span><span id="line-222">        // Return result</span>
+<span class="source-line-no">223</span><span id="line-223">        @SuppressWarnings({ "unchecked", "rawtypes" })</span>
+<span class="source-line-no">224</span><span id="line-224">        Map&lt;String, Object&gt; res = (Map&lt;String, Object&gt;) (Map) result;</span>
+<span class="source-line-no">225</span><span id="line-225">        return res;</span>
+<span class="source-line-no">226</span><span id="line-226">    }</span>
+<span class="source-line-no">227</span><span id="line-227"></span>
+<span class="source-line-no">228</span><span id="line-228">    @SuppressWarnings({ "unchecked", "PMD.ConfusingTernary" })</span>
+<span class="source-line-no">229</span><span id="line-229">    private static Object maybeConvert(Object value, boolean convertSparse) {</span>
+<span class="source-line-no">230</span><span id="line-230">        if (!(value instanceof TreeMap)) {</span>
+<span class="source-line-no">231</span><span id="line-231">            return value;</span>
 <span class="source-line-no">232</span><span id="line-232">        }</span>
-<span class="source-line-no">233</span><span id="line-233">        return converted != null ? converted : value;</span>
-<span class="source-line-no">234</span><span id="line-234">    }</span>
-<span class="source-line-no">235</span><span id="line-235"></span>
-<span class="source-line-no">236</span><span id="line-236">    /**</span>
-<span class="source-line-no">237</span><span id="line-237">     * Return the values for a given path if they exists. This</span>
-<span class="source-line-no">238</span><span id="line-238">     * method should only be used in cases where configuration values</span>
-<span class="source-line-no">239</span><span id="line-239">     * are needed before the {@link InitialConfiguration} event is</span>
-<span class="source-line-no">240</span><span id="line-240">     * fired, e.g. while creating the component tree. </span>
-<span class="source-line-no">241</span><span id="line-241">     * </span>
-<span class="source-line-no">242</span><span id="line-242">     * @param path the path</span>
-<span class="source-line-no">243</span><span id="line-243">     * @return the values, if defined for the given path</span>
-<span class="source-line-no">244</span><span id="line-244">     */</span>
-<span class="source-line-no">245</span><span id="line-245">    public Optional&lt;Map&lt;String, String&gt;&gt; values(String path) {</span>
-<span class="source-line-no">246</span><span id="line-246">        return structured(path).map(ConfigurationStore::flatten)</span>
-<span class="source-line-no">247</span><span id="line-247">            .map(o -&gt; o.entrySet().stream()</span>
-<span class="source-line-no">248</span><span id="line-248">                .collect(Collectors.toMap(Map.Entry::getKey,</span>
-<span class="source-line-no">249</span><span id="line-249">                    e -&gt; e.getValue().toString())));</span>
-<span class="source-line-no">250</span><span id="line-250">    }</span>
-<span class="source-line-no">251</span><span id="line-251"></span>
-<span class="source-line-no">252</span><span id="line-252">    /**</span>
-<span class="source-line-no">253</span><span id="line-253">     * Return the properties for a given path if they exists</span>
-<span class="source-line-no">254</span><span id="line-254">     * as structured data. </span>
-<span class="source-line-no">255</span><span id="line-255">     * </span>
-<span class="source-line-no">256</span><span id="line-256">     * @param path the path</span>
-<span class="source-line-no">257</span><span id="line-257">     * @return the values, if defined for the given path</span>
-<span class="source-line-no">258</span><span id="line-258">     */</span>
-<span class="source-line-no">259</span><span id="line-259">    public Optional&lt;Map&lt;String, Object&gt;&gt; structured(String path) {</span>
-<span class="source-line-no">260</span><span id="line-260">        return values(path).map(ConfigurationStore::structure);</span>
-<span class="source-line-no">261</span><span id="line-261">    }</span>
-<span class="source-line-no">262</span><span id="line-262"></span>
-<span class="source-line-no">263</span><span id="line-263">    /**</span>
-<span class="source-line-no">264</span><span id="line-264">     * If the value is not `null`, return it as the requested type.</span>
-<span class="source-line-no">265</span><span id="line-265">     * The method is successful if the value already is of the</span>
-<span class="source-line-no">266</span><span id="line-266">     * requested type (or a subtype) or if the value is of type</span>
-<span class="source-line-no">267</span><span id="line-267">     * {@link String} and can be converted to the requested type. </span>
-<span class="source-line-no">268</span><span id="line-268">     * </span>
-<span class="source-line-no">269</span><span id="line-269">     * Supported types are:</span>
-<span class="source-line-no">270</span><span id="line-270">     * * {@link String}</span>
-<span class="source-line-no">271</span><span id="line-271">     * * {@link Number}</span>
-<span class="source-line-no">272</span><span id="line-272">     * </span>
-<span class="source-line-no">273</span><span id="line-273">     * @return the value</span>
-<span class="source-line-no">274</span><span id="line-274">     */</span>
-<span class="source-line-no">275</span><span id="line-275">    @SuppressWarnings({ "unchecked", "PMD.ShortMethodName" })</span>
-<span class="source-line-no">276</span><span id="line-276">    public static &lt;T&gt; Optional&lt;T&gt; as(Object value, Class&lt;T&gt; requested) {</span>
-<span class="source-line-no">277</span><span id="line-277">        // Handle null.</span>
-<span class="source-line-no">278</span><span id="line-278">        if (value == null) {</span>
-<span class="source-line-no">279</span><span id="line-279">            return Optional.empty();</span>
-<span class="source-line-no">280</span><span id="line-280">        }</span>
-<span class="source-line-no">281</span><span id="line-281">        // Is of requested type?</span>
-<span class="source-line-no">282</span><span id="line-282">        if (requested.isAssignableFrom(value.getClass())) {</span>
-<span class="source-line-no">283</span><span id="line-283">            return Optional.of((T) value);</span>
-<span class="source-line-no">284</span><span id="line-284">        }</span>
-<span class="source-line-no">285</span><span id="line-285">        // Convert to String, if requested.</span>
-<span class="source-line-no">286</span><span id="line-286">        if (requested.equals(String.class)) {</span>
-<span class="source-line-no">287</span><span id="line-287">            return Optional.of((T) value.toString());</span>
-<span class="source-line-no">288</span><span id="line-288">        }</span>
-<span class="source-line-no">289</span><span id="line-289">        // Remaining conversions require a string representation.</span>
-<span class="source-line-no">290</span><span id="line-290">        if (!(value instanceof String)) {</span>
-<span class="source-line-no">291</span><span id="line-291">            return Optional.empty();</span>
-<span class="source-line-no">292</span><span id="line-292">        }</span>
-<span class="source-line-no">293</span><span id="line-293">        if (requested.equals(Number.class)) {</span>
-<span class="source-line-no">294</span><span id="line-294">            try {</span>
-<span class="source-line-no">295</span><span id="line-295">                return Optional.of((T) new BigDecimal((String) value));</span>
-<span class="source-line-no">296</span><span id="line-296">            } catch (NumberFormatException e) {</span>
-<span class="source-line-no">297</span><span id="line-297">                return Optional.empty();</span>
-<span class="source-line-no">298</span><span id="line-298">            }</span>
-<span class="source-line-no">299</span><span id="line-299">        }</span>
-<span class="source-line-no">300</span><span id="line-300">        if (requested.equals(Instant.class)) {</span>
-<span class="source-line-no">301</span><span id="line-301">            try {</span>
-<span class="source-line-no">302</span><span id="line-302">                return Optional.of((T) Instant.parse((String) value));</span>
-<span class="source-line-no">303</span><span id="line-303">            } catch (DateTimeParseException e) {</span>
-<span class="source-line-no">304</span><span id="line-304">                return Optional.empty();</span>
-<span class="source-line-no">305</span><span id="line-305">            }</span>
-<span class="source-line-no">306</span><span id="line-306">        }</span>
-<span class="source-line-no">307</span><span id="line-307">        if (requested.equals(Boolean.class)) {</span>
-<span class="source-line-no">308</span><span id="line-308">            return Optional.of((T) Boolean.valueOf((String) value));</span>
+<span class="source-line-no">233</span><span id="line-233">        List&lt;Object&gt; converted = new ArrayList&lt;&gt;();</span>
+<span class="source-line-no">234</span><span id="line-234">        for (var entry : ((Map&lt;Object, Object&gt;) value).entrySet()) {</span>
+<span class="source-line-no">235</span><span id="line-235">            entry.setValue(maybeConvert(entry.getValue(), convertSparse));</span>
+<span class="source-line-no">236</span><span id="line-236">            if (converted == null) {</span>
+<span class="source-line-no">237</span><span id="line-237">                continue;</span>
+<span class="source-line-no">238</span><span id="line-238">            }</span>
+<span class="source-line-no">239</span><span id="line-239">            if (!(entry.getKey() instanceof Integer)</span>
+<span class="source-line-no">240</span><span id="line-240">                || !convertSparse</span>
+<span class="source-line-no">241</span><span id="line-241">                    &amp;&amp; ((Integer) entry.getKey()) != converted.size()) {</span>
+<span class="source-line-no">242</span><span id="line-242">                // Don't convert, leave as Map.</span>
+<span class="source-line-no">243</span><span id="line-243">                converted = null;</span>
+<span class="source-line-no">244</span><span id="line-244">                continue;</span>
+<span class="source-line-no">245</span><span id="line-245">            }</span>
+<span class="source-line-no">246</span><span id="line-246">            converted.add(entry.getValue());</span>
+<span class="source-line-no">247</span><span id="line-247">        }</span>
+<span class="source-line-no">248</span><span id="line-248">        return converted != null ? converted : value;</span>
+<span class="source-line-no">249</span><span id="line-249">    }</span>
+<span class="source-line-no">250</span><span id="line-250"></span>
+<span class="source-line-no">251</span><span id="line-251">    /**</span>
+<span class="source-line-no">252</span><span id="line-252">     * Return the values for a given path if they exists. This</span>
+<span class="source-line-no">253</span><span id="line-253">     * method should only be used in cases where configuration values</span>
+<span class="source-line-no">254</span><span id="line-254">     * are needed before the {@link InitialConfiguration} event is</span>
+<span class="source-line-no">255</span><span id="line-255">     * fired, e.g. while creating the component tree. </span>
+<span class="source-line-no">256</span><span id="line-256">     * </span>
+<span class="source-line-no">257</span><span id="line-257">     * @param path the path</span>
+<span class="source-line-no">258</span><span id="line-258">     * @return the values, if defined for the given path</span>
+<span class="source-line-no">259</span><span id="line-259">     */</span>
+<span class="source-line-no">260</span><span id="line-260">    public Optional&lt;Map&lt;String, String&gt;&gt; values(String path) {</span>
+<span class="source-line-no">261</span><span id="line-261">        return structured(path).map(ConfigurationStore::flatten)</span>
+<span class="source-line-no">262</span><span id="line-262">            .map(o -&gt; o.entrySet().stream()</span>
+<span class="source-line-no">263</span><span id="line-263">                .collect(Collectors.toMap(Map.Entry::getKey,</span>
+<span class="source-line-no">264</span><span id="line-264">                    e -&gt; e.getValue().toString())));</span>
+<span class="source-line-no">265</span><span id="line-265">    }</span>
+<span class="source-line-no">266</span><span id="line-266"></span>
+<span class="source-line-no">267</span><span id="line-267">    /**</span>
+<span class="source-line-no">268</span><span id="line-268">     * Return the properties for a given path if they exists</span>
+<span class="source-line-no">269</span><span id="line-269">     * as structured data, see {@link #structure(Map)}.</span>
+<span class="source-line-no">270</span><span id="line-270">     * </span>
+<span class="source-line-no">271</span><span id="line-271">     * @param path the path</span>
+<span class="source-line-no">272</span><span id="line-272">     * @return the values, if defined for the given path</span>
+<span class="source-line-no">273</span><span id="line-273">     */</span>
+<span class="source-line-no">274</span><span id="line-274">    public Optional&lt;Map&lt;String, Object&gt;&gt; structured(String path) {</span>
+<span class="source-line-no">275</span><span id="line-275">        return values(path).map(ConfigurationStore::structure);</span>
+<span class="source-line-no">276</span><span id="line-276">    }</span>
+<span class="source-line-no">277</span><span id="line-277"></span>
+<span class="source-line-no">278</span><span id="line-278">    /**</span>
+<span class="source-line-no">279</span><span id="line-279">     * If the value is not `null`, return it as the requested type.</span>
+<span class="source-line-no">280</span><span id="line-280">     * The method is successful if the value already is of the</span>
+<span class="source-line-no">281</span><span id="line-281">     * requested type (or a subtype) or if the value is of type</span>
+<span class="source-line-no">282</span><span id="line-282">     * {@link String} and can be converted to the requested type. </span>
+<span class="source-line-no">283</span><span id="line-283">     * </span>
+<span class="source-line-no">284</span><span id="line-284">     * Supported types are:</span>
+<span class="source-line-no">285</span><span id="line-285">     * * {@link String}</span>
+<span class="source-line-no">286</span><span id="line-286">     * * {@link Number}</span>
+<span class="source-line-no">287</span><span id="line-287">     * * {@link Instant}</span>
+<span class="source-line-no">288</span><span id="line-288">     * * {@link Boolean}</span>
+<span class="source-line-no">289</span><span id="line-289">     * </span>
+<span class="source-line-no">290</span><span id="line-290">     * @return the value</span>
+<span class="source-line-no">291</span><span id="line-291">     */</span>
+<span class="source-line-no">292</span><span id="line-292">    @SuppressWarnings({ "unchecked", "PMD.ShortMethodName" })</span>
+<span class="source-line-no">293</span><span id="line-293">    public static &lt;T&gt; Optional&lt;T&gt; as(Object value, Class&lt;T&gt; requested) {</span>
+<span class="source-line-no">294</span><span id="line-294">        // Handle null.</span>
+<span class="source-line-no">295</span><span id="line-295">        if (value == null) {</span>
+<span class="source-line-no">296</span><span id="line-296">            return Optional.empty();</span>
+<span class="source-line-no">297</span><span id="line-297">        }</span>
+<span class="source-line-no">298</span><span id="line-298">        // Is of requested type?</span>
+<span class="source-line-no">299</span><span id="line-299">        if (requested.isAssignableFrom(value.getClass())) {</span>
+<span class="source-line-no">300</span><span id="line-300">            return Optional.of((T) value);</span>
+<span class="source-line-no">301</span><span id="line-301">        }</span>
+<span class="source-line-no">302</span><span id="line-302">        // Convert to String, if requested.</span>
+<span class="source-line-no">303</span><span id="line-303">        if (requested.equals(String.class)) {</span>
+<span class="source-line-no">304</span><span id="line-304">            return Optional.of((T) value.toString());</span>
+<span class="source-line-no">305</span><span id="line-305">        }</span>
+<span class="source-line-no">306</span><span id="line-306">        // Remaining conversions require a string representation.</span>
+<span class="source-line-no">307</span><span id="line-307">        if (!(value instanceof String)) {</span>
+<span class="source-line-no">308</span><span id="line-308">            return Optional.empty();</span>
 <span class="source-line-no">309</span><span id="line-309">        }</span>
-<span class="source-line-no">310</span><span id="line-310">        return Optional.empty();</span>
-<span class="source-line-no">311</span><span id="line-311">    }</span>
-<span class="source-line-no">312</span><span id="line-312"></span>
-<span class="source-line-no">313</span><span id="line-313">    /**</span>
-<span class="source-line-no">314</span><span id="line-314">     * Short for `as(value, String.class)`.</span>
-<span class="source-line-no">315</span><span id="line-315">     *</span>
-<span class="source-line-no">316</span><span id="line-316">     * @param value the value</span>
-<span class="source-line-no">317</span><span id="line-317">     * @return the optional</span>
-<span class="source-line-no">318</span><span id="line-318">     */</span>
-<span class="source-line-no">319</span><span id="line-319">    public static Optional&lt;String&gt; asString(Object value) {</span>
-<span class="source-line-no">320</span><span id="line-320">        return as(value, String.class);</span>
-<span class="source-line-no">321</span><span id="line-321">    }</span>
-<span class="source-line-no">322</span><span id="line-322"></span>
-<span class="source-line-no">323</span><span id="line-323">    /**</span>
-<span class="source-line-no">324</span><span id="line-324">     * Short for `as(value, Number.class)`.</span>
-<span class="source-line-no">325</span><span id="line-325">     *</span>
-<span class="source-line-no">326</span><span id="line-326">     * @param value the value</span>
-<span class="source-line-no">327</span><span id="line-327">     * @return the optional</span>
-<span class="source-line-no">328</span><span id="line-328">     */</span>
-<span class="source-line-no">329</span><span id="line-329">    public static Optional&lt;Number&gt; asNumber(Object value) {</span>
-<span class="source-line-no">330</span><span id="line-330">        return as(value, Number.class);</span>
-<span class="source-line-no">331</span><span id="line-331">    }</span>
-<span class="source-line-no">332</span><span id="line-332"></span>
-<span class="source-line-no">333</span><span id="line-333">    /**</span>
-<span class="source-line-no">334</span><span id="line-334">     * Short for `as(value, Instant.class)`.</span>
-<span class="source-line-no">335</span><span id="line-335">     *</span>
-<span class="source-line-no">336</span><span id="line-336">     * @param value the value</span>
-<span class="source-line-no">337</span><span id="line-337">     * @return the optional</span>
-<span class="source-line-no">338</span><span id="line-338">     */</span>
-<span class="source-line-no">339</span><span id="line-339">    public static Optional&lt;Instant&gt; asInstant(Object value) {</span>
-<span class="source-line-no">340</span><span id="line-340">        return as(value, Instant.class);</span>
-<span class="source-line-no">341</span><span id="line-341">    }</span>
-<span class="source-line-no">342</span><span id="line-342"></span>
-<span class="source-line-no">343</span><span id="line-343">    /**</span>
-<span class="source-line-no">344</span><span id="line-344">     * Short for `as(value, Boolean.class)`.</span>
-<span class="source-line-no">345</span><span id="line-345">     *</span>
-<span class="source-line-no">346</span><span id="line-346">     * @param value the value</span>
-<span class="source-line-no">347</span><span id="line-347">     * @return the optional</span>
-<span class="source-line-no">348</span><span id="line-348">     */</span>
-<span class="source-line-no">349</span><span id="line-349">    public static Optional&lt;Boolean&gt; asBoolean(Object value) {</span>
-<span class="source-line-no">350</span><span id="line-350">        return as(value, Boolean.class);</span>
-<span class="source-line-no">351</span><span id="line-351">    }</span>
-<span class="source-line-no">352</span><span id="line-352">}</span>
+<span class="source-line-no">310</span><span id="line-310">        if (requested.equals(Number.class)) {</span>
+<span class="source-line-no">311</span><span id="line-311">            try {</span>
+<span class="source-line-no">312</span><span id="line-312">                return Optional.of((T) new BigDecimal((String) value));</span>
+<span class="source-line-no">313</span><span id="line-313">            } catch (NumberFormatException e) {</span>
+<span class="source-line-no">314</span><span id="line-314">                return Optional.empty();</span>
+<span class="source-line-no">315</span><span id="line-315">            }</span>
+<span class="source-line-no">316</span><span id="line-316">        }</span>
+<span class="source-line-no">317</span><span id="line-317">        if (requested.equals(Instant.class)) {</span>
+<span class="source-line-no">318</span><span id="line-318">            try {</span>
+<span class="source-line-no">319</span><span id="line-319">                return Optional.of((T) Instant.parse((String) value));</span>
+<span class="source-line-no">320</span><span id="line-320">            } catch (DateTimeParseException e) {</span>
+<span class="source-line-no">321</span><span id="line-321">                return Optional.empty();</span>
+<span class="source-line-no">322</span><span id="line-322">            }</span>
+<span class="source-line-no">323</span><span id="line-323">        }</span>
+<span class="source-line-no">324</span><span id="line-324">        if (requested.equals(Boolean.class)) {</span>
+<span class="source-line-no">325</span><span id="line-325">            return Optional.of((T) Boolean.valueOf((String) value));</span>
+<span class="source-line-no">326</span><span id="line-326">        }</span>
+<span class="source-line-no">327</span><span id="line-327">        return Optional.empty();</span>
+<span class="source-line-no">328</span><span id="line-328">    }</span>
+<span class="source-line-no">329</span><span id="line-329"></span>
+<span class="source-line-no">330</span><span id="line-330">    /**</span>
+<span class="source-line-no">331</span><span id="line-331">     * Short for `as(value, String.class)`.</span>
+<span class="source-line-no">332</span><span id="line-332">     *</span>
+<span class="source-line-no">333</span><span id="line-333">     * @param value the value</span>
+<span class="source-line-no">334</span><span id="line-334">     * @return the optional</span>
+<span class="source-line-no">335</span><span id="line-335">     */</span>
+<span class="source-line-no">336</span><span id="line-336">    public static Optional&lt;String&gt; asString(Object value) {</span>
+<span class="source-line-no">337</span><span id="line-337">        return as(value, String.class);</span>
+<span class="source-line-no">338</span><span id="line-338">    }</span>
+<span class="source-line-no">339</span><span id="line-339"></span>
+<span class="source-line-no">340</span><span id="line-340">    /**</span>
+<span class="source-line-no">341</span><span id="line-341">     * Short for `as(value, Number.class)`.</span>
+<span class="source-line-no">342</span><span id="line-342">     *</span>
+<span class="source-line-no">343</span><span id="line-343">     * @param value the value</span>
+<span class="source-line-no">344</span><span id="line-344">     * @return the optional</span>
+<span class="source-line-no">345</span><span id="line-345">     */</span>
+<span class="source-line-no">346</span><span id="line-346">    public static Optional&lt;Number&gt; asNumber(Object value) {</span>
+<span class="source-line-no">347</span><span id="line-347">        return as(value, Number.class);</span>
+<span class="source-line-no">348</span><span id="line-348">    }</span>
+<span class="source-line-no">349</span><span id="line-349"></span>
+<span class="source-line-no">350</span><span id="line-350">    /**</span>
+<span class="source-line-no">351</span><span id="line-351">     * Short for `as(value, Instant.class)`.</span>
+<span class="source-line-no">352</span><span id="line-352">     *</span>
+<span class="source-line-no">353</span><span id="line-353">     * @param value the value</span>
+<span class="source-line-no">354</span><span id="line-354">     * @return the optional</span>
+<span class="source-line-no">355</span><span id="line-355">     */</span>
+<span class="source-line-no">356</span><span id="line-356">    public static Optional&lt;Instant&gt; asInstant(Object value) {</span>
+<span class="source-line-no">357</span><span id="line-357">        return as(value, Instant.class);</span>
+<span class="source-line-no">358</span><span id="line-358">    }</span>
+<span class="source-line-no">359</span><span id="line-359"></span>
+<span class="source-line-no">360</span><span id="line-360">    /**</span>
+<span class="source-line-no">361</span><span id="line-361">     * Short for `as(value, Boolean.class)`.</span>
+<span class="source-line-no">362</span><span id="line-362">     *</span>
+<span class="source-line-no">363</span><span id="line-363">     * @param value the value</span>
+<span class="source-line-no">364</span><span id="line-364">     * @return the optional</span>
+<span class="source-line-no">365</span><span id="line-365">     */</span>
+<span class="source-line-no">366</span><span id="line-366">    public static Optional&lt;Boolean&gt; asBoolean(Object value) {</span>
+<span class="source-line-no">367</span><span id="line-367">        return as(value, Boolean.class);</span>
+<span class="source-line-no">368</span><span id="line-368">    }</span>
+<span class="source-line-no">369</span><span id="line-369">}</span>
 
 
 
