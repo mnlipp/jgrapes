@@ -88,20 +88,22 @@
 <span class="source-line-no">075</span><span id="line-75">    /**</span>
 <span class="source-line-no">076</span><span id="line-76">     * Creates a new component with its channel set to the given </span>
 <span class="source-line-no">077</span><span id="line-77">     * channel and the given file.</span>
-<span class="source-line-no">078</span><span id="line-78">     * </span>
-<span class="source-line-no">079</span><span id="line-79">     * @param componentChannel the channel </span>
+<span class="source-line-no">078</span><span id="line-78">     *</span>
+<span class="source-line-no">079</span><span id="line-79">     * @param componentChannel the channel</span>
 <span class="source-line-no">080</span><span id="line-80">     * @param file the file used to store the JSON</span>
-<span class="source-line-no">081</span><span id="line-81">     * @throws JsonDecodeException</span>
-<span class="source-line-no">082</span><span id="line-82">     */</span>
-<span class="source-line-no">083</span><span id="line-83">    @SuppressWarnings("PMD.ShortVariable")</span>
-<span class="source-line-no">084</span><span id="line-84">    public JsonConfigurationStore(Channel componentChannel, File file,</span>
-<span class="source-line-no">085</span><span id="line-85">            boolean update) throws IOException {</span>
-<span class="source-line-no">086</span><span id="line-86">        super(componentChannel, file, update);</span>
-<span class="source-line-no">087</span><span id="line-87">        config = FileConfig.builder(file).sync().concurrent().build();</span>
-<span class="source-line-no">088</span><span id="line-88">        config.load();</span>
-<span class="source-line-no">089</span><span id="line-89">    }</span>
-<span class="source-line-no">090</span><span id="line-90"></span>
-<span class="source-line-no">091</span><span id="line-91">}</span>
+<span class="source-line-no">081</span><span id="line-81">     * @param update if the file is to be updated when</span>
+<span class="source-line-no">082</span><span id="line-82">     * {@link ConfigurationUpdate} events are received</span>
+<span class="source-line-no">083</span><span id="line-83">     * @throws IOException Signals that an I/O exception has occurred.</span>
+<span class="source-line-no">084</span><span id="line-84">     */</span>
+<span class="source-line-no">085</span><span id="line-85">    @SuppressWarnings("PMD.ShortVariable")</span>
+<span class="source-line-no">086</span><span id="line-86">    public JsonConfigurationStore(Channel componentChannel, File file,</span>
+<span class="source-line-no">087</span><span id="line-87">            boolean update) throws IOException {</span>
+<span class="source-line-no">088</span><span id="line-88">        super(componentChannel, file, update);</span>
+<span class="source-line-no">089</span><span id="line-89">        config = FileConfig.builder(file).sync().concurrent().build();</span>
+<span class="source-line-no">090</span><span id="line-90">        config.load();</span>
+<span class="source-line-no">091</span><span id="line-91">    }</span>
+<span class="source-line-no">092</span><span id="line-92"></span>
+<span class="source-line-no">093</span><span id="line-93">}</span>
 
 
 
