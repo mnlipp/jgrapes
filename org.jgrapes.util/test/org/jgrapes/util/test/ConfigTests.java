@@ -32,6 +32,8 @@ import java.io.Writer;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.prefs.BackingStoreException;
+import java.util.prefs.Preferences;
 import org.jdrupes.json.JsonBeanDecoder;
 import org.jdrupes.json.JsonDecodeException;
 import org.jgrapes.core.Component;
@@ -39,7 +41,9 @@ import org.jgrapes.core.Components;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.util.ConfigurationStore;
+import static org.jgrapes.util.ConfigurationStore.asNumber;
 import org.jgrapes.util.JsonConfigurationStore;
+import org.jgrapes.util.PreferencesStore;
 import org.jgrapes.util.TomlConfigurationStore;
 import org.jgrapes.util.YamlConfigurationStore;
 import org.jgrapes.util.events.ConfigurationUpdate;
@@ -99,13 +103,148 @@ public class ConfigTests {
 
     @SuppressWarnings("unchecked")
     @ParameterizedTest
-    @ValueSource(strings = { "json", "toml", "yaml" })
+    @ValueSource(strings = { "prefs", "json", "toml", "yaml" })
     public void testMisc(String format) throws InterruptedException,
             UnsupportedEncodingException, FileNotFoundException, IOException,
-            JsonDecodeException {
+            JsonDecodeException, BackingStoreException {
 
         // Create app and initial file
         App app = new App();
+        File file = null;
+        Preferences prefsBase = null;
+        ConfigurationStore conf = null;
+        switch (format) {
+        case "prefs":
+            // Set values in Java Preferences
+            prefsBase = Preferences.userNodeForPackage(getClass())
+                .node("PreferencesStore");
+            prefsBase.put("answer", "42");
+            prefsBase.node("sub/tree").put("value", "24");
+            prefsBase.node("sub/tree").put("list.0", "1");
+            prefsBase.node("sub/tree").put("list.1", "2");
+            prefsBase.node("sub/tree").put("list.2", "3");
+            prefsBase.node("sub/tree").put("map.one", "1");
+            prefsBase.node("sub/tree").put("map.more.0", "2");
+            prefsBase.node("sub/tree").put("map.more.1", "3");
+            prefsBase.flush();
+            conf = new PreferencesStore(app, getClass());
+            break;
+        case "json":
+            file = writeInitialFile(format);
+            conf = new JsonConfigurationStore(app, file);
+            break;
+        case "toml":
+            file = writeInitialFile(format);
+            conf = new TomlConfigurationStore(app, file);
+            break;
+        case "yaml":
+            file = writeInitialFile(format);
+            conf = new YamlConfigurationStore(app, file);
+            break;
+        default:
+            fail();
+        }
+
+        // Check direct access to store
+        assertEquals("42", conf.values("/").get().get("answer"));
+        assertEquals("24", conf.values("/sub/tree").get().get("value"));
+        assertEquals("1", conf.values("/sub/tree").get().get("list.0"));
+        assertEquals("1", conf.values("/sub/tree").get().get("map.one"));
+        var list
+            = (List<Number>) conf.structured("/sub/tree").get().get("list");
+        assertEquals(3, list.size());
+        for (int i = 1; i <= 3; i++) {
+            assertEquals(i, asNumber(list.get(i - 1)).get().intValue());
+        }
+        var map = (Map<String, Object>) conf.structured("/sub/tree").get()
+            .get("map");
+        assertEquals(1, asNumber(map.get("one")).get().intValue());
+        assertEquals(2,
+            asNumber(((List<Object>) map.get("more")).get(0)).get().intValue());
+        assertEquals(3,
+            asNumber(((List<Object>) map.get("more")).get(1)).get().intValue());
+        app.attach(conf);
+
+        Components.start(app);
+        Components.awaitExhaustion();
+        Components.checkAssertions();
+
+        // Does attached child get (initial) configuration?
+        Child child = new Child();
+        app.attach(child);
+        Components.awaitExhaustion();
+        Components.checkAssertions();
+        assertEquals(42, child.value);
+
+        // Check storage update
+        app.fire(new UpdateTrigger(), app);
+        Components.awaitExhaustion();
+        Components.checkAssertions();
+        assertEquals("4", conf.values("/sub/tree").get().get("map.more.1"));
+        switch (format) {
+        case "prefs":
+            assertEquals("new", prefsBase.get("updated", ""));
+            break;
+        case "json":
+            jsonFindUpdated(file);
+            break;
+        case "toml":
+        case "yaml":
+            findUpdated(file);
+            break;
+        default:
+            fail();
+        }
+
+        // Remove sub tree event
+        app.fire(new ConfigurationUpdate().removePath("/sub"), app);
+        Components.awaitExhaustion();
+        Components.checkAssertions();
+        switch (format) {
+        case "prefs":
+            assertFalse(prefsBase.nodeExists("sub"));
+            assertTrue(prefsBase.nodeExists(""));
+            break;
+        case "json":
+            jsonCheckRemove(file);
+            break;
+        case "toml":
+        case "yaml":
+            checkRemove(file);
+            break;
+        default:
+            fail();
+        }
+
+        // Remove test preferences
+        app.fire(new ConfigurationUpdate().removePath("/"), app);
+        Components.awaitExhaustion();
+        Components.checkAssertions();
+        switch (format) {
+        case "prefs":
+            assertFalse(prefsBase.nodeExists(""));
+            break;
+        case "json":
+        case "yaml":
+            jsonCheckRemoveAll(file);
+            break;
+        default:
+            checkEmpty(file);
+            break;
+        }
+
+        // Cleanup
+        if (file != null) {
+            file.delete();
+        }
+        if (prefsBase != null) {
+            Preferences.userNodeForPackage(getClass())
+                .node(getClass().getSimpleName()).removeNode();
+        }
+    }
+
+    private File writeInitialFile(String format) throws IOException,
+            UnsupportedEncodingException, FileNotFoundException {
         File file = new File("testConfig." + format);
         Map<String, String> initial = Map.of("json",
             "{\"answer\":42, \"/sub\":{\"/tree\":{\"value\":24,"
@@ -131,99 +270,7 @@ public class ConfigTests {
             = new OutputStreamWriter(new FileOutputStream(file), "utf-8")) {
             out.write(initial.get(format));
         }
-        ConfigurationStore conf = null;
-        switch (format) {
-        case "json":
-            conf = new JsonConfigurationStore(app, file);
-            break;
-        case "toml":
-            conf = new TomlConfigurationStore(app, file);
-            break;
-        case "yaml":
-            conf = new YamlConfigurationStore(app, file);
-            break;
-        default:
-            fail();
-        }
-
-        // Check direct access to store
-        assertEquals("42", conf.values("/").get().get("answer"));
-        assertEquals("24", conf.values("/sub/tree").get().get("value"));
-        assertEquals("1", conf.values("/sub/tree").get().get("list.0"));
-        assertEquals("1", conf.values("/sub/tree").get().get("map.one"));
-        var list
-            = (List<Number>) conf.structured("/sub/tree").get().get("list");
-        assertEquals(3, list.size());
-        for (int i = 1; i <= 3; i++) {
-            assertEquals(i, list.get(i - 1).intValue());
-        }
-        var map = (Map<String, Object>) conf.structured("/sub/tree").get()
-            .get("map");
-        assertEquals(1, ((Number) map.get("one")).intValue());
-        assertEquals(2, ((List<Number>) map.get("more")).get(0).intValue());
-        assertEquals(3, ((List<Number>) map.get("more")).get(1).intValue());
-        app.attach(conf);
-
-        Components.start(app);
-        Components.awaitExhaustion();
-        Components.checkAssertions();
-
-        // Does attached child get (initial) configuration?
-        Child child = new Child();
-        app.attach(child);
-        Components.awaitExhaustion();
-        Components.checkAssertions();
-        assertEquals(42, child.value);
-
-        // Check storage update
-        app.fire(new UpdateTrigger(), app);
-        Components.awaitExhaustion();
-        Components.checkAssertions();
-        assertEquals("4", conf.values("/sub/tree").get().get("map.more.1"));
-        switch (format) {
-        case "json":
-            jsonFindUpdated(file);
-            break;
-        case "toml":
-        case "yaml":
-            findUpdated(file);
-            break;
-        default:
-            fail();
-        }
-
-        // Remove sub tree event
-        app.fire(new ConfigurationUpdate().removePath("/sub"), app);
-        Components.awaitExhaustion();
-        Components.checkAssertions();
-        switch (format) {
-        case "json":
-            jsonCheckRemove(file);
-            break;
-        case "toml":
-        case "yaml":
-            checkRemove(file);
-            break;
-        default:
-            fail();
-        }
-
-        // Remove test preferences
-        app.fire(new ConfigurationUpdate().removePath("/"), app);
-        Components.awaitExhaustion();
-        Components.checkAssertions();
-        switch (format) {
-        case "json":
-        case "yaml":
-            jsonCheckRemoveAll(file);
-            break;
-        default:
-            checkEmpty(file);
-            break;
-        }
-
-        // Cleanup
-        file.delete();
+        return file;
     }
 
     @SuppressWarnings("unchecked")
