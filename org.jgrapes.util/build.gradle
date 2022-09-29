@@ -4,6 +4,8 @@ dependencies {
     implementation 'com.electronwill.night-config:json:3.6.6'
     implementation 'com.electronwill.night-config:toml:3.6.6'
     implementation 'com.electronwill.night-config:yaml:3.6.6'
+    // https://security.snyk.io/package/maven/org.yaml:snakeyaml
+    implementation 'org.yaml:snakeyaml:1.32'
 
     testImplementation 'org.jdrupes.json:json:[2.0.0,2.1.0)'
 	testRuntimeOnly project.files('test-resources')
