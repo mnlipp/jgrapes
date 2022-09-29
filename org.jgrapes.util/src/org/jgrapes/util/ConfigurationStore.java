@@ -21,6 +21,7 @@ package org.jgrapes.util;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
+import java.time.temporal.TemporalAccessor;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -283,13 +284,17 @@ public abstract class ConfigurationStore extends Component {
      * 
      * Supported types are:
      * * {@link String}
-     * * {@link Number}
-     * * {@link Instant}
-     * * {@link Boolean}
+     * * {@link Number}, converts from {@link String} using
+     *   {@link BigDecimal#BigDecimal(String)}
+     * * {@link Instant}, converts from {@link TemporalAccessor}
+     *   or from {@link String} using {@link Instant#parse(CharSequence)) 
+     * * `Boolean`, converts from {@link String} using
+     *   {@link Boolean#valueOf(String)}
      * 
      * @return the value
      */
-    @SuppressWarnings({ "unchecked", "PMD.ShortMethodName" })
+    @SuppressWarnings({ "unchecked", "PMD.ShortMethodName",
+        "PMD.NPathComplexity" })
     public static <T> Optional<T> as(Object value, Class<T> requested) {
         // Handle null.
         if (value == null) {
@@ -298,6 +303,17 @@ public abstract class ConfigurationStore extends Component {
         // Is of requested type?
         if (requested.isAssignableFrom(value.getClass())) {
             return Optional.of((T) value);
+        }
+        // Convert to Instant, if requested.
+        if (requested.equals(Instant.class)) {
+            if (value instanceof TemporalAccessor) {
+                return Optional.of((T) Instant.from((TemporalAccessor) value));
+            }
+            try {
+                return Optional.of((T) Instant.parse(value.toString()));
+            } catch (DateTimeParseException e) {
+                return Optional.empty();
+            }
         }
         // Convert to String, if requested.
         if (requested.equals(String.class)) {
@@ -311,13 +327,6 @@ public abstract class ConfigurationStore extends Component {
             try {
                 return Optional.of((T) new BigDecimal((String) value));
             } catch (NumberFormatException e) {
-                return Optional.empty();
-            }
-        }
-        if (requested.equals(Instant.class)) {
-            try {
-                return Optional.of((T) Instant.parse((String) value));
-            } catch (DateTimeParseException e) {
                 return Optional.empty();
             }
         }

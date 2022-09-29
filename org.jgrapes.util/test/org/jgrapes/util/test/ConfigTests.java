@@ -29,6 +29,7 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,6 +42,7 @@ import org.jgrapes.core.Components;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.util.ConfigurationStore;
+import static org.jgrapes.util.ConfigurationStore.asInstant;
 import static org.jgrapes.util.ConfigurationStore.asNumber;
 import org.jgrapes.util.JsonConfigurationStore;
 import org.jgrapes.util.PreferencesStore;
@@ -126,6 +128,7 @@ public class ConfigTests {
             prefsBase.node("sub/tree").put("map.one", "1");
             prefsBase.node("sub/tree").put("map.more.0", "2");
             prefsBase.node("sub/tree").put("map.more.1", "3");
+            prefsBase.node("sub/tree").put("at", "2022-09-29T12:34:00Z");
             prefsBase.flush();
             conf = new PreferencesStore(app, getClass());
             break;
@@ -163,6 +166,8 @@ public class ConfigTests {
             asNumber(((List<Object>) map.get("more")).get(0)).get().intValue());
         assertEquals(3,
             asNumber(((List<Object>) map.get("more")).get(1)).get().intValue());
+        assertEquals(Instant.parse("2022-09-29T12:34:00Z"),
+            asInstant(conf.structured("/sub/tree").get().get("at")).get());
         app.attach(conf);
 
         Components.start(app);
@@ -248,13 +253,15 @@ public class ConfigTests {
         File file = new File("testConfig." + format);
         Map<String, String> initial = Map.of("json",
             "{\"answer\":42, \"/sub\":{\"/tree\":{\"value\":24,"
-                + "\"list\":[1,2,3],\"map\":{\"one\":1,\"more\":[2,3]}}}}",
+                + "\"list\":[1,2,3],\"map\":{\"one\":1,\"more\":[2,3]},"
+                + "\"at\":\"2022-09-29T12:34:00Z\"}}}",
             "toml", "answer = 42\n"
                 + "[_sub.\"/tree\"]\n"
                 + "value = 24\n"
                 + "list = [1, 2, 3]\n"
                 + "map.one = 1\n"
-                + "map.more = [2, 3]",
+                + "map.more = [2, 3]\n"
+                + "at = 2022-09-29T12:34:00Z",
             "yaml", "answer: 42\n"
                 + "_sub:\n"
                 + "  _tree:\n"
@@ -265,7 +272,8 @@ public class ConfigTests {
                 + "    - 3\n"
                 + "    map:\n"
                 + "      one: 1\n"
-                + "      more: [2,3]\n");
+                + "      more: [2,3]\n"
+                + "    at: \"2022-09-29T12:34:00Z\"");
         try (Writer out
             = new OutputStreamWriter(new FileOutputStream(file), "utf-8")) {
             out.write(initial.get(format));
