@@ -71,15 +71,15 @@ public class ConfigTests {
                     .get("list");
                 assertEquals(3, list.size());
                 for (int i = 1; i <= 3; i++) {
-                    assertEquals(i, list.get(i - 1).intValue());
+                    assertEquals(i, asNumber(list.get(i - 1)).get().intValue());
                 }
                 var map = (Map<String, Object>) event.structured("/sub/tree")
                     .get().get("map");
-                assertEquals(1, ((Number) map.get("one")).intValue());
-                assertEquals(2,
-                    ((List<Number>) map.get("more")).get(0).intValue());
-                assertEquals(3,
-                    ((List<Number>) map.get("more")).get(1).intValue());
+                assertEquals(1, asNumber(map.get("one")).get().intValue());
+                assertEquals(2, asNumber(((List<Number>) map.get("more"))
+                    .get(0)).get().intValue());
+                assertEquals(3, asNumber(((List<Number>) map.get("more"))
+                    .get(1)).get().intValue());
             }
         }
 
