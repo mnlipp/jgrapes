@@ -101,6 +101,8 @@ public abstract class MailComponent extends Component {
     public void onConfigUpdate(ConfigurationUpdate event) {
         for (var path : List.of("/org.jgrapes.mail/Component",
             "/org.jgrapes.mail/" + getClass().getSimpleName(),
+            "/org_jgrapes_mail/Component",
+            "/org_jgrapes_mail/" + getClass().getSimpleName(),
             componentPath())) {
             event.values(path + "/mail").ifPresent(c -> {
                 for (var e : c.entrySet()) {
