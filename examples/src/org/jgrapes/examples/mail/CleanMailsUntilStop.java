@@ -20,15 +20,46 @@ package org.jgrapes.examples.mail;
 
 import java.io.File;
 import java.io.IOException;
+
+import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
-import org.jgrapes.mail.SimpleMailMonitor;
+import org.jgrapes.core.annotation.Handler;
+import org.jgrapes.core.events.Stop;
+import org.jgrapes.mail.SystemMailMonitor;
+import org.jgrapes.mail.events.ReceivedMailMessage;
 import org.jgrapes.util.TomlConfigurationStore;
+
+import jakarta.mail.MessagingException;
+import jakarta.mail.Flags.Flag;
 
 /**
  * An application that deletes all received mails.
  */
 public class CleanMailsUntilStop extends Component {
+
+    /**
+     * Wait for mail with subject stop. Delete all other mails.
+     */
+    public static class WaitForStopMail extends Component {
+
+        public WaitForStopMail(Channel componentChannel) {
+            super(componentChannel);
+        }
+
+        @Handler
+        public void onMail(ReceivedMailMessage event)
+                throws MessagingException {
+            var msg = event.message();
+            var subject = msg.getSubject();
+            System.out.println("Subject: " + subject);
+            if ("Stop".equals(subject)) {
+                fire(new Stop());
+            }
+            msg.setFlag(Flag.DELETED, true);
+        }
+
+    }
 
     /**
      * @param args
@@ -40,7 +71,7 @@ public class CleanMailsUntilStop extends Component {
         var app = new CleanMailsUntilStop();
         app.attach(new TomlConfigurationStore(app,
             new File("mail-examples-config.toml")));
-        app.attach(new SimpleMailMonitor(app));
+        app.attach(new SystemMailMonitor(app));
         app.attach(new WaitForStopMail(app));
         Components.start(app);
         Components.awaitExhaustion();

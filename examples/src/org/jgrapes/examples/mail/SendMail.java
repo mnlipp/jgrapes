@@ -26,7 +26,7 @@ import java.io.IOException;
 import java.util.List;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
-import org.jgrapes.mail.SimpleMailSender;
+import org.jgrapes.mail.SystemMailSender;
 import org.jgrapes.mail.events.SendMailMessage;
 import org.jgrapes.util.TomlConfigurationStore;
 
@@ -46,7 +46,7 @@ public class SendMail extends Component {
         var app = new SendMail();
         app.attach(new TomlConfigurationStore(app,
             new File("mail-examples-config.toml")));
-        app.attach(new SimpleMailSender(app));
+        app.attach(new SystemMailSender(app));
         Components.start(app);
         var bp1 = new MimeBodyPart();
         bp1.setText("Test mail.");

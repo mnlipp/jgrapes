@@ -45,6 +45,7 @@ import org.jgrapes.core.annotation.HandlerDefinition.ChannelReplacements;
 import org.jgrapes.core.events.Start;
 import org.jgrapes.core.events.Stop;
 import org.jgrapes.mail.events.ReceivedMailMessage;
+import org.jgrapes.util.Password;
 
 /**
  * A component that monitors the INBOX of a mail account.
@@ -52,13 +53,13 @@ import org.jgrapes.mail.events.ReceivedMailMessage;
  * to connect to a mail server.
  */
 @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
-public class SimpleMailMonitor extends MailComponent {
+public class SystemMailMonitor extends MailComponent {
 
     @SuppressWarnings("PMD.FieldNamingConventions")
     private static final Logger logger
-        = Logger.getLogger(SimpleMailMonitor.class.getName());
+        = Logger.getLogger(SystemMailMonitor.class.getName());
 
-    private String password;
+    private Password password;
     private Duration maxIdleTime = Duration.ofMinutes(25);
     private Duration pollInterval = Duration.ofMinutes(5);
     private Store store;
@@ -68,7 +69,7 @@ public class SimpleMailMonitor extends MailComponent {
     /**
      * Creates a new component with its channel set to itself.
      */
-    public SimpleMailMonitor() {
+    public SystemMailMonitor() {
         // Nothing to do.
     }
 
@@ -84,7 +85,7 @@ public class SimpleMailMonitor extends MailComponent {
      * handlers listen on by default and that 
      * {@link Manager#fire(Event, Channel...)} sends the event to
      */
-    public SimpleMailMonitor(Channel componentChannel) {
+    public SystemMailMonitor(Channel componentChannel) {
         super(componentChannel);
     }
 
@@ -98,7 +99,7 @@ public class SimpleMailMonitor extends MailComponent {
      * @param channelReplacements the channel replacements to apply
      * to the `channels` elements of the {@link Handler} annotations
      */
-    public SimpleMailMonitor(Channel componentChannel,
+    public SystemMailMonitor(Channel componentChannel,
             ChannelReplacements channelReplacements) {
         super(componentChannel, channelReplacements);
     }
@@ -108,7 +109,7 @@ public class SimpleMailMonitor extends MailComponent {
      *
      * @param password the new password
      */
-    public SimpleMailMonitor setPassword(String password) {
+    public SystemMailMonitor setPassword(Password password) {
         this.password = password;
         return this;
     }
@@ -121,7 +122,7 @@ public class SimpleMailMonitor extends MailComponent {
      * @param props the props
      * @return the mail monitor
      */
-    public SimpleMailMonitor setMailProperties(Map<String, String> props) {
+    public SystemMailMonitor setMailProperties(Map<String, String> props) {
         mailProps.putAll(props);
         return this;
     }
@@ -132,7 +133,7 @@ public class SimpleMailMonitor extends MailComponent {
      *
      * @param maxIdleTime the new max idle time
      */
-    public SimpleMailMonitor setMaxIdleTime(Duration maxIdleTime) {
+    public SystemMailMonitor setMaxIdleTime(Duration maxIdleTime) {
         this.maxIdleTime = maxIdleTime;
         return this;
     }
@@ -168,7 +169,7 @@ public class SimpleMailMonitor extends MailComponent {
     @Override
     protected void configureComponent(Map<String, String> values) {
         Optional.ofNullable(values.get("password"))
-            .ifPresent(this::setPassword);
+            .ifPresent(p -> setPassword(new Password(p.toCharArray())));
         Optional.ofNullable(values.get("maxIdleTime"))
             .map(Integer::parseInt).map(Duration::ofSeconds)
             .ifPresent(d -> setMaxIdleTime(d));
@@ -191,7 +192,8 @@ public class SimpleMailMonitor extends MailComponent {
                 protected PasswordAuthentication
                         getPasswordAuthentication() {
                     return new PasswordAuthentication(
-                        mailProps.getProperty("mail.user"), password);
+                        mailProps.getProperty("mail.user"),
+                        new String(password.password()));
                 }
             });
         store = session.getStore();

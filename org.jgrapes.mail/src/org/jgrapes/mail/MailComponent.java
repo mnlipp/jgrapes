@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Properties;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
+import org.jgrapes.core.Components;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.Manager;
 import org.jgrapes.core.annotation.Handler;
@@ -121,4 +122,14 @@ public abstract class MailComponent extends Component {
      * @param values the values
      */
     protected abstract void configureComponent(Map<String, String> values);
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        return Components.objectName(this);
+    }
 }
