@@ -23,7 +23,7 @@ import java.io.IOException;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
 import org.jgrapes.mail.SimpleMailMonitor;
-import org.jgrapes.util.JsonConfigurationStore;
+import org.jgrapes.util.TomlConfigurationStore;
 
 /**
  * An application that deletes all received mails.
@@ -38,8 +38,8 @@ public class CleanMailsUntilStop extends Component {
     public static void main(String[] args)
             throws IOException, InterruptedException {
         var app = new CleanMailsUntilStop();
-        app.attach(new JsonConfigurationStore(app,
-            new File("mail-examples-config.json")));
+        app.attach(new TomlConfigurationStore(app,
+            new File("mail-examples-config.toml")));
         app.attach(new SimpleMailMonitor(app));
         app.attach(new WaitForStopMail(app));
         Components.start(app);

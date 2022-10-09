@@ -28,7 +28,7 @@ import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
 import org.jgrapes.mail.SimpleMailSender;
 import org.jgrapes.mail.events.SendMailMessage;
-import org.jgrapes.util.JsonConfigurationStore;
+import org.jgrapes.util.TomlConfigurationStore;
 
 /**
  * An application that deletes all received mails.
@@ -44,8 +44,8 @@ public class SendMail extends Component {
     public static void main(String[] args)
             throws IOException, InterruptedException, MessagingException {
         var app = new SendMail();
-        app.attach(new JsonConfigurationStore(app,
-            new File("mail-examples-config.json")));
+        app.attach(new TomlConfigurationStore(app,
+            new File("mail-examples-config.toml")));
         app.attach(new SimpleMailSender(app));
         Components.start(app);
         var bp1 = new MimeBodyPart();
