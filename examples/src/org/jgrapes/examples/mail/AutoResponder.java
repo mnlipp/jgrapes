@@ -22,8 +22,8 @@ import java.io.File;
 import java.io.IOException;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
-import org.jgrapes.mail.SimpleMailMonitor;
-import org.jgrapes.mail.SimpleMailSender;
+import org.jgrapes.mail.SystemMailMonitor;
+import org.jgrapes.mail.SystemMailSender;
 import org.jgrapes.util.JsonConfigurationStore;
 
 /**
@@ -41,8 +41,8 @@ public class AutoResponder extends Component {
         var app = new AutoResponder();
         app.attach(new JsonConfigurationStore(app,
             new File("mail-examples-config.json")));
-        app.attach(new SimpleMailMonitor(app));
-        app.attach(new SimpleMailSender(app));
+        app.attach(new SystemMailMonitor(app));
+        app.attach(new SystemMailSender(app));
         app.attach(new ReplyGenerator(app));
         Components.start(app);
         Components.awaitExhaustion();

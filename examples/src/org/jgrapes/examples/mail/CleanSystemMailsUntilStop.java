@@ -36,7 +36,7 @@ import jakarta.mail.Flags.Flag;
 /**
  * An application that deletes all received mails.
  */
-public class CleanMailsUntilStop extends Component {
+public class CleanSystemMailsUntilStop extends Component {
 
     /**
      * Wait for mail with subject stop. Delete all other mails.
@@ -68,9 +68,9 @@ public class CleanMailsUntilStop extends Component {
      */
     public static void main(String[] args)
             throws IOException, InterruptedException {
-        var app = new CleanMailsUntilStop();
+        var app = new CleanSystemMailsUntilStop();
         app.attach(new TomlConfigurationStore(app,
-            new File("mail-examples-config.toml")));
+            new File("system-mail-config.toml")));
         app.attach(new SystemMailMonitor(app));
         app.attach(new WaitForStopMail(app));
         Components.start(app);

@@ -2,14 +2,14 @@
 
 user = "xxxxxx"
 
-[_org_jgrapes_mail._SimpleMailMonitor._mail]
+[_org_jgrapes_mail._SystemMailMonitor._mail]
 
 host = "xxxxxx"
 store.protocol = "imap"
 imap.ssl.enable = true
 imap.port = 993
 
-[_org_jgrapes_mail._SimpleMailSender._mail]
+[_org_jgrapes_mail._SystemMailSender._mail]
 
 host = "xxxxxx"
 transport.protocol = "smtp"
