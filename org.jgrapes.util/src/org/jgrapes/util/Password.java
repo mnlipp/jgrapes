@@ -63,6 +63,7 @@ public class Password {
                         }
                     }
                 });
+                purger.setName("PasswordPurger");
                 purger.setDaemon(true);
                 purger.start();
             }
