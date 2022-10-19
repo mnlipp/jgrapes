@@ -36,103 +36,116 @@
 <span class="source-line-no">023</span><span id="line-23">import java.util.Properties;</span>
 <span class="source-line-no">024</span><span id="line-24">import org.jgrapes.core.Channel;</span>
 <span class="source-line-no">025</span><span id="line-25">import org.jgrapes.core.Component;</span>
-<span class="source-line-no">026</span><span id="line-26">import org.jgrapes.core.Event;</span>
-<span class="source-line-no">027</span><span id="line-27">import org.jgrapes.core.Manager;</span>
-<span class="source-line-no">028</span><span id="line-28">import org.jgrapes.core.annotation.Handler;</span>
-<span class="source-line-no">029</span><span id="line-29">import org.jgrapes.core.annotation.HandlerDefinition.ChannelReplacements;</span>
-<span class="source-line-no">030</span><span id="line-30">import org.jgrapes.util.events.ConfigurationUpdate;</span>
-<span class="source-line-no">031</span><span id="line-31"></span>
-<span class="source-line-no">032</span><span id="line-32">/**</span>
-<span class="source-line-no">033</span><span id="line-33"> * A base class for mail handling components.</span>
-<span class="source-line-no">034</span><span id="line-34"> */</span>
-<span class="source-line-no">035</span><span id="line-35">public abstract class MailComponent extends Component {</span>
-<span class="source-line-no">036</span><span id="line-36"></span>
-<span class="source-line-no">037</span><span id="line-37">    protected final Properties mailProps = new Properties();</span>
-<span class="source-line-no">038</span><span id="line-38"></span>
-<span class="source-line-no">039</span><span id="line-39">    /**</span>
-<span class="source-line-no">040</span><span id="line-40">     * Creates a new component with its channel set to itself.</span>
-<span class="source-line-no">041</span><span id="line-41">     */</span>
-<span class="source-line-no">042</span><span id="line-42">    public MailComponent() {</span>
-<span class="source-line-no">043</span><span id="line-43">        // Nothing to do.</span>
-<span class="source-line-no">044</span><span id="line-44">    }</span>
-<span class="source-line-no">045</span><span id="line-45"></span>
-<span class="source-line-no">046</span><span id="line-46">    /**</span>
-<span class="source-line-no">047</span><span id="line-47">     * Creates a new component base with its channel set to the given </span>
-<span class="source-line-no">048</span><span id="line-48">     * channel. As a special case {@link Channel#SELF} can be</span>
-<span class="source-line-no">049</span><span id="line-49">     * passed to the constructor to make the component use itself</span>
-<span class="source-line-no">050</span><span id="line-50">     * as channel. The special value is necessary as you </span>
-<span class="source-line-no">051</span><span id="line-51">     * obviously cannot pass an object to be constructed to its </span>
-<span class="source-line-no">052</span><span id="line-52">     * constructor.</span>
-<span class="source-line-no">053</span><span id="line-53">     *</span>
-<span class="source-line-no">054</span><span id="line-54">     * @param componentChannel the channel that the component's</span>
-<span class="source-line-no">055</span><span id="line-55">     * handlers listen on by default and that </span>
-<span class="source-line-no">056</span><span id="line-56">     * {@link Manager#fire(Event, Channel...)} sends the event to</span>
-<span class="source-line-no">057</span><span id="line-57">     */</span>
-<span class="source-line-no">058</span><span id="line-58">    public MailComponent(Channel componentChannel) {</span>
-<span class="source-line-no">059</span><span id="line-59">        super(componentChannel);</span>
-<span class="source-line-no">060</span><span id="line-60">    }</span>
-<span class="source-line-no">061</span><span id="line-61"></span>
-<span class="source-line-no">062</span><span id="line-62">    /**</span>
-<span class="source-line-no">063</span><span id="line-63">     * Creates a new component base like {@link #MailComponent(Channel)}</span>
-<span class="source-line-no">064</span><span id="line-64">     * but with channel mappings for {@link Handler} annotations.</span>
-<span class="source-line-no">065</span><span id="line-65">     *</span>
-<span class="source-line-no">066</span><span id="line-66">     * @param componentChannel the channel that the component's</span>
-<span class="source-line-no">067</span><span id="line-67">     * handlers listen on by default and that </span>
-<span class="source-line-no">068</span><span id="line-68">     * {@link Manager#fire(Event, Channel...)} sends the event to</span>
-<span class="source-line-no">069</span><span id="line-69">     * @param channelReplacements the channel replacements to apply</span>
-<span class="source-line-no">070</span><span id="line-70">     * to the `channels` elements of the {@link Handler} annotations</span>
-<span class="source-line-no">071</span><span id="line-71">     */</span>
-<span class="source-line-no">072</span><span id="line-72">    public MailComponent(Channel componentChannel,</span>
-<span class="source-line-no">073</span><span id="line-73">            ChannelReplacements channelReplacements) {</span>
-<span class="source-line-no">074</span><span id="line-74">        super(componentChannel, channelReplacements);</span>
-<span class="source-line-no">075</span><span id="line-75">    }</span>
-<span class="source-line-no">076</span><span id="line-76"></span>
-<span class="source-line-no">077</span><span id="line-77">    /**</span>
-<span class="source-line-no">078</span><span id="line-78">     * Sets the mail properties. See </span>
-<span class="source-line-no">079</span><span id="line-79">     * [the Jakarta Mail](https://jakarta.ee/specifications/mail/2.0/apidocs/jakarta.mail/jakarta/mail/package-summary.html)</span>
-<span class="source-line-no">080</span><span id="line-80">     * documentation for available settings. The given properties are</span>
-<span class="source-line-no">081</span><span id="line-81">     * merged with the already existing properties.</span>
-<span class="source-line-no">082</span><span id="line-82">     *</span>
-<span class="source-line-no">083</span><span id="line-83">     * @param props the props</span>
-<span class="source-line-no">084</span><span id="line-84">     * @return the mail monitor</span>
-<span class="source-line-no">085</span><span id="line-85">     */</span>
-<span class="source-line-no">086</span><span id="line-86">    public MailComponent setMailProperties(Map&lt;String, String&gt; props) {</span>
-<span class="source-line-no">087</span><span id="line-87">        mailProps.putAll(props);</span>
-<span class="source-line-no">088</span><span id="line-88">        return this;</span>
-<span class="source-line-no">089</span><span id="line-89">    }</span>
-<span class="source-line-no">090</span><span id="line-90"></span>
-<span class="source-line-no">091</span><span id="line-91">    /**</span>
-<span class="source-line-no">092</span><span id="line-92">     * Configure the component. Attempts to access all paths specified</span>
-<span class="source-line-no">093</span><span id="line-93">     * in the package description in sequence as described in </span>
-<span class="source-line-no">094</span><span id="line-94">     * {@link org.jgrapes.mail}. For each path, merges the</span>
-<span class="source-line-no">095</span><span id="line-95">     * `mail` properties and invokes {@link #configureComponent}</span>
-<span class="source-line-no">096</span><span id="line-96">     * with the available key/value pairs.  </span>
-<span class="source-line-no">097</span><span id="line-97">     *  </span>
-<span class="source-line-no">098</span><span id="line-98">     * @param event the event</span>
-<span class="source-line-no">099</span><span id="line-99">     */</span>
-<span class="source-line-no">100</span><span id="line-100">    @Handler</span>
-<span class="source-line-no">101</span><span id="line-101">    public void onConfigUpdate(ConfigurationUpdate event) {</span>
-<span class="source-line-no">102</span><span id="line-102">        for (var path : List.of("/org.jgrapes.mail/Component",</span>
-<span class="source-line-no">103</span><span id="line-103">            "/org.jgrapes.mail/" + getClass().getSimpleName(),</span>
-<span class="source-line-no">104</span><span id="line-104">            componentPath())) {</span>
-<span class="source-line-no">105</span><span id="line-105">            event.values(path + "/mail").ifPresent(c -&gt; {</span>
-<span class="source-line-no">106</span><span id="line-106">                for (var e : c.entrySet()) {</span>
-<span class="source-line-no">107</span><span id="line-107">                    mailProps.put("mail." + e.getKey(), e.getValue());</span>
-<span class="source-line-no">108</span><span id="line-108">                }</span>
-<span class="source-line-no">109</span><span id="line-109">            });</span>
-<span class="source-line-no">110</span><span id="line-110">            event.values(path).ifPresent(v -&gt; {</span>
-<span class="source-line-no">111</span><span id="line-111">                configureComponent(v);</span>
+<span class="source-line-no">026</span><span id="line-26">import org.jgrapes.core.Components;</span>
+<span class="source-line-no">027</span><span id="line-27">import org.jgrapes.core.Event;</span>
+<span class="source-line-no">028</span><span id="line-28">import org.jgrapes.core.Manager;</span>
+<span class="source-line-no">029</span><span id="line-29">import org.jgrapes.core.annotation.Handler;</span>
+<span class="source-line-no">030</span><span id="line-30">import org.jgrapes.core.annotation.HandlerDefinition.ChannelReplacements;</span>
+<span class="source-line-no">031</span><span id="line-31">import org.jgrapes.util.events.ConfigurationUpdate;</span>
+<span class="source-line-no">032</span><span id="line-32"></span>
+<span class="source-line-no">033</span><span id="line-33">/**</span>
+<span class="source-line-no">034</span><span id="line-34"> * A base class for mail handling components.</span>
+<span class="source-line-no">035</span><span id="line-35"> */</span>
+<span class="source-line-no">036</span><span id="line-36">public abstract class MailComponent extends Component {</span>
+<span class="source-line-no">037</span><span id="line-37"></span>
+<span class="source-line-no">038</span><span id="line-38">    protected final Properties mailProps = new Properties();</span>
+<span class="source-line-no">039</span><span id="line-39"></span>
+<span class="source-line-no">040</span><span id="line-40">    /**</span>
+<span class="source-line-no">041</span><span id="line-41">     * Creates a new component with its channel set to itself.</span>
+<span class="source-line-no">042</span><span id="line-42">     */</span>
+<span class="source-line-no">043</span><span id="line-43">    public MailComponent() {</span>
+<span class="source-line-no">044</span><span id="line-44">        // Nothing to do.</span>
+<span class="source-line-no">045</span><span id="line-45">    }</span>
+<span class="source-line-no">046</span><span id="line-46"></span>
+<span class="source-line-no">047</span><span id="line-47">    /**</span>
+<span class="source-line-no">048</span><span id="line-48">     * Creates a new component base with its channel set to the given </span>
+<span class="source-line-no">049</span><span id="line-49">     * channel. As a special case {@link Channel#SELF} can be</span>
+<span class="source-line-no">050</span><span id="line-50">     * passed to the constructor to make the component use itself</span>
+<span class="source-line-no">051</span><span id="line-51">     * as channel. The special value is necessary as you </span>
+<span class="source-line-no">052</span><span id="line-52">     * obviously cannot pass an object to be constructed to its </span>
+<span class="source-line-no">053</span><span id="line-53">     * constructor.</span>
+<span class="source-line-no">054</span><span id="line-54">     *</span>
+<span class="source-line-no">055</span><span id="line-55">     * @param componentChannel the channel that the component's</span>
+<span class="source-line-no">056</span><span id="line-56">     * handlers listen on by default and that </span>
+<span class="source-line-no">057</span><span id="line-57">     * {@link Manager#fire(Event, Channel...)} sends the event to</span>
+<span class="source-line-no">058</span><span id="line-58">     */</span>
+<span class="source-line-no">059</span><span id="line-59">    public MailComponent(Channel componentChannel) {</span>
+<span class="source-line-no">060</span><span id="line-60">        super(componentChannel);</span>
+<span class="source-line-no">061</span><span id="line-61">    }</span>
+<span class="source-line-no">062</span><span id="line-62"></span>
+<span class="source-line-no">063</span><span id="line-63">    /**</span>
+<span class="source-line-no">064</span><span id="line-64">     * Creates a new component base like {@link #MailComponent(Channel)}</span>
+<span class="source-line-no">065</span><span id="line-65">     * but with channel mappings for {@link Handler} annotations.</span>
+<span class="source-line-no">066</span><span id="line-66">     *</span>
+<span class="source-line-no">067</span><span id="line-67">     * @param componentChannel the channel that the component's</span>
+<span class="source-line-no">068</span><span id="line-68">     * handlers listen on by default and that </span>
+<span class="source-line-no">069</span><span id="line-69">     * {@link Manager#fire(Event, Channel...)} sends the event to</span>
+<span class="source-line-no">070</span><span id="line-70">     * @param channelReplacements the channel replacements to apply</span>
+<span class="source-line-no">071</span><span id="line-71">     * to the `channels` elements of the {@link Handler} annotations</span>
+<span class="source-line-no">072</span><span id="line-72">     */</span>
+<span class="source-line-no">073</span><span id="line-73">    public MailComponent(Channel componentChannel,</span>
+<span class="source-line-no">074</span><span id="line-74">            ChannelReplacements channelReplacements) {</span>
+<span class="source-line-no">075</span><span id="line-75">        super(componentChannel, channelReplacements);</span>
+<span class="source-line-no">076</span><span id="line-76">    }</span>
+<span class="source-line-no">077</span><span id="line-77"></span>
+<span class="source-line-no">078</span><span id="line-78">    /**</span>
+<span class="source-line-no">079</span><span id="line-79">     * Sets the mail properties. See </span>
+<span class="source-line-no">080</span><span id="line-80">     * [the Jakarta Mail](https://jakarta.ee/specifications/mail/2.0/apidocs/jakarta.mail/jakarta/mail/package-summary.html)</span>
+<span class="source-line-no">081</span><span id="line-81">     * documentation for available settings. The given properties are</span>
+<span class="source-line-no">082</span><span id="line-82">     * merged with the already existing properties.</span>
+<span class="source-line-no">083</span><span id="line-83">     *</span>
+<span class="source-line-no">084</span><span id="line-84">     * @param props the props</span>
+<span class="source-line-no">085</span><span id="line-85">     * @return the mail monitor</span>
+<span class="source-line-no">086</span><span id="line-86">     */</span>
+<span class="source-line-no">087</span><span id="line-87">    public MailComponent setMailProperties(Map&lt;String, String&gt; props) {</span>
+<span class="source-line-no">088</span><span id="line-88">        mailProps.putAll(props);</span>
+<span class="source-line-no">089</span><span id="line-89">        return this;</span>
+<span class="source-line-no">090</span><span id="line-90">    }</span>
+<span class="source-line-no">091</span><span id="line-91"></span>
+<span class="source-line-no">092</span><span id="line-92">    /**</span>
+<span class="source-line-no">093</span><span id="line-93">     * Configure the component. Attempts to access all paths specified</span>
+<span class="source-line-no">094</span><span id="line-94">     * in the package description in sequence as described in </span>
+<span class="source-line-no">095</span><span id="line-95">     * {@link org.jgrapes.mail}. For each path, merges the</span>
+<span class="source-line-no">096</span><span id="line-96">     * `mail` properties and invokes {@link #configureComponent}</span>
+<span class="source-line-no">097</span><span id="line-97">     * with the available key/value pairs.  </span>
+<span class="source-line-no">098</span><span id="line-98">     *  </span>
+<span class="source-line-no">099</span><span id="line-99">     * @param event the event</span>
+<span class="source-line-no">100</span><span id="line-100">     */</span>
+<span class="source-line-no">101</span><span id="line-101">    @Handler</span>
+<span class="source-line-no">102</span><span id="line-102">    public void onConfigUpdate(ConfigurationUpdate event) {</span>
+<span class="source-line-no">103</span><span id="line-103">        for (var path : List.of("/org.jgrapes.mail/Component",</span>
+<span class="source-line-no">104</span><span id="line-104">            "/org.jgrapes.mail/" + getClass().getSimpleName(),</span>
+<span class="source-line-no">105</span><span id="line-105">            "/org_jgrapes_mail/Component",</span>
+<span class="source-line-no">106</span><span id="line-106">            "/org_jgrapes_mail/" + getClass().getSimpleName(),</span>
+<span class="source-line-no">107</span><span id="line-107">            componentPath())) {</span>
+<span class="source-line-no">108</span><span id="line-108">            event.values(path + "/mail").ifPresent(c -&gt; {</span>
+<span class="source-line-no">109</span><span id="line-109">                for (var e : c.entrySet()) {</span>
+<span class="source-line-no">110</span><span id="line-110">                    mailProps.put("mail." + e.getKey(), e.getValue());</span>
+<span class="source-line-no">111</span><span id="line-111">                }</span>
 <span class="source-line-no">112</span><span id="line-112">            });</span>
-<span class="source-line-no">113</span><span id="line-113">        }</span>
-<span class="source-line-no">114</span><span id="line-114">    }</span>
-<span class="source-line-no">115</span><span id="line-115"></span>
-<span class="source-line-no">116</span><span id="line-116">    /**</span>
-<span class="source-line-no">117</span><span id="line-117">     * Configure the component specific values.</span>
-<span class="source-line-no">118</span><span id="line-118">     *</span>
-<span class="source-line-no">119</span><span id="line-119">     * @param values the values</span>
-<span class="source-line-no">120</span><span id="line-120">     */</span>
-<span class="source-line-no">121</span><span id="line-121">    protected abstract void configureComponent(Map&lt;String, String&gt; values);</span>
-<span class="source-line-no">122</span><span id="line-122">}</span>
+<span class="source-line-no">113</span><span id="line-113">            event.values(path).ifPresent(v -&gt; {</span>
+<span class="source-line-no">114</span><span id="line-114">                configureComponent(v);</span>
+<span class="source-line-no">115</span><span id="line-115">            });</span>
+<span class="source-line-no">116</span><span id="line-116">        }</span>
+<span class="source-line-no">117</span><span id="line-117">    }</span>
+<span class="source-line-no">118</span><span id="line-118"></span>
+<span class="source-line-no">119</span><span id="line-119">    /**</span>
+<span class="source-line-no">120</span><span id="line-120">     * Configure the component specific values.</span>
+<span class="source-line-no">121</span><span id="line-121">     *</span>
+<span class="source-line-no">122</span><span id="line-122">     * @param values the values</span>
+<span class="source-line-no">123</span><span id="line-123">     */</span>
+<span class="source-line-no">124</span><span id="line-124">    protected abstract void configureComponent(Map&lt;String, String&gt; values);</span>
+<span class="source-line-no">125</span><span id="line-125"></span>
+<span class="source-line-no">126</span><span id="line-126">    /*</span>
+<span class="source-line-no">127</span><span id="line-127">     * (non-Javadoc)</span>
+<span class="source-line-no">128</span><span id="line-128">     * </span>
+<span class="source-line-no">129</span><span id="line-129">     * @see java.lang.Object#toString()</span>
+<span class="source-line-no">130</span><span id="line-130">     */</span>
+<span class="source-line-no">131</span><span id="line-131">    @Override</span>
+<span class="source-line-no">132</span><span id="line-132">    public String toString() {</span>
+<span class="source-line-no">133</span><span id="line-133">        return Components.objectName(this);</span>
+<span class="source-line-no">134</span><span id="line-134">    }</span>
+<span class="source-line-no">135</span><span id="line-135">}</span>
 
 
 
