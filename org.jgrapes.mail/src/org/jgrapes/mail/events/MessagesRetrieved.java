@@ -28,6 +28,11 @@ import org.jgrapes.mail.MailStoreMonitor;
  */
 public class MessagesRetrieved extends CompletionEvent<RetrieveMessages> {
 
+    /**
+     * Instantiates a new event.
+     *
+     * @param monitoredEvent the monitored event
+     */
     public MessagesRetrieved(RetrieveMessages monitoredEvent) {
         super(monitoredEvent);
     }
