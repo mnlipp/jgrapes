@@ -1,6 +1,7 @@
 dependencies {
 	api project(':org.jgrapes.core')
     api project(':org.jgrapes.util')
+    api project(':org.jgrapes.io')
 	api 'jakarta.mail:jakarta.mail-api:[2.1.0,3.0.0)'
 	implementation 'org.eclipse.angus:imap:[1.0.0,2.0.0)'
 	

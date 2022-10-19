@@ -44,7 +44,7 @@ import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.annotation.HandlerDefinition.ChannelReplacements;
 import org.jgrapes.core.events.Start;
 import org.jgrapes.core.events.Stop;
-import org.jgrapes.mail.events.ReceivedMailMessage;
+import org.jgrapes.mail.events.ReceivedMessage;
 import org.jgrapes.util.Password;
 
 /**
@@ -316,7 +316,7 @@ public class SystemMailMonitor extends MailComponent {
             if (msg.getFlags().contains(Flag.DELETED)) {
                 return;
             }
-            fire(new ReceivedMailMessage(msg));
+            fire(new ReceivedMessage(msg));
         } catch (MessagingException e) {
             logger.log(Level.WARNING,
                 "Problem processing message: " + e.getMessage(), e);

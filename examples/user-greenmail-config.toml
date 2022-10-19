@@ -1,0 +1,23 @@
+[_org_jgrapes_mail._MailStoreMonitor._mail]
+
+host = "localhost"
+store.protocol = "imap"
+imap.ssl.enable = false
+imap.port = 3143
+
+[_org_jgrapes_mail._MailStoreMonitor]
+
+maxIdleTime = 15
+
+[_org_jgrapes_mail._MailSenderManager._mail]
+
+host = "localhost"
+transport.protocol = "smtp"
+smtp.ssl.enable = false
+smtp.port = 3025
+smtp.auth = true
+
+[_user1]
+
+user = "test"
+password = "test"

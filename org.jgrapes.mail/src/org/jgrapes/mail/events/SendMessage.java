@@ -32,7 +32,7 @@ import org.jgrapes.core.Event;
  * Indicates the arrival of a new message. Handler should delete
  * the message after successful processing.
  */
-public class SendMailMessage extends Event<Void> {
+public class SendMessage extends Event<Void> {
 
     private Address from;
     @SuppressWarnings({ "PMD.ShortVariable", "PMD.AvoidDuplicateLiterals" })
@@ -50,7 +50,7 @@ public class SendMailMessage extends Event<Void> {
      *
      * @param channels the channels
      */
-    public SendMailMessage(Channel... channels) {
+    public SendMessage(Channel... channels) {
         super(channels);
     }
 
@@ -68,7 +68,7 @@ public class SendMailMessage extends Event<Void> {
      *
      * @param from the from to set
      */
-    public SendMailMessage setFrom(Address from) {
+    public SendMessage setFrom(Address from) {
         this.from = from;
         return this;
     }
@@ -90,7 +90,7 @@ public class SendMailMessage extends Event<Void> {
      * @param to the to addresses to set
      */
     @SuppressWarnings({ "PMD.ShortVariable", "PMD.ArrayIsStoredDirectly" })
-    public SendMailMessage setTo(Address... to) {
+    public SendMessage setTo(Address... to) {
         this.to = to;
         return this;
     }
@@ -101,7 +101,7 @@ public class SendMailMessage extends Event<Void> {
      * @param to the to addresses to set
      */
     @SuppressWarnings("PMD.ShortVariable")
-    public SendMailMessage setTo(List<Address> to) {
+    public SendMessage setTo(List<Address> to) {
         this.to = to.toArray(new Address[0]);
         return this;
     }
@@ -123,7 +123,7 @@ public class SendMailMessage extends Event<Void> {
      * @param cc the cc adresses to set
      */
     @SuppressWarnings({ "PMD.ShortVariable", "PMD.ArrayIsStoredDirectly" })
-    public SendMailMessage setCc(Address... cc) {
+    public SendMessage setCc(Address... cc) {
         this.cc = cc;
         return this;
     }
@@ -134,7 +134,7 @@ public class SendMailMessage extends Event<Void> {
      * @param cc the cc adresses to set
      */
     @SuppressWarnings("PMD.ShortVariable")
-    public SendMailMessage setCc(List<Address> cc) {
+    public SendMessage setCc(List<Address> cc) {
         this.cc = cc.toArray(new Address[0]);
         return this;
     }
@@ -155,7 +155,7 @@ public class SendMailMessage extends Event<Void> {
      * @param bcc the bcc addresses to set
      */
     @SuppressWarnings("PMD.ArrayIsStoredDirectly")
-    public SendMailMessage setBcc(Address... bcc) {
+    public SendMessage setBcc(Address... bcc) {
         this.bcc = bcc;
         return this;
     }
@@ -165,7 +165,7 @@ public class SendMailMessage extends Event<Void> {
      *
      * @param bcc the bcc addresses to set
      */
-    public SendMailMessage setBcc(List<Address> bcc) {
+    public SendMessage setBcc(List<Address> bcc) {
         this.bcc = bcc.toArray(new Address[0]);
         return this;
     }
@@ -186,7 +186,7 @@ public class SendMailMessage extends Event<Void> {
      * @param value the value
      * @return the send mail message
      */
-    public SendMailMessage setHeader(String name, String value) {
+    public SendMessage setHeader(String name, String value) {
         headers.put(name, value);
         return this;
     }
@@ -205,7 +205,7 @@ public class SendMailMessage extends Event<Void> {
      *
      * @param subject the subject to set
      */
-    public SendMailMessage setSubject(String subject) {
+    public SendMessage setSubject(String subject) {
         this.subject = subject;
         return this;
     }
@@ -225,7 +225,7 @@ public class SendMailMessage extends Event<Void> {
      * @param content the content
      * @return the send mail message
      */
-    public SendMailMessage setContent(MimeMultipart content) {
+    public SendMessage setContent(MimeMultipart content) {
         this.content = content;
         return this;
     }
@@ -237,7 +237,7 @@ public class SendMailMessage extends Event<Void> {
      * @return the send mail message
      * @throws MessagingException the messaging exception
      */
-    public SendMailMessage addContent(BodyPart part)
+    public SendMessage addContent(BodyPart part)
             throws MessagingException {
         if (content == null) {
             content = new MimeMultipart();

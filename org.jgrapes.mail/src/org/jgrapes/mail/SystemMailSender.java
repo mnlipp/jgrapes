@@ -39,7 +39,7 @@ import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.annotation.HandlerDefinition.ChannelReplacements;
 import org.jgrapes.core.events.Start;
 import org.jgrapes.core.events.Stop;
-import org.jgrapes.mail.events.SendMailMessage;
+import org.jgrapes.mail.events.SendMessage;
 import org.jgrapes.util.Password;
 
 /**
@@ -198,7 +198,7 @@ public class SystemMailSender extends MailComponent {
      * @throws MessagingException the messaging exception
      */
     @Handler
-    public void onMessage(SendMailMessage event) throws MessagingException {
+    public void onMessage(SendMessage event) throws MessagingException {
         synchronized (transport) {
             if (idleTimer != null) {
                 idleTimer.cancel();

@@ -22,8 +22,10 @@
  * process properties from three paths:
  * 
  *  1. `/org.jgrapes.mail/Component` 
- *  2. `/org.jgrapes.mail/` + component class name 
- *  3. The path return by {@link org.jgrapes.core.Manager#componentPath()}
+ *  2. `/org_jgrapes_mail/Component` 
+ *  3. `/org.jgrapes.mail/` + component class name 
+ *  4. `/org_jgrapes_mail/` + component class name 
+ *  5. The path return by {@link org.jgrapes.core.Manager#componentPath()}
  *  
  * With the properties from the later sources taking precedence.
  *  

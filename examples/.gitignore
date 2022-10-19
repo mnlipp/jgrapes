@@ -5,3 +5,7 @@
 /cleanup-mails-config.json
 /mail-examples-config.json
 /mail-examples-config.toml
+/mail-connections-config.toml
+/system-mail-config.toml
+/user-mail-config.toml
+/user-wftest-config.toml

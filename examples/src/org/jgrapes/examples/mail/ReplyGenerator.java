@@ -27,8 +27,8 @@ import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Stop;
-import org.jgrapes.mail.events.ReceivedMailMessage;
-import org.jgrapes.mail.events.SendMailMessage;
+import org.jgrapes.mail.events.ReceivedMessage;
+import org.jgrapes.mail.events.SendMessage;
 
 /**
  * Wait for mail with subject stop. Delete all other mails.
@@ -40,13 +40,13 @@ public class ReplyGenerator extends Component {
     }
 
     @Handler
-    public void onMail(ReceivedMailMessage event) throws MessagingException {
+    public void onMail(ReceivedMessage event) throws MessagingException {
         var msg = event.message();
         msg.setFlag(Flag.DELETED, true);
         var response = msg.reply(false);
         var bp1 = new MimeBodyPart();
         bp1.setText("Your message has been received.", "utf-8");
-        fire(new SendMailMessage()
+        fire(new SendMessage()
             .setFrom(new InternetAddress("Auto-Reply@jgrapes.org"))
             .setTo(response.getRecipients(RecipientType.TO))
             .setSubject(response.getSubject()).addContent(bp1));

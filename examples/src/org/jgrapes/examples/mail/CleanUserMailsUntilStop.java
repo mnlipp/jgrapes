@@ -20,14 +20,22 @@ package org.jgrapes.examples.mail;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Stop;
-import org.jgrapes.mail.SystemMailMonitor;
+import org.jgrapes.io.events.Opened;
+import org.jgrapes.mail.MailChannel;
+import org.jgrapes.mail.MailStoreMonitor;
+import org.jgrapes.mail.events.OpenMailConnection;
+import org.jgrapes.mail.events.OpenMailMonitor;
 import org.jgrapes.mail.events.ReceivedMessage;
+import org.jgrapes.util.ConfigurationStore;
+import org.jgrapes.util.Password;
 import org.jgrapes.util.TomlConfigurationStore;
 
 import jakarta.mail.MessagingException;
@@ -36,7 +44,9 @@ import jakarta.mail.Flags.Flag;
 /**
  * An application that deletes all received mails.
  */
-public class CleanSystemMailsUntilStop extends Component {
+public class CleanUserMailsUntilStop extends Component {
+
+    private static CountDownLatch waitForOpen = new CountDownLatch(1);
 
     /**
      * Wait for mail with subject stop. Delete all other mails.
@@ -48,7 +58,12 @@ public class CleanSystemMailsUntilStop extends Component {
         }
 
         @Handler
-        public void onMail(ReceivedMessage event)
+        public void onOpened(Opened event) {
+            waitForOpen.countDown();
+        }
+
+        @Handler
+        public void onMail(ReceivedMessage event, MailChannel channel)
                 throws MessagingException {
             var msg = event.message();
             var subject = msg.getSubject();
@@ -68,12 +83,18 @@ public class CleanSystemMailsUntilStop extends Component {
      */
     public static void main(String[] args)
             throws IOException, InterruptedException {
-        var app = new CleanSystemMailsUntilStop();
-        app.attach(new TomlConfigurationStore(app,
-            new File("system-mail-config.toml")));
-        app.attach(new SystemMailMonitor(app));
+        var app = new CleanUserMailsUntilStop();
+        ConfigurationStore config = new TomlConfigurationStore(app,
+            new File("user-wftest-config.toml"));
+        app.attach(config);
+        app.attach(new MailStoreMonitor(app));
         app.attach(new WaitForStopMail(app));
         Components.start(app);
+        Map<String, String> user1 = config.values("/user1").get();
+        app.fire(new OpenMailMonitor()
+            .setMailProperty("mail.user", user1.get("user"))
+            .setPassword(new Password(user1.get("password").toCharArray())));
+        waitForOpen.await();
         Components.awaitExhaustion();
     }
 

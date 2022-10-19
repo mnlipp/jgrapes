@@ -26,7 +26,7 @@ import org.jgrapes.core.Event;
  * Indicates the arrival of a new message. Handler should delete
  * the message after successful processing.
  */
-public class ReceivedMailMessage extends Event<Void> {
+public class ReceivedMessage extends Event<Void> {
 
     private final Message message;
 
@@ -36,7 +36,7 @@ public class ReceivedMailMessage extends Event<Void> {
      * @param message the message
      * @param channels the channels
      */
-    public ReceivedMailMessage(Message message, Channel... channels) {
+    public ReceivedMessage(Message message, Channel... channels) {
         super(channels);
         this.message = message;
     }

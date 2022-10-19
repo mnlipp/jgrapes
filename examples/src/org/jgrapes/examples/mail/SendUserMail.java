@@ -33,7 +33,7 @@ import org.jgrapes.util.TomlConfigurationStore;
 /**
  * An application that deletes all received mails.
  */
-public class SendSystemMail extends Component {
+public class SendUserMail extends Component {
 
     /**
      * @param args
@@ -43,9 +43,9 @@ public class SendSystemMail extends Component {
      */
     public static void main(String[] args)
             throws IOException, InterruptedException, MessagingException {
-        var app = new SendSystemMail();
+        var app = new SendUserMail();
         app.attach(new TomlConfigurationStore(app,
-            new File("system-mail-config.toml")));
+            new File("mail-examples-config.toml")));
         app.attach(new SystemMailSender(app));
         Components.start(app);
         var bp1 = new MimeBodyPart();
