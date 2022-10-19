@@ -22,8 +22,9 @@ import java.io.File;
 import java.io.IOException;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
-import org.jgrapes.mail.SystemMailMonitor;
+import org.jgrapes.mail.MailStoreMonitor;
 import org.jgrapes.mail.SystemMailSender;
+import org.jgrapes.mail.events.OpenMailMonitor;
 import org.jgrapes.util.JsonConfigurationStore;
 
 /**
@@ -40,11 +41,12 @@ public class AutoResponder extends Component {
             throws IOException, InterruptedException {
         var app = new AutoResponder();
         app.attach(new JsonConfigurationStore(app,
-            new File("mail-examples-config.json")));
-        app.attach(new SystemMailMonitor(app));
+            new File("mail-examples-config.toml")));
+        app.attach(new MailStoreMonitor(app));
         app.attach(new SystemMailSender(app));
         app.attach(new ReplyGenerator(app));
         Components.start(app);
+        app.fire(new OpenMailMonitor()).get();
         Components.awaitExhaustion();
     }
 
