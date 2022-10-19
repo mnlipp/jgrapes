@@ -23,6 +23,7 @@ jobs:
         uses: actions/setup-java@v3
         with:
           java-version: ${{ matrix.java-version }}
+          distribution: 'adopt'
       - name: Build with Gradle
         run: ./gradlew stage
         env:
