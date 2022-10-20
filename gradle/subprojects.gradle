@@ -35,11 +35,12 @@ if (project.name.startsWith("org.jgrapes") || project.name == "examples") {
     }
     version = scmVersion.version
     ext.isSnapshot = version.endsWith('-SNAPSHOT')
+    println "Snapshot: $isSnapshot"
     
     // Provide the Bundle-Version (shared by all libraries)
     def releaseVersion = version.replaceAll(/-SNAPSHOT$/, "")
-    ext.bundleVersion = "${-> releaseVersion +
-        (isSnapshot ? '.-\${tstamp}-SNAPSHOT' : '.ga')}"
+    ext.bundleVersion = "$releaseVersion" +
+         (isSnapshot ? '.-\${tstamp}-SNAPSHOT' : '.ga')
 
     jar {
         doFirst {
@@ -53,11 +54,11 @@ if (project.name.startsWith("org.jgrapes") || project.name == "examples") {
             // Set Git revision information in the manifests of built bundles
             attributes([
                 "Git-Descriptor": grgit.describe(always: true),
-                "Git-SHA": grgit.head().id,
-                "Bundle-Version": bundleVersion
+                "Git-SHA": grgit.head().id
             ])
         }
         bundle {
+            properties.put("bundleVersion", bundleVersion)
             bnd("-diffignore": "Git-Descriptor, Git-SHA")
         }
     }
