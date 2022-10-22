@@ -21,14 +21,12 @@ package org.jgrapes.mail;
 import com.sun.mail.imap.IMAPFolder;
 import com.sun.mail.imap.IdleManager;
 import jakarta.mail.AuthenticationFailedException;
-import jakarta.mail.Authenticator;
 import jakarta.mail.Flags.Flag;
 import jakarta.mail.Folder;
 import jakarta.mail.FolderClosedException;
 import jakarta.mail.Message;
 import jakarta.mail.MessagingException;
 import jakarta.mail.NoSuchProviderException;
-import jakarta.mail.PasswordAuthentication;
 import jakarta.mail.Session;
 import jakarta.mail.Store;
 import jakarta.mail.event.ConnectionEvent;
@@ -68,6 +66,7 @@ import org.jgrapes.mail.events.MessagesRetrieved;
 import org.jgrapes.mail.events.OpenMailMonitor;
 import org.jgrapes.mail.events.ReceivedMessage;
 import org.jgrapes.mail.events.RetrieveMessages;
+import org.jgrapes.util.Password;
 
 /**
  * A component that opens mail stores and monitors mail folders for 
@@ -187,16 +186,11 @@ public class MailStoreMonitor
         Properties sessionProps = new Properties(mailProps);
         sessionProps.putAll(event.mailProperties());
         sessionProps.put("mail.imap.usesocketchannels", true);
-        Session session = Session.getInstance(sessionProps,
-            new Authenticator() {
-                @Override
-                protected PasswordAuthentication
-                        getPasswordAuthentication() {
-                    return new PasswordAuthentication(
-                        sessionProps.getProperty("mail.user"),
-                        new String(event.password().password()));
-                }
-            });
+        Session session = Session.getInstance(sessionProps);
+//        return new PasswordAuthentication(
+//            sessionProps.getProperty("mail.user"),
+//            new String(event.password().password()));
+
         try {
             synchronized (MailStoreMonitor.class) {
                 // Cannot be created earlier, need session.
@@ -205,7 +199,8 @@ public class MailStoreMonitor
                         Components.defaultExecutorService());
                 }
             }
-            new MonitorChannel(event, channel, session.getStore());
+            new MonitorChannel(event, channel, session.getStore(),
+                sessionProps.getProperty("mail.user"), event.password());
         } catch (NoSuchProviderException e) {
             fire(new ConnectError(event, "Cannot create store.", e));
         } catch (IOException e) {
@@ -338,6 +333,8 @@ public class MailStoreMonitor
         private final EventPipeline requestPipeline;
         private ChannelState state = ChannelState.Opening;
         private final Store store;
+        private final String user;
+        private final Password password;
         private final String[] folderNames;
         private final Map<String, Folder> folders;
         private final Set<Message> messages;
@@ -349,11 +346,15 @@ public class MailStoreMonitor
          * @param event the event
          * @param channel the channel
          * @param store the store
+         * @param password 
+         * @param string 
          */
         public MonitorChannel(OpenMailMonitor event, Channel channel,
-                Store store) {
+                Store store, String user, Password password) {
             super(event, channel);
             this.store = store;
+            this.user = user;
+            this.password = password;
             this.folderNames = event.folderNames();
             requestPipeline = event.processedBy().get();
             folders = new ConcurrentHashMap<>();
@@ -402,7 +403,7 @@ public class MailStoreMonitor
         private void attemptConnect(Consumer<Throwable> onOpenFailed)
                 throws InterruptedException {
             try {
-                store.connect();
+                store.connect(user, new String(password.password()));
                 synchronized (this) {
                     if (state == ChannelState.Opening) {
                         state = ChannelState.Open;
