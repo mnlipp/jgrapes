@@ -5,7 +5,7 @@ dependencies {
 	api 'jakarta.mail:jakarta.mail-api:[2.1.0,3.0.0)'
 	implementation 'org.eclipse.angus:imap:[1.0.0,2.0.0)'
 	
-    testRuntimeOnly 'org.eclipse.angus:angus-mail:[1.0.0,2.0.0)'
+//    testRuntimeOnly 'org.eclipse.angus:angus-mail:[1.0.0,2.0.0)'
 }
 
 ext.releaseVersion = "0.0.1"
