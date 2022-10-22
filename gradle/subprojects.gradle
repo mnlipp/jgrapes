@@ -35,7 +35,6 @@ if (project.name.startsWith("org.jgrapes") || project.name == "examples") {
     }
     version = scmVersion.version
     ext.isSnapshot = version.endsWith('-SNAPSHOT')
-    println "Snapshot: $isSnapshot"
     
     // Provide the Bundle-Version (shared by all libraries)
     def releaseVersion = version.replaceAll(/-SNAPSHOT$/, "")
