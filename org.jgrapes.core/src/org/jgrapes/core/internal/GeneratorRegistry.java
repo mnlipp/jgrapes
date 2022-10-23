@@ -18,6 +18,7 @@
 
 package org.jgrapes.core.internal;
 
+import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -52,7 +53,7 @@ public class GeneratorRegistry {
 
     private GeneratorRegistry() {
         if (generatorTracking.isLoggable(Level.FINE)) {
-            generators = new IdentityHashMap<>();
+            generators = Collections.synchronizedMap(new IdentityHashMap<>());
         }
     }
 
