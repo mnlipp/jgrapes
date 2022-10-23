@@ -187,9 +187,18 @@ public class MailStoreMonitor
         sessionProps.putAll(event.mailProperties());
         sessionProps.put("mail.imap.usesocketchannels", true);
         Session session = Session.getInstance(sessionProps);
-//        return new PasswordAuthentication(
-//            sessionProps.getProperty("mail.user"),
-//            new String(event.password().password()));
+//            // Workaround for class loading problem in OSGi with j.m. 2.1.
+//            // Authenticator's classpath allows accessing provider's service.
+//            // See https://github.com/eclipse-ee4j/mail/issues/631
+//            new Authenticator() {
+//                @Override
+//                protected PasswordAuthentication
+//                        getPasswordAuthentication() {
+//                    return new PasswordAuthentication(
+//                        sessionProps.getProperty("mail.user"),
+//                        new String(event.password().password()));
+//                }
+//            });
 
         try {
             synchronized (MailStoreMonitor.class) {
