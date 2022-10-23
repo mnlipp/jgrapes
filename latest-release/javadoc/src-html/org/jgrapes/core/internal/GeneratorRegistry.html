@@ -31,192 +31,193 @@
 <span class="source-line-no">018</span><span id="line-18"></span>
 <span class="source-line-no">019</span><span id="line-19">package org.jgrapes.core.internal;</span>
 <span class="source-line-no">020</span><span id="line-20"></span>
-<span class="source-line-no">021</span><span id="line-21">import java.util.IdentityHashMap;</span>
-<span class="source-line-no">022</span><span id="line-22">import java.util.Map;</span>
-<span class="source-line-no">023</span><span id="line-23">import java.util.logging.Level;</span>
-<span class="source-line-no">024</span><span id="line-24">import java.util.logging.Logger;</span>
-<span class="source-line-no">025</span><span id="line-25">import org.jgrapes.core.ComponentType;</span>
-<span class="source-line-no">026</span><span id="line-26"></span>
-<span class="source-line-no">027</span><span id="line-27">/**</span>
-<span class="source-line-no">028</span><span id="line-28"> * A registry for generators. Used to track generators and determine</span>
-<span class="source-line-no">029</span><span id="line-29"> * whether the application has stopped.</span>
-<span class="source-line-no">030</span><span id="line-30"> */</span>
-<span class="source-line-no">031</span><span id="line-31">@SuppressWarnings("PMD.ClassWithOnlyPrivateConstructorsShouldBeFinal")</span>
-<span class="source-line-no">032</span><span id="line-32">public class GeneratorRegistry {</span>
-<span class="source-line-no">033</span><span id="line-33"></span>
-<span class="source-line-no">034</span><span id="line-34">    @SuppressWarnings("PMD.FieldNamingConventions")</span>
-<span class="source-line-no">035</span><span id="line-35">    private static final Logger generatorTracking</span>
-<span class="source-line-no">036</span><span id="line-36">        = Logger.getLogger(ComponentType.class.getPackage().getName()</span>
-<span class="source-line-no">037</span><span id="line-37">            + ".generatorTracking");</span>
-<span class="source-line-no">038</span><span id="line-38"></span>
-<span class="source-line-no">039</span><span id="line-39">    private long running;</span>
-<span class="source-line-no">040</span><span id="line-40">    private Thread keepAlive;</span>
-<span class="source-line-no">041</span><span id="line-41">    @SuppressWarnings("PMD.ImmutableField")</span>
-<span class="source-line-no">042</span><span id="line-42">    private Map&lt;Object, Object&gt; generators;</span>
-<span class="source-line-no">043</span><span id="line-43"></span>
-<span class="source-line-no">044</span><span id="line-44">    /**</span>
-<span class="source-line-no">045</span><span id="line-45">     * Holds a generator instance.</span>
-<span class="source-line-no">046</span><span id="line-46">     */</span>
-<span class="source-line-no">047</span><span id="line-47">    private static final class InstanceHolder {</span>
-<span class="source-line-no">048</span><span id="line-48">        @SuppressWarnings("PMD.AccessorClassGeneration")</span>
-<span class="source-line-no">049</span><span id="line-49">        private static final GeneratorRegistry INSTANCE</span>
-<span class="source-line-no">050</span><span id="line-50">            = new GeneratorRegistry();</span>
-<span class="source-line-no">051</span><span id="line-51">    }</span>
-<span class="source-line-no">052</span><span id="line-52"></span>
-<span class="source-line-no">053</span><span id="line-53">    private GeneratorRegistry() {</span>
-<span class="source-line-no">054</span><span id="line-54">        if (generatorTracking.isLoggable(Level.FINE)) {</span>
-<span class="source-line-no">055</span><span id="line-55">            generators = new IdentityHashMap&lt;&gt;();</span>
-<span class="source-line-no">056</span><span id="line-56">        }</span>
-<span class="source-line-no">057</span><span id="line-57">    }</span>
-<span class="source-line-no">058</span><span id="line-58"></span>
-<span class="source-line-no">059</span><span id="line-59">    /**</span>
-<span class="source-line-no">060</span><span id="line-60">     * Returns the singleton instance of the registry.</span>
-<span class="source-line-no">061</span><span id="line-61">     *</span>
-<span class="source-line-no">062</span><span id="line-62">     * @return the generator registry</span>
-<span class="source-line-no">063</span><span id="line-63">     */</span>
-<span class="source-line-no">064</span><span id="line-64">    public static GeneratorRegistry instance() {</span>
-<span class="source-line-no">065</span><span id="line-65">        return InstanceHolder.INSTANCE;</span>
-<span class="source-line-no">066</span><span id="line-66">    }</span>
-<span class="source-line-no">067</span><span id="line-67"></span>
-<span class="source-line-no">068</span><span id="line-68">    /**</span>
-<span class="source-line-no">069</span><span id="line-69">     * Adds a generator.</span>
-<span class="source-line-no">070</span><span id="line-70">     *</span>
-<span class="source-line-no">071</span><span id="line-71">     * @param obj the obj</span>
-<span class="source-line-no">072</span><span id="line-72">     */</span>
-<span class="source-line-no">073</span><span id="line-73">    @SuppressWarnings({ "PMD.GuardLogStatement", "PMD.AvoidDuplicateLiterals" })</span>
-<span class="source-line-no">074</span><span id="line-74">    public void add(Object obj) {</span>
-<span class="source-line-no">075</span><span id="line-75">        synchronized (this) {</span>
-<span class="source-line-no">076</span><span id="line-76">            running += 1;</span>
-<span class="source-line-no">077</span><span id="line-77">            if (generators != null) {</span>
-<span class="source-line-no">078</span><span id="line-78">                generators.put(obj, null);</span>
-<span class="source-line-no">079</span><span id="line-79">                generatorTracking.finest(() -&gt; "Added generator " + obj</span>
-<span class="source-line-no">080</span><span id="line-80">                    + ", " + generators.size() + " generators registered: "</span>
-<span class="source-line-no">081</span><span id="line-81">                    + generators.keySet());</span>
-<span class="source-line-no">082</span><span id="line-82">            }</span>
-<span class="source-line-no">083</span><span id="line-83">            if (running == 1) { // NOPMD, no, not using a constant for this.</span>
-<span class="source-line-no">084</span><span id="line-84">                keepAlive = new Thread("GeneratorRegistry") {</span>
-<span class="source-line-no">085</span><span id="line-85">                    @Override</span>
-<span class="source-line-no">086</span><span id="line-86">                    public void run() {</span>
-<span class="source-line-no">087</span><span id="line-87">                        try {</span>
-<span class="source-line-no">088</span><span id="line-88">                            while (true) {</span>
-<span class="source-line-no">089</span><span id="line-89">                                Thread.sleep(Long.MAX_VALUE);</span>
-<span class="source-line-no">090</span><span id="line-90">                            }</span>
-<span class="source-line-no">091</span><span id="line-91">                        } catch (InterruptedException e) {</span>
-<span class="source-line-no">092</span><span id="line-92">                            // Okay, then stop</span>
-<span class="source-line-no">093</span><span id="line-93">                        }</span>
-<span class="source-line-no">094</span><span id="line-94">                    }</span>
-<span class="source-line-no">095</span><span id="line-95">                };</span>
-<span class="source-line-no">096</span><span id="line-96">                keepAlive.start();</span>
-<span class="source-line-no">097</span><span id="line-97">            }</span>
-<span class="source-line-no">098</span><span id="line-98">        }</span>
-<span class="source-line-no">099</span><span id="line-99">    }</span>
-<span class="source-line-no">100</span><span id="line-100"></span>
-<span class="source-line-no">101</span><span id="line-101">    /**</span>
-<span class="source-line-no">102</span><span id="line-102">     * Removes the generator.</span>
-<span class="source-line-no">103</span><span id="line-103">     *</span>
-<span class="source-line-no">104</span><span id="line-104">     * @param obj the generator</span>
-<span class="source-line-no">105</span><span id="line-105">     */</span>
-<span class="source-line-no">106</span><span id="line-106">    @SuppressWarnings("PMD.GuardLogStatement")</span>
-<span class="source-line-no">107</span><span id="line-107">    public void remove(Object obj) {</span>
-<span class="source-line-no">108</span><span id="line-108">        synchronized (this) {</span>
-<span class="source-line-no">109</span><span id="line-109">            running -= 1;</span>
-<span class="source-line-no">110</span><span id="line-110">            if (generators != null) {</span>
-<span class="source-line-no">111</span><span id="line-111">                generators.remove(obj);</span>
-<span class="source-line-no">112</span><span id="line-112">                generatorTracking.finest(() -&gt; "Removed generator " + obj</span>
-<span class="source-line-no">113</span><span id="line-113">                    + ", " + generators.size() + " generators registered: "</span>
-<span class="source-line-no">114</span><span id="line-114">                    + generators.keySet());</span>
-<span class="source-line-no">115</span><span id="line-115">            }</span>
-<span class="source-line-no">116</span><span id="line-116">            if (running == 0) {</span>
-<span class="source-line-no">117</span><span id="line-117">                generatorTracking</span>
-<span class="source-line-no">118</span><span id="line-118">                    .finest(() -&gt; "Zero generators, notifying all.");</span>
-<span class="source-line-no">119</span><span id="line-119">                keepAlive.interrupt();</span>
-<span class="source-line-no">120</span><span id="line-120">                notifyAll();</span>
-<span class="source-line-no">121</span><span id="line-121">            }</span>
-<span class="source-line-no">122</span><span id="line-122">        }</span>
-<span class="source-line-no">123</span><span id="line-123">    }</span>
-<span class="source-line-no">124</span><span id="line-124"></span>
-<span class="source-line-no">125</span><span id="line-125">    /**</span>
-<span class="source-line-no">126</span><span id="line-126">     * Checks if is exhausted (no generators left)</span>
-<span class="source-line-no">127</span><span id="line-127">     *</span>
-<span class="source-line-no">128</span><span id="line-128">     * @return true, if is exhausted</span>
-<span class="source-line-no">129</span><span id="line-129">     */</span>
-<span class="source-line-no">130</span><span id="line-130">    public boolean isExhausted() {</span>
-<span class="source-line-no">131</span><span id="line-131">        return running == 0;</span>
-<span class="source-line-no">132</span><span id="line-132">    }</span>
-<span class="source-line-no">133</span><span id="line-133"></span>
-<span class="source-line-no">134</span><span id="line-134">    /**</span>
-<span class="source-line-no">135</span><span id="line-135">     * Await exhaustion.</span>
-<span class="source-line-no">136</span><span id="line-136">     *</span>
-<span class="source-line-no">137</span><span id="line-137">     * @throws InterruptedException the interrupted exception</span>
-<span class="source-line-no">138</span><span id="line-138">     */</span>
-<span class="source-line-no">139</span><span id="line-139">    @SuppressWarnings({ "PMD.CollapsibleIfStatements",</span>
-<span class="source-line-no">140</span><span id="line-140">        "PMD.GuardLogStatement" })</span>
-<span class="source-line-no">141</span><span id="line-141">    public void awaitExhaustion() throws InterruptedException {</span>
-<span class="source-line-no">142</span><span id="line-142">        if (generators != null) {</span>
-<span class="source-line-no">143</span><span id="line-143">            synchronized (this) {</span>
-<span class="source-line-no">144</span><span id="line-144">                if (running != generators.size()) {</span>
-<span class="source-line-no">145</span><span id="line-145">                    generatorTracking</span>
-<span class="source-line-no">146</span><span id="line-146">                        .severe(() -&gt; "Generator count doesn't match tracked.");</span>
-<span class="source-line-no">147</span><span id="line-147">                }</span>
-<span class="source-line-no">148</span><span id="line-148">            }</span>
-<span class="source-line-no">149</span><span id="line-149">        }</span>
-<span class="source-line-no">150</span><span id="line-150">        while (running &gt; 0) {</span>
-<span class="source-line-no">151</span><span id="line-151">            // generators.keySet() may call EventProcessor.toString()</span>
-<span class="source-line-no">152</span><span id="line-152">            // which locks on the EventProcessor which may want a lock</span>
-<span class="source-line-no">153</span><span id="line-153">            // on the registry (deadlock). So keep this out of the</span>
-<span class="source-line-no">154</span><span id="line-154">            // synchronized.</span>
-<span class="source-line-no">155</span><span id="line-155">            if (generators != null) {</span>
-<span class="source-line-no">156</span><span id="line-156">                generatorTracking</span>
-<span class="source-line-no">157</span><span id="line-157">                    .fine(() -&gt; "Thread " + Thread.currentThread().getName()</span>
-<span class="source-line-no">158</span><span id="line-158">                        + " is waiting, " + generators.size()</span>
-<span class="source-line-no">159</span><span id="line-159">                        + " generators registered: "</span>
-<span class="source-line-no">160</span><span id="line-160">                        + generators.keySet());</span>
-<span class="source-line-no">161</span><span id="line-161">            }</span>
-<span class="source-line-no">162</span><span id="line-162">            synchronized (this) {</span>
-<span class="source-line-no">163</span><span id="line-163">                if (running &gt; 0) {</span>
-<span class="source-line-no">164</span><span id="line-164">                    wait();</span>
-<span class="source-line-no">165</span><span id="line-165">                }</span>
-<span class="source-line-no">166</span><span id="line-166">            }</span>
-<span class="source-line-no">167</span><span id="line-167">        }</span>
-<span class="source-line-no">168</span><span id="line-168">        generatorTracking</span>
-<span class="source-line-no">169</span><span id="line-169">            .finest("Thread " + Thread.currentThread().getName()</span>
-<span class="source-line-no">170</span><span id="line-170">                + " continues.");</span>
-<span class="source-line-no">171</span><span id="line-171">    }</span>
-<span class="source-line-no">172</span><span id="line-172"></span>
-<span class="source-line-no">173</span><span id="line-173">    /**</span>
-<span class="source-line-no">174</span><span id="line-174">     * Await exhaustion with a timeout.</span>
-<span class="source-line-no">175</span><span id="line-175">     *</span>
-<span class="source-line-no">176</span><span id="line-176">     * @param timeout the timeout</span>
-<span class="source-line-no">177</span><span id="line-177">     * @return true, if successful</span>
-<span class="source-line-no">178</span><span id="line-178">     * @throws InterruptedException the interrupted exception</span>
-<span class="source-line-no">179</span><span id="line-179">     */</span>
-<span class="source-line-no">180</span><span id="line-180">    @SuppressWarnings({ "PMD.CollapsibleIfStatements",</span>
-<span class="source-line-no">181</span><span id="line-181">        "PMD.GuardLogStatement" })</span>
-<span class="source-line-no">182</span><span id="line-182">    public boolean awaitExhaustion(long timeout)</span>
-<span class="source-line-no">183</span><span id="line-183">            throws InterruptedException {</span>
-<span class="source-line-no">184</span><span id="line-184">        synchronized (this) {</span>
-<span class="source-line-no">185</span><span id="line-185">            if (generators != null) {</span>
-<span class="source-line-no">186</span><span id="line-186">                if (running != generators.size()) {</span>
-<span class="source-line-no">187</span><span id="line-187">                    generatorTracking.severe(</span>
-<span class="source-line-no">188</span><span id="line-188">                        "Generator count doesn't match tracked.");</span>
-<span class="source-line-no">189</span><span id="line-189">                }</span>
-<span class="source-line-no">190</span><span id="line-190">            }</span>
-<span class="source-line-no">191</span><span id="line-191">            if (isExhausted()) {</span>
-<span class="source-line-no">192</span><span id="line-192">                return true;</span>
-<span class="source-line-no">193</span><span id="line-193">            }</span>
-<span class="source-line-no">194</span><span id="line-194">            if (generators != null) {</span>
-<span class="source-line-no">195</span><span id="line-195">                generatorTracking</span>
-<span class="source-line-no">196</span><span id="line-196">                    .fine(() -&gt; "Waiting, generators: " + generators.keySet());</span>
-<span class="source-line-no">197</span><span id="line-197">            }</span>
-<span class="source-line-no">198</span><span id="line-198">            wait(timeout);</span>
-<span class="source-line-no">199</span><span id="line-199">            if (generators != null) {</span>
-<span class="source-line-no">200</span><span id="line-200">                generatorTracking</span>
-<span class="source-line-no">201</span><span id="line-201">                    .fine(() -&gt; "Waited, generators: " + generators.keySet());</span>
-<span class="source-line-no">202</span><span id="line-202">            }</span>
-<span class="source-line-no">203</span><span id="line-203">            return isExhausted();</span>
-<span class="source-line-no">204</span><span id="line-204">        }</span>
-<span class="source-line-no">205</span><span id="line-205">    }</span>
-<span class="source-line-no">206</span><span id="line-206">}</span>
+<span class="source-line-no">021</span><span id="line-21">import java.util.Collections;</span>
+<span class="source-line-no">022</span><span id="line-22">import java.util.IdentityHashMap;</span>
+<span class="source-line-no">023</span><span id="line-23">import java.util.Map;</span>
+<span class="source-line-no">024</span><span id="line-24">import java.util.logging.Level;</span>
+<span class="source-line-no">025</span><span id="line-25">import java.util.logging.Logger;</span>
+<span class="source-line-no">026</span><span id="line-26">import org.jgrapes.core.ComponentType;</span>
+<span class="source-line-no">027</span><span id="line-27"></span>
+<span class="source-line-no">028</span><span id="line-28">/**</span>
+<span class="source-line-no">029</span><span id="line-29"> * A registry for generators. Used to track generators and determine</span>
+<span class="source-line-no">030</span><span id="line-30"> * whether the application has stopped.</span>
+<span class="source-line-no">031</span><span id="line-31"> */</span>
+<span class="source-line-no">032</span><span id="line-32">@SuppressWarnings("PMD.ClassWithOnlyPrivateConstructorsShouldBeFinal")</span>
+<span class="source-line-no">033</span><span id="line-33">public class GeneratorRegistry {</span>
+<span class="source-line-no">034</span><span id="line-34"></span>
+<span class="source-line-no">035</span><span id="line-35">    @SuppressWarnings("PMD.FieldNamingConventions")</span>
+<span class="source-line-no">036</span><span id="line-36">    private static final Logger generatorTracking</span>
+<span class="source-line-no">037</span><span id="line-37">        = Logger.getLogger(ComponentType.class.getPackage().getName()</span>
+<span class="source-line-no">038</span><span id="line-38">            + ".generatorTracking");</span>
+<span class="source-line-no">039</span><span id="line-39"></span>
+<span class="source-line-no">040</span><span id="line-40">    private long running;</span>
+<span class="source-line-no">041</span><span id="line-41">    private Thread keepAlive;</span>
+<span class="source-line-no">042</span><span id="line-42">    @SuppressWarnings("PMD.ImmutableField")</span>
+<span class="source-line-no">043</span><span id="line-43">    private Map&lt;Object, Object&gt; generators;</span>
+<span class="source-line-no">044</span><span id="line-44"></span>
+<span class="source-line-no">045</span><span id="line-45">    /**</span>
+<span class="source-line-no">046</span><span id="line-46">     * Holds a generator instance.</span>
+<span class="source-line-no">047</span><span id="line-47">     */</span>
+<span class="source-line-no">048</span><span id="line-48">    private static final class InstanceHolder {</span>
+<span class="source-line-no">049</span><span id="line-49">        @SuppressWarnings("PMD.AccessorClassGeneration")</span>
+<span class="source-line-no">050</span><span id="line-50">        private static final GeneratorRegistry INSTANCE</span>
+<span class="source-line-no">051</span><span id="line-51">            = new GeneratorRegistry();</span>
+<span class="source-line-no">052</span><span id="line-52">    }</span>
+<span class="source-line-no">053</span><span id="line-53"></span>
+<span class="source-line-no">054</span><span id="line-54">    private GeneratorRegistry() {</span>
+<span class="source-line-no">055</span><span id="line-55">        if (generatorTracking.isLoggable(Level.FINE)) {</span>
+<span class="source-line-no">056</span><span id="line-56">            generators = Collections.synchronizedMap(new IdentityHashMap&lt;&gt;());</span>
+<span class="source-line-no">057</span><span id="line-57">        }</span>
+<span class="source-line-no">058</span><span id="line-58">    }</span>
+<span class="source-line-no">059</span><span id="line-59"></span>
+<span class="source-line-no">060</span><span id="line-60">    /**</span>
+<span class="source-line-no">061</span><span id="line-61">     * Returns the singleton instance of the registry.</span>
+<span class="source-line-no">062</span><span id="line-62">     *</span>
+<span class="source-line-no">063</span><span id="line-63">     * @return the generator registry</span>
+<span class="source-line-no">064</span><span id="line-64">     */</span>
+<span class="source-line-no">065</span><span id="line-65">    public static GeneratorRegistry instance() {</span>
+<span class="source-line-no">066</span><span id="line-66">        return InstanceHolder.INSTANCE;</span>
+<span class="source-line-no">067</span><span id="line-67">    }</span>
+<span class="source-line-no">068</span><span id="line-68"></span>
+<span class="source-line-no">069</span><span id="line-69">    /**</span>
+<span class="source-line-no">070</span><span id="line-70">     * Adds a generator.</span>
+<span class="source-line-no">071</span><span id="line-71">     *</span>
+<span class="source-line-no">072</span><span id="line-72">     * @param obj the obj</span>
+<span class="source-line-no">073</span><span id="line-73">     */</span>
+<span class="source-line-no">074</span><span id="line-74">    @SuppressWarnings({ "PMD.GuardLogStatement", "PMD.AvoidDuplicateLiterals" })</span>
+<span class="source-line-no">075</span><span id="line-75">    public void add(Object obj) {</span>
+<span class="source-line-no">076</span><span id="line-76">        synchronized (this) {</span>
+<span class="source-line-no">077</span><span id="line-77">            running += 1;</span>
+<span class="source-line-no">078</span><span id="line-78">            if (generators != null) {</span>
+<span class="source-line-no">079</span><span id="line-79">                generators.put(obj, null);</span>
+<span class="source-line-no">080</span><span id="line-80">                generatorTracking.finest(() -&gt; "Added generator " + obj</span>
+<span class="source-line-no">081</span><span id="line-81">                    + ", " + generators.size() + " generators registered: "</span>
+<span class="source-line-no">082</span><span id="line-82">                    + generators.keySet());</span>
+<span class="source-line-no">083</span><span id="line-83">            }</span>
+<span class="source-line-no">084</span><span id="line-84">            if (running == 1) { // NOPMD, no, not using a constant for this.</span>
+<span class="source-line-no">085</span><span id="line-85">                keepAlive = new Thread("GeneratorRegistry") {</span>
+<span class="source-line-no">086</span><span id="line-86">                    @Override</span>
+<span class="source-line-no">087</span><span id="line-87">                    public void run() {</span>
+<span class="source-line-no">088</span><span id="line-88">                        try {</span>
+<span class="source-line-no">089</span><span id="line-89">                            while (true) {</span>
+<span class="source-line-no">090</span><span id="line-90">                                Thread.sleep(Long.MAX_VALUE);</span>
+<span class="source-line-no">091</span><span id="line-91">                            }</span>
+<span class="source-line-no">092</span><span id="line-92">                        } catch (InterruptedException e) {</span>
+<span class="source-line-no">093</span><span id="line-93">                            // Okay, then stop</span>
+<span class="source-line-no">094</span><span id="line-94">                        }</span>
+<span class="source-line-no">095</span><span id="line-95">                    }</span>
+<span class="source-line-no">096</span><span id="line-96">                };</span>
+<span class="source-line-no">097</span><span id="line-97">                keepAlive.start();</span>
+<span class="source-line-no">098</span><span id="line-98">            }</span>
+<span class="source-line-no">099</span><span id="line-99">        }</span>
+<span class="source-line-no">100</span><span id="line-100">    }</span>
+<span class="source-line-no">101</span><span id="line-101"></span>
+<span class="source-line-no">102</span><span id="line-102">    /**</span>
+<span class="source-line-no">103</span><span id="line-103">     * Removes the generator.</span>
+<span class="source-line-no">104</span><span id="line-104">     *</span>
+<span class="source-line-no">105</span><span id="line-105">     * @param obj the generator</span>
+<span class="source-line-no">106</span><span id="line-106">     */</span>
+<span class="source-line-no">107</span><span id="line-107">    @SuppressWarnings("PMD.GuardLogStatement")</span>
+<span class="source-line-no">108</span><span id="line-108">    public void remove(Object obj) {</span>
+<span class="source-line-no">109</span><span id="line-109">        synchronized (this) {</span>
+<span class="source-line-no">110</span><span id="line-110">            running -= 1;</span>
+<span class="source-line-no">111</span><span id="line-111">            if (generators != null) {</span>
+<span class="source-line-no">112</span><span id="line-112">                generators.remove(obj);</span>
+<span class="source-line-no">113</span><span id="line-113">                generatorTracking.finest(() -&gt; "Removed generator " + obj</span>
+<span class="source-line-no">114</span><span id="line-114">                    + ", " + generators.size() + " generators registered: "</span>
+<span class="source-line-no">115</span><span id="line-115">                    + generators.keySet());</span>
+<span class="source-line-no">116</span><span id="line-116">            }</span>
+<span class="source-line-no">117</span><span id="line-117">            if (running == 0) {</span>
+<span class="source-line-no">118</span><span id="line-118">                generatorTracking</span>
+<span class="source-line-no">119</span><span id="line-119">                    .finest(() -&gt; "Zero generators, notifying all.");</span>
+<span class="source-line-no">120</span><span id="line-120">                keepAlive.interrupt();</span>
+<span class="source-line-no">121</span><span id="line-121">                notifyAll();</span>
+<span class="source-line-no">122</span><span id="line-122">            }</span>
+<span class="source-line-no">123</span><span id="line-123">        }</span>
+<span class="source-line-no">124</span><span id="line-124">    }</span>
+<span class="source-line-no">125</span><span id="line-125"></span>
+<span class="source-line-no">126</span><span id="line-126">    /**</span>
+<span class="source-line-no">127</span><span id="line-127">     * Checks if is exhausted (no generators left)</span>
+<span class="source-line-no">128</span><span id="line-128">     *</span>
+<span class="source-line-no">129</span><span id="line-129">     * @return true, if is exhausted</span>
+<span class="source-line-no">130</span><span id="line-130">     */</span>
+<span class="source-line-no">131</span><span id="line-131">    public boolean isExhausted() {</span>
+<span class="source-line-no">132</span><span id="line-132">        return running == 0;</span>
+<span class="source-line-no">133</span><span id="line-133">    }</span>
+<span class="source-line-no">134</span><span id="line-134"></span>
+<span class="source-line-no">135</span><span id="line-135">    /**</span>
+<span class="source-line-no">136</span><span id="line-136">     * Await exhaustion.</span>
+<span class="source-line-no">137</span><span id="line-137">     *</span>
+<span class="source-line-no">138</span><span id="line-138">     * @throws InterruptedException the interrupted exception</span>
+<span class="source-line-no">139</span><span id="line-139">     */</span>
+<span class="source-line-no">140</span><span id="line-140">    @SuppressWarnings({ "PMD.CollapsibleIfStatements",</span>
+<span class="source-line-no">141</span><span id="line-141">        "PMD.GuardLogStatement" })</span>
+<span class="source-line-no">142</span><span id="line-142">    public void awaitExhaustion() throws InterruptedException {</span>
+<span class="source-line-no">143</span><span id="line-143">        if (generators != null) {</span>
+<span class="source-line-no">144</span><span id="line-144">            synchronized (this) {</span>
+<span class="source-line-no">145</span><span id="line-145">                if (running != generators.size()) {</span>
+<span class="source-line-no">146</span><span id="line-146">                    generatorTracking</span>
+<span class="source-line-no">147</span><span id="line-147">                        .severe(() -&gt; "Generator count doesn't match tracked.");</span>
+<span class="source-line-no">148</span><span id="line-148">                }</span>
+<span class="source-line-no">149</span><span id="line-149">            }</span>
+<span class="source-line-no">150</span><span id="line-150">        }</span>
+<span class="source-line-no">151</span><span id="line-151">        while (running &gt; 0) {</span>
+<span class="source-line-no">152</span><span id="line-152">            // generators.keySet() may call EventProcessor.toString()</span>
+<span class="source-line-no">153</span><span id="line-153">            // which locks on the EventProcessor which may want a lock</span>
+<span class="source-line-no">154</span><span id="line-154">            // on the registry (deadlock). So keep this out of the</span>
+<span class="source-line-no">155</span><span id="line-155">            // synchronized.</span>
+<span class="source-line-no">156</span><span id="line-156">            if (generators != null) {</span>
+<span class="source-line-no">157</span><span id="line-157">                generatorTracking</span>
+<span class="source-line-no">158</span><span id="line-158">                    .fine(() -&gt; "Thread " + Thread.currentThread().getName()</span>
+<span class="source-line-no">159</span><span id="line-159">                        + " is waiting, " + generators.size()</span>
+<span class="source-line-no">160</span><span id="line-160">                        + " generators registered: "</span>
+<span class="source-line-no">161</span><span id="line-161">                        + generators.keySet());</span>
+<span class="source-line-no">162</span><span id="line-162">            }</span>
+<span class="source-line-no">163</span><span id="line-163">            synchronized (this) {</span>
+<span class="source-line-no">164</span><span id="line-164">                if (running &gt; 0) {</span>
+<span class="source-line-no">165</span><span id="line-165">                    wait();</span>
+<span class="source-line-no">166</span><span id="line-166">                }</span>
+<span class="source-line-no">167</span><span id="line-167">            }</span>
+<span class="source-line-no">168</span><span id="line-168">        }</span>
+<span class="source-line-no">169</span><span id="line-169">        generatorTracking</span>
+<span class="source-line-no">170</span><span id="line-170">            .finest("Thread " + Thread.currentThread().getName()</span>
+<span class="source-line-no">171</span><span id="line-171">                + " continues.");</span>
+<span class="source-line-no">172</span><span id="line-172">    }</span>
+<span class="source-line-no">173</span><span id="line-173"></span>
+<span class="source-line-no">174</span><span id="line-174">    /**</span>
+<span class="source-line-no">175</span><span id="line-175">     * Await exhaustion with a timeout.</span>
+<span class="source-line-no">176</span><span id="line-176">     *</span>
+<span class="source-line-no">177</span><span id="line-177">     * @param timeout the timeout</span>
+<span class="source-line-no">178</span><span id="line-178">     * @return true, if successful</span>
+<span class="source-line-no">179</span><span id="line-179">     * @throws InterruptedException the interrupted exception</span>
+<span class="source-line-no">180</span><span id="line-180">     */</span>
+<span class="source-line-no">181</span><span id="line-181">    @SuppressWarnings({ "PMD.CollapsibleIfStatements",</span>
+<span class="source-line-no">182</span><span id="line-182">        "PMD.GuardLogStatement" })</span>
+<span class="source-line-no">183</span><span id="line-183">    public boolean awaitExhaustion(long timeout)</span>
+<span class="source-line-no">184</span><span id="line-184">            throws InterruptedException {</span>
+<span class="source-line-no">185</span><span id="line-185">        synchronized (this) {</span>
+<span class="source-line-no">186</span><span id="line-186">            if (generators != null) {</span>
+<span class="source-line-no">187</span><span id="line-187">                if (running != generators.size()) {</span>
+<span class="source-line-no">188</span><span id="line-188">                    generatorTracking.severe(</span>
+<span class="source-line-no">189</span><span id="line-189">                        "Generator count doesn't match tracked.");</span>
+<span class="source-line-no">190</span><span id="line-190">                }</span>
+<span class="source-line-no">191</span><span id="line-191">            }</span>
+<span class="source-line-no">192</span><span id="line-192">            if (isExhausted()) {</span>
+<span class="source-line-no">193</span><span id="line-193">                return true;</span>
+<span class="source-line-no">194</span><span id="line-194">            }</span>
+<span class="source-line-no">195</span><span id="line-195">            if (generators != null) {</span>
+<span class="source-line-no">196</span><span id="line-196">                generatorTracking</span>
+<span class="source-line-no">197</span><span id="line-197">                    .fine(() -&gt; "Waiting, generators: " + generators.keySet());</span>
+<span class="source-line-no">198</span><span id="line-198">            }</span>
+<span class="source-line-no">199</span><span id="line-199">            wait(timeout);</span>
+<span class="source-line-no">200</span><span id="line-200">            if (generators != null) {</span>
+<span class="source-line-no">201</span><span id="line-201">                generatorTracking</span>
+<span class="source-line-no">202</span><span id="line-202">                    .fine(() -&gt; "Waited, generators: " + generators.keySet());</span>
+<span class="source-line-no">203</span><span id="line-203">            }</span>
+<span class="source-line-no">204</span><span id="line-204">            return isExhausted();</span>
+<span class="source-line-no">205</span><span id="line-205">        }</span>
+<span class="source-line-no">206</span><span id="line-206">    }</span>
+<span class="source-line-no">207</span><span id="line-207">}</span>
 
 
 
