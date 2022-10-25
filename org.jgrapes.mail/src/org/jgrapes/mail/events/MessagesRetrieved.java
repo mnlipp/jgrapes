@@ -18,23 +18,50 @@
 
 package org.jgrapes.mail.events;
 
-import org.jgrapes.core.CompletionEvent;
+import jakarta.mail.Folder;
+import jakarta.mail.Message;
+import java.util.List;
+import java.util.Map;
+import org.jgrapes.core.Event;
 import org.jgrapes.mail.MailChannel;
 import org.jgrapes.mail.MailStoreMonitor;
 
 /**
- * Triggers the retrieval of mails (update) by a {@link MailStoreMonitor}.
+ * Signals the retrieval of mails (update) by a {@link MailStoreMonitor}.
  * Must be fired on a {@link MailChannel}.
  */
-public class MessagesRetrieved extends CompletionEvent<RetrieveMessages> {
+public class MessagesRetrieved extends Event<Void> {
+
+    private final Map<String, List<Message>> allMessages;
+    private final List<Message> newMessages;
 
     /**
      * Instantiates a new event.
      *
-     * @param monitoredEvent the monitored event
+     * @param allMessages the messages
      */
-    public MessagesRetrieved(RetrieveMessages monitoredEvent) {
-        super(monitoredEvent);
+    public MessagesRetrieved(Map<String, List<Message>> allMessages,
+            List<Message> newMessages) {
+        this.allMessages = allMessages;
+        this.newMessages = newMessages;
     }
 
+    /**
+     * Return all messages retrieved.
+     *
+     * @return the map
+     */
+    public Map<String, List<Message>> allMessages() {
+        return allMessages;
+    }
+
+    /**
+     * Return the new messages. New messages have not been reported
+     * before by an event.
+     *
+     * @return the list
+     */
+    public List<Message> newMessages() {
+        return newMessages;
+    }
 }

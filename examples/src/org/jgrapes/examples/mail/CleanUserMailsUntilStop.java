@@ -22,7 +22,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
-
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
@@ -31,9 +30,8 @@ import org.jgrapes.core.events.Stop;
 import org.jgrapes.io.events.Opened;
 import org.jgrapes.mail.MailChannel;
 import org.jgrapes.mail.MailStoreMonitor;
-import org.jgrapes.mail.events.OpenMailConnection;
+import org.jgrapes.mail.events.MessagesRetrieved;
 import org.jgrapes.mail.events.OpenMailMonitor;
-import org.jgrapes.mail.events.ReceivedMessage;
 import org.jgrapes.util.ConfigurationStore;
 import org.jgrapes.util.Password;
 import org.jgrapes.util.TomlConfigurationStore;
@@ -58,20 +56,21 @@ public class CleanUserMailsUntilStop extends Component {
         }
 
         @Handler
-        public void onOpened(Opened event) {
+        public void onOpened(Opened<?> event) {
             waitForOpen.countDown();
         }
 
         @Handler
-        public void onMail(ReceivedMessage event, MailChannel channel)
+        public void onMail(MessagesRetrieved event, MailChannel channel)
                 throws MessagingException {
-            var msg = event.message();
-            var subject = msg.getSubject();
-            System.out.println("Subject: " + subject);
-            if ("Stop".equals(subject)) {
-                fire(new Stop());
+            for (var msg : event.newMessages()) {
+                var subject = msg.getSubject();
+                System.out.println("Subject: " + subject);
+                if ("Stop".equals(subject)) {
+                    fire(new Stop());
+                }
+                msg.setFlag(Flag.DELETED, true);
             }
-            msg.setFlag(Flag.DELETED, true);
         }
 
     }

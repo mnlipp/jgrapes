@@ -21,14 +21,17 @@ package org.jgrapes.mail;
 import com.sun.mail.imap.IMAPFolder;
 import com.sun.mail.imap.IdleManager;
 import jakarta.mail.AuthenticationFailedException;
+import jakarta.mail.Authenticator;
 import jakarta.mail.Flags.Flag;
 import jakarta.mail.Folder;
 import jakarta.mail.FolderClosedException;
 import jakarta.mail.Message;
 import jakarta.mail.MessagingException;
 import jakarta.mail.NoSuchProviderException;
+import jakarta.mail.PasswordAuthentication;
 import jakarta.mail.Session;
 import jakarta.mail.Store;
+import jakarta.mail.UIDFolder;
 import jakarta.mail.event.ConnectionEvent;
 import jakarta.mail.event.ConnectionListener;
 import jakarta.mail.event.MessageCountAdapter;
@@ -43,11 +46,14 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.Components.Timer;
@@ -60,11 +66,10 @@ import org.jgrapes.io.events.Close;
 import org.jgrapes.io.events.Closed;
 import org.jgrapes.io.events.ConnectError;
 import org.jgrapes.io.events.IOError;
-import org.jgrapes.io.events.Opened;
 import org.jgrapes.io.events.Opening;
+import org.jgrapes.mail.events.MailMonitorOpened;
 import org.jgrapes.mail.events.MessagesRetrieved;
 import org.jgrapes.mail.events.OpenMailMonitor;
-import org.jgrapes.mail.events.ReceivedMessage;
 import org.jgrapes.mail.events.RetrieveMessages;
 import org.jgrapes.util.Password;
 
@@ -76,26 +81,27 @@ import org.jgrapes.util.Password;
  * downstream using {@link ReceivedMessage} events.
  * 
  * This implementation uses the {@link IdleManager}. The 
- * {@link IdleManager} works only, if it is invoked (for a folder) after 
+ * {@link IdleManager} works only if it is invoked (for a folder) after 
  * any operation on a folder. Note that operations such as e.g. setting 
  * the deleted flag of a message is also an operation on the folder.
  * 
  * Messages are retrieved from folders in response to a
- * {@link RetrieveMessages} event and delivered as result of this
- * event and individually by {@link ReceivedMessage} events. Folders
+ * {@link RetrieveMessages} event or when the store signals the arrival 
+ * of new messages. Information about the retrieved messages is delivered 
+ * by a {@link MessagesRetrieved} event. Folders
  * may be freely used while handling these messages, because the
  * folders will be re-registered with the {@link IdleManager}
- * when the {@link MessagesRetrieved} completion event is fired.
+ * when the {@link MessagesRetrieved} event completes.
  * Any usage of folders independent of handling the events mentioned
  * will result in a loss of the monitor function.
  * 
- * The monitor function may be reestablished, however, by firing
- * a {@link RetrieveMessages} event for the folders used.
+ * If required, the monitor function may be reestablished any time
+ * by firing a {@link RetrieveMessages} event for the folders used.
  */
 @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",
     "PMD.DataflowAnomalyAnalysis", "PMD.ExcessiveImports" })
-public class MailStoreMonitor
-        extends MailConnectionManager<MailStoreMonitor.MonitorChannel> {
+public class MailStoreMonitor extends MailConnectionManager<OpenMailMonitor,
+        MailStoreMonitor.MonitorChannel> {
 
     @SuppressWarnings("PMD.FieldNamingConventions")
     private static final Logger logger
@@ -186,19 +192,19 @@ public class MailStoreMonitor
         Properties sessionProps = new Properties(mailProps);
         sessionProps.putAll(event.mailProperties());
         sessionProps.put("mail.imap.usesocketchannels", true);
-        Session session = Session.getInstance(sessionProps);
-//            // Workaround for class loading problem in OSGi with j.m. 2.1.
-//            // Authenticator's classpath allows accessing provider's service.
-//            // See https://github.com/eclipse-ee4j/mail/issues/631
-//            new Authenticator() {
-//                @Override
-//                protected PasswordAuthentication
-//                        getPasswordAuthentication() {
-//                    return new PasswordAuthentication(
-//                        sessionProps.getProperty("mail.user"),
-//                        new String(event.password().password()));
-//                }
-//            });
+        Session session = Session.getInstance(sessionProps,
+            // Workaround for class loading problem in OSGi with j.m. 2.1.
+            // Authenticator's classpath allows accessing provider's service.
+            // See https://github.com/eclipse-ee4j/mail/issues/631
+            new Authenticator() {
+                @Override
+                protected PasswordAuthentication
+                        getPasswordAuthentication() {
+                    return new PasswordAuthentication(
+                        sessionProps.getProperty("mail.user"),
+                        new String(event.password().password()));
+                }
+            });
 
         try {
             synchronized (MailStoreMonitor.class) {
@@ -242,22 +248,6 @@ public class MailStoreMonitor
             return;
         }
         ((MonitorChannel) channel).retrieveMessages(event);
-    }
-
-    /**
-     * Registers the folders from which messages have been received
-     * with the {@link IdleManager}.
-     *
-     * @param event the event
-     * @param channel the channel
-     */
-    @Handler(priority = -1000)
-    public void onMessagesRetrieved(MessagesRetrieved event,
-            MailChannel channel) {
-        if (!channels.contains(channel)) {
-            return;
-        }
-        ((MonitorChannel) channel).messagesRetrieved(event);
     }
 
     /**
@@ -335,8 +325,9 @@ public class MailStoreMonitor
     /**
      * The specific implementation of the {@link MailChannel}.
      */
-    protected class MonitorChannel extends MailConnectionManager<
-            MailStoreMonitor.MonitorChannel>.AbstractMailChannel
+    protected class MonitorChannel
+            extends MailConnectionManager<OpenMailMonitor,
+                    MailStoreMonitor.MonitorChannel>.AbstractMailChannel
             implements ConnectionListener {
 
         private final EventPipeline requestPipeline;
@@ -344,9 +335,8 @@ public class MailStoreMonitor
         private final Store store;
         private final String user;
         private final Password password;
-        private final String[] folderNames;
-        private final Map<String, Folder> folders;
-        private final Set<Message> messages;
+        private final String[] subscribed;
+        private final Map<String, TreeMap<Long, Message>> messages;
         private final Timer idleTimer;
 
         /**
@@ -364,13 +354,12 @@ public class MailStoreMonitor
             this.store = store;
             this.user = user;
             this.password = password;
-            this.folderNames = event.folderNames();
+            this.subscribed = event.folderNames();
             requestPipeline = event.processedBy().get();
-            folders = new ConcurrentHashMap<>();
-            messages = new HashSet<>();
+            messages = new ConcurrentHashMap<>();
             store.addConnectionListener(this);
             idleTimer = Components.schedule(t -> {
-                requestPipeline.fire(new RetrieveMessages(folderNames), this);
+                requestPipeline.fire(new RetrieveMessages(subscribed), this);
             }, maxIdleTime);
             connect(
                 t -> downPipeline().fire(new ConnectError(event, t), channel));
@@ -484,15 +473,16 @@ public class MailStoreMonitor
         public void opened(ConnectionEvent event) {
             if (state == ChannelState.Reopened) {
                 // This is a re-open, only retrieve messages.
-                requestPipeline.fire(new RetrieveMessages(folderNames), this);
+                requestPipeline.fire(new RetrieveMessages(subscribed), this);
                 return;
             }
             // (1) Opening, (2) Opened, (3) start retrieving mails
             downPipeline().fire(Event.onCompletion(new Opening<Void>(),
                 o -> downPipeline().fire(
-                    Event.onCompletion(new Opened<Store>().setResult(store),
+                    Event.onCompletion(
+                        new MailMonitorOpened(openEvent(), store),
                         p -> requestPipeline
-                            .fire(new RetrieveMessages(folderNames), this)),
+                            .fire(new RetrieveMessages(subscribed), this)),
                     this)),
                 this);
         }
@@ -506,9 +496,8 @@ public class MailStoreMonitor
          */
         @Override
         public void disconnected(ConnectionEvent event) {
-            messages.clear();
-            folders.clear();
             synchronized (this) {
+                messages.clear();
                 if (state.isOpen()) {
                     state = ChannelState.Reopening;
                     connect(null);
@@ -539,8 +528,10 @@ public class MailStoreMonitor
             }
 
             // Cleanup and remove channel.
-            messages.clear();
-            folders.clear();
+            synchronized (this) {
+                state = ChannelState.Closed;
+                messages.clear();
+            }
             downPipeline().fire(new Closed());
             synchronized (channels) {
                 channels.remove(this);
@@ -556,25 +547,22 @@ public class MailStoreMonitor
          * 
          * @param event
          */
-        @SuppressWarnings("PMD.CognitiveComplexity")
+        @SuppressWarnings({ "PMD.CognitiveComplexity",
+            "PMD.AvoidInstantiatingObjectsInLoops" })
         public void retrieveMessages(RetrieveMessages event) {
             @SuppressWarnings("PMD.UseConcurrentHashMap")
-            Map<Folder, List<Message>> result = new HashMap<>();
+            Map<String, List<Message>> allMsgs = new HashMap<>();
+            List<Message> newMsgs = new ArrayList<>();
             if (store.isConnected()) {
                 try {
                     for (var folderName : event.folderNames()) {
-                        Folder folder = folders.get(folderName);
+                        Folder folder = folderFromStore(folderName);
                         if (folder == null) {
-                            folder = folderFromStore(folderName);
-                            if (folder == null) {
-                                continue;
-                            }
-                            folders.put(folderName, folder);
+                            continue;
                         }
-                        var newMsgs = scanFolder(folder);
-                        if (!newMsgs.isEmpty()) {
-                            result.put(folder, newMsgs);
-                        }
+                        scanFolder(folder, newMsgs);
+                        allMsgs.put(folder.getFullName(), new ArrayList<>(
+                            messages.get(folder.getFullName()).values()));
                     }
                 } catch (FolderClosedException e) {
                     disconnected(null);
@@ -582,7 +570,11 @@ public class MailStoreMonitor
             } else {
                 disconnected(null);
             }
-            event.setResult(result);
+            event.setResult(allMsgs);
+            Event.onCompletion(event, e -> downPipeline().fire(Event
+                .onCompletion(new MessagesRetrieved(allMsgs, newMsgs),
+                    evt -> refreshWatches(evt)),
+                this));
         }
 
         @SuppressWarnings({ "PMD.GuardLogStatement",
@@ -601,8 +593,8 @@ public class MailStoreMonitor
                 folder.addMessageCountListener(new MessageCountAdapter() {
                     @Override
                     public void messagesAdded(MessageCountEvent countEvent) {
-                        requestPipeline.fire(new RetrieveMessages(folderName),
-                            MonitorChannel.this);
+                        requestPipeline.submit("UpdateFolder",
+                            () -> updateFolders(countEvent));
                     }
                 });
                 return folder;
@@ -617,61 +609,100 @@ public class MailStoreMonitor
 
         @SuppressWarnings({ "PMD.GuardLogStatement",
             "PMD.AvoidRethrowingException" })
-        private List<Message> scanFolder(Folder folder)
+        private void scanFolder(Folder folder, List<Message> newMessages)
                 throws FolderClosedException {
-            List<Message> newMsgs = new ArrayList<>();
+            TreeMap<Long, Message> folderCache = messages
+                .computeIfAbsent(folder.getFullName(), k -> new TreeMap<>());
             try {
-                Set<Message> found = new HashSet<>(messages);
-                for (var msg : folder.getMessages()) {
-                    found.add(msg);
-                    if (!messages.contains(msg)) {
-                        // New message.
-                        newMsgs.add(msg);
-                        processMessage(msg);
+                synchronized (folderCache) {
+                    Set<Long> found = new HashSet<>();
+                    for (var msg : folder.getMessages()) {
+                        if (msg.getFlags().contains(Flag.DELETED)) {
+                            continue;
+                        }
+                        long msgUid = ((UIDFolder) folder).getUID(msg);
+                        found.add(msgUid);
+                        if (!folderCache.containsKey(msgUid)) {
+                            // New message.
+                            newMessages.add(msg);
+                            folderCache.put(msgUid, msg);
+                        }
+                    }
+                    // Remove from cache messages that haven't been found again.
+                    for (var itr = folderCache.entrySet().iterator();
+                            itr.hasNext();) {
+                        var entry = itr.next();
+                        if (!found.contains(entry.getKey())) {
+                            itr.remove();
+                        }
                     }
                 }
-                messages.retainAll(found);
             } catch (FolderClosedException e) {
                 throw e;
             } catch (MessagingException e) {
                 logger.log(Level.WARNING,
                     "Problem processing messages: " + e.getMessage(), e);
             }
-            return newMsgs;
         }
 
-        @SuppressWarnings({ "PMD.GuardLogStatement",
-            "PMD.AvoidRethrowingException" })
-        private void processMessage(Message msg) throws FolderClosedException {
-            try {
-                if (msg.getFlags().contains(Flag.DELETED)) {
-                    return;
-                }
-                downPipeline().fire(new ReceivedMessage(msg), this).get();
-            } catch (FolderClosedException e) {
-                throw e;
-            } catch (MessagingException e) {
-                logger.log(Level.WARNING,
-                    "Problem processing message: " + e.getMessage(), e);
-            } catch (InterruptedException e) {
+        @SuppressWarnings({ "PMD.AvoidInstantiatingObjectsInLoops",
+            "PMD.GuardLogStatement" })
+        private void updateFolders(MessageCountEvent event) {
+            if (event.getType() != MessageCountEvent.ADDED) {
                 return;
             }
+            Set<String> updated = new HashSet<>();
+            List<Message> newMsgs = new ArrayList<>();
+            for (var msg : event.getMessages()) {
+                try {
+                    if (msg.getFlags().contains(Flag.DELETED)) {
+                        continue;
+                    }
+                } catch (MessagingException e1) {
+                    continue;
+                }
+                Folder folder = msg.getFolder();
+                TreeMap<Long, Message> folderCache = messages.computeIfAbsent(
+                    folder.getFullName(), k -> new TreeMap<>());
+                try {
+                    synchronized (folderCache) {
+                        long msgUid = ((UIDFolder) folder).getUID(msg);
+                        folderCache.put(msgUid, msg);
+                        updated.add(folder.getFullName());
+                        newMsgs.add(msg);
+                    }
+                } catch (MessagingException e) {
+                    logger.log(Level.FINE,
+                        "Problem retrieving message: " + e.getMessage(), e);
+                }
+            }
+            @SuppressWarnings("PMD.UseConcurrentHashMap")
+            Map<String, List<Message>> allMsgs;
+            synchronized (this) {
+                allMsgs = updated.stream()
+                    .filter(fn -> messages.containsKey(fn))
+                    .collect(Collectors.toMap(Function.identity(),
+                        fn -> new ArrayList<>(messages.get(fn).values())));
+            }
+            downPipeline().fire(
+                Event.onCompletion(new MessagesRetrieved(allMsgs, newMsgs),
+                    evt -> refreshWatches(evt)),
+                this);
         }
 
         /**
-        * Registers the folders from which messages have been received
-        * with the {@link IdleManager}.
+         * Registers the folders from which messages have been received
+         * with the {@link IdleManager}.
          *
          * @param event the event
          */
-        public void messagesRetrieved(MessagesRetrieved event) {
-            for (String folderName : event.event().folderNames()) {
-                Folder folder = folders.get(folderName);
-                if (folder == null) {
-                    continue;
-                }
+        private void refreshWatches(MessagesRetrieved event) {
+            if (!state.isOpen()) {
+                return;
+            }
+            for (String folderName : event.allMessages().keySet()) {
                 try {
-                    idleManager.watch(folder);
+                    idleManager.watch(folderFromStore(folderName));
                 } catch (MessagingException e) {
                     logger.log(Level.WARNING, "Cannot watch folder.",
                         e);

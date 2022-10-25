@@ -19,7 +19,6 @@
 package org.jgrapes.mail;
 
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import org.jgrapes.core.Channel;
@@ -30,9 +29,12 @@ import org.jgrapes.mail.events.OpenMailConnection;
 
 /**
  * Provides a base class for mail components using connections.
+ *
+ * @param <O> the type of the open event
+ * @param <C> the type of the channel
  */
-public abstract class MailConnectionManager<
-        C extends MailStoreMonitor.AbstractMailChannel>
+public abstract class MailConnectionManager<O extends OpenMailConnection,
+        C extends MailConnectionManager<O, C>.AbstractMailChannel>
         extends MailComponent {
 
     protected final Set<C> channels = new HashSet<>();
@@ -57,7 +59,7 @@ public abstract class MailConnectionManager<
      * @return the TCP connection manager for easy chaining
      * @see Manager#newEventPipeline(ExecutorService)
      */
-    public MailConnectionManager<C>
+    public MailConnectionManager<O, C>
             setExecutorService(ExecutorService executorService) {
         this.executorService = executorService;
         return this;
@@ -75,18 +77,18 @@ public abstract class MailConnectionManager<
     /**
      * A sub-channel for mail connections.
      */
-    protected abstract class AbstractMailChannel extends DefaultSubchannel
-            implements MailChannel {
+    protected abstract class AbstractMailChannel
+            extends DefaultSubchannel implements MailChannel {
 
         private final EventPipeline downPipeline;
-        private final OpenMailConnection openEvent;
+        private final O openEvent;
 
         /**
          * Instantiates a new mail channel instance.
          *
          * @param event the main channel
          */
-        public AbstractMailChannel(OpenMailConnection event, Channel channel) {
+        public AbstractMailChannel(O event, Channel channel) {
             super(channel);
             openEvent = event;
             if (executorService == null) {
@@ -101,8 +103,8 @@ public abstract class MailConnectionManager<
          * 
          * @return the event
          */
-        public Optional<OpenMailConnection> openEvent() {
-            return Optional.ofNullable(openEvent);
+        public O openEvent() {
+            return openEvent;
         }
 
         /**
