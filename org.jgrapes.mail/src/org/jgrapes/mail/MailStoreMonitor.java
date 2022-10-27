@@ -39,6 +39,7 @@ import jakarta.mail.event.MessageCountEvent;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -48,7 +49,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.logging.Level;
@@ -59,7 +59,6 @@ import org.jgrapes.core.Components;
 import org.jgrapes.core.Components.Timer;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.EventPipeline;
-import org.jgrapes.core.Manager;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Stop;
 import org.jgrapes.io.events.Close;
@@ -81,9 +80,10 @@ import org.jgrapes.util.Password;
  * downstream using {@link ReceivedMessage} events.
  * 
  * This implementation uses the {@link IdleManager}. The 
- * {@link IdleManager} works only if it is invoked (for a folder) after 
- * any operation on a folder. Note that operations such as e.g. setting 
- * the deleted flag of a message is also an operation on the folder.
+ * {@link IdleManager} works only if its {@link IdleManager#watch}
+ * method is invoked (for a folder) after any operation on that folder. 
+ * Note that operations such as e.g. setting the deleted flag of 
+ * a message is also an operation on a folder.
  * 
  * Messages are retrieved from folders in response to a
  * {@link RetrieveMessages} event or when the store signals the arrival 
@@ -109,7 +109,7 @@ public class MailStoreMonitor extends MailConnectionManager<OpenMailMonitor,
 
     private Duration maxIdleTime = Duration.ofMinutes(25);
     private static IdleManager idleManager;
-    private ExecutorService executorService;
+    private final EventPipeline retrievals = newEventPipeline();
 
     /**
      * Creates a new server using the given channel.
@@ -118,31 +118,6 @@ public class MailStoreMonitor extends MailConnectionManager<OpenMailMonitor,
      */
     public MailStoreMonitor(Channel componentChannel) {
         super(componentChannel);
-    }
-
-    /**
-     * Sets an executor service to be used by the event pipelines
-     * that process the data from the network. Setting this
-     * to an executor service with a limited number of threads
-     * allows to control the maximum load from the network.
-     * 
-     * @param executorService the executorService to set
-     * @return the TCP connection manager for easy chaining
-     * @see Manager#newEventPipeline(ExecutorService)
-     */
-    public MailStoreMonitor
-            setExecutorService(ExecutorService executorService) {
-        this.executorService = executorService;
-        return this;
-    }
-
-    /**
-     * Returns the executor service.
-     *
-     * @return the executorService
-     */
-    public ExecutorService executorService() {
-        return executorService;
     }
 
     /**
@@ -247,7 +222,9 @@ public class MailStoreMonitor extends MailConnectionManager<OpenMailMonitor,
         if (!channels.contains(channel)) {
             return;
         }
-        ((MonitorChannel) channel).retrieveMessages(event);
+        // This can take very long.
+        retrievals
+            .submit(() -> ((MonitorChannel) channel).retrieveMessages(event));
     }
 
     /**
@@ -359,7 +336,7 @@ public class MailStoreMonitor extends MailConnectionManager<OpenMailMonitor,
             messages = new ConcurrentHashMap<>();
             store.addConnectionListener(this);
             idleTimer = Components.schedule(t -> {
-                requestPipeline.fire(new RetrieveMessages(subscribed), this);
+                requestPipeline.fire(new RetrieveMessages(), this);
             }, maxIdleTime);
             connect(
                 t -> downPipeline().fire(new ConnectError(event, t), channel));
@@ -473,7 +450,7 @@ public class MailStoreMonitor extends MailConnectionManager<OpenMailMonitor,
         public void opened(ConnectionEvent event) {
             if (state == ChannelState.Reopened) {
                 // This is a re-open, only retrieve messages.
-                requestPipeline.fire(new RetrieveMessages(subscribed), this);
+                requestPipeline.fire(new RetrieveMessages(), this);
                 return;
             }
             // (1) Opening, (2) Opened, (3) start retrieving mails
@@ -482,7 +459,7 @@ public class MailStoreMonitor extends MailConnectionManager<OpenMailMonitor,
                     Event.onCompletion(
                         new MailMonitorOpened(openEvent(), store),
                         p -> requestPipeline
-                            .fire(new RetrieveMessages(subscribed), this)),
+                            .fire(new RetrieveMessages(), this)),
                     this)),
                 this);
         }
@@ -548,14 +525,20 @@ public class MailStoreMonitor extends MailConnectionManager<OpenMailMonitor,
          * @param event
          */
         @SuppressWarnings({ "PMD.CognitiveComplexity",
-            "PMD.AvoidInstantiatingObjectsInLoops" })
+            "PMD.AvoidInstantiatingObjectsInLoops",
+            "PMD.AvoidDuplicateLiterals" })
         public void retrieveMessages(RetrieveMessages event) {
             @SuppressWarnings("PMD.UseConcurrentHashMap")
             Map<String, List<Message>> allMsgs = new HashMap<>();
             List<Message> newMsgs = new ArrayList<>();
             if (store.isConnected()) {
+                Set<String> folderNames
+                    = new HashSet<>(Arrays.asList(subscribed));
+                if (event.folderNames().length > 0) {
+                    folderNames.retainAll(Arrays.asList(event.folderNames()));
+                }
                 try {
-                    for (var folderName : event.folderNames()) {
+                    for (var folderName : folderNames) {
                         Folder folder = folderFromStore(folderName);
                         if (folder == null) {
                             continue;
@@ -593,7 +576,13 @@ public class MailStoreMonitor extends MailConnectionManager<OpenMailMonitor,
                 folder.addMessageCountListener(new MessageCountAdapter() {
                     @Override
                     public void messagesAdded(MessageCountEvent countEvent) {
-                        requestPipeline.submit("UpdateFolder",
+                        retrievals.submit("UpdateFolder",
+                            () -> updateFolders(countEvent));
+                    }
+
+                    @Override
+                    public void messagesRemoved(MessageCountEvent countEvent) {
+                        retrievals.submit("UpdateFolder",
                             () -> updateFolders(countEvent));
                     }
                 });
@@ -648,11 +637,31 @@ public class MailStoreMonitor extends MailConnectionManager<OpenMailMonitor,
         @SuppressWarnings({ "PMD.AvoidInstantiatingObjectsInLoops",
             "PMD.GuardLogStatement" })
         private void updateFolders(MessageCountEvent event) {
-            if (event.getType() != MessageCountEvent.ADDED) {
+            List<Message> newMsgs = new ArrayList<>();
+            if (event.getType() == MessageCountEvent.ADDED) {
+                addMessages(event, newMsgs);
+            } else if (event.getType() == MessageCountEvent.REMOVED) {
+                removeMessages(event);
+            } else {
                 return;
             }
-            Set<String> updated = new HashSet<>();
-            List<Message> newMsgs = new ArrayList<>();
+            @SuppressWarnings("PMD.UseConcurrentHashMap")
+            Map<String, List<Message>> allMsgs;
+            synchronized (this) {
+                allMsgs = Arrays.stream(subscribed)
+                    .filter(fn -> messages.containsKey(fn))
+                    .collect(Collectors.toMap(Function.identity(),
+                        fn -> new ArrayList<>(messages.get(fn).values())));
+            }
+            downPipeline().fire(
+                Event.onCompletion(new MessagesRetrieved(allMsgs, newMsgs),
+                    evt -> refreshWatches(evt)),
+                this);
+        }
+
+        @SuppressWarnings("PMD.GuardLogStatement")
+        private void addMessages(MessageCountEvent event,
+                List<Message> newMsgs) {
             for (var msg : event.getMessages()) {
                 try {
                     if (msg.getFlags().contains(Flag.DELETED)) {
@@ -662,13 +671,13 @@ public class MailStoreMonitor extends MailConnectionManager<OpenMailMonitor,
                     continue;
                 }
                 Folder folder = msg.getFolder();
+                @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
                 TreeMap<Long, Message> folderCache = messages.computeIfAbsent(
                     folder.getFullName(), k -> new TreeMap<>());
                 try {
                     synchronized (folderCache) {
                         long msgUid = ((UIDFolder) folder).getUID(msg);
                         folderCache.put(msgUid, msg);
-                        updated.add(folder.getFullName());
                         newMsgs.add(msg);
                     }
                 } catch (MessagingException e) {
@@ -676,18 +685,25 @@ public class MailStoreMonitor extends MailConnectionManager<OpenMailMonitor,
                         "Problem retrieving message: " + e.getMessage(), e);
                 }
             }
-            @SuppressWarnings("PMD.UseConcurrentHashMap")
-            Map<String, List<Message>> allMsgs;
-            synchronized (this) {
-                allMsgs = updated.stream()
-                    .filter(fn -> messages.containsKey(fn))
-                    .collect(Collectors.toMap(Function.identity(),
-                        fn -> new ArrayList<>(messages.get(fn).values())));
+        }
+
+        @SuppressWarnings("PMD.GuardLogStatement")
+        private void removeMessages(MessageCountEvent event) {
+            for (var msg : event.getMessages()) {
+                Folder folder = msg.getFolder();
+                @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
+                TreeMap<Long, Message> folderCache = messages.computeIfAbsent(
+                    folder.getFullName(), k -> new TreeMap<>());
+                try {
+                    synchronized (folderCache) {
+                        long msgUid = ((UIDFolder) folder).getUID(msg);
+                        folderCache.remove(msgUid);
+                    }
+                } catch (MessagingException e) {
+                    logger.log(Level.FINE,
+                        "Problem retrieving message: " + e.getMessage(), e);
+                }
             }
-            downPipeline().fire(
-                Event.onCompletion(new MessagesRetrieved(allMsgs, newMsgs),
-                    evt -> refreshWatches(evt)),
-                this);
         }
 
         /**

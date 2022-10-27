@@ -19,6 +19,7 @@
 package org.jgrapes.mail.events;
 
 import jakarta.mail.Message;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import org.jgrapes.core.Event;
@@ -35,12 +36,16 @@ public class RetrieveMessages extends Event<Map<String, List<Message>>> {
 
     /**
      * Causes new messages to be retrieved from the given folders.
+     * 
+     * The folders specified may be a subset of the folder names used
+     * in the initial {@link OpenMailConnection} event. If left empty,
+     * all folders specified in the open event are retrieved again.
      *
      * @param folderNames the folder names
      */
     @SuppressWarnings("PMD.ArrayIsStoredDirectly")
     public RetrieveMessages(String... folderNames) {
-        this.folderNames = folderNames;
+        this.folderNames = Arrays.copyOf(folderNames, folderNames.length);
     }
 
     /**

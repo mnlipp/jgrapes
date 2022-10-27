@@ -29,14 +29,15 @@ public class OpenMailMonitor extends OpenMailConnection {
     private String[] folderNames = { "INBOX" };
 
     /**
-     * Sets the folders to watch.
+     * Creates a new monitor connection, watching the specified folders.
      *
-     * @param folderNames the folders
+     * @param folderNames the folders, defaults to "INBOX"
      * @return the open mail monitor
      */
-    public OpenMailMonitor setFolders(String... folderNames) {
-        this.folderNames = Arrays.copyOf(folderNames, folderNames.length);
-        return this;
+    public OpenMailMonitor(String... folderNames) {
+        if (folderNames.length > 0) {
+            this.folderNames = Arrays.copyOf(folderNames, folderNames.length);
+        }
     }
 
     /**

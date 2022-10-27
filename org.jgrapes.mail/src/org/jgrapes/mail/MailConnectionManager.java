@@ -22,6 +22,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import org.jgrapes.core.Channel;
+import org.jgrapes.core.Components;
 import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.Manager;
 import org.jgrapes.core.Subchannel.DefaultSubchannel;
@@ -71,6 +72,9 @@ public abstract class MailConnectionManager<O extends OpenMailConnection,
      * @return the executorService
      */
     public ExecutorService executorService() {
+        if (executorService == null) {
+            return Components.defaultExecutorService();
+        }
         return executorService;
     }
 
