@@ -857,439 +857,440 @@
 <span class="source-line-no">844</span><span id="line-844">        String conletId = type() + TYPE_INSTANCE_SEPARATOR</span>
 <span class="source-line-no">845</span><span id="line-845">            + generateInstanceId(event, connection);</span>
 <span class="source-line-no">846</span><span id="line-846"></span>
-<span class="source-line-no">847</span><span id="line-847">        // Check if state already exists (indicates singleton)</span>
-<span class="source-line-no">848</span><span id="line-848">        Optional&lt;S&gt; state = stateFromSession(connection.session(), conletId);</span>
-<span class="source-line-no">849</span><span id="line-849">        if (state.isPresent()) {</span>
-<span class="source-line-no">850</span><span id="line-850">            logger.finer(() -&gt; String.format("Method generateInstanceId "</span>
-<span class="source-line-no">851</span><span id="line-851">                + "returns existing id %s when adding conlet.", conletId));</span>
-<span class="source-line-no">852</span><span id="line-852">            return;</span>
-<span class="source-line-no">853</span><span id="line-853">        }</span>
-<span class="source-line-no">854</span><span id="line-854"></span>
-<span class="source-line-no">855</span><span id="line-855">        // Create new state and track conlet.</span>
-<span class="source-line-no">856</span><span id="line-856">        state = createNewState(event, connection, conletId);</span>
-<span class="source-line-no">857</span><span id="line-857">        state.ifPresent(s -&gt; putInSession(</span>
-<span class="source-line-no">858</span><span id="line-858">            connection.session(), conletId, s));</span>
-<span class="source-line-no">859</span><span id="line-859">        event.setResult(conletId);</span>
-<span class="source-line-no">860</span><span id="line-860">        trackConlet(connection, conletId, new ConletTrackingInfo(conletId)</span>
-<span class="source-line-no">861</span><span id="line-861">            .addModes(doRenderConlet(event, connection, conletId,</span>
-<span class="source-line-no">862</span><span id="line-862">                state.orElse(null))));</span>
-<span class="source-line-no">863</span><span id="line-863">    }</span>
-<span class="source-line-no">864</span><span id="line-864"></span>
-<span class="source-line-no">865</span><span id="line-865">    /**</span>
-<span class="source-line-no">866</span><span id="line-866">     * Checks if the request applies to this component. If so, stops </span>
-<span class="source-line-no">867</span><span id="line-867">     * the event. If the conlet is completely removed from the browser,</span>
-<span class="source-line-no">868</span><span id="line-868">     * removes the web console component state from the </span>
-<span class="source-line-no">869</span><span id="line-869">     * browser session. In all cases, it calls {@link #doConletDeleted} </span>
-<span class="source-line-no">870</span><span id="line-870">     * with the state.</span>
-<span class="source-line-no">871</span><span id="line-871">     * </span>
-<span class="source-line-no">872</span><span id="line-872">     * @param event the event</span>
-<span class="source-line-no">873</span><span id="line-873">     * @param connection the web console connection</span>
-<span class="source-line-no">874</span><span id="line-874">     * @throws Exception the exception</span>
-<span class="source-line-no">875</span><span id="line-875">     */</span>
-<span class="source-line-no">876</span><span id="line-876">    @Handler</span>
-<span class="source-line-no">877</span><span id="line-877">    @SuppressWarnings("PMD.SignatureDeclareThrowsException")</span>
-<span class="source-line-no">878</span><span id="line-878">    public final void onConletDeleted(ConletDeleted event,</span>
-<span class="source-line-no">879</span><span id="line-879">            ConsoleConnection connection) throws Exception {</span>
-<span class="source-line-no">880</span><span id="line-880">        if (!event.conletId().startsWith(type() + TYPE_INSTANCE_SEPARATOR)) {</span>
-<span class="source-line-no">881</span><span id="line-881">            return;</span>
-<span class="source-line-no">882</span><span id="line-882">        }</span>
-<span class="source-line-no">883</span><span id="line-883">        String conletId = event.conletId();</span>
-<span class="source-line-no">884</span><span id="line-884">        Optional&lt;S&gt; model = stateFromSession(connection.session(), conletId);</span>
-<span class="source-line-no">885</span><span id="line-885">        var trackingInfo = trackConlet(connection, conletId, null)</span>
-<span class="source-line-no">886</span><span id="line-886">            .removeModes(event.renderModes());</span>
-<span class="source-line-no">887</span><span id="line-887">        if (trackingInfo.renderedAs().isEmpty()</span>
-<span class="source-line-no">888</span><span id="line-888">            || event.renderModes().isEmpty()) {</span>
-<span class="source-line-no">889</span><span id="line-889">            removeState(connection.session(), conletId);</span>
-<span class="source-line-no">890</span><span id="line-890">            for (Iterator&lt;Entry&lt;ConsoleConnection, Map&lt;String,</span>
-<span class="source-line-no">891</span><span id="line-891">                    ConletTrackingInfo&gt;&gt;&gt; csi = conletInfosByConsoleConnection</span>
-<span class="source-line-no">892</span><span id="line-892">                        .entrySet().iterator();</span>
-<span class="source-line-no">893</span><span id="line-893">                    csi.hasNext();) {</span>
-<span class="source-line-no">894</span><span id="line-894">                Map&lt;String, ConletTrackingInfo&gt; infos = csi.next().getValue();</span>
-<span class="source-line-no">895</span><span id="line-895">                infos.remove(conletId);</span>
-<span class="source-line-no">896</span><span id="line-896">                if (infos.isEmpty()) {</span>
-<span class="source-line-no">897</span><span id="line-897">                    csi.remove();</span>
-<span class="source-line-no">898</span><span id="line-898">                }</span>
-<span class="source-line-no">899</span><span id="line-899">            }</span>
-<span class="source-line-no">900</span><span id="line-900">            updateRefresh();</span>
-<span class="source-line-no">901</span><span id="line-901">        } else {</span>
-<span class="source-line-no">902</span><span id="line-902">            trackConlet(connection, conletId, null)</span>
-<span class="source-line-no">903</span><span id="line-903">                .removeModes(event.renderModes());</span>
-<span class="source-line-no">904</span><span id="line-904">        }</span>
-<span class="source-line-no">905</span><span id="line-905">        event.stop();</span>
-<span class="source-line-no">906</span><span id="line-906">        doConletDeleted(event, connection, event.conletId(),</span>
-<span class="source-line-no">907</span><span id="line-907">            model.orElse(null));</span>
-<span class="source-line-no">908</span><span id="line-908">    }</span>
-<span class="source-line-no">909</span><span id="line-909"></span>
-<span class="source-line-no">910</span><span id="line-910">    /**</span>
-<span class="source-line-no">911</span><span id="line-911">     * Called by {@link #onConletDeleted} to propagate the event to derived</span>
-<span class="source-line-no">912</span><span id="line-912">     * classes.</span>
-<span class="source-line-no">913</span><span id="line-913">     *</span>
-<span class="source-line-no">914</span><span id="line-914">     * @param event the event</span>
-<span class="source-line-no">915</span><span id="line-915">     * @param channel the channel</span>
-<span class="source-line-no">916</span><span id="line-916">     * @param conletId the web console component id</span>
-<span class="source-line-no">917</span><span id="line-917">     * @param conletState the conlet's state; may be `null` if the</span>
-<span class="source-line-no">918</span><span id="line-918">     * conlet doesn't have associated state information</span>
-<span class="source-line-no">919</span><span id="line-919">     * @throws Exception if a problem occurs</span>
-<span class="source-line-no">920</span><span id="line-920">     */</span>
-<span class="source-line-no">921</span><span id="line-921">    @SuppressWarnings("PMD.SignatureDeclareThrowsException")</span>
-<span class="source-line-no">922</span><span id="line-922">    protected void doConletDeleted(ConletDeleted event,</span>
-<span class="source-line-no">923</span><span id="line-923">            ConsoleConnection channel,</span>
-<span class="source-line-no">924</span><span id="line-924">            String conletId, S conletState)</span>
-<span class="source-line-no">925</span><span id="line-925">            throws Exception {</span>
-<span class="source-line-no">926</span><span id="line-926">        // May be defined by derived class.</span>
-<span class="source-line-no">927</span><span id="line-927">    }</span>
-<span class="source-line-no">928</span><span id="line-928"></span>
-<span class="source-line-no">929</span><span id="line-929">    /**</span>
-<span class="source-line-no">930</span><span id="line-930">     * Checks if the request applies to this component by verifying </span>
-<span class="source-line-no">931</span><span id="line-931">     * if the component id starts with {@link #type()} </span>
-<span class="source-line-no">932</span><span id="line-932">     * plus {@link #TYPE_INSTANCE_SEPARATOR}.</span>
-<span class="source-line-no">933</span><span id="line-933">     * If the id matches, sets the event's result to `true`, stops the </span>
-<span class="source-line-no">934</span><span id="line-934">     * event and tries to retrieve the model from the session. If this</span>
-<span class="source-line-no">935</span><span id="line-935">     * fails, {@link #recreateState} is called as another attempt to</span>
-<span class="source-line-no">936</span><span id="line-936">     * obtain state information.</span>
-<span class="source-line-no">937</span><span id="line-937">     *  </span>
-<span class="source-line-no">938</span><span id="line-938">     * Finally, {@link #doRenderConlet} is called and the result is added</span>
-<span class="source-line-no">939</span><span id="line-939">     * to the tracking information. </span>
-<span class="source-line-no">940</span><span id="line-940">     *</span>
-<span class="source-line-no">941</span><span id="line-941">     * @param event the event</span>
-<span class="source-line-no">942</span><span id="line-942">     * @param conection the web console connection</span>
-<span class="source-line-no">943</span><span id="line-943">     * @throws Exception the exception</span>
-<span class="source-line-no">944</span><span id="line-944">     */</span>
-<span class="source-line-no">945</span><span id="line-945">    @Handler</span>
-<span class="source-line-no">946</span><span id="line-946">    @SuppressWarnings("PMD.SignatureDeclareThrowsException")</span>
-<span class="source-line-no">947</span><span id="line-947">    public final void onRenderConletRequest(RenderConletRequest event,</span>
-<span class="source-line-no">948</span><span id="line-948">            ConsoleConnection conection) throws Exception {</span>
-<span class="source-line-no">949</span><span id="line-949">        if (!event.conletId().startsWith(type() + TYPE_INSTANCE_SEPARATOR)) {</span>
-<span class="source-line-no">950</span><span id="line-950">            return;</span>
-<span class="source-line-no">951</span><span id="line-951">        }</span>
-<span class="source-line-no">952</span><span id="line-952">        Optional&lt;S&gt; state = stateFromSession(</span>
-<span class="source-line-no">953</span><span id="line-953">            conection.session(), event.conletId());</span>
-<span class="source-line-no">954</span><span id="line-954">        if (state.isEmpty()) {</span>
-<span class="source-line-no">955</span><span id="line-955">            state = recreateState(event, conection, event.conletId());</span>
-<span class="source-line-no">956</span><span id="line-956">            state.ifPresent(s -&gt; putInSession(conection.session(),</span>
-<span class="source-line-no">957</span><span id="line-957">                event.conletId(), s));</span>
-<span class="source-line-no">958</span><span id="line-958">        }</span>
-<span class="source-line-no">959</span><span id="line-959">        event.setResult(true);</span>
-<span class="source-line-no">960</span><span id="line-960">        event.stop();</span>
-<span class="source-line-no">961</span><span id="line-961">        Set&lt;RenderMode&gt; rendered = doRenderConlet(</span>
-<span class="source-line-no">962</span><span id="line-962">            event, conection, event.conletId(), state.orElse(null));</span>
-<span class="source-line-no">963</span><span id="line-963">        trackConlet(conection, event.conletId(), null).addModes(rendered);</span>
-<span class="source-line-no">964</span><span id="line-964">    }</span>
-<span class="source-line-no">965</span><span id="line-965"></span>
-<span class="source-line-no">966</span><span id="line-966">    /**</span>
-<span class="source-line-no">967</span><span id="line-967">     * Called by </span>
-<span class="source-line-no">968</span><span id="line-968">     * {@link #onAddConletRequest(AddConletRequest, ConsoleConnection)} and</span>
-<span class="source-line-no">969</span><span id="line-969">     * {@link #onRenderConletRequest(RenderConletRequest, ConsoleConnection)} </span>
-<span class="source-line-no">970</span><span id="line-970">     * to complete rendering the web console component.</span>
-<span class="source-line-no">971</span><span id="line-971">     * </span>
-<span class="source-line-no">972</span><span id="line-972">     * The </span>
-<span class="source-line-no">973</span><span id="line-973">     *</span>
-<span class="source-line-no">974</span><span id="line-974">     * @param event the event</span>
-<span class="source-line-no">975</span><span id="line-975">     * @param channel the channel</span>
-<span class="source-line-no">976</span><span id="line-976">     * @param conletId the component id</span>
-<span class="source-line-no">977</span><span id="line-977">     * @param conletState the conlet's state; may be `null` if the</span>
-<span class="source-line-no">978</span><span id="line-978">     * conlet doesn't have associated state information</span>
-<span class="source-line-no">979</span><span id="line-979">     * @return the rendered modes</span>
-<span class="source-line-no">980</span><span id="line-980">     * @throws Exception the exception</span>
-<span class="source-line-no">981</span><span id="line-981">     */</span>
-<span class="source-line-no">982</span><span id="line-982">    @SuppressWarnings("PMD.SignatureDeclareThrowsException")</span>
-<span class="source-line-no">983</span><span id="line-983">    protected abstract Set&lt;RenderMode&gt; doRenderConlet(</span>
-<span class="source-line-no">984</span><span id="line-984">            RenderConletRequestBase&lt;?&gt; event, ConsoleConnection channel,</span>
-<span class="source-line-no">985</span><span id="line-985">            String conletId, S conletState)</span>
-<span class="source-line-no">986</span><span id="line-986">            throws Exception;</span>
-<span class="source-line-no">987</span><span id="line-987"></span>
-<span class="source-line-no">988</span><span id="line-988">    /**</span>
-<span class="source-line-no">989</span><span id="line-989">     * Invokes {@link #doSetLocale(SetLocale, ConsoleConnection, String)}</span>
-<span class="source-line-no">990</span><span id="line-990">     * for each web console component in the console connection.</span>
-<span class="source-line-no">991</span><span id="line-991">     * </span>
-<span class="source-line-no">992</span><span id="line-992">     * If the vent has the reload flag set, does nothing.</span>
-<span class="source-line-no">993</span><span id="line-993">     * </span>
-<span class="source-line-no">994</span><span id="line-994">     * The default implementation fires a </span>
-<span class="source-line-no">995</span><span id="line-995">     *</span>
-<span class="source-line-no">996</span><span id="line-996">     * @param event the event</span>
-<span class="source-line-no">997</span><span id="line-997">     * @param connection the web console connection</span>
-<span class="source-line-no">998</span><span id="line-998">     * @throws Exception the exception</span>
-<span class="source-line-no">999</span><span id="line-999">     */</span>
-<span class="source-line-no">1000</span><span id="line-1000">    @Handler</span>
-<span class="source-line-no">1001</span><span id="line-1001">    @SuppressWarnings("PMD.SignatureDeclareThrowsException")</span>
-<span class="source-line-no">1002</span><span id="line-1002">    public void onSetLocale(SetLocale event, ConsoleConnection connection)</span>
-<span class="source-line-no">1003</span><span id="line-1003">            throws Exception {</span>
-<span class="source-line-no">1004</span><span id="line-1004">        if (event.reload()) {</span>
-<span class="source-line-no">1005</span><span id="line-1005">            return;</span>
-<span class="source-line-no">1006</span><span id="line-1006">        }</span>
-<span class="source-line-no">1007</span><span id="line-1007">        for (String conletId : conletIds(connection)) {</span>
-<span class="source-line-no">1008</span><span id="line-1008">            if (!doSetLocale(event, connection, conletId)) {</span>
-<span class="source-line-no">1009</span><span id="line-1009">                event.forceReload();</span>
-<span class="source-line-no">1010</span><span id="line-1010">                break;</span>
-<span class="source-line-no">1011</span><span id="line-1011">            }</span>
-<span class="source-line-no">1012</span><span id="line-1012">        }</span>
-<span class="source-line-no">1013</span><span id="line-1013">    }</span>
-<span class="source-line-no">1014</span><span id="line-1014"></span>
-<span class="source-line-no">1015</span><span id="line-1015">    /**</span>
-<span class="source-line-no">1016</span><span id="line-1016">     * Called by {@link #onSetLocale(SetLocale, ConsoleConnection)} for</span>
-<span class="source-line-no">1017</span><span id="line-1017">     * each web console component in the console connection. Derived </span>
-<span class="source-line-no">1018</span><span id="line-1018">     * classes must send events for updating the representation to </span>
-<span class="source-line-no">1019</span><span id="line-1019">     * match the new locale.</span>
-<span class="source-line-no">1020</span><span id="line-1020">     * </span>
-<span class="source-line-no">1021</span><span id="line-1021">     * If the method returns `false` this indicates that the representation </span>
-<span class="source-line-no">1022</span><span id="line-1022">     * cannot be updated without reloading the web console page.</span>
-<span class="source-line-no">1023</span><span id="line-1023">     * </span>
-<span class="source-line-no">1024</span><span id="line-1024">     * The default implementation fires a {@link RenderConletRequest}</span>
-<span class="source-line-no">1025</span><span id="line-1025">     * with tracked render modes (one of or both {@link RenderMode#Preview}</span>
-<span class="source-line-no">1026</span><span id="line-1026">     * and {@link RenderMode#View}), thus updating the known representations.</span>
-<span class="source-line-no">1027</span><span id="line-1027">     * (Assuming that "Edit" and "Help" modes are represented with modal </span>
-<span class="source-line-no">1028</span><span id="line-1028">     * dialogs and therefore locale changes aren't possible while these are </span>
-<span class="source-line-no">1029</span><span id="line-1029">     * open.) </span>
-<span class="source-line-no">1030</span><span id="line-1030">     *</span>
-<span class="source-line-no">1031</span><span id="line-1031">     * @param event the event</span>
-<span class="source-line-no">1032</span><span id="line-1032">     * @param channel the channel</span>
-<span class="source-line-no">1033</span><span id="line-1033">     * @param conletId the web console component id</span>
-<span class="source-line-no">1034</span><span id="line-1034">     * @return true, if adaption to new locale without reload is possible</span>
-<span class="source-line-no">1035</span><span id="line-1035">     * @throws Exception the exception</span>
-<span class="source-line-no">1036</span><span id="line-1036">     */</span>
-<span class="source-line-no">1037</span><span id="line-1037">    @SuppressWarnings("PMD.SignatureDeclareThrowsException")</span>
-<span class="source-line-no">1038</span><span id="line-1038">    protected boolean doSetLocale(SetLocale event, ConsoleConnection channel,</span>
-<span class="source-line-no">1039</span><span id="line-1039">            String conletId) throws Exception {</span>
-<span class="source-line-no">1040</span><span id="line-1040">        fire(new RenderConletRequest(event.renderSupport(), conletId,</span>
-<span class="source-line-no">1041</span><span id="line-1041">            trackConlet(channel, conletId, null).renderedAs()),</span>
-<span class="source-line-no">1042</span><span id="line-1042">            channel);</span>
-<span class="source-line-no">1043</span><span id="line-1043">        return true;</span>
-<span class="source-line-no">1044</span><span id="line-1044">    }</span>
-<span class="source-line-no">1045</span><span id="line-1045"></span>
-<span class="source-line-no">1046</span><span id="line-1046">    /**</span>
-<span class="source-line-no">1047</span><span id="line-1047">     * If {@link #stateFromSession(Session, String)} returns a model,</span>
-<span class="source-line-no">1048</span><span id="line-1048">     * calls {@link #doUpdateConletState} with the model. </span>
-<span class="source-line-no">1049</span><span id="line-1049">     *</span>
-<span class="source-line-no">1050</span><span id="line-1050">     * @param event the event</span>
-<span class="source-line-no">1051</span><span id="line-1051">     * @param channel the channel</span>
-<span class="source-line-no">1052</span><span id="line-1052">     * @throws Exception the exception</span>
-<span class="source-line-no">1053</span><span id="line-1053">     */</span>
-<span class="source-line-no">1054</span><span id="line-1054">    @Handler</span>
-<span class="source-line-no">1055</span><span id="line-1055">    @SuppressWarnings("PMD.SignatureDeclareThrowsException")</span>
-<span class="source-line-no">1056</span><span id="line-1056">    public final void onNotifyConletModel(NotifyConletModel event,</span>
-<span class="source-line-no">1057</span><span id="line-1057">            ConsoleConnection channel) throws Exception {</span>
-<span class="source-line-no">1058</span><span id="line-1058">        if (!event.conletId().startsWith(type() + TYPE_INSTANCE_SEPARATOR)) {</span>
-<span class="source-line-no">1059</span><span id="line-1059">            return;</span>
-<span class="source-line-no">1060</span><span id="line-1060">        }</span>
-<span class="source-line-no">1061</span><span id="line-1061">        Optional&lt;S&gt; model</span>
-<span class="source-line-no">1062</span><span id="line-1062">            = stateFromSession(channel.session(), event.conletId());</span>
-<span class="source-line-no">1063</span><span id="line-1063">        doUpdateConletState(event, channel, model.orElse(null));</span>
-<span class="source-line-no">1064</span><span id="line-1064">    }</span>
-<span class="source-line-no">1065</span><span id="line-1065"></span>
-<span class="source-line-no">1066</span><span id="line-1066">    /**</span>
-<span class="source-line-no">1067</span><span id="line-1067">     * Called by {@link #onNotifyConletModel} to complete handling</span>
-<span class="source-line-no">1068</span><span id="line-1068">     * the notification. The default implementation does nothing.</span>
-<span class="source-line-no">1069</span><span id="line-1069">     * </span>
-<span class="source-line-no">1070</span><span id="line-1070">     * @param event the event</span>
-<span class="source-line-no">1071</span><span id="line-1071">     * @param channel the channel</span>
-<span class="source-line-no">1072</span><span id="line-1072">     * @param conletState the conlet's state; may be `null` if the</span>
-<span class="source-line-no">1073</span><span id="line-1073">     * conlet doesn't have associated state information</span>
-<span class="source-line-no">1074</span><span id="line-1074">     */</span>
-<span class="source-line-no">1075</span><span id="line-1075">    @SuppressWarnings("PMD.SignatureDeclareThrowsException")</span>
-<span class="source-line-no">1076</span><span id="line-1076">    protected void doUpdateConletState(NotifyConletModel event,</span>
-<span class="source-line-no">1077</span><span id="line-1077">            ConsoleConnection channel, S conletState) throws Exception {</span>
-<span class="source-line-no">1078</span><span id="line-1078">        // Default is to do nothing.</span>
-<span class="source-line-no">1079</span><span id="line-1079">    }</span>
-<span class="source-line-no">1080</span><span id="line-1080"></span>
-<span class="source-line-no">1081</span><span id="line-1081">    /**</span>
-<span class="source-line-no">1082</span><span id="line-1082">     * Removes the {@link ConsoleConnection} from the set of tracked </span>
-<span class="source-line-no">1083</span><span id="line-1083">     * connections. If derived web console components need to perform </span>
-<span class="source-line-no">1084</span><span id="line-1084">     * extra actions when a console connection is closed, they have to </span>
-<span class="source-line-no">1085</span><span id="line-1085">     * override {@link #afterOnClosed(Closed, ConsoleConnection)}.</span>
-<span class="source-line-no">1086</span><span id="line-1086">     * </span>
-<span class="source-line-no">1087</span><span id="line-1087">     * @param event the closed event</span>
-<span class="source-line-no">1088</span><span id="line-1088">     * @param connection the web console connection</span>
-<span class="source-line-no">1089</span><span id="line-1089">     */</span>
-<span class="source-line-no">1090</span><span id="line-1090">    @Handler</span>
-<span class="source-line-no">1091</span><span id="line-1091">    public final void onClosed(Closed event, ConsoleConnection connection) {</span>
-<span class="source-line-no">1092</span><span id="line-1092">        conletInfosByConsoleConnection.remove(connection);</span>
-<span class="source-line-no">1093</span><span id="line-1093">        updateRefresh();</span>
-<span class="source-line-no">1094</span><span id="line-1094">        afterOnClosed(event, connection);</span>
-<span class="source-line-no">1095</span><span id="line-1095">    }</span>
-<span class="source-line-no">1096</span><span id="line-1096"></span>
-<span class="source-line-no">1097</span><span id="line-1097">    /**</span>
-<span class="source-line-no">1098</span><span id="line-1098">     * Invoked by {@link #onClosed(Closed, ConsoleConnection)} after</span>
-<span class="source-line-no">1099</span><span id="line-1099">     * the web console connection has been removed from the set of</span>
-<span class="source-line-no">1100</span><span id="line-1100">     * tracked connections. The default implementation does</span>
-<span class="source-line-no">1101</span><span id="line-1101">     * nothing.</span>
-<span class="source-line-no">1102</span><span id="line-1102">     * </span>
-<span class="source-line-no">1103</span><span id="line-1103">     * @param event the closed event</span>
-<span class="source-line-no">1104</span><span id="line-1104">     * @param connection the web console connection</span>
-<span class="source-line-no">1105</span><span id="line-1105">     */</span>
-<span class="source-line-no">1106</span><span id="line-1106">    protected void afterOnClosed(Closed event, ConsoleConnection connection) {</span>
-<span class="source-line-no">1107</span><span id="line-1107">        // Default is to do nothing.</span>
-<span class="source-line-no">1108</span><span id="line-1108">    }</span>
-<span class="source-line-no">1109</span><span id="line-1109"></span>
-<span class="source-line-no">1110</span><span id="line-1110">    /**</span>
-<span class="source-line-no">1111</span><span id="line-1111">     * Calls {@link #doRemoveConletType()} if this component</span>
-<span class="source-line-no">1112</span><span id="line-1112">     * is detached.</span>
-<span class="source-line-no">1113</span><span id="line-1113">     *</span>
-<span class="source-line-no">1114</span><span id="line-1114">     * @param event the event</span>
-<span class="source-line-no">1115</span><span id="line-1115">     */</span>
-<span class="source-line-no">1116</span><span id="line-1116">    @Handler</span>
-<span class="source-line-no">1117</span><span id="line-1117">    public void onDetached(Detached event) {</span>
-<span class="source-line-no">1118</span><span id="line-1118">        if (!equals(event.node())) {</span>
-<span class="source-line-no">1119</span><span id="line-1119">            return;</span>
-<span class="source-line-no">1120</span><span id="line-1120">        }</span>
-<span class="source-line-no">1121</span><span id="line-1121">        doRemoveConletType();</span>
-<span class="source-line-no">1122</span><span id="line-1122">    }</span>
-<span class="source-line-no">1123</span><span id="line-1123"></span>
-<span class="source-line-no">1124</span><span id="line-1124">    /**</span>
-<span class="source-line-no">1125</span><span id="line-1125">     * Iterates over all connections and fires {@link DeleteConlet}</span>
-<span class="source-line-no">1126</span><span id="line-1126">     * events for all known conlets and a {@link UpdateConletType} </span>
-<span class="source-line-no">1127</span><span id="line-1127">     * (with no render modes) event.</span>
-<span class="source-line-no">1128</span><span id="line-1128">     */</span>
-<span class="source-line-no">1129</span><span id="line-1129">    protected void doRemoveConletType() {</span>
-<span class="source-line-no">1130</span><span id="line-1130">        conletIdsByConsoleConnection().forEach((connection, conletIds) -&gt; {</span>
-<span class="source-line-no">1131</span><span id="line-1131">            conletIds.forEach(conletId -&gt; {</span>
-<span class="source-line-no">1132</span><span id="line-1132">                connection.respond(</span>
-<span class="source-line-no">1133</span><span id="line-1133">                    new DeleteConlet(conletId, RenderMode.basicModes));</span>
-<span class="source-line-no">1134</span><span id="line-1134">            });</span>
-<span class="source-line-no">1135</span><span id="line-1135">            connection.respond(new UpdateConletType(type()));</span>
-<span class="source-line-no">1136</span><span id="line-1136">        });</span>
-<span class="source-line-no">1137</span><span id="line-1137">    }</span>
-<span class="source-line-no">1138</span><span id="line-1138"></span>
-<span class="source-line-no">1139</span><span id="line-1139">    /**</span>
-<span class="source-line-no">1140</span><span id="line-1140">     * The information tracked about web console components that are</span>
-<span class="source-line-no">1141</span><span id="line-1141">     * used by the console. It includes the component's id and the</span>
-<span class="source-line-no">1142</span><span id="line-1142">     * currently rendered views (only preview and view are tracked,</span>
-<span class="source-line-no">1143</span><span id="line-1143">     * with "deletable preview" mapped to "preview").</span>
-<span class="source-line-no">1144</span><span id="line-1144">     */</span>
-<span class="source-line-no">1145</span><span id="line-1145">    protected static class ConletTrackingInfo {</span>
-<span class="source-line-no">1146</span><span id="line-1146">        private final String conletId;</span>
-<span class="source-line-no">1147</span><span id="line-1147">        private final Set&lt;RenderMode&gt; renderedAs;</span>
-<span class="source-line-no">1148</span><span id="line-1148"></span>
-<span class="source-line-no">1149</span><span id="line-1149">        /**</span>
-<span class="source-line-no">1150</span><span id="line-1150">         * Instantiates a new conlet tracking info.</span>
-<span class="source-line-no">1151</span><span id="line-1151">         *</span>
-<span class="source-line-no">1152</span><span id="line-1152">         * @param conletId the conlet id</span>
-<span class="source-line-no">1153</span><span id="line-1153">         */</span>
-<span class="source-line-no">1154</span><span id="line-1154">        public ConletTrackingInfo(String conletId) {</span>
-<span class="source-line-no">1155</span><span id="line-1155">            this.conletId = conletId;</span>
-<span class="source-line-no">1156</span><span id="line-1156">            renderedAs = new HashSet&lt;&gt;();</span>
-<span class="source-line-no">1157</span><span id="line-1157">        }</span>
-<span class="source-line-no">1158</span><span id="line-1158"></span>
-<span class="source-line-no">1159</span><span id="line-1159">        /**</span>
-<span class="source-line-no">1160</span><span id="line-1160">         * Returns the conlet id.</span>
-<span class="source-line-no">1161</span><span id="line-1161">         *</span>
-<span class="source-line-no">1162</span><span id="line-1162">         * @return the id</span>
-<span class="source-line-no">1163</span><span id="line-1163">         */</span>
-<span class="source-line-no">1164</span><span id="line-1164">        public String conletId() {</span>
-<span class="source-line-no">1165</span><span id="line-1165">            return conletId;</span>
-<span class="source-line-no">1166</span><span id="line-1166">        }</span>
-<span class="source-line-no">1167</span><span id="line-1167"></span>
-<span class="source-line-no">1168</span><span id="line-1168">        /**</span>
-<span class="source-line-no">1169</span><span id="line-1169">         * The render modes current used.</span>
-<span class="source-line-no">1170</span><span id="line-1170">         *</span>
-<span class="source-line-no">1171</span><span id="line-1171">         * @return the render modes</span>
-<span class="source-line-no">1172</span><span id="line-1172">         */</span>
-<span class="source-line-no">1173</span><span id="line-1173">        public Set&lt;RenderMode&gt; renderedAs() {</span>
-<span class="source-line-no">1174</span><span id="line-1174">            return renderedAs;</span>
-<span class="source-line-no">1175</span><span id="line-1175">        }</span>
-<span class="source-line-no">1176</span><span id="line-1176"></span>
-<span class="source-line-no">1177</span><span id="line-1177">        /**</span>
-<span class="source-line-no">1178</span><span id="line-1178">         * Adds the given modes.</span>
-<span class="source-line-no">1179</span><span id="line-1179">         *</span>
-<span class="source-line-no">1180</span><span id="line-1180">         * @param modes the modes</span>
-<span class="source-line-no">1181</span><span id="line-1181">         * @return the conlet tracking info</span>
-<span class="source-line-no">1182</span><span id="line-1182">         */</span>
-<span class="source-line-no">1183</span><span id="line-1183">        public ConletTrackingInfo addModes(Set&lt;RenderMode&gt; modes) {</span>
-<span class="source-line-no">1184</span><span id="line-1184">            if (modes.contains(RenderMode.Preview)) {</span>
-<span class="source-line-no">1185</span><span id="line-1185">                renderedAs.add(RenderMode.Preview);</span>
-<span class="source-line-no">1186</span><span id="line-1186">            }</span>
-<span class="source-line-no">1187</span><span id="line-1187">            if (modes.contains(RenderMode.View)) {</span>
-<span class="source-line-no">1188</span><span id="line-1188">                renderedAs.add(RenderMode.View);</span>
-<span class="source-line-no">1189</span><span id="line-1189">            }</span>
-<span class="source-line-no">1190</span><span id="line-1190">            return this;</span>
-<span class="source-line-no">1191</span><span id="line-1191">        }</span>
-<span class="source-line-no">1192</span><span id="line-1192"></span>
-<span class="source-line-no">1193</span><span id="line-1193">        /**</span>
-<span class="source-line-no">1194</span><span id="line-1194">         * Removes the given modes.</span>
-<span class="source-line-no">1195</span><span id="line-1195">         *</span>
-<span class="source-line-no">1196</span><span id="line-1196">         * @param modes the modes</span>
-<span class="source-line-no">1197</span><span id="line-1197">         * @return the conlet tracking info</span>
-<span class="source-line-no">1198</span><span id="line-1198">         */</span>
-<span class="source-line-no">1199</span><span id="line-1199">        public ConletTrackingInfo removeModes(Set&lt;RenderMode&gt; modes) {</span>
-<span class="source-line-no">1200</span><span id="line-1200">            renderedAs.removeAll(modes);</span>
-<span class="source-line-no">1201</span><span id="line-1201">            return this;</span>
-<span class="source-line-no">1202</span><span id="line-1202">        }</span>
-<span class="source-line-no">1203</span><span id="line-1203"></span>
-<span class="source-line-no">1204</span><span id="line-1204">        @Override</span>
-<span class="source-line-no">1205</span><span id="line-1205">        public int hashCode() {</span>
-<span class="source-line-no">1206</span><span id="line-1206">            return conletId.hashCode();</span>
-<span class="source-line-no">1207</span><span id="line-1207">        }</span>
-<span class="source-line-no">1208</span><span id="line-1208"></span>
-<span class="source-line-no">1209</span><span id="line-1209">        @Override</span>
-<span class="source-line-no">1210</span><span id="line-1210">        public boolean equals(Object obj) {</span>
-<span class="source-line-no">1211</span><span id="line-1211">            if (this == obj) {</span>
-<span class="source-line-no">1212</span><span id="line-1212">                return true;</span>
-<span class="source-line-no">1213</span><span id="line-1213">            }</span>
-<span class="source-line-no">1214</span><span id="line-1214">            if (obj == null) {</span>
-<span class="source-line-no">1215</span><span id="line-1215">                return false;</span>
-<span class="source-line-no">1216</span><span id="line-1216">            }</span>
-<span class="source-line-no">1217</span><span id="line-1217">            if (getClass() != obj.getClass()) {</span>
-<span class="source-line-no">1218</span><span id="line-1218">                return false;</span>
-<span class="source-line-no">1219</span><span id="line-1219">            }</span>
-<span class="source-line-no">1220</span><span id="line-1220">            ConletTrackingInfo other = (ConletTrackingInfo) obj;</span>
-<span class="source-line-no">1221</span><span id="line-1221">            if (conletId == null) {</span>
-<span class="source-line-no">1222</span><span id="line-1222">                if (other.conletId != null) {</span>
-<span class="source-line-no">1223</span><span id="line-1223">                    return false;</span>
-<span class="source-line-no">1224</span><span id="line-1224">                }</span>
-<span class="source-line-no">1225</span><span id="line-1225">            } else if (!conletId.equals(other.conletId)) {</span>
-<span class="source-line-no">1226</span><span id="line-1226">                return false;</span>
-<span class="source-line-no">1227</span><span id="line-1227">            }</span>
-<span class="source-line-no">1228</span><span id="line-1228">            return true;</span>
-<span class="source-line-no">1229</span><span id="line-1229">        }</span>
-<span class="source-line-no">1230</span><span id="line-1230">    }</span>
-<span class="source-line-no">1231</span><span id="line-1231"></span>
-<span class="source-line-no">1232</span><span id="line-1232">    /**</span>
-<span class="source-line-no">1233</span><span id="line-1233">     * Returns a future string providing the result</span>
-<span class="source-line-no">1234</span><span id="line-1234">     * from reading everything from the provided reader. </span>
-<span class="source-line-no">1235</span><span id="line-1235">     *</span>
-<span class="source-line-no">1236</span><span id="line-1236">     * @param request the request, used to obtain the </span>
-<span class="source-line-no">1237</span><span id="line-1237">     * {@link ExecutorService} service related with the request being</span>
-<span class="source-line-no">1238</span><span id="line-1238">     * processed</span>
-<span class="source-line-no">1239</span><span id="line-1239">     * @param contentReader the reader</span>
-<span class="source-line-no">1240</span><span id="line-1240">     * @return the future</span>
-<span class="source-line-no">1241</span><span id="line-1241">     */</span>
-<span class="source-line-no">1242</span><span id="line-1242">    public Future&lt;String&gt; readContent(RenderConletRequestBase&lt;?&gt; request,</span>
-<span class="source-line-no">1243</span><span id="line-1243">            Reader contentReader) {</span>
-<span class="source-line-no">1244</span><span id="line-1244">        return readContent(</span>
-<span class="source-line-no">1245</span><span id="line-1245">            request.processedBy().map(pby -&gt; pby.executorService())</span>
-<span class="source-line-no">1246</span><span id="line-1246">                .orElse(Components.defaultExecutorService()),</span>
-<span class="source-line-no">1247</span><span id="line-1247">            contentReader);</span>
-<span class="source-line-no">1248</span><span id="line-1248">    }</span>
-<span class="source-line-no">1249</span><span id="line-1249"></span>
-<span class="source-line-no">1250</span><span id="line-1250">    /**</span>
-<span class="source-line-no">1251</span><span id="line-1251">     * Returns a future string providing the result</span>
-<span class="source-line-no">1252</span><span id="line-1252">     * from reading everything from the provided reader. </span>
-<span class="source-line-no">1253</span><span id="line-1253">     *</span>
-<span class="source-line-no">1254</span><span id="line-1254">     * @param execSvc the executor service for reading the content</span>
-<span class="source-line-no">1255</span><span id="line-1255">     * @param contentReader the reader</span>
-<span class="source-line-no">1256</span><span id="line-1256">     * @return the future</span>
-<span class="source-line-no">1257</span><span id="line-1257">     */</span>
-<span class="source-line-no">1258</span><span id="line-1258">    public Future&lt;String&gt; readContent(ExecutorService execSvc,</span>
-<span class="source-line-no">1259</span><span id="line-1259">            Reader contentReader) {</span>
-<span class="source-line-no">1260</span><span id="line-1260">        return execSvc.submit(() -&gt; {</span>
-<span class="source-line-no">1261</span><span id="line-1261">            StringWriter content = new StringWriter();</span>
-<span class="source-line-no">1262</span><span id="line-1262">            CharBuffer buffer = CharBuffer.allocate(8192);</span>
-<span class="source-line-no">1263</span><span id="line-1263">            try (Reader rdr = new BufferedReader(contentReader)) {</span>
-<span class="source-line-no">1264</span><span id="line-1264">                while (true) {</span>
-<span class="source-line-no">1265</span><span id="line-1265">                    if (rdr.read(buffer) &lt; 0) {</span>
-<span class="source-line-no">1266</span><span id="line-1266">                        break;</span>
-<span class="source-line-no">1267</span><span id="line-1267">                    }</span>
-<span class="source-line-no">1268</span><span id="line-1268">                    buffer.flip();</span>
-<span class="source-line-no">1269</span><span id="line-1269">                    content.append(buffer);</span>
-<span class="source-line-no">1270</span><span id="line-1270">                    buffer.clear();</span>
-<span class="source-line-no">1271</span><span id="line-1271">                }</span>
-<span class="source-line-no">1272</span><span id="line-1272">            } catch (IOException e) {</span>
-<span class="source-line-no">1273</span><span id="line-1273">                throw new IllegalStateException(e);</span>
-<span class="source-line-no">1274</span><span id="line-1274">            }</span>
-<span class="source-line-no">1275</span><span id="line-1275">            return content.toString();</span>
-<span class="source-line-no">1276</span><span id="line-1276">        });</span>
-<span class="source-line-no">1277</span><span id="line-1277">    }</span>
-<span class="source-line-no">1278</span><span id="line-1278"></span>
-<span class="source-line-no">1279</span><span id="line-1279">}</span>
+<span class="source-line-no">847</span><span id="line-847">        // Check if state already exists (indicates singleton), may not be</span>
+<span class="source-line-no">848</span><span id="line-848">        // added again. Only "content conlets" can already have state.</span>
+<span class="source-line-no">849</span><span id="line-849">        if (!event.renderAs().contains(RenderMode.Content)</span>
+<span class="source-line-no">850</span><span id="line-850">            &amp;&amp; stateFromSession(connection.session(), conletId).isPresent()) {</span>
+<span class="source-line-no">851</span><span id="line-851">            logger.finer(() -&gt; String.format("Method generateInstanceId "</span>
+<span class="source-line-no">852</span><span id="line-852">                + "returns existing id %s when adding conlet.", conletId));</span>
+<span class="source-line-no">853</span><span id="line-853">            return;</span>
+<span class="source-line-no">854</span><span id="line-854">        }</span>
+<span class="source-line-no">855</span><span id="line-855"></span>
+<span class="source-line-no">856</span><span id="line-856">        // Create new state and track conlet.</span>
+<span class="source-line-no">857</span><span id="line-857">        Optional&lt;S&gt; state = createNewState(event, connection, conletId);</span>
+<span class="source-line-no">858</span><span id="line-858">        state.ifPresent(s -&gt; putInSession(</span>
+<span class="source-line-no">859</span><span id="line-859">            connection.session(), conletId, s));</span>
+<span class="source-line-no">860</span><span id="line-860">        event.setResult(conletId);</span>
+<span class="source-line-no">861</span><span id="line-861">        trackConlet(connection, conletId, new ConletTrackingInfo(conletId)</span>
+<span class="source-line-no">862</span><span id="line-862">            .addModes(doRenderConlet(event, connection, conletId,</span>
+<span class="source-line-no">863</span><span id="line-863">                state.orElse(null))));</span>
+<span class="source-line-no">864</span><span id="line-864">    }</span>
+<span class="source-line-no">865</span><span id="line-865"></span>
+<span class="source-line-no">866</span><span id="line-866">    /**</span>
+<span class="source-line-no">867</span><span id="line-867">     * Checks if the request applies to this component. If so, stops </span>
+<span class="source-line-no">868</span><span id="line-868">     * the event. If the conlet is completely removed from the browser,</span>
+<span class="source-line-no">869</span><span id="line-869">     * removes the web console component state from the </span>
+<span class="source-line-no">870</span><span id="line-870">     * browser session. In all cases, it calls {@link #doConletDeleted} </span>
+<span class="source-line-no">871</span><span id="line-871">     * with the state.</span>
+<span class="source-line-no">872</span><span id="line-872">     * </span>
+<span class="source-line-no">873</span><span id="line-873">     * @param event the event</span>
+<span class="source-line-no">874</span><span id="line-874">     * @param connection the web console connection</span>
+<span class="source-line-no">875</span><span id="line-875">     * @throws Exception the exception</span>
+<span class="source-line-no">876</span><span id="line-876">     */</span>
+<span class="source-line-no">877</span><span id="line-877">    @Handler</span>
+<span class="source-line-no">878</span><span id="line-878">    @SuppressWarnings("PMD.SignatureDeclareThrowsException")</span>
+<span class="source-line-no">879</span><span id="line-879">    public final void onConletDeleted(ConletDeleted event,</span>
+<span class="source-line-no">880</span><span id="line-880">            ConsoleConnection connection) throws Exception {</span>
+<span class="source-line-no">881</span><span id="line-881">        if (!event.conletId().startsWith(type() + TYPE_INSTANCE_SEPARATOR)) {</span>
+<span class="source-line-no">882</span><span id="line-882">            return;</span>
+<span class="source-line-no">883</span><span id="line-883">        }</span>
+<span class="source-line-no">884</span><span id="line-884">        String conletId = event.conletId();</span>
+<span class="source-line-no">885</span><span id="line-885">        Optional&lt;S&gt; model = stateFromSession(connection.session(), conletId);</span>
+<span class="source-line-no">886</span><span id="line-886">        var trackingInfo = trackConlet(connection, conletId, null)</span>
+<span class="source-line-no">887</span><span id="line-887">            .removeModes(event.renderModes());</span>
+<span class="source-line-no">888</span><span id="line-888">        if (trackingInfo.renderedAs().isEmpty()</span>
+<span class="source-line-no">889</span><span id="line-889">            || event.renderModes().isEmpty()) {</span>
+<span class="source-line-no">890</span><span id="line-890">            removeState(connection.session(), conletId);</span>
+<span class="source-line-no">891</span><span id="line-891">            for (Iterator&lt;Entry&lt;ConsoleConnection, Map&lt;String,</span>
+<span class="source-line-no">892</span><span id="line-892">                    ConletTrackingInfo&gt;&gt;&gt; csi = conletInfosByConsoleConnection</span>
+<span class="source-line-no">893</span><span id="line-893">                        .entrySet().iterator();</span>
+<span class="source-line-no">894</span><span id="line-894">                    csi.hasNext();) {</span>
+<span class="source-line-no">895</span><span id="line-895">                Map&lt;String, ConletTrackingInfo&gt; infos = csi.next().getValue();</span>
+<span class="source-line-no">896</span><span id="line-896">                infos.remove(conletId);</span>
+<span class="source-line-no">897</span><span id="line-897">                if (infos.isEmpty()) {</span>
+<span class="source-line-no">898</span><span id="line-898">                    csi.remove();</span>
+<span class="source-line-no">899</span><span id="line-899">                }</span>
+<span class="source-line-no">900</span><span id="line-900">            }</span>
+<span class="source-line-no">901</span><span id="line-901">            updateRefresh();</span>
+<span class="source-line-no">902</span><span id="line-902">        } else {</span>
+<span class="source-line-no">903</span><span id="line-903">            trackConlet(connection, conletId, null)</span>
+<span class="source-line-no">904</span><span id="line-904">                .removeModes(event.renderModes());</span>
+<span class="source-line-no">905</span><span id="line-905">        }</span>
+<span class="source-line-no">906</span><span id="line-906">        event.stop();</span>
+<span class="source-line-no">907</span><span id="line-907">        doConletDeleted(event, connection, event.conletId(),</span>
+<span class="source-line-no">908</span><span id="line-908">            model.orElse(null));</span>
+<span class="source-line-no">909</span><span id="line-909">    }</span>
+<span class="source-line-no">910</span><span id="line-910"></span>
+<span class="source-line-no">911</span><span id="line-911">    /**</span>
+<span class="source-line-no">912</span><span id="line-912">     * Called by {@link #onConletDeleted} to propagate the event to derived</span>
+<span class="source-line-no">913</span><span id="line-913">     * classes.</span>
+<span class="source-line-no">914</span><span id="line-914">     *</span>
+<span class="source-line-no">915</span><span id="line-915">     * @param event the event</span>
+<span class="source-line-no">916</span><span id="line-916">     * @param channel the channel</span>
+<span class="source-line-no">917</span><span id="line-917">     * @param conletId the web console component id</span>
+<span class="source-line-no">918</span><span id="line-918">     * @param conletState the conlet's state; may be `null` if the</span>
+<span class="source-line-no">919</span><span id="line-919">     * conlet doesn't have associated state information</span>
+<span class="source-line-no">920</span><span id="line-920">     * @throws Exception if a problem occurs</span>
+<span class="source-line-no">921</span><span id="line-921">     */</span>
+<span class="source-line-no">922</span><span id="line-922">    @SuppressWarnings("PMD.SignatureDeclareThrowsException")</span>
+<span class="source-line-no">923</span><span id="line-923">    protected void doConletDeleted(ConletDeleted event,</span>
+<span class="source-line-no">924</span><span id="line-924">            ConsoleConnection channel,</span>
+<span class="source-line-no">925</span><span id="line-925">            String conletId, S conletState)</span>
+<span class="source-line-no">926</span><span id="line-926">            throws Exception {</span>
+<span class="source-line-no">927</span><span id="line-927">        // May be defined by derived class.</span>
+<span class="source-line-no">928</span><span id="line-928">    }</span>
+<span class="source-line-no">929</span><span id="line-929"></span>
+<span class="source-line-no">930</span><span id="line-930">    /**</span>
+<span class="source-line-no">931</span><span id="line-931">     * Checks if the request applies to this component by verifying </span>
+<span class="source-line-no">932</span><span id="line-932">     * if the component id starts with {@link #type()} </span>
+<span class="source-line-no">933</span><span id="line-933">     * plus {@link #TYPE_INSTANCE_SEPARATOR}.</span>
+<span class="source-line-no">934</span><span id="line-934">     * If the id matches, sets the event's result to `true`, stops the </span>
+<span class="source-line-no">935</span><span id="line-935">     * event and tries to retrieve the model from the session. If this</span>
+<span class="source-line-no">936</span><span id="line-936">     * fails, {@link #recreateState} is called as another attempt to</span>
+<span class="source-line-no">937</span><span id="line-937">     * obtain state information.</span>
+<span class="source-line-no">938</span><span id="line-938">     *  </span>
+<span class="source-line-no">939</span><span id="line-939">     * Finally, {@link #doRenderConlet} is called and the result is added</span>
+<span class="source-line-no">940</span><span id="line-940">     * to the tracking information. </span>
+<span class="source-line-no">941</span><span id="line-941">     *</span>
+<span class="source-line-no">942</span><span id="line-942">     * @param event the event</span>
+<span class="source-line-no">943</span><span id="line-943">     * @param conection the web console connection</span>
+<span class="source-line-no">944</span><span id="line-944">     * @throws Exception the exception</span>
+<span class="source-line-no">945</span><span id="line-945">     */</span>
+<span class="source-line-no">946</span><span id="line-946">    @Handler</span>
+<span class="source-line-no">947</span><span id="line-947">    @SuppressWarnings("PMD.SignatureDeclareThrowsException")</span>
+<span class="source-line-no">948</span><span id="line-948">    public final void onRenderConletRequest(RenderConletRequest event,</span>
+<span class="source-line-no">949</span><span id="line-949">            ConsoleConnection conection) throws Exception {</span>
+<span class="source-line-no">950</span><span id="line-950">        if (!event.conletId().startsWith(type() + TYPE_INSTANCE_SEPARATOR)) {</span>
+<span class="source-line-no">951</span><span id="line-951">            return;</span>
+<span class="source-line-no">952</span><span id="line-952">        }</span>
+<span class="source-line-no">953</span><span id="line-953">        Optional&lt;S&gt; state = stateFromSession(</span>
+<span class="source-line-no">954</span><span id="line-954">            conection.session(), event.conletId());</span>
+<span class="source-line-no">955</span><span id="line-955">        if (state.isEmpty()) {</span>
+<span class="source-line-no">956</span><span id="line-956">            state = recreateState(event, conection, event.conletId());</span>
+<span class="source-line-no">957</span><span id="line-957">            state.ifPresent(s -&gt; putInSession(conection.session(),</span>
+<span class="source-line-no">958</span><span id="line-958">                event.conletId(), s));</span>
+<span class="source-line-no">959</span><span id="line-959">        }</span>
+<span class="source-line-no">960</span><span id="line-960">        event.setResult(true);</span>
+<span class="source-line-no">961</span><span id="line-961">        event.stop();</span>
+<span class="source-line-no">962</span><span id="line-962">        Set&lt;RenderMode&gt; rendered = doRenderConlet(</span>
+<span class="source-line-no">963</span><span id="line-963">            event, conection, event.conletId(), state.orElse(null));</span>
+<span class="source-line-no">964</span><span id="line-964">        trackConlet(conection, event.conletId(), null).addModes(rendered);</span>
+<span class="source-line-no">965</span><span id="line-965">    }</span>
+<span class="source-line-no">966</span><span id="line-966"></span>
+<span class="source-line-no">967</span><span id="line-967">    /**</span>
+<span class="source-line-no">968</span><span id="line-968">     * Called by </span>
+<span class="source-line-no">969</span><span id="line-969">     * {@link #onAddConletRequest(AddConletRequest, ConsoleConnection)} and</span>
+<span class="source-line-no">970</span><span id="line-970">     * {@link #onRenderConletRequest(RenderConletRequest, ConsoleConnection)} </span>
+<span class="source-line-no">971</span><span id="line-971">     * to complete rendering the web console component.</span>
+<span class="source-line-no">972</span><span id="line-972">     * </span>
+<span class="source-line-no">973</span><span id="line-973">     * The </span>
+<span class="source-line-no">974</span><span id="line-974">     *</span>
+<span class="source-line-no">975</span><span id="line-975">     * @param event the event</span>
+<span class="source-line-no">976</span><span id="line-976">     * @param channel the channel</span>
+<span class="source-line-no">977</span><span id="line-977">     * @param conletId the component id</span>
+<span class="source-line-no">978</span><span id="line-978">     * @param conletState the conlet's state; may be `null` if the</span>
+<span class="source-line-no">979</span><span id="line-979">     * conlet doesn't have associated state information</span>
+<span class="source-line-no">980</span><span id="line-980">     * @return the rendered modes</span>
+<span class="source-line-no">981</span><span id="line-981">     * @throws Exception the exception</span>
+<span class="source-line-no">982</span><span id="line-982">     */</span>
+<span class="source-line-no">983</span><span id="line-983">    @SuppressWarnings("PMD.SignatureDeclareThrowsException")</span>
+<span class="source-line-no">984</span><span id="line-984">    protected abstract Set&lt;RenderMode&gt; doRenderConlet(</span>
+<span class="source-line-no">985</span><span id="line-985">            RenderConletRequestBase&lt;?&gt; event, ConsoleConnection channel,</span>
+<span class="source-line-no">986</span><span id="line-986">            String conletId, S conletState)</span>
+<span class="source-line-no">987</span><span id="line-987">            throws Exception;</span>
+<span class="source-line-no">988</span><span id="line-988"></span>
+<span class="source-line-no">989</span><span id="line-989">    /**</span>
+<span class="source-line-no">990</span><span id="line-990">     * Invokes {@link #doSetLocale(SetLocale, ConsoleConnection, String)}</span>
+<span class="source-line-no">991</span><span id="line-991">     * for each web console component in the console connection.</span>
+<span class="source-line-no">992</span><span id="line-992">     * </span>
+<span class="source-line-no">993</span><span id="line-993">     * If the vent has the reload flag set, does nothing.</span>
+<span class="source-line-no">994</span><span id="line-994">     * </span>
+<span class="source-line-no">995</span><span id="line-995">     * The default implementation fires a </span>
+<span class="source-line-no">996</span><span id="line-996">     *</span>
+<span class="source-line-no">997</span><span id="line-997">     * @param event the event</span>
+<span class="source-line-no">998</span><span id="line-998">     * @param connection the web console connection</span>
+<span class="source-line-no">999</span><span id="line-999">     * @throws Exception the exception</span>
+<span class="source-line-no">1000</span><span id="line-1000">     */</span>
+<span class="source-line-no">1001</span><span id="line-1001">    @Handler</span>
+<span class="source-line-no">1002</span><span id="line-1002">    @SuppressWarnings("PMD.SignatureDeclareThrowsException")</span>
+<span class="source-line-no">1003</span><span id="line-1003">    public void onSetLocale(SetLocale event, ConsoleConnection connection)</span>
+<span class="source-line-no">1004</span><span id="line-1004">            throws Exception {</span>
+<span class="source-line-no">1005</span><span id="line-1005">        if (event.reload()) {</span>
+<span class="source-line-no">1006</span><span id="line-1006">            return;</span>
+<span class="source-line-no">1007</span><span id="line-1007">        }</span>
+<span class="source-line-no">1008</span><span id="line-1008">        for (String conletId : conletIds(connection)) {</span>
+<span class="source-line-no">1009</span><span id="line-1009">            if (!doSetLocale(event, connection, conletId)) {</span>
+<span class="source-line-no">1010</span><span id="line-1010">                event.forceReload();</span>
+<span class="source-line-no">1011</span><span id="line-1011">                break;</span>
+<span class="source-line-no">1012</span><span id="line-1012">            }</span>
+<span class="source-line-no">1013</span><span id="line-1013">        }</span>
+<span class="source-line-no">1014</span><span id="line-1014">    }</span>
+<span class="source-line-no">1015</span><span id="line-1015"></span>
+<span class="source-line-no">1016</span><span id="line-1016">    /**</span>
+<span class="source-line-no">1017</span><span id="line-1017">     * Called by {@link #onSetLocale(SetLocale, ConsoleConnection)} for</span>
+<span class="source-line-no">1018</span><span id="line-1018">     * each web console component in the console connection. Derived </span>
+<span class="source-line-no">1019</span><span id="line-1019">     * classes must send events for updating the representation to </span>
+<span class="source-line-no">1020</span><span id="line-1020">     * match the new locale.</span>
+<span class="source-line-no">1021</span><span id="line-1021">     * </span>
+<span class="source-line-no">1022</span><span id="line-1022">     * If the method returns `false` this indicates that the representation </span>
+<span class="source-line-no">1023</span><span id="line-1023">     * cannot be updated without reloading the web console page.</span>
+<span class="source-line-no">1024</span><span id="line-1024">     * </span>
+<span class="source-line-no">1025</span><span id="line-1025">     * The default implementation fires a {@link RenderConletRequest}</span>
+<span class="source-line-no">1026</span><span id="line-1026">     * with tracked render modes (one of or both {@link RenderMode#Preview}</span>
+<span class="source-line-no">1027</span><span id="line-1027">     * and {@link RenderMode#View}), thus updating the known representations.</span>
+<span class="source-line-no">1028</span><span id="line-1028">     * (Assuming that "Edit" and "Help" modes are represented with modal </span>
+<span class="source-line-no">1029</span><span id="line-1029">     * dialogs and therefore locale changes aren't possible while these are </span>
+<span class="source-line-no">1030</span><span id="line-1030">     * open.) </span>
+<span class="source-line-no">1031</span><span id="line-1031">     *</span>
+<span class="source-line-no">1032</span><span id="line-1032">     * @param event the event</span>
+<span class="source-line-no">1033</span><span id="line-1033">     * @param channel the channel</span>
+<span class="source-line-no">1034</span><span id="line-1034">     * @param conletId the web console component id</span>
+<span class="source-line-no">1035</span><span id="line-1035">     * @return true, if adaption to new locale without reload is possible</span>
+<span class="source-line-no">1036</span><span id="line-1036">     * @throws Exception the exception</span>
+<span class="source-line-no">1037</span><span id="line-1037">     */</span>
+<span class="source-line-no">1038</span><span id="line-1038">    @SuppressWarnings("PMD.SignatureDeclareThrowsException")</span>
+<span class="source-line-no">1039</span><span id="line-1039">    protected boolean doSetLocale(SetLocale event, ConsoleConnection channel,</span>
+<span class="source-line-no">1040</span><span id="line-1040">            String conletId) throws Exception {</span>
+<span class="source-line-no">1041</span><span id="line-1041">        fire(new RenderConletRequest(event.renderSupport(), conletId,</span>
+<span class="source-line-no">1042</span><span id="line-1042">            trackConlet(channel, conletId, null).renderedAs()),</span>
+<span class="source-line-no">1043</span><span id="line-1043">            channel);</span>
+<span class="source-line-no">1044</span><span id="line-1044">        return true;</span>
+<span class="source-line-no">1045</span><span id="line-1045">    }</span>
+<span class="source-line-no">1046</span><span id="line-1046"></span>
+<span class="source-line-no">1047</span><span id="line-1047">    /**</span>
+<span class="source-line-no">1048</span><span id="line-1048">     * If {@link #stateFromSession(Session, String)} returns a model,</span>
+<span class="source-line-no">1049</span><span id="line-1049">     * calls {@link #doUpdateConletState} with the model. </span>
+<span class="source-line-no">1050</span><span id="line-1050">     *</span>
+<span class="source-line-no">1051</span><span id="line-1051">     * @param event the event</span>
+<span class="source-line-no">1052</span><span id="line-1052">     * @param channel the channel</span>
+<span class="source-line-no">1053</span><span id="line-1053">     * @throws Exception the exception</span>
+<span class="source-line-no">1054</span><span id="line-1054">     */</span>
+<span class="source-line-no">1055</span><span id="line-1055">    @Handler</span>
+<span class="source-line-no">1056</span><span id="line-1056">    @SuppressWarnings("PMD.SignatureDeclareThrowsException")</span>
+<span class="source-line-no">1057</span><span id="line-1057">    public final void onNotifyConletModel(NotifyConletModel event,</span>
+<span class="source-line-no">1058</span><span id="line-1058">            ConsoleConnection channel) throws Exception {</span>
+<span class="source-line-no">1059</span><span id="line-1059">        if (!event.conletId().startsWith(type() + TYPE_INSTANCE_SEPARATOR)) {</span>
+<span class="source-line-no">1060</span><span id="line-1060">            return;</span>
+<span class="source-line-no">1061</span><span id="line-1061">        }</span>
+<span class="source-line-no">1062</span><span id="line-1062">        Optional&lt;S&gt; model</span>
+<span class="source-line-no">1063</span><span id="line-1063">            = stateFromSession(channel.session(), event.conletId());</span>
+<span class="source-line-no">1064</span><span id="line-1064">        doUpdateConletState(event, channel, model.orElse(null));</span>
+<span class="source-line-no">1065</span><span id="line-1065">    }</span>
+<span class="source-line-no">1066</span><span id="line-1066"></span>
+<span class="source-line-no">1067</span><span id="line-1067">    /**</span>
+<span class="source-line-no">1068</span><span id="line-1068">     * Called by {@link #onNotifyConletModel} to complete handling</span>
+<span class="source-line-no">1069</span><span id="line-1069">     * the notification. The default implementation does nothing.</span>
+<span class="source-line-no">1070</span><span id="line-1070">     * </span>
+<span class="source-line-no">1071</span><span id="line-1071">     * @param event the event</span>
+<span class="source-line-no">1072</span><span id="line-1072">     * @param channel the channel</span>
+<span class="source-line-no">1073</span><span id="line-1073">     * @param conletState the conlet's state; may be `null` if the</span>
+<span class="source-line-no">1074</span><span id="line-1074">     * conlet doesn't have associated state information</span>
+<span class="source-line-no">1075</span><span id="line-1075">     */</span>
+<span class="source-line-no">1076</span><span id="line-1076">    @SuppressWarnings("PMD.SignatureDeclareThrowsException")</span>
+<span class="source-line-no">1077</span><span id="line-1077">    protected void doUpdateConletState(NotifyConletModel event,</span>
+<span class="source-line-no">1078</span><span id="line-1078">            ConsoleConnection channel, S conletState) throws Exception {</span>
+<span class="source-line-no">1079</span><span id="line-1079">        // Default is to do nothing.</span>
+<span class="source-line-no">1080</span><span id="line-1080">    }</span>
+<span class="source-line-no">1081</span><span id="line-1081"></span>
+<span class="source-line-no">1082</span><span id="line-1082">    /**</span>
+<span class="source-line-no">1083</span><span id="line-1083">     * Removes the {@link ConsoleConnection} from the set of tracked </span>
+<span class="source-line-no">1084</span><span id="line-1084">     * connections. If derived web console components need to perform </span>
+<span class="source-line-no">1085</span><span id="line-1085">     * extra actions when a console connection is closed, they have to </span>
+<span class="source-line-no">1086</span><span id="line-1086">     * override {@link #afterOnClosed(Closed, ConsoleConnection)}.</span>
+<span class="source-line-no">1087</span><span id="line-1087">     * </span>
+<span class="source-line-no">1088</span><span id="line-1088">     * @param event the closed event</span>
+<span class="source-line-no">1089</span><span id="line-1089">     * @param connection the web console connection</span>
+<span class="source-line-no">1090</span><span id="line-1090">     */</span>
+<span class="source-line-no">1091</span><span id="line-1091">    @Handler</span>
+<span class="source-line-no">1092</span><span id="line-1092">    public final void onClosed(Closed event, ConsoleConnection connection) {</span>
+<span class="source-line-no">1093</span><span id="line-1093">        conletInfosByConsoleConnection.remove(connection);</span>
+<span class="source-line-no">1094</span><span id="line-1094">        updateRefresh();</span>
+<span class="source-line-no">1095</span><span id="line-1095">        afterOnClosed(event, connection);</span>
+<span class="source-line-no">1096</span><span id="line-1096">    }</span>
+<span class="source-line-no">1097</span><span id="line-1097"></span>
+<span class="source-line-no">1098</span><span id="line-1098">    /**</span>
+<span class="source-line-no">1099</span><span id="line-1099">     * Invoked by {@link #onClosed(Closed, ConsoleConnection)} after</span>
+<span class="source-line-no">1100</span><span id="line-1100">     * the web console connection has been removed from the set of</span>
+<span class="source-line-no">1101</span><span id="line-1101">     * tracked connections. The default implementation does</span>
+<span class="source-line-no">1102</span><span id="line-1102">     * nothing.</span>
+<span class="source-line-no">1103</span><span id="line-1103">     * </span>
+<span class="source-line-no">1104</span><span id="line-1104">     * @param event the closed event</span>
+<span class="source-line-no">1105</span><span id="line-1105">     * @param connection the web console connection</span>
+<span class="source-line-no">1106</span><span id="line-1106">     */</span>
+<span class="source-line-no">1107</span><span id="line-1107">    protected void afterOnClosed(Closed event, ConsoleConnection connection) {</span>
+<span class="source-line-no">1108</span><span id="line-1108">        // Default is to do nothing.</span>
+<span class="source-line-no">1109</span><span id="line-1109">    }</span>
+<span class="source-line-no">1110</span><span id="line-1110"></span>
+<span class="source-line-no">1111</span><span id="line-1111">    /**</span>
+<span class="source-line-no">1112</span><span id="line-1112">     * Calls {@link #doRemoveConletType()} if this component</span>
+<span class="source-line-no">1113</span><span id="line-1113">     * is detached.</span>
+<span class="source-line-no">1114</span><span id="line-1114">     *</span>
+<span class="source-line-no">1115</span><span id="line-1115">     * @param event the event</span>
+<span class="source-line-no">1116</span><span id="line-1116">     */</span>
+<span class="source-line-no">1117</span><span id="line-1117">    @Handler</span>
+<span class="source-line-no">1118</span><span id="line-1118">    public void onDetached(Detached event) {</span>
+<span class="source-line-no">1119</span><span id="line-1119">        if (!equals(event.node())) {</span>
+<span class="source-line-no">1120</span><span id="line-1120">            return;</span>
+<span class="source-line-no">1121</span><span id="line-1121">        }</span>
+<span class="source-line-no">1122</span><span id="line-1122">        doRemoveConletType();</span>
+<span class="source-line-no">1123</span><span id="line-1123">    }</span>
+<span class="source-line-no">1124</span><span id="line-1124"></span>
+<span class="source-line-no">1125</span><span id="line-1125">    /**</span>
+<span class="source-line-no">1126</span><span id="line-1126">     * Iterates over all connections and fires {@link DeleteConlet}</span>
+<span class="source-line-no">1127</span><span id="line-1127">     * events for all known conlets and a {@link UpdateConletType} </span>
+<span class="source-line-no">1128</span><span id="line-1128">     * (with no render modes) event.</span>
+<span class="source-line-no">1129</span><span id="line-1129">     */</span>
+<span class="source-line-no">1130</span><span id="line-1130">    protected void doRemoveConletType() {</span>
+<span class="source-line-no">1131</span><span id="line-1131">        conletIdsByConsoleConnection().forEach((connection, conletIds) -&gt; {</span>
+<span class="source-line-no">1132</span><span id="line-1132">            conletIds.forEach(conletId -&gt; {</span>
+<span class="source-line-no">1133</span><span id="line-1133">                connection.respond(</span>
+<span class="source-line-no">1134</span><span id="line-1134">                    new DeleteConlet(conletId, RenderMode.basicModes));</span>
+<span class="source-line-no">1135</span><span id="line-1135">            });</span>
+<span class="source-line-no">1136</span><span id="line-1136">            connection.respond(new UpdateConletType(type()));</span>
+<span class="source-line-no">1137</span><span id="line-1137">        });</span>
+<span class="source-line-no">1138</span><span id="line-1138">    }</span>
+<span class="source-line-no">1139</span><span id="line-1139"></span>
+<span class="source-line-no">1140</span><span id="line-1140">    /**</span>
+<span class="source-line-no">1141</span><span id="line-1141">     * The information tracked about web console components that are</span>
+<span class="source-line-no">1142</span><span id="line-1142">     * used by the console. It includes the component's id and the</span>
+<span class="source-line-no">1143</span><span id="line-1143">     * currently rendered views (only preview and view are tracked,</span>
+<span class="source-line-no">1144</span><span id="line-1144">     * with "deletable preview" mapped to "preview").</span>
+<span class="source-line-no">1145</span><span id="line-1145">     */</span>
+<span class="source-line-no">1146</span><span id="line-1146">    protected static class ConletTrackingInfo {</span>
+<span class="source-line-no">1147</span><span id="line-1147">        private final String conletId;</span>
+<span class="source-line-no">1148</span><span id="line-1148">        private final Set&lt;RenderMode&gt; renderedAs;</span>
+<span class="source-line-no">1149</span><span id="line-1149"></span>
+<span class="source-line-no">1150</span><span id="line-1150">        /**</span>
+<span class="source-line-no">1151</span><span id="line-1151">         * Instantiates a new conlet tracking info.</span>
+<span class="source-line-no">1152</span><span id="line-1152">         *</span>
+<span class="source-line-no">1153</span><span id="line-1153">         * @param conletId the conlet id</span>
+<span class="source-line-no">1154</span><span id="line-1154">         */</span>
+<span class="source-line-no">1155</span><span id="line-1155">        public ConletTrackingInfo(String conletId) {</span>
+<span class="source-line-no">1156</span><span id="line-1156">            this.conletId = conletId;</span>
+<span class="source-line-no">1157</span><span id="line-1157">            renderedAs = new HashSet&lt;&gt;();</span>
+<span class="source-line-no">1158</span><span id="line-1158">        }</span>
+<span class="source-line-no">1159</span><span id="line-1159"></span>
+<span class="source-line-no">1160</span><span id="line-1160">        /**</span>
+<span class="source-line-no">1161</span><span id="line-1161">         * Returns the conlet id.</span>
+<span class="source-line-no">1162</span><span id="line-1162">         *</span>
+<span class="source-line-no">1163</span><span id="line-1163">         * @return the id</span>
+<span class="source-line-no">1164</span><span id="line-1164">         */</span>
+<span class="source-line-no">1165</span><span id="line-1165">        public String conletId() {</span>
+<span class="source-line-no">1166</span><span id="line-1166">            return conletId;</span>
+<span class="source-line-no">1167</span><span id="line-1167">        }</span>
+<span class="source-line-no">1168</span><span id="line-1168"></span>
+<span class="source-line-no">1169</span><span id="line-1169">        /**</span>
+<span class="source-line-no">1170</span><span id="line-1170">         * The render modes current used.</span>
+<span class="source-line-no">1171</span><span id="line-1171">         *</span>
+<span class="source-line-no">1172</span><span id="line-1172">         * @return the render modes</span>
+<span class="source-line-no">1173</span><span id="line-1173">         */</span>
+<span class="source-line-no">1174</span><span id="line-1174">        public Set&lt;RenderMode&gt; renderedAs() {</span>
+<span class="source-line-no">1175</span><span id="line-1175">            return renderedAs;</span>
+<span class="source-line-no">1176</span><span id="line-1176">        }</span>
+<span class="source-line-no">1177</span><span id="line-1177"></span>
+<span class="source-line-no">1178</span><span id="line-1178">        /**</span>
+<span class="source-line-no">1179</span><span id="line-1179">         * Adds the given modes.</span>
+<span class="source-line-no">1180</span><span id="line-1180">         *</span>
+<span class="source-line-no">1181</span><span id="line-1181">         * @param modes the modes</span>
+<span class="source-line-no">1182</span><span id="line-1182">         * @return the conlet tracking info</span>
+<span class="source-line-no">1183</span><span id="line-1183">         */</span>
+<span class="source-line-no">1184</span><span id="line-1184">        public ConletTrackingInfo addModes(Set&lt;RenderMode&gt; modes) {</span>
+<span class="source-line-no">1185</span><span id="line-1185">            if (modes.contains(RenderMode.Preview)) {</span>
+<span class="source-line-no">1186</span><span id="line-1186">                renderedAs.add(RenderMode.Preview);</span>
+<span class="source-line-no">1187</span><span id="line-1187">            }</span>
+<span class="source-line-no">1188</span><span id="line-1188">            if (modes.contains(RenderMode.View)) {</span>
+<span class="source-line-no">1189</span><span id="line-1189">                renderedAs.add(RenderMode.View);</span>
+<span class="source-line-no">1190</span><span id="line-1190">            }</span>
+<span class="source-line-no">1191</span><span id="line-1191">            return this;</span>
+<span class="source-line-no">1192</span><span id="line-1192">        }</span>
+<span class="source-line-no">1193</span><span id="line-1193"></span>
+<span class="source-line-no">1194</span><span id="line-1194">        /**</span>
+<span class="source-line-no">1195</span><span id="line-1195">         * Removes the given modes.</span>
+<span class="source-line-no">1196</span><span id="line-1196">         *</span>
+<span class="source-line-no">1197</span><span id="line-1197">         * @param modes the modes</span>
+<span class="source-line-no">1198</span><span id="line-1198">         * @return the conlet tracking info</span>
+<span class="source-line-no">1199</span><span id="line-1199">         */</span>
+<span class="source-line-no">1200</span><span id="line-1200">        public ConletTrackingInfo removeModes(Set&lt;RenderMode&gt; modes) {</span>
+<span class="source-line-no">1201</span><span id="line-1201">            renderedAs.removeAll(modes);</span>
+<span class="source-line-no">1202</span><span id="line-1202">            return this;</span>
+<span class="source-line-no">1203</span><span id="line-1203">        }</span>
+<span class="source-line-no">1204</span><span id="line-1204"></span>
+<span class="source-line-no">1205</span><span id="line-1205">        @Override</span>
+<span class="source-line-no">1206</span><span id="line-1206">        public int hashCode() {</span>
+<span class="source-line-no">1207</span><span id="line-1207">            return conletId.hashCode();</span>
+<span class="source-line-no">1208</span><span id="line-1208">        }</span>
+<span class="source-line-no">1209</span><span id="line-1209"></span>
+<span class="source-line-no">1210</span><span id="line-1210">        @Override</span>
+<span class="source-line-no">1211</span><span id="line-1211">        public boolean equals(Object obj) {</span>
+<span class="source-line-no">1212</span><span id="line-1212">            if (this == obj) {</span>
+<span class="source-line-no">1213</span><span id="line-1213">                return true;</span>
+<span class="source-line-no">1214</span><span id="line-1214">            }</span>
+<span class="source-line-no">1215</span><span id="line-1215">            if (obj == null) {</span>
+<span class="source-line-no">1216</span><span id="line-1216">                return false;</span>
+<span class="source-line-no">1217</span><span id="line-1217">            }</span>
+<span class="source-line-no">1218</span><span id="line-1218">            if (getClass() != obj.getClass()) {</span>
+<span class="source-line-no">1219</span><span id="line-1219">                return false;</span>
+<span class="source-line-no">1220</span><span id="line-1220">            }</span>
+<span class="source-line-no">1221</span><span id="line-1221">            ConletTrackingInfo other = (ConletTrackingInfo) obj;</span>
+<span class="source-line-no">1222</span><span id="line-1222">            if (conletId == null) {</span>
+<span class="source-line-no">1223</span><span id="line-1223">                if (other.conletId != null) {</span>
+<span class="source-line-no">1224</span><span id="line-1224">                    return false;</span>
+<span class="source-line-no">1225</span><span id="line-1225">                }</span>
+<span class="source-line-no">1226</span><span id="line-1226">            } else if (!conletId.equals(other.conletId)) {</span>
+<span class="source-line-no">1227</span><span id="line-1227">                return false;</span>
+<span class="source-line-no">1228</span><span id="line-1228">            }</span>
+<span class="source-line-no">1229</span><span id="line-1229">            return true;</span>
+<span class="source-line-no">1230</span><span id="line-1230">        }</span>
+<span class="source-line-no">1231</span><span id="line-1231">    }</span>
+<span class="source-line-no">1232</span><span id="line-1232"></span>
+<span class="source-line-no">1233</span><span id="line-1233">    /**</span>
+<span class="source-line-no">1234</span><span id="line-1234">     * Returns a future string providing the result</span>
+<span class="source-line-no">1235</span><span id="line-1235">     * from reading everything from the provided reader. </span>
+<span class="source-line-no">1236</span><span id="line-1236">     *</span>
+<span class="source-line-no">1237</span><span id="line-1237">     * @param request the request, used to obtain the </span>
+<span class="source-line-no">1238</span><span id="line-1238">     * {@link ExecutorService} service related with the request being</span>
+<span class="source-line-no">1239</span><span id="line-1239">     * processed</span>
+<span class="source-line-no">1240</span><span id="line-1240">     * @param contentReader the reader</span>
+<span class="source-line-no">1241</span><span id="line-1241">     * @return the future</span>
+<span class="source-line-no">1242</span><span id="line-1242">     */</span>
+<span class="source-line-no">1243</span><span id="line-1243">    public Future&lt;String&gt; readContent(RenderConletRequestBase&lt;?&gt; request,</span>
+<span class="source-line-no">1244</span><span id="line-1244">            Reader contentReader) {</span>
+<span class="source-line-no">1245</span><span id="line-1245">        return readContent(</span>
+<span class="source-line-no">1246</span><span id="line-1246">            request.processedBy().map(pby -&gt; pby.executorService())</span>
+<span class="source-line-no">1247</span><span id="line-1247">                .orElse(Components.defaultExecutorService()),</span>
+<span class="source-line-no">1248</span><span id="line-1248">            contentReader);</span>
+<span class="source-line-no">1249</span><span id="line-1249">    }</span>
+<span class="source-line-no">1250</span><span id="line-1250"></span>
+<span class="source-line-no">1251</span><span id="line-1251">    /**</span>
+<span class="source-line-no">1252</span><span id="line-1252">     * Returns a future string providing the result</span>
+<span class="source-line-no">1253</span><span id="line-1253">     * from reading everything from the provided reader. </span>
+<span class="source-line-no">1254</span><span id="line-1254">     *</span>
+<span class="source-line-no">1255</span><span id="line-1255">     * @param execSvc the executor service for reading the content</span>
+<span class="source-line-no">1256</span><span id="line-1256">     * @param contentReader the reader</span>
+<span class="source-line-no">1257</span><span id="line-1257">     * @return the future</span>
+<span class="source-line-no">1258</span><span id="line-1258">     */</span>
+<span class="source-line-no">1259</span><span id="line-1259">    public Future&lt;String&gt; readContent(ExecutorService execSvc,</span>
+<span class="source-line-no">1260</span><span id="line-1260">            Reader contentReader) {</span>
+<span class="source-line-no">1261</span><span id="line-1261">        return execSvc.submit(() -&gt; {</span>
+<span class="source-line-no">1262</span><span id="line-1262">            StringWriter content = new StringWriter();</span>
+<span class="source-line-no">1263</span><span id="line-1263">            CharBuffer buffer = CharBuffer.allocate(8192);</span>
+<span class="source-line-no">1264</span><span id="line-1264">            try (Reader rdr = new BufferedReader(contentReader)) {</span>
+<span class="source-line-no">1265</span><span id="line-1265">                while (true) {</span>
+<span class="source-line-no">1266</span><span id="line-1266">                    if (rdr.read(buffer) &lt; 0) {</span>
+<span class="source-line-no">1267</span><span id="line-1267">                        break;</span>
+<span class="source-line-no">1268</span><span id="line-1268">                    }</span>
+<span class="source-line-no">1269</span><span id="line-1269">                    buffer.flip();</span>
+<span class="source-line-no">1270</span><span id="line-1270">                    content.append(buffer);</span>
+<span class="source-line-no">1271</span><span id="line-1271">                    buffer.clear();</span>
+<span class="source-line-no">1272</span><span id="line-1272">                }</span>
+<span class="source-line-no">1273</span><span id="line-1273">            } catch (IOException e) {</span>
+<span class="source-line-no">1274</span><span id="line-1274">                throw new IllegalStateException(e);</span>
+<span class="source-line-no">1275</span><span id="line-1275">            }</span>
+<span class="source-line-no">1276</span><span id="line-1276">            return content.toString();</span>
+<span class="source-line-no">1277</span><span id="line-1277">        });</span>
+<span class="source-line-no">1278</span><span id="line-1278">    }</span>
+<span class="source-line-no">1279</span><span id="line-1279"></span>
+<span class="source-line-no">1280</span><span id="line-1280">}</span>
 
 
 
