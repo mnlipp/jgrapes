@@ -313,6 +313,8 @@ public class MailStoreMonitor extends MailConnectionManager<OpenMailMonitor,
         private final String user;
         private final Password password;
         private final String[] subscribed;
+        @SuppressWarnings("PMD.UseConcurrentHashMap")
+        private final Map<String, Folder> folderCache = new HashMap<>();
         private final Map<String, TreeMap<Long, Message>> messages;
         private final Timer idleTimer;
 
@@ -448,6 +450,7 @@ public class MailStoreMonitor extends MailConnectionManager<OpenMailMonitor,
         @SuppressWarnings({ "PMD.GuardLogStatement",
             "PMD.AvoidDuplicateLiterals" })
         public void opened(ConnectionEvent event) {
+            folderCache.clear();
             if (state == ChannelState.Reopened) {
                 // This is a re-open, only retrieve messages.
                 requestPipeline.fire(new RetrieveMessages(), this);
@@ -539,7 +542,7 @@ public class MailStoreMonitor extends MailConnectionManager<OpenMailMonitor,
                 }
                 try {
                     for (var folderName : folderNames) {
-                        Folder folder = folderFromStore(folderName);
+                        Folder folder = getFolder(folderName);
                         if (folder == null) {
                             continue;
                         }
@@ -562,38 +565,47 @@ public class MailStoreMonitor extends MailConnectionManager<OpenMailMonitor,
 
         @SuppressWarnings({ "PMD.GuardLogStatement",
             "PMD.AvoidRethrowingException" })
-        private Folder folderFromStore(String folderName)
+        private Folder getFolder(String folderName)
                 throws FolderClosedException {
-            try {
-                Folder folder = store.getFolder(folderName);
-                if (folder == null || !folder.exists()) {
-                    logger.fine(() -> "No folder \"" + folderName
-                        + "\" in store " + store);
-                    return null;
+            synchronized (folderCache) {
+                Folder folder = folderCache.get(folderName);
+                if (folder != null) {
+                    return folder;
                 }
-                folder.open(Folder.READ_WRITE);
-                // Add MessageCountListener to listen for new messages.
-                folder.addMessageCountListener(new MessageCountAdapter() {
-                    @Override
-                    public void messagesAdded(MessageCountEvent countEvent) {
-                        retrievals.submit("UpdateFolder",
-                            () -> updateFolders(countEvent));
+                try {
+                    folder = store.getFolder(folderName);
+                    if (folder == null || !folder.exists()) {
+                        logger.fine(() -> "No folder \"" + folderName
+                            + "\" in store " + store);
+                        return null;
                     }
+                    folder.open(Folder.READ_WRITE);
+                    folderCache.put(folderName, folder);
+                    // Add MessageCountListener to listen for new messages.
+                    folder.addMessageCountListener(new MessageCountAdapter() {
+                        @Override
+                        public void
+                                messagesAdded(MessageCountEvent countEvent) {
+                            retrievals.submit("UpdateFolder",
+                                () -> updateFolders(countEvent));
+                        }
 
-                    @Override
-                    public void messagesRemoved(MessageCountEvent countEvent) {
-                        retrievals.submit("UpdateFolder",
-                            () -> updateFolders(countEvent));
-                    }
-                });
-                return folder;
-            } catch (FolderClosedException e) {
-                throw e;
-            } catch (MessagingException e) {
-                logger.log(Level.FINE,
-                    "Cannot open folder: " + e.getMessage(), e);
+                        @Override
+                        public void
+                                messagesRemoved(MessageCountEvent countEvent) {
+                            retrievals.submit("UpdateFolder",
+                                () -> updateFolders(countEvent));
+                        }
+                    });
+                    return folder;
+                } catch (FolderClosedException e) {
+                    throw e;
+                } catch (MessagingException e) {
+                    logger.log(Level.FINE,
+                        "Cannot open folder: " + e.getMessage(), e);
+                }
+                return null;
             }
-            return null;
         }
 
         @SuppressWarnings({ "PMD.GuardLogStatement",
@@ -672,12 +684,12 @@ public class MailStoreMonitor extends MailConnectionManager<OpenMailMonitor,
                 }
                 Folder folder = msg.getFolder();
                 @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
-                TreeMap<Long, Message> folderCache = messages.computeIfAbsent(
+                TreeMap<Long, Message> msgCache = messages.computeIfAbsent(
                     folder.getFullName(), k -> new TreeMap<>());
                 try {
-                    synchronized (folderCache) {
+                    synchronized (msgCache) {
                         long msgUid = ((UIDFolder) folder).getUID(msg);
-                        folderCache.put(msgUid, msg);
+                        msgCache.put(msgUid, msg);
                         newMsgs.add(msg);
                     }
                 } catch (MessagingException e) {
@@ -718,7 +730,7 @@ public class MailStoreMonitor extends MailConnectionManager<OpenMailMonitor,
             }
             for (String folderName : event.allMessages().keySet()) {
                 try {
-                    idleManager.watch(folderFromStore(folderName));
+                    idleManager.watch(getFolder(folderName));
                 } catch (MessagingException e) {
                     logger.log(Level.WARNING, "Cannot watch folder.",
                         e);
