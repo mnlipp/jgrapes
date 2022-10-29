@@ -35,718 +35,624 @@
 <span class="source-line-no">022</span><span id="line-22">import com.sun.mail.imap.IdleManager;</span>
 <span class="source-line-no">023</span><span id="line-23">import jakarta.mail.AuthenticationFailedException;</span>
 <span class="source-line-no">024</span><span id="line-24">import jakarta.mail.Authenticator;</span>
-<span class="source-line-no">025</span><span id="line-25">import jakarta.mail.Flags.Flag;</span>
-<span class="source-line-no">026</span><span id="line-26">import jakarta.mail.Folder;</span>
-<span class="source-line-no">027</span><span id="line-27">import jakarta.mail.FolderClosedException;</span>
-<span class="source-line-no">028</span><span id="line-28">import jakarta.mail.Message;</span>
-<span class="source-line-no">029</span><span id="line-29">import jakarta.mail.MessagingException;</span>
-<span class="source-line-no">030</span><span id="line-30">import jakarta.mail.NoSuchProviderException;</span>
-<span class="source-line-no">031</span><span id="line-31">import jakarta.mail.PasswordAuthentication;</span>
-<span class="source-line-no">032</span><span id="line-32">import jakarta.mail.Session;</span>
-<span class="source-line-no">033</span><span id="line-33">import jakarta.mail.Store;</span>
-<span class="source-line-no">034</span><span id="line-34">import jakarta.mail.UIDFolder;</span>
-<span class="source-line-no">035</span><span id="line-35">import jakarta.mail.event.ConnectionEvent;</span>
-<span class="source-line-no">036</span><span id="line-36">import jakarta.mail.event.ConnectionListener;</span>
-<span class="source-line-no">037</span><span id="line-37">import jakarta.mail.event.MessageCountAdapter;</span>
-<span class="source-line-no">038</span><span id="line-38">import jakarta.mail.event.MessageCountEvent;</span>
-<span class="source-line-no">039</span><span id="line-39">import java.io.IOException;</span>
-<span class="source-line-no">040</span><span id="line-40">import java.time.Duration;</span>
-<span class="source-line-no">041</span><span id="line-41">import java.util.ArrayList;</span>
-<span class="source-line-no">042</span><span id="line-42">import java.util.Arrays;</span>
-<span class="source-line-no">043</span><span id="line-43">import java.util.HashMap;</span>
-<span class="source-line-no">044</span><span id="line-44">import java.util.HashSet;</span>
-<span class="source-line-no">045</span><span id="line-45">import java.util.List;</span>
-<span class="source-line-no">046</span><span id="line-46">import java.util.Map;</span>
-<span class="source-line-no">047</span><span id="line-47">import java.util.Optional;</span>
-<span class="source-line-no">048</span><span id="line-48">import java.util.Properties;</span>
-<span class="source-line-no">049</span><span id="line-49">import java.util.Set;</span>
-<span class="source-line-no">050</span><span id="line-50">import java.util.TreeMap;</span>
-<span class="source-line-no">051</span><span id="line-51">import java.util.concurrent.ConcurrentHashMap;</span>
-<span class="source-line-no">052</span><span id="line-52">import java.util.function.Consumer;</span>
-<span class="source-line-no">053</span><span id="line-53">import java.util.function.Function;</span>
-<span class="source-line-no">054</span><span id="line-54">import java.util.logging.Level;</span>
-<span class="source-line-no">055</span><span id="line-55">import java.util.logging.Logger;</span>
-<span class="source-line-no">056</span><span id="line-56">import java.util.stream.Collectors;</span>
-<span class="source-line-no">057</span><span id="line-57">import org.jgrapes.core.Channel;</span>
-<span class="source-line-no">058</span><span id="line-58">import org.jgrapes.core.Components;</span>
-<span class="source-line-no">059</span><span id="line-59">import org.jgrapes.core.Components.Timer;</span>
-<span class="source-line-no">060</span><span id="line-60">import org.jgrapes.core.Event;</span>
-<span class="source-line-no">061</span><span id="line-61">import org.jgrapes.core.EventPipeline;</span>
-<span class="source-line-no">062</span><span id="line-62">import org.jgrapes.core.annotation.Handler;</span>
-<span class="source-line-no">063</span><span id="line-63">import org.jgrapes.core.events.Stop;</span>
-<span class="source-line-no">064</span><span id="line-64">import org.jgrapes.io.events.Close;</span>
-<span class="source-line-no">065</span><span id="line-65">import org.jgrapes.io.events.Closed;</span>
-<span class="source-line-no">066</span><span id="line-66">import org.jgrapes.io.events.ConnectError;</span>
-<span class="source-line-no">067</span><span id="line-67">import org.jgrapes.io.events.IOError;</span>
-<span class="source-line-no">068</span><span id="line-68">import org.jgrapes.io.events.Opening;</span>
-<span class="source-line-no">069</span><span id="line-69">import org.jgrapes.mail.events.MailMonitorOpened;</span>
-<span class="source-line-no">070</span><span id="line-70">import org.jgrapes.mail.events.MessagesRetrieved;</span>
-<span class="source-line-no">071</span><span id="line-71">import org.jgrapes.mail.events.OpenMailMonitor;</span>
-<span class="source-line-no">072</span><span id="line-72">import org.jgrapes.mail.events.RetrieveMessages;</span>
-<span class="source-line-no">073</span><span id="line-73">import org.jgrapes.util.Password;</span>
-<span class="source-line-no">074</span><span id="line-74"></span>
-<span class="source-line-no">075</span><span id="line-75">/**</span>
-<span class="source-line-no">076</span><span id="line-76"> * A component that opens mail stores and monitors mail folders for </span>
-<span class="source-line-no">077</span><span id="line-77"> * mails. After establishing a connection to a store and selected </span>
-<span class="source-line-no">078</span><span id="line-78"> * folders (see {@link #onOpenMailMonitor(OpenMailMonitor, Channel)}), </span>
-<span class="source-line-no">079</span><span id="line-79"> * the existing and all subsequently arriving mails will be sent </span>
-<span class="source-line-no">080</span><span id="line-80"> * downstream using {@link ReceivedMessage} events.</span>
+<span class="source-line-no">025</span><span id="line-25">import jakarta.mail.Folder;</span>
+<span class="source-line-no">026</span><span id="line-26">import jakarta.mail.FolderClosedException;</span>
+<span class="source-line-no">027</span><span id="line-27">import jakarta.mail.Message;</span>
+<span class="source-line-no">028</span><span id="line-28">import jakarta.mail.MessagingException;</span>
+<span class="source-line-no">029</span><span id="line-29">import jakarta.mail.NoSuchProviderException;</span>
+<span class="source-line-no">030</span><span id="line-30">import jakarta.mail.PasswordAuthentication;</span>
+<span class="source-line-no">031</span><span id="line-31">import jakarta.mail.Session;</span>
+<span class="source-line-no">032</span><span id="line-32">import jakarta.mail.Store;</span>
+<span class="source-line-no">033</span><span id="line-33">import jakarta.mail.event.ConnectionEvent;</span>
+<span class="source-line-no">034</span><span id="line-34">import jakarta.mail.event.ConnectionListener;</span>
+<span class="source-line-no">035</span><span id="line-35">import jakarta.mail.event.MessageCountAdapter;</span>
+<span class="source-line-no">036</span><span id="line-36">import jakarta.mail.event.MessageCountEvent;</span>
+<span class="source-line-no">037</span><span id="line-37">import java.io.IOException;</span>
+<span class="source-line-no">038</span><span id="line-38">import java.time.Duration;</span>
+<span class="source-line-no">039</span><span id="line-39">import java.util.ArrayList;</span>
+<span class="source-line-no">040</span><span id="line-40">import java.util.Arrays;</span>
+<span class="source-line-no">041</span><span id="line-41">import java.util.HashMap;</span>
+<span class="source-line-no">042</span><span id="line-42">import java.util.HashSet;</span>
+<span class="source-line-no">043</span><span id="line-43">import java.util.List;</span>
+<span class="source-line-no">044</span><span id="line-44">import java.util.Map;</span>
+<span class="source-line-no">045</span><span id="line-45">import java.util.Optional;</span>
+<span class="source-line-no">046</span><span id="line-46">import java.util.Properties;</span>
+<span class="source-line-no">047</span><span id="line-47">import java.util.Set;</span>
+<span class="source-line-no">048</span><span id="line-48">import java.util.function.Consumer;</span>
+<span class="source-line-no">049</span><span id="line-49">import java.util.logging.Level;</span>
+<span class="source-line-no">050</span><span id="line-50">import java.util.logging.Logger;</span>
+<span class="source-line-no">051</span><span id="line-51">import org.jgrapes.core.Channel;</span>
+<span class="source-line-no">052</span><span id="line-52">import org.jgrapes.core.Components;</span>
+<span class="source-line-no">053</span><span id="line-53">import org.jgrapes.core.Components.Timer;</span>
+<span class="source-line-no">054</span><span id="line-54">import org.jgrapes.core.Event;</span>
+<span class="source-line-no">055</span><span id="line-55">import org.jgrapes.core.EventPipeline;</span>
+<span class="source-line-no">056</span><span id="line-56">import org.jgrapes.core.annotation.Handler;</span>
+<span class="source-line-no">057</span><span id="line-57">import org.jgrapes.core.events.Stop;</span>
+<span class="source-line-no">058</span><span id="line-58">import org.jgrapes.io.events.Close;</span>
+<span class="source-line-no">059</span><span id="line-59">import org.jgrapes.io.events.Closed;</span>
+<span class="source-line-no">060</span><span id="line-60">import org.jgrapes.io.events.ConnectError;</span>
+<span class="source-line-no">061</span><span id="line-61">import org.jgrapes.io.events.IOError;</span>
+<span class="source-line-no">062</span><span id="line-62">import org.jgrapes.io.events.Opening;</span>
+<span class="source-line-no">063</span><span id="line-63">import org.jgrapes.mail.events.FoldersUpdated;</span>
+<span class="source-line-no">064</span><span id="line-64">import org.jgrapes.mail.events.MailMonitorOpened;</span>
+<span class="source-line-no">065</span><span id="line-65">import org.jgrapes.mail.events.OpenMailMonitor;</span>
+<span class="source-line-no">066</span><span id="line-66">import org.jgrapes.mail.events.UpdateFolders;</span>
+<span class="source-line-no">067</span><span id="line-67">import org.jgrapes.util.Password;</span>
+<span class="source-line-no">068</span><span id="line-68"></span>
+<span class="source-line-no">069</span><span id="line-69">/**</span>
+<span class="source-line-no">070</span><span id="line-70"> * A component that opens mail stores and monitors mail folders for </span>
+<span class="source-line-no">071</span><span id="line-71"> * mails. After establishing a connection to a store and selected </span>
+<span class="source-line-no">072</span><span id="line-72"> * folders (see {@link #onOpenMailMonitor(OpenMailMonitor, Channel)}), </span>
+<span class="source-line-no">073</span><span id="line-73"> * the existing and all subsequently arriving mails will be sent </span>
+<span class="source-line-no">074</span><span id="line-74"> * downstream using {@link FoldersUpdated} events.</span>
+<span class="source-line-no">075</span><span id="line-75"> * </span>
+<span class="source-line-no">076</span><span id="line-76"> * This implementation uses the {@link IdleManager}. The </span>
+<span class="source-line-no">077</span><span id="line-77"> * {@link IdleManager} works only if its {@link IdleManager#watch}</span>
+<span class="source-line-no">078</span><span id="line-78"> * method is invoked (for a folder) after any operation on that folder. </span>
+<span class="source-line-no">079</span><span id="line-79"> * Note that operations such as e.g. setting the deleted flag of </span>
+<span class="source-line-no">080</span><span id="line-80"> * a message is also an operation on a folder.</span>
 <span class="source-line-no">081</span><span id="line-81"> * </span>
-<span class="source-line-no">082</span><span id="line-82"> * This implementation uses the {@link IdleManager}. The </span>
-<span class="source-line-no">083</span><span id="line-83"> * {@link IdleManager} works only if its {@link IdleManager#watch}</span>
-<span class="source-line-no">084</span><span id="line-84"> * method is invoked (for a folder) after any operation on that folder. </span>
-<span class="source-line-no">085</span><span id="line-85"> * Note that operations such as e.g. setting the deleted flag of </span>
-<span class="source-line-no">086</span><span id="line-86"> * a message is also an operation on a folder.</span>
-<span class="source-line-no">087</span><span id="line-87"> * </span>
-<span class="source-line-no">088</span><span id="line-88"> * Messages are retrieved from folders in response to a</span>
-<span class="source-line-no">089</span><span id="line-89"> * {@link RetrieveMessages} event or when the store signals the arrival </span>
-<span class="source-line-no">090</span><span id="line-90"> * of new messages. Information about the retrieved messages is delivered </span>
-<span class="source-line-no">091</span><span id="line-91"> * by a {@link MessagesRetrieved} event. Folders</span>
-<span class="source-line-no">092</span><span id="line-92"> * may be freely used while handling these messages, because the</span>
-<span class="source-line-no">093</span><span id="line-93"> * folders will be re-registered with the {@link IdleManager}</span>
-<span class="source-line-no">094</span><span id="line-94"> * when the {@link MessagesRetrieved} event completes.</span>
-<span class="source-line-no">095</span><span id="line-95"> * Any usage of folders independent of handling the events mentioned</span>
-<span class="source-line-no">096</span><span id="line-96"> * will result in a loss of the monitor function.</span>
-<span class="source-line-no">097</span><span id="line-97"> * </span>
-<span class="source-line-no">098</span><span id="line-98"> * If required, the monitor function may be reestablished any time</span>
-<span class="source-line-no">099</span><span id="line-99"> * by firing a {@link RetrieveMessages} event for the folders used.</span>
-<span class="source-line-no">100</span><span id="line-100"> */</span>
-<span class="source-line-no">101</span><span id="line-101">@SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",</span>
-<span class="source-line-no">102</span><span id="line-102">    "PMD.DataflowAnomalyAnalysis", "PMD.ExcessiveImports" })</span>
-<span class="source-line-no">103</span><span id="line-103">public class MailStoreMonitor extends MailConnectionManager&lt;OpenMailMonitor,</span>
-<span class="source-line-no">104</span><span id="line-104">        MailStoreMonitor.MonitorChannel&gt; {</span>
-<span class="source-line-no">105</span><span id="line-105"></span>
-<span class="source-line-no">106</span><span id="line-106">    @SuppressWarnings("PMD.FieldNamingConventions")</span>
-<span class="source-line-no">107</span><span id="line-107">    private static final Logger logger</span>
-<span class="source-line-no">108</span><span id="line-108">        = Logger.getLogger(MailStoreMonitor.class.getName());</span>
-<span class="source-line-no">109</span><span id="line-109"></span>
-<span class="source-line-no">110</span><span id="line-110">    private Duration maxIdleTime = Duration.ofMinutes(25);</span>
-<span class="source-line-no">111</span><span id="line-111">    private static IdleManager idleManager;</span>
-<span class="source-line-no">112</span><span id="line-112">    private final EventPipeline retrievals = newEventPipeline();</span>
-<span class="source-line-no">113</span><span id="line-113"></span>
-<span class="source-line-no">114</span><span id="line-114">    /**</span>
-<span class="source-line-no">115</span><span id="line-115">     * Creates a new server using the given channel.</span>
-<span class="source-line-no">116</span><span id="line-116">     * </span>
-<span class="source-line-no">117</span><span id="line-117">     * @param componentChannel the component's channel</span>
-<span class="source-line-no">118</span><span id="line-118">     */</span>
-<span class="source-line-no">119</span><span id="line-119">    public MailStoreMonitor(Channel componentChannel) {</span>
-<span class="source-line-no">120</span><span id="line-120">        super(componentChannel);</span>
-<span class="source-line-no">121</span><span id="line-121">    }</span>
-<span class="source-line-no">122</span><span id="line-122"></span>
-<span class="source-line-no">123</span><span id="line-123">    /**</span>
-<span class="source-line-no">124</span><span id="line-124">     * Sets the maximum idle time. A running {@link IMAPFolder#idle()}</span>
-<span class="source-line-no">125</span><span id="line-125">     * is terminated and renewed after this time. Defaults to 25 minutes.</span>
-<span class="source-line-no">126</span><span id="line-126">     *</span>
-<span class="source-line-no">127</span><span id="line-127">     * @param maxIdleTime the new max idle time</span>
-<span class="source-line-no">128</span><span id="line-128">     */</span>
-<span class="source-line-no">129</span><span id="line-129">    public MailStoreMonitor setMaxIdleTime(Duration maxIdleTime) {</span>
-<span class="source-line-no">130</span><span id="line-130">        this.maxIdleTime = maxIdleTime;</span>
-<span class="source-line-no">131</span><span id="line-131">        return this;</span>
-<span class="source-line-no">132</span><span id="line-132">    }</span>
-<span class="source-line-no">133</span><span id="line-133"></span>
-<span class="source-line-no">134</span><span id="line-134">    /**</span>
-<span class="source-line-no">135</span><span id="line-135">     * Returns the max idle time.</span>
-<span class="source-line-no">136</span><span id="line-136">     *</span>
-<span class="source-line-no">137</span><span id="line-137">     * @return the duration</span>
-<span class="source-line-no">138</span><span id="line-138">     */</span>
-<span class="source-line-no">139</span><span id="line-139">    public Duration maxIdleTime() {</span>
-<span class="source-line-no">140</span><span id="line-140">        return maxIdleTime;</span>
-<span class="source-line-no">141</span><span id="line-141">    }</span>
-<span class="source-line-no">142</span><span id="line-142"></span>
-<span class="source-line-no">143</span><span id="line-143">    /**</span>
-<span class="source-line-no">144</span><span id="line-144">     * Configure the component. Currently, only max idle time</span>
-<span class="source-line-no">145</span><span id="line-145">     * is supported.</span>
-<span class="source-line-no">146</span><span id="line-146">     *</span>
-<span class="source-line-no">147</span><span id="line-147">     * @param values the values</span>
-<span class="source-line-no">148</span><span id="line-148">     */</span>
-<span class="source-line-no">149</span><span id="line-149">    @Override</span>
-<span class="source-line-no">150</span><span id="line-150">    protected void configureComponent(Map&lt;String, String&gt; values) {</span>
-<span class="source-line-no">151</span><span id="line-151">        Optional.ofNullable(values.get("maxIdleTime"))</span>
-<span class="source-line-no">152</span><span id="line-152">            .map(Integer::parseInt).map(Duration::ofSeconds)</span>
-<span class="source-line-no">153</span><span id="line-153">            .ifPresent(d -&gt; setMaxIdleTime(d));</span>
-<span class="source-line-no">154</span><span id="line-154">    }</span>
-<span class="source-line-no">155</span><span id="line-155"></span>
-<span class="source-line-no">156</span><span id="line-156">    /**</span>
-<span class="source-line-no">157</span><span id="line-157">     * Open a store as specified by the event and monitor the folders</span>
-<span class="source-line-no">158</span><span id="line-158">     * (also specified by the event). All existing and all subsequently </span>
-<span class="source-line-no">159</span><span id="line-159">     * arriving mails will be sent downstream using </span>
-<span class="source-line-no">160</span><span id="line-160">     * {@link ReceivedMessage} events.</span>
-<span class="source-line-no">161</span><span id="line-161">     *</span>
-<span class="source-line-no">162</span><span id="line-162">     * @param event the event</span>
-<span class="source-line-no">163</span><span id="line-163">     * @param channel the channel</span>
-<span class="source-line-no">164</span><span id="line-164">     */</span>
-<span class="source-line-no">165</span><span id="line-165">    @Handler</span>
-<span class="source-line-no">166</span><span id="line-166">    public void onOpenMailMonitor(OpenMailMonitor event, Channel channel) {</span>
-<span class="source-line-no">167</span><span id="line-167">        Properties sessionProps = new Properties(mailProps);</span>
-<span class="source-line-no">168</span><span id="line-168">        sessionProps.putAll(event.mailProperties());</span>
-<span class="source-line-no">169</span><span id="line-169">        sessionProps.put("mail.imap.usesocketchannels", true);</span>
-<span class="source-line-no">170</span><span id="line-170">        Session session = Session.getInstance(sessionProps,</span>
-<span class="source-line-no">171</span><span id="line-171">            // Workaround for class loading problem in OSGi with j.m. 2.1.</span>
-<span class="source-line-no">172</span><span id="line-172">            // Authenticator's classpath allows accessing provider's service.</span>
-<span class="source-line-no">173</span><span id="line-173">            // See https://github.com/eclipse-ee4j/mail/issues/631</span>
-<span class="source-line-no">174</span><span id="line-174">            new Authenticator() {</span>
-<span class="source-line-no">175</span><span id="line-175">                @Override</span>
-<span class="source-line-no">176</span><span id="line-176">                protected PasswordAuthentication</span>
-<span class="source-line-no">177</span><span id="line-177">                        getPasswordAuthentication() {</span>
-<span class="source-line-no">178</span><span id="line-178">                    return new PasswordAuthentication(</span>
-<span class="source-line-no">179</span><span id="line-179">                        sessionProps.getProperty("mail.user"),</span>
-<span class="source-line-no">180</span><span id="line-180">                        new String(event.password().password()));</span>
-<span class="source-line-no">181</span><span id="line-181">                }</span>
-<span class="source-line-no">182</span><span id="line-182">            });</span>
-<span class="source-line-no">183</span><span id="line-183"></span>
-<span class="source-line-no">184</span><span id="line-184">        try {</span>
-<span class="source-line-no">185</span><span id="line-185">            synchronized (MailStoreMonitor.class) {</span>
-<span class="source-line-no">186</span><span id="line-186">                // Cannot be created earlier, need session.</span>
-<span class="source-line-no">187</span><span id="line-187">                if (idleManager == null) {</span>
-<span class="source-line-no">188</span><span id="line-188">                    idleManager = new IdleManager(session,</span>
-<span class="source-line-no">189</span><span id="line-189">                        Components.defaultExecutorService());</span>
-<span class="source-line-no">190</span><span id="line-190">                }</span>
-<span class="source-line-no">191</span><span id="line-191">            }</span>
-<span class="source-line-no">192</span><span id="line-192">            new MonitorChannel(event, channel, session.getStore(),</span>
-<span class="source-line-no">193</span><span id="line-193">                sessionProps.getProperty("mail.user"), event.password());</span>
-<span class="source-line-no">194</span><span id="line-194">        } catch (NoSuchProviderException e) {</span>
-<span class="source-line-no">195</span><span id="line-195">            fire(new ConnectError(event, "Cannot create store.", e));</span>
-<span class="source-line-no">196</span><span id="line-196">        } catch (IOException e) {</span>
-<span class="source-line-no">197</span><span id="line-197">            fire(new IOError(event, "Cannot create resource.", e));</span>
-<span class="source-line-no">198</span><span id="line-198">        }</span>
-<span class="source-line-no">199</span><span id="line-199">    }</span>
-<span class="source-line-no">200</span><span id="line-200"></span>
-<span class="source-line-no">201</span><span id="line-201">    /**</span>
-<span class="source-line-no">202</span><span id="line-202">     * Closes the channel.</span>
-<span class="source-line-no">203</span><span id="line-203">     *</span>
-<span class="source-line-no">204</span><span id="line-204">     * @param event the event</span>
-<span class="source-line-no">205</span><span id="line-205">     */</span>
-<span class="source-line-no">206</span><span id="line-206">    @Handler</span>
-<span class="source-line-no">207</span><span id="line-207">    public void onClose(Close event, Channel channel) {</span>
-<span class="source-line-no">208</span><span id="line-208">        if (channels.contains(channel)) {</span>
-<span class="source-line-no">209</span><span id="line-209">            ((MonitorChannel) channel).close();</span>
-<span class="source-line-no">210</span><span id="line-210">        }</span>
-<span class="source-line-no">211</span><span id="line-211">    }</span>
-<span class="source-line-no">212</span><span id="line-212"></span>
-<span class="source-line-no">213</span><span id="line-213">    /**</span>
-<span class="source-line-no">214</span><span id="line-214">     * Retrieves new messages from the folders specified in the event.</span>
-<span class="source-line-no">215</span><span id="line-215">     *</span>
-<span class="source-line-no">216</span><span id="line-216">     * @param event the event</span>
-<span class="source-line-no">217</span><span id="line-217">     * @param channel the channel</span>
-<span class="source-line-no">218</span><span id="line-218">     */</span>
-<span class="source-line-no">219</span><span id="line-219">    @Handler</span>
-<span class="source-line-no">220</span><span id="line-220">    public void onRetrieveMessages(RetrieveMessages event,</span>
-<span class="source-line-no">221</span><span id="line-221">            MailChannel channel) {</span>
-<span class="source-line-no">222</span><span id="line-222">        if (!channels.contains(channel)) {</span>
-<span class="source-line-no">223</span><span id="line-223">            return;</span>
-<span class="source-line-no">224</span><span id="line-224">        }</span>
-<span class="source-line-no">225</span><span id="line-225">        // This can take very long.</span>
-<span class="source-line-no">226</span><span id="line-226">        retrievals</span>
-<span class="source-line-no">227</span><span id="line-227">            .submit(() -&gt; ((MonitorChannel) channel).retrieveMessages(event));</span>
-<span class="source-line-no">228</span><span id="line-228">    }</span>
-<span class="source-line-no">229</span><span id="line-229"></span>
-<span class="source-line-no">230</span><span id="line-230">    /**</span>
-<span class="source-line-no">231</span><span id="line-231">     * Stops the thread that is associated with this dispatcher.</span>
-<span class="source-line-no">232</span><span id="line-232">     * </span>
-<span class="source-line-no">233</span><span id="line-233">     * @param event the event</span>
-<span class="source-line-no">234</span><span id="line-234">     * @throws InterruptedException if the execution is interrupted</span>
-<span class="source-line-no">235</span><span id="line-235">     */</span>
-<span class="source-line-no">236</span><span id="line-236">    @Handler</span>
-<span class="source-line-no">237</span><span id="line-237">    public void onStop(Stop event) throws InterruptedException {</span>
-<span class="source-line-no">238</span><span id="line-238">        while (true) {</span>
-<span class="source-line-no">239</span><span id="line-239">            MonitorChannel channel;</span>
-<span class="source-line-no">240</span><span id="line-240">            synchronized (channels) {</span>
-<span class="source-line-no">241</span><span id="line-241">                var itr = channels.iterator();</span>
-<span class="source-line-no">242</span><span id="line-242">                if (!itr.hasNext()) {</span>
-<span class="source-line-no">243</span><span id="line-243">                    return;</span>
-<span class="source-line-no">244</span><span id="line-244">                }</span>
-<span class="source-line-no">245</span><span id="line-245">                channel = itr.next();</span>
-<span class="source-line-no">246</span><span id="line-246">            }</span>
-<span class="source-line-no">247</span><span id="line-247">            channel.close();</span>
-<span class="source-line-no">248</span><span id="line-248">        }</span>
-<span class="source-line-no">249</span><span id="line-249">    }</span>
-<span class="source-line-no">250</span><span id="line-250"></span>
-<span class="source-line-no">251</span><span id="line-251">    /**</span>
-<span class="source-line-no">252</span><span id="line-252">     * The Enum ChannelState.</span>
-<span class="source-line-no">253</span><span id="line-253">     */</span>
-<span class="source-line-no">254</span><span id="line-254">    @SuppressWarnings("PMD.FieldNamingConventions")</span>
-<span class="source-line-no">255</span><span id="line-255">    private enum ChannelState {</span>
-<span class="source-line-no">256</span><span id="line-256">        Opening {</span>
-<span class="source-line-no">257</span><span id="line-257">            @Override</span>
-<span class="source-line-no">258</span><span id="line-258">            public boolean isOpening() {</span>
-<span class="source-line-no">259</span><span id="line-259">                return true;</span>
-<span class="source-line-no">260</span><span id="line-260">            }</span>
-<span class="source-line-no">261</span><span id="line-261">        },</span>
-<span class="source-line-no">262</span><span id="line-262">        Open {</span>
-<span class="source-line-no">263</span><span id="line-263">            @Override</span>
-<span class="source-line-no">264</span><span id="line-264">            public boolean isOpen() {</span>
-<span class="source-line-no">265</span><span id="line-265">                return true;</span>
-<span class="source-line-no">266</span><span id="line-266">            }</span>
-<span class="source-line-no">267</span><span id="line-267">        },</span>
-<span class="source-line-no">268</span><span id="line-268">        Reopening {</span>
-<span class="source-line-no">269</span><span id="line-269">            @Override</span>
-<span class="source-line-no">270</span><span id="line-270">            public boolean isOpening() {</span>
-<span class="source-line-no">271</span><span id="line-271">                return true;</span>
-<span class="source-line-no">272</span><span id="line-272">            }</span>
-<span class="source-line-no">273</span><span id="line-273">        },</span>
-<span class="source-line-no">274</span><span id="line-274">        Reopened {</span>
-<span class="source-line-no">275</span><span id="line-275">            @Override</span>
-<span class="source-line-no">276</span><span id="line-276">            public boolean isOpen() {</span>
-<span class="source-line-no">277</span><span id="line-277">                return true;</span>
-<span class="source-line-no">278</span><span id="line-278">            }</span>
-<span class="source-line-no">279</span><span id="line-279">        },</span>
-<span class="source-line-no">280</span><span id="line-280">        Closing,</span>
-<span class="source-line-no">281</span><span id="line-281">        Closed;</span>
-<span class="source-line-no">282</span><span id="line-282"></span>
-<span class="source-line-no">283</span><span id="line-283">        /**</span>
-<span class="source-line-no">284</span><span id="line-284">         * Checks if is open.</span>
-<span class="source-line-no">285</span><span id="line-285">         *</span>
-<span class="source-line-no">286</span><span id="line-286">         * @return true, if is open</span>
-<span class="source-line-no">287</span><span id="line-287">         */</span>
-<span class="source-line-no">288</span><span id="line-288">        public boolean isOpen() {</span>
-<span class="source-line-no">289</span><span id="line-289">            return false;</span>
-<span class="source-line-no">290</span><span id="line-290">        }</span>
-<span class="source-line-no">291</span><span id="line-291"></span>
-<span class="source-line-no">292</span><span id="line-292">        /**</span>
-<span class="source-line-no">293</span><span id="line-293">         * Checks if is opening.</span>
-<span class="source-line-no">294</span><span id="line-294">         *</span>
-<span class="source-line-no">295</span><span id="line-295">         * @return true, if is opening</span>
-<span class="source-line-no">296</span><span id="line-296">         */</span>
-<span class="source-line-no">297</span><span id="line-297">        public boolean isOpening() {</span>
-<span class="source-line-no">298</span><span id="line-298">            return false;</span>
-<span class="source-line-no">299</span><span id="line-299">        }</span>
-<span class="source-line-no">300</span><span id="line-300">    }</span>
+<span class="source-line-no">082</span><span id="line-82"> * Folders are updated in response to an {@link UpdateFolders} event </span>
+<span class="source-line-no">083</span><span id="line-83"> * or when the store signals the arrival of new messages. Information </span>
+<span class="source-line-no">084</span><span id="line-84"> * about the folders is delivered by a {@link FoldersUpdated} event. </span>
+<span class="source-line-no">085</span><span id="line-85"> * Folders may be freely used while handling the event, because the</span>
+<span class="source-line-no">086</span><span id="line-86"> * folders will be re-registered with the {@link IdleManager}</span>
+<span class="source-line-no">087</span><span id="line-87"> * when the {@link FoldersUpdated} event completes.</span>
+<span class="source-line-no">088</span><span id="line-88"> * Any usage of folders independent of handling the events mentioned</span>
+<span class="source-line-no">089</span><span id="line-89"> * will result in a loss of the monitor function.</span>
+<span class="source-line-no">090</span><span id="line-90"> * </span>
+<span class="source-line-no">091</span><span id="line-91"> * If required, the monitor function may be reestablished any time</span>
+<span class="source-line-no">092</span><span id="line-92"> * by firing a {@link UpdateFolders} event for the folders used.</span>
+<span class="source-line-no">093</span><span id="line-93"> */</span>
+<span class="source-line-no">094</span><span id="line-94">@SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",</span>
+<span class="source-line-no">095</span><span id="line-95">    "PMD.DataflowAnomalyAnalysis", "PMD.ExcessiveImports" })</span>
+<span class="source-line-no">096</span><span id="line-96">public class MailStoreMonitor extends MailConnectionManager&lt;OpenMailMonitor,</span>
+<span class="source-line-no">097</span><span id="line-97">        MailStoreMonitor.MonitorChannel&gt; {</span>
+<span class="source-line-no">098</span><span id="line-98"></span>
+<span class="source-line-no">099</span><span id="line-99">    @SuppressWarnings("PMD.FieldNamingConventions")</span>
+<span class="source-line-no">100</span><span id="line-100">    private static final Logger logger</span>
+<span class="source-line-no">101</span><span id="line-101">        = Logger.getLogger(MailStoreMonitor.class.getName());</span>
+<span class="source-line-no">102</span><span id="line-102"></span>
+<span class="source-line-no">103</span><span id="line-103">    private Duration maxIdleTime = Duration.ofMinutes(25);</span>
+<span class="source-line-no">104</span><span id="line-104">    private static IdleManager idleManager;</span>
+<span class="source-line-no">105</span><span id="line-105">    private final EventPipeline retrievals = newEventPipeline();</span>
+<span class="source-line-no">106</span><span id="line-106"></span>
+<span class="source-line-no">107</span><span id="line-107">    /**</span>
+<span class="source-line-no">108</span><span id="line-108">     * Creates a new server using the given channel.</span>
+<span class="source-line-no">109</span><span id="line-109">     * </span>
+<span class="source-line-no">110</span><span id="line-110">     * @param componentChannel the component's channel</span>
+<span class="source-line-no">111</span><span id="line-111">     */</span>
+<span class="source-line-no">112</span><span id="line-112">    public MailStoreMonitor(Channel componentChannel) {</span>
+<span class="source-line-no">113</span><span id="line-113">        super(componentChannel);</span>
+<span class="source-line-no">114</span><span id="line-114">    }</span>
+<span class="source-line-no">115</span><span id="line-115"></span>
+<span class="source-line-no">116</span><span id="line-116">    /**</span>
+<span class="source-line-no">117</span><span id="line-117">     * Sets the maximum idle time. A running {@link IMAPFolder#idle()}</span>
+<span class="source-line-no">118</span><span id="line-118">     * is terminated and renewed after this time. Defaults to 25 minutes.</span>
+<span class="source-line-no">119</span><span id="line-119">     *</span>
+<span class="source-line-no">120</span><span id="line-120">     * @param maxIdleTime the new max idle time</span>
+<span class="source-line-no">121</span><span id="line-121">     */</span>
+<span class="source-line-no">122</span><span id="line-122">    public MailStoreMonitor setMaxIdleTime(Duration maxIdleTime) {</span>
+<span class="source-line-no">123</span><span id="line-123">        this.maxIdleTime = maxIdleTime;</span>
+<span class="source-line-no">124</span><span id="line-124">        return this;</span>
+<span class="source-line-no">125</span><span id="line-125">    }</span>
+<span class="source-line-no">126</span><span id="line-126"></span>
+<span class="source-line-no">127</span><span id="line-127">    /**</span>
+<span class="source-line-no">128</span><span id="line-128">     * Returns the max idle time.</span>
+<span class="source-line-no">129</span><span id="line-129">     *</span>
+<span class="source-line-no">130</span><span id="line-130">     * @return the duration</span>
+<span class="source-line-no">131</span><span id="line-131">     */</span>
+<span class="source-line-no">132</span><span id="line-132">    public Duration maxIdleTime() {</span>
+<span class="source-line-no">133</span><span id="line-133">        return maxIdleTime;</span>
+<span class="source-line-no">134</span><span id="line-134">    }</span>
+<span class="source-line-no">135</span><span id="line-135"></span>
+<span class="source-line-no">136</span><span id="line-136">    /**</span>
+<span class="source-line-no">137</span><span id="line-137">     * Configure the component. Currently, only max idle time</span>
+<span class="source-line-no">138</span><span id="line-138">     * is supported.</span>
+<span class="source-line-no">139</span><span id="line-139">     *</span>
+<span class="source-line-no">140</span><span id="line-140">     * @param values the values</span>
+<span class="source-line-no">141</span><span id="line-141">     */</span>
+<span class="source-line-no">142</span><span id="line-142">    @Override</span>
+<span class="source-line-no">143</span><span id="line-143">    protected void configureComponent(Map&lt;String, String&gt; values) {</span>
+<span class="source-line-no">144</span><span id="line-144">        Optional.ofNullable(values.get("maxIdleTime"))</span>
+<span class="source-line-no">145</span><span id="line-145">            .map(Integer::parseInt).map(Duration::ofSeconds)</span>
+<span class="source-line-no">146</span><span id="line-146">            .ifPresent(d -&gt; setMaxIdleTime(d));</span>
+<span class="source-line-no">147</span><span id="line-147">    }</span>
+<span class="source-line-no">148</span><span id="line-148"></span>
+<span class="source-line-no">149</span><span id="line-149">    /**</span>
+<span class="source-line-no">150</span><span id="line-150">     * Open a store as specified by the event and monitor the folders</span>
+<span class="source-line-no">151</span><span id="line-151">     * (also specified by the event). All existing and all subsequently </span>
+<span class="source-line-no">152</span><span id="line-152">     * arriving mails will be sent downstream using </span>
+<span class="source-line-no">153</span><span id="line-153">     * {@link ReceivedMessage} events.</span>
+<span class="source-line-no">154</span><span id="line-154">     *</span>
+<span class="source-line-no">155</span><span id="line-155">     * @param event the event</span>
+<span class="source-line-no">156</span><span id="line-156">     * @param channel the channel</span>
+<span class="source-line-no">157</span><span id="line-157">     */</span>
+<span class="source-line-no">158</span><span id="line-158">    @Handler</span>
+<span class="source-line-no">159</span><span id="line-159">    public void onOpenMailMonitor(OpenMailMonitor event, Channel channel) {</span>
+<span class="source-line-no">160</span><span id="line-160">        Properties sessionProps = new Properties(mailProps);</span>
+<span class="source-line-no">161</span><span id="line-161">        sessionProps.putAll(event.mailProperties());</span>
+<span class="source-line-no">162</span><span id="line-162">        sessionProps.put("mail.imap.usesocketchannels", true);</span>
+<span class="source-line-no">163</span><span id="line-163">        Session session = Session.getInstance(sessionProps,</span>
+<span class="source-line-no">164</span><span id="line-164">            // Workaround for class loading problem in OSGi with j.m. 2.1.</span>
+<span class="source-line-no">165</span><span id="line-165">            // Authenticator's classpath allows accessing provider's service.</span>
+<span class="source-line-no">166</span><span id="line-166">            // See https://github.com/eclipse-ee4j/mail/issues/631</span>
+<span class="source-line-no">167</span><span id="line-167">            new Authenticator() {</span>
+<span class="source-line-no">168</span><span id="line-168">                @Override</span>
+<span class="source-line-no">169</span><span id="line-169">                protected PasswordAuthentication</span>
+<span class="source-line-no">170</span><span id="line-170">                        getPasswordAuthentication() {</span>
+<span class="source-line-no">171</span><span id="line-171">                    return new PasswordAuthentication(</span>
+<span class="source-line-no">172</span><span id="line-172">                        sessionProps.getProperty("mail.user"),</span>
+<span class="source-line-no">173</span><span id="line-173">                        new String(event.password().password()));</span>
+<span class="source-line-no">174</span><span id="line-174">                }</span>
+<span class="source-line-no">175</span><span id="line-175">            });</span>
+<span class="source-line-no">176</span><span id="line-176"></span>
+<span class="source-line-no">177</span><span id="line-177">        try {</span>
+<span class="source-line-no">178</span><span id="line-178">            synchronized (MailStoreMonitor.class) {</span>
+<span class="source-line-no">179</span><span id="line-179">                // Cannot be created earlier, need session.</span>
+<span class="source-line-no">180</span><span id="line-180">                if (idleManager == null) {</span>
+<span class="source-line-no">181</span><span id="line-181">                    idleManager = new IdleManager(session,</span>
+<span class="source-line-no">182</span><span id="line-182">                        Components.defaultExecutorService());</span>
+<span class="source-line-no">183</span><span id="line-183">                }</span>
+<span class="source-line-no">184</span><span id="line-184">            }</span>
+<span class="source-line-no">185</span><span id="line-185">            new MonitorChannel(event, channel, session.getStore(),</span>
+<span class="source-line-no">186</span><span id="line-186">                sessionProps.getProperty("mail.user"), event.password());</span>
+<span class="source-line-no">187</span><span id="line-187">        } catch (NoSuchProviderException e) {</span>
+<span class="source-line-no">188</span><span id="line-188">            fire(new ConnectError(event, "Cannot create store.", e));</span>
+<span class="source-line-no">189</span><span id="line-189">        } catch (IOException e) {</span>
+<span class="source-line-no">190</span><span id="line-190">            fire(new IOError(event, "Cannot create resource.", e));</span>
+<span class="source-line-no">191</span><span id="line-191">        }</span>
+<span class="source-line-no">192</span><span id="line-192">    }</span>
+<span class="source-line-no">193</span><span id="line-193"></span>
+<span class="source-line-no">194</span><span id="line-194">    /**</span>
+<span class="source-line-no">195</span><span id="line-195">     * Closes the channel.</span>
+<span class="source-line-no">196</span><span id="line-196">     *</span>
+<span class="source-line-no">197</span><span id="line-197">     * @param event the event</span>
+<span class="source-line-no">198</span><span id="line-198">     */</span>
+<span class="source-line-no">199</span><span id="line-199">    @Handler</span>
+<span class="source-line-no">200</span><span id="line-200">    public void onClose(Close event, Channel channel) {</span>
+<span class="source-line-no">201</span><span id="line-201">        if (channels.contains(channel)) {</span>
+<span class="source-line-no">202</span><span id="line-202">            ((MonitorChannel) channel).close();</span>
+<span class="source-line-no">203</span><span id="line-203">        }</span>
+<span class="source-line-no">204</span><span id="line-204">    }</span>
+<span class="source-line-no">205</span><span id="line-205"></span>
+<span class="source-line-no">206</span><span id="line-206">    /**</span>
+<span class="source-line-no">207</span><span id="line-207">     * Retrieves new messages from the folders specified in the event.</span>
+<span class="source-line-no">208</span><span id="line-208">     *</span>
+<span class="source-line-no">209</span><span id="line-209">     * @param event the event</span>
+<span class="source-line-no">210</span><span id="line-210">     * @param channel the channel</span>
+<span class="source-line-no">211</span><span id="line-211">     */</span>
+<span class="source-line-no">212</span><span id="line-212">    @Handler</span>
+<span class="source-line-no">213</span><span id="line-213">    public void onUpdateFolders(UpdateFolders event, MailChannel channel) {</span>
+<span class="source-line-no">214</span><span id="line-214">        if (!channels.contains(channel)) {</span>
+<span class="source-line-no">215</span><span id="line-215">            return;</span>
+<span class="source-line-no">216</span><span id="line-216">        }</span>
+<span class="source-line-no">217</span><span id="line-217">        // This can take very long.</span>
+<span class="source-line-no">218</span><span id="line-218">        retrievals</span>
+<span class="source-line-no">219</span><span id="line-219">            .submit(() -&gt; ((MonitorChannel) channel).onUpdateFolders(event));</span>
+<span class="source-line-no">220</span><span id="line-220">    }</span>
+<span class="source-line-no">221</span><span id="line-221"></span>
+<span class="source-line-no">222</span><span id="line-222">    /**</span>
+<span class="source-line-no">223</span><span id="line-223">     * Stops the thread that is associated with this dispatcher.</span>
+<span class="source-line-no">224</span><span id="line-224">     * </span>
+<span class="source-line-no">225</span><span id="line-225">     * @param event the event</span>
+<span class="source-line-no">226</span><span id="line-226">     * @throws InterruptedException if the execution is interrupted</span>
+<span class="source-line-no">227</span><span id="line-227">     */</span>
+<span class="source-line-no">228</span><span id="line-228">    @Handler</span>
+<span class="source-line-no">229</span><span id="line-229">    public void onStop(Stop event) throws InterruptedException {</span>
+<span class="source-line-no">230</span><span id="line-230">        while (true) {</span>
+<span class="source-line-no">231</span><span id="line-231">            MonitorChannel channel;</span>
+<span class="source-line-no">232</span><span id="line-232">            synchronized (channels) {</span>
+<span class="source-line-no">233</span><span id="line-233">                var itr = channels.iterator();</span>
+<span class="source-line-no">234</span><span id="line-234">                if (!itr.hasNext()) {</span>
+<span class="source-line-no">235</span><span id="line-235">                    return;</span>
+<span class="source-line-no">236</span><span id="line-236">                }</span>
+<span class="source-line-no">237</span><span id="line-237">                channel = itr.next();</span>
+<span class="source-line-no">238</span><span id="line-238">            }</span>
+<span class="source-line-no">239</span><span id="line-239">            channel.close();</span>
+<span class="source-line-no">240</span><span id="line-240">        }</span>
+<span class="source-line-no">241</span><span id="line-241">    }</span>
+<span class="source-line-no">242</span><span id="line-242"></span>
+<span class="source-line-no">243</span><span id="line-243">    /**</span>
+<span class="source-line-no">244</span><span id="line-244">     * The Enum ChannelState.</span>
+<span class="source-line-no">245</span><span id="line-245">     */</span>
+<span class="source-line-no">246</span><span id="line-246">    @SuppressWarnings("PMD.FieldNamingConventions")</span>
+<span class="source-line-no">247</span><span id="line-247">    private enum ChannelState {</span>
+<span class="source-line-no">248</span><span id="line-248">        Opening {</span>
+<span class="source-line-no">249</span><span id="line-249">            @Override</span>
+<span class="source-line-no">250</span><span id="line-250">            public boolean isOpening() {</span>
+<span class="source-line-no">251</span><span id="line-251">                return true;</span>
+<span class="source-line-no">252</span><span id="line-252">            }</span>
+<span class="source-line-no">253</span><span id="line-253">        },</span>
+<span class="source-line-no">254</span><span id="line-254">        Open {</span>
+<span class="source-line-no">255</span><span id="line-255">            @Override</span>
+<span class="source-line-no">256</span><span id="line-256">            public boolean isOpen() {</span>
+<span class="source-line-no">257</span><span id="line-257">                return true;</span>
+<span class="source-line-no">258</span><span id="line-258">            }</span>
+<span class="source-line-no">259</span><span id="line-259">        },</span>
+<span class="source-line-no">260</span><span id="line-260">        Reopening {</span>
+<span class="source-line-no">261</span><span id="line-261">            @Override</span>
+<span class="source-line-no">262</span><span id="line-262">            public boolean isOpening() {</span>
+<span class="source-line-no">263</span><span id="line-263">                return true;</span>
+<span class="source-line-no">264</span><span id="line-264">            }</span>
+<span class="source-line-no">265</span><span id="line-265">        },</span>
+<span class="source-line-no">266</span><span id="line-266">        Reopened {</span>
+<span class="source-line-no">267</span><span id="line-267">            @Override</span>
+<span class="source-line-no">268</span><span id="line-268">            public boolean isOpen() {</span>
+<span class="source-line-no">269</span><span id="line-269">                return true;</span>
+<span class="source-line-no">270</span><span id="line-270">            }</span>
+<span class="source-line-no">271</span><span id="line-271">        },</span>
+<span class="source-line-no">272</span><span id="line-272">        Closing,</span>
+<span class="source-line-no">273</span><span id="line-273">        Closed;</span>
+<span class="source-line-no">274</span><span id="line-274"></span>
+<span class="source-line-no">275</span><span id="line-275">        /**</span>
+<span class="source-line-no">276</span><span id="line-276">         * Checks if is open.</span>
+<span class="source-line-no">277</span><span id="line-277">         *</span>
+<span class="source-line-no">278</span><span id="line-278">         * @return true, if is open</span>
+<span class="source-line-no">279</span><span id="line-279">         */</span>
+<span class="source-line-no">280</span><span id="line-280">        public boolean isOpen() {</span>
+<span class="source-line-no">281</span><span id="line-281">            return false;</span>
+<span class="source-line-no">282</span><span id="line-282">        }</span>
+<span class="source-line-no">283</span><span id="line-283"></span>
+<span class="source-line-no">284</span><span id="line-284">        /**</span>
+<span class="source-line-no">285</span><span id="line-285">         * Checks if is opening.</span>
+<span class="source-line-no">286</span><span id="line-286">         *</span>
+<span class="source-line-no">287</span><span id="line-287">         * @return true, if is opening</span>
+<span class="source-line-no">288</span><span id="line-288">         */</span>
+<span class="source-line-no">289</span><span id="line-289">        public boolean isOpening() {</span>
+<span class="source-line-no">290</span><span id="line-290">            return false;</span>
+<span class="source-line-no">291</span><span id="line-291">        }</span>
+<span class="source-line-no">292</span><span id="line-292">    }</span>
+<span class="source-line-no">293</span><span id="line-293"></span>
+<span class="source-line-no">294</span><span id="line-294">    /**</span>
+<span class="source-line-no">295</span><span id="line-295">     * The specific implementation of the {@link MailChannel}.</span>
+<span class="source-line-no">296</span><span id="line-296">     */</span>
+<span class="source-line-no">297</span><span id="line-297">    protected class MonitorChannel</span>
+<span class="source-line-no">298</span><span id="line-298">            extends MailConnectionManager&lt;OpenMailMonitor,</span>
+<span class="source-line-no">299</span><span id="line-299">                    MailStoreMonitor.MonitorChannel&gt;.AbstractMailChannel</span>
+<span class="source-line-no">300</span><span id="line-300">            implements ConnectionListener {</span>
 <span class="source-line-no">301</span><span id="line-301"></span>
-<span class="source-line-no">302</span><span id="line-302">    /**</span>
-<span class="source-line-no">303</span><span id="line-303">     * The specific implementation of the {@link MailChannel}.</span>
-<span class="source-line-no">304</span><span id="line-304">     */</span>
-<span class="source-line-no">305</span><span id="line-305">    protected class MonitorChannel</span>
-<span class="source-line-no">306</span><span id="line-306">            extends MailConnectionManager&lt;OpenMailMonitor,</span>
-<span class="source-line-no">307</span><span id="line-307">                    MailStoreMonitor.MonitorChannel&gt;.AbstractMailChannel</span>
-<span class="source-line-no">308</span><span id="line-308">            implements ConnectionListener {</span>
-<span class="source-line-no">309</span><span id="line-309"></span>
-<span class="source-line-no">310</span><span id="line-310">        private final EventPipeline requestPipeline;</span>
-<span class="source-line-no">311</span><span id="line-311">        private ChannelState state = ChannelState.Opening;</span>
-<span class="source-line-no">312</span><span id="line-312">        private final Store store;</span>
-<span class="source-line-no">313</span><span id="line-313">        private final String user;</span>
-<span class="source-line-no">314</span><span id="line-314">        private final Password password;</span>
-<span class="source-line-no">315</span><span id="line-315">        private final String[] subscribed;</span>
-<span class="source-line-no">316</span><span id="line-316">        private final Map&lt;String, TreeMap&lt;Long, Message&gt;&gt; messages;</span>
-<span class="source-line-no">317</span><span id="line-317">        private final Timer idleTimer;</span>
-<span class="source-line-no">318</span><span id="line-318"></span>
-<span class="source-line-no">319</span><span id="line-319">        /**</span>
-<span class="source-line-no">320</span><span id="line-320">         * Instantiates a new monitor channel.</span>
-<span class="source-line-no">321</span><span id="line-321">         *</span>
-<span class="source-line-no">322</span><span id="line-322">         * @param event the event</span>
-<span class="source-line-no">323</span><span id="line-323">         * @param channel the channel</span>
-<span class="source-line-no">324</span><span id="line-324">         * @param store the store</span>
-<span class="source-line-no">325</span><span id="line-325">         * @param password </span>
-<span class="source-line-no">326</span><span id="line-326">         * @param string </span>
-<span class="source-line-no">327</span><span id="line-327">         */</span>
-<span class="source-line-no">328</span><span id="line-328">        public MonitorChannel(OpenMailMonitor event, Channel channel,</span>
-<span class="source-line-no">329</span><span id="line-329">                Store store, String user, Password password) {</span>
-<span class="source-line-no">330</span><span id="line-330">            super(event, channel);</span>
-<span class="source-line-no">331</span><span id="line-331">            this.store = store;</span>
-<span class="source-line-no">332</span><span id="line-332">            this.user = user;</span>
-<span class="source-line-no">333</span><span id="line-333">            this.password = password;</span>
-<span class="source-line-no">334</span><span id="line-334">            this.subscribed = event.folderNames();</span>
-<span class="source-line-no">335</span><span id="line-335">            requestPipeline = event.processedBy().get();</span>
-<span class="source-line-no">336</span><span id="line-336">            messages = new ConcurrentHashMap&lt;&gt;();</span>
-<span class="source-line-no">337</span><span id="line-337">            store.addConnectionListener(this);</span>
-<span class="source-line-no">338</span><span id="line-338">            idleTimer = Components.schedule(t -&gt; {</span>
-<span class="source-line-no">339</span><span id="line-339">                requestPipeline.fire(new RetrieveMessages(), this);</span>
-<span class="source-line-no">340</span><span id="line-340">            }, maxIdleTime);</span>
-<span class="source-line-no">341</span><span id="line-341">            connect(</span>
-<span class="source-line-no">342</span><span id="line-342">                t -&gt; downPipeline().fire(new ConnectError(event, t), channel));</span>
-<span class="source-line-no">343</span><span id="line-343">        }</span>
-<span class="source-line-no">344</span><span id="line-344"></span>
-<span class="source-line-no">345</span><span id="line-345">        /**</span>
-<span class="source-line-no">346</span><span id="line-346">         * Attempt connections until connected. Attempts are stopped</span>
-<span class="source-line-no">347</span><span id="line-347">         * if it is the first time that the connection is to be</span>
-<span class="source-line-no">348</span><span id="line-348">         * established and the error indicates that the connection</span>
-<span class="source-line-no">349</span><span id="line-349">         * will never succeed (e.g. due to an authentication</span>
-<span class="source-line-no">350</span><span id="line-350">         * problem).</span>
-<span class="source-line-no">351</span><span id="line-351">         *</span>
-<span class="source-line-no">352</span><span id="line-352">         * @param onOpenFailed the on open failed</span>
-<span class="source-line-no">353</span><span id="line-353">         */</span>
-<span class="source-line-no">354</span><span id="line-354">        private void connect(Consumer&lt;Throwable&gt; onOpenFailed) {</span>
-<span class="source-line-no">355</span><span id="line-355">            synchronized (this) {</span>
-<span class="source-line-no">356</span><span id="line-356">                if (state.isOpen()) {</span>
-<span class="source-line-no">357</span><span id="line-357">                    return;</span>
-<span class="source-line-no">358</span><span id="line-358">                }</span>
-<span class="source-line-no">359</span><span id="line-359">                activeEventPipeline().executorService().submit(() -&gt; {</span>
-<span class="source-line-no">360</span><span id="line-360">                    while (state.isOpening()) {</span>
-<span class="source-line-no">361</span><span id="line-361">                        try {</span>
-<span class="source-line-no">362</span><span id="line-362">                            attemptConnect(onOpenFailed);</span>
-<span class="source-line-no">363</span><span id="line-363">                        } catch (InterruptedException e) {</span>
-<span class="source-line-no">364</span><span id="line-364">                            break;</span>
-<span class="source-line-no">365</span><span id="line-365">                        }</span>
-<span class="source-line-no">366</span><span id="line-366">                    }</span>
-<span class="source-line-no">367</span><span id="line-367">                });</span>
-<span class="source-line-no">368</span><span id="line-368">            }</span>
-<span class="source-line-no">369</span><span id="line-369">        }</span>
-<span class="source-line-no">370</span><span id="line-370"></span>
-<span class="source-line-no">371</span><span id="line-371">        /**</span>
-<span class="source-line-no">372</span><span id="line-372">         * Single connection attempt.</span>
-<span class="source-line-no">373</span><span id="line-373">         *</span>
-<span class="source-line-no">374</span><span id="line-374">         * @param onOpenFailed the on open failed</span>
-<span class="source-line-no">375</span><span id="line-375">         * @throws InterruptedException the interrupted exception</span>
-<span class="source-line-no">376</span><span id="line-376">         */</span>
-<span class="source-line-no">377</span><span id="line-377">        @SuppressWarnings("PMD.AvoidInstanceofChecksInCatchClause")</span>
-<span class="source-line-no">378</span><span id="line-378">        private void attemptConnect(Consumer&lt;Throwable&gt; onOpenFailed)</span>
-<span class="source-line-no">379</span><span id="line-379">                throws InterruptedException {</span>
-<span class="source-line-no">380</span><span id="line-380">            try {</span>
-<span class="source-line-no">381</span><span id="line-381">                store.connect(user, new String(password.password()));</span>
-<span class="source-line-no">382</span><span id="line-382">                synchronized (this) {</span>
-<span class="source-line-no">383</span><span id="line-383">                    if (state == ChannelState.Opening) {</span>
-<span class="source-line-no">384</span><span id="line-384">                        state = ChannelState.Open;</span>
-<span class="source-line-no">385</span><span id="line-385">                    } else {</span>
-<span class="source-line-no">386</span><span id="line-386">                        state = ChannelState.Reopened;</span>
-<span class="source-line-no">387</span><span id="line-387">                        // Already registered</span>
-<span class="source-line-no">388</span><span id="line-388">                        return;</span>
-<span class="source-line-no">389</span><span id="line-389">                    }</span>
-<span class="source-line-no">390</span><span id="line-390">                }</span>
-<span class="source-line-no">391</span><span id="line-391">                // Works "in general", register.</span>
-<span class="source-line-no">392</span><span id="line-392">                synchronized (channels) {</span>
-<span class="source-line-no">393</span><span id="line-393">                    if (channels.isEmpty()) {</span>
-<span class="source-line-no">394</span><span id="line-394">                        registerAsGenerator();</span>
-<span class="source-line-no">395</span><span id="line-395">                    }</span>
-<span class="source-line-no">396</span><span id="line-396">                    channels.add(this);</span>
-<span class="source-line-no">397</span><span id="line-397">                }</span>
-<span class="source-line-no">398</span><span id="line-398">            } catch (MessagingException e) {</span>
-<span class="source-line-no">399</span><span id="line-399">                synchronized (this) {</span>
-<span class="source-line-no">400</span><span id="line-400">                    if (state == ChannelState.Opening</span>
-<span class="source-line-no">401</span><span id="line-401">                        &amp;&amp; (e instanceof AuthenticationFailedException</span>
-<span class="source-line-no">402</span><span id="line-402">                            || e instanceof NoSuchProviderException)) {</span>
-<span class="source-line-no">403</span><span id="line-403">                        logger.log(Level.WARNING,</span>
-<span class="source-line-no">404</span><span id="line-404">                            "Connecting to store failed, closing.", e);</span>
-<span class="source-line-no">405</span><span id="line-405">                        state = ChannelState.Closed;</span>
-<span class="source-line-no">406</span><span id="line-406">                        if (onOpenFailed != null) {</span>
-<span class="source-line-no">407</span><span id="line-407">                            onOpenFailed.accept(e);</span>
-<span class="source-line-no">408</span><span id="line-408">                        }</span>
-<span class="source-line-no">409</span><span id="line-409">                        return;</span>
-<span class="source-line-no">410</span><span id="line-410">                    }</span>
-<span class="source-line-no">411</span><span id="line-411">                }</span>
-<span class="source-line-no">412</span><span id="line-412">                logger.log(Level.WARNING,</span>
-<span class="source-line-no">413</span><span id="line-413">                    "(Re)connecting to store failed, retrying.", e);</span>
-<span class="source-line-no">414</span><span id="line-414">                Thread.sleep(5000);</span>
-<span class="source-line-no">415</span><span id="line-415">            }</span>
-<span class="source-line-no">416</span><span id="line-416">        }</span>
-<span class="source-line-no">417</span><span id="line-417"></span>
-<span class="source-line-no">418</span><span id="line-418">        /**</span>
-<span class="source-line-no">419</span><span id="line-419">         * Close the connection to the store.</span>
-<span class="source-line-no">420</span><span id="line-420">         */</span>
-<span class="source-line-no">421</span><span id="line-421">        public void close() {</span>
-<span class="source-line-no">422</span><span id="line-422">            synchronized (this) {</span>
-<span class="source-line-no">423</span><span id="line-423">                if (state == ChannelState.Closing</span>
-<span class="source-line-no">424</span><span id="line-424">                    || state == ChannelState.Closed) {</span>
-<span class="source-line-no">425</span><span id="line-425">                    return;</span>
-<span class="source-line-no">426</span><span id="line-426">                }</span>
-<span class="source-line-no">427</span><span id="line-427">                state = ChannelState.Closing;</span>
-<span class="source-line-no">428</span><span id="line-428">            }</span>
-<span class="source-line-no">429</span><span id="line-429"></span>
-<span class="source-line-no">430</span><span id="line-430">            idleTimer.cancel();</span>
-<span class="source-line-no">431</span><span id="line-431">            try {</span>
-<span class="source-line-no">432</span><span id="line-432">                // Initiate close, callback will inform downstream components.</span>
-<span class="source-line-no">433</span><span id="line-433">                store.close();</span>
-<span class="source-line-no">434</span><span id="line-434">            } catch (MessagingException e) {</span>
-<span class="source-line-no">435</span><span id="line-435">                // According to the documentation, the listeners should</span>
-<span class="source-line-no">436</span><span id="line-436">                // be invoked nevertheless.</span>
-<span class="source-line-no">437</span><span id="line-437">                logger.log(Level.WARNING, "Cannot close connection properly.",</span>
-<span class="source-line-no">438</span><span id="line-438">                    e);</span>
-<span class="source-line-no">439</span><span id="line-439">            }</span>
-<span class="source-line-no">440</span><span id="line-440">        }</span>
-<span class="source-line-no">441</span><span id="line-441"></span>
-<span class="source-line-no">442</span><span id="line-442">        /**</span>
-<span class="source-line-no">443</span><span id="line-443">         * Callback from store.connect is the connection is successful.</span>
-<span class="source-line-no">444</span><span id="line-444">         *</span>
-<span class="source-line-no">445</span><span id="line-445">         * @param event the event</span>
-<span class="source-line-no">446</span><span id="line-446">         */</span>
-<span class="source-line-no">447</span><span id="line-447">        @Override</span>
-<span class="source-line-no">448</span><span id="line-448">        @SuppressWarnings({ "PMD.GuardLogStatement",</span>
-<span class="source-line-no">449</span><span id="line-449">            "PMD.AvoidDuplicateLiterals" })</span>
-<span class="source-line-no">450</span><span id="line-450">        public void opened(ConnectionEvent event) {</span>
-<span class="source-line-no">451</span><span id="line-451">            if (state == ChannelState.Reopened) {</span>
-<span class="source-line-no">452</span><span id="line-452">                // This is a re-open, only retrieve messages.</span>
-<span class="source-line-no">453</span><span id="line-453">                requestPipeline.fire(new RetrieveMessages(), this);</span>
-<span class="source-line-no">454</span><span id="line-454">                return;</span>
-<span class="source-line-no">455</span><span id="line-455">            }</span>
-<span class="source-line-no">456</span><span id="line-456">            // (1) Opening, (2) Opened, (3) start retrieving mails</span>
-<span class="source-line-no">457</span><span id="line-457">            downPipeline().fire(Event.onCompletion(new Opening&lt;Void&gt;(),</span>
-<span class="source-line-no">458</span><span id="line-458">                o -&gt; downPipeline().fire(</span>
-<span class="source-line-no">459</span><span id="line-459">                    Event.onCompletion(</span>
-<span class="source-line-no">460</span><span id="line-460">                        new MailMonitorOpened(openEvent(), store),</span>
-<span class="source-line-no">461</span><span id="line-461">                        p -&gt; requestPipeline</span>
-<span class="source-line-no">462</span><span id="line-462">                            .fire(new RetrieveMessages(), this)),</span>
-<span class="source-line-no">463</span><span id="line-463">                    this)),</span>
-<span class="source-line-no">464</span><span id="line-464">                this);</span>
-<span class="source-line-no">465</span><span id="line-465">        }</span>
-<span class="source-line-no">466</span><span id="line-466"></span>
-<span class="source-line-no">467</span><span id="line-467">        /**</span>
-<span class="source-line-no">468</span><span id="line-468">         * According to the documentation,</span>
-<span class="source-line-no">469</span><span id="line-469">         * {@link ConnectionEvent#DISCONNECTED} is currently not</span>
-<span class="source-line-no">470</span><span id="line-470">         * used. It's implemented nevertheless and called explicitly.</span>
-<span class="source-line-no">471</span><span id="line-471">         *</span>
-<span class="source-line-no">472</span><span id="line-472">         * @param event the event or `null` if called explicitly</span>
-<span class="source-line-no">473</span><span id="line-473">         */</span>
-<span class="source-line-no">474</span><span id="line-474">        @Override</span>
-<span class="source-line-no">475</span><span id="line-475">        public void disconnected(ConnectionEvent event) {</span>
-<span class="source-line-no">476</span><span id="line-476">            synchronized (this) {</span>
-<span class="source-line-no">477</span><span id="line-477">                messages.clear();</span>
-<span class="source-line-no">478</span><span id="line-478">                if (state.isOpen()) {</span>
-<span class="source-line-no">479</span><span id="line-479">                    state = ChannelState.Reopening;</span>
-<span class="source-line-no">480</span><span id="line-480">                    connect(null);</span>
-<span class="source-line-no">481</span><span id="line-481">                }</span>
-<span class="source-line-no">482</span><span id="line-482">            }</span>
-<span class="source-line-no">483</span><span id="line-483">        }</span>
-<span class="source-line-no">484</span><span id="line-484"></span>
-<span class="source-line-no">485</span><span id="line-485">        /**</span>
-<span class="source-line-no">486</span><span id="line-486">         * Callback that indicates the connection close,</span>
-<span class="source-line-no">487</span><span id="line-487">         * can be called any time by jakarta mail.</span>
-<span class="source-line-no">488</span><span id="line-488">         * </span>
-<span class="source-line-no">489</span><span id="line-489">         * Whether closing is intended (callback after a call to </span>
-<span class="source-line-no">490</span><span id="line-490">         * {@link #close}) can be checked by looking at the state. </span>
-<span class="source-line-no">491</span><span id="line-491">         *</span>
-<span class="source-line-no">492</span><span id="line-492">         * @param event the event</span>
-<span class="source-line-no">493</span><span id="line-493">         */</span>
-<span class="source-line-no">494</span><span id="line-494">        @Override</span>
-<span class="source-line-no">495</span><span id="line-495">        public void closed(ConnectionEvent event) {</span>
-<span class="source-line-no">496</span><span id="line-496">            // Ignore if already closed.</span>
-<span class="source-line-no">497</span><span id="line-497">            if (state == ChannelState.Closed) {</span>
-<span class="source-line-no">498</span><span id="line-498">                return;</span>
-<span class="source-line-no">499</span><span id="line-499">            }</span>
-<span class="source-line-no">500</span><span id="line-500"></span>
-<span class="source-line-no">501</span><span id="line-501">            // Handle involuntary close by reopening.</span>
-<span class="source-line-no">502</span><span id="line-502">            if (state != ChannelState.Closing) {</span>
-<span class="source-line-no">503</span><span id="line-503">                disconnected(event);</span>
-<span class="source-line-no">504</span><span id="line-504">                return;</span>
-<span class="source-line-no">505</span><span id="line-505">            }</span>
-<span class="source-line-no">506</span><span id="line-506"></span>
-<span class="source-line-no">507</span><span id="line-507">            // Cleanup and remove channel.</span>
-<span class="source-line-no">508</span><span id="line-508">            synchronized (this) {</span>
-<span class="source-line-no">509</span><span id="line-509">                state = ChannelState.Closed;</span>
-<span class="source-line-no">510</span><span id="line-510">                messages.clear();</span>
+<span class="source-line-no">302</span><span id="line-302">        private final EventPipeline requestPipeline;</span>
+<span class="source-line-no">303</span><span id="line-303">        private ChannelState state = ChannelState.Opening;</span>
+<span class="source-line-no">304</span><span id="line-304">        private final Store store;</span>
+<span class="source-line-no">305</span><span id="line-305">        private final String user;</span>
+<span class="source-line-no">306</span><span id="line-306">        private final Password password;</span>
+<span class="source-line-no">307</span><span id="line-307">        private final String[] subscribed;</span>
+<span class="source-line-no">308</span><span id="line-308">        @SuppressWarnings("PMD.UseConcurrentHashMap")</span>
+<span class="source-line-no">309</span><span id="line-309">        private final Map&lt;String, Folder&gt; folderCache = new HashMap&lt;&gt;();</span>
+<span class="source-line-no">310</span><span id="line-310">        private final Timer idleTimer;</span>
+<span class="source-line-no">311</span><span id="line-311"></span>
+<span class="source-line-no">312</span><span id="line-312">        /**</span>
+<span class="source-line-no">313</span><span id="line-313">         * Instantiates a new monitor channel.</span>
+<span class="source-line-no">314</span><span id="line-314">         *</span>
+<span class="source-line-no">315</span><span id="line-315">         * @param event the event</span>
+<span class="source-line-no">316</span><span id="line-316">         * @param channel the channel</span>
+<span class="source-line-no">317</span><span id="line-317">         * @param store the store</span>
+<span class="source-line-no">318</span><span id="line-318">         * @param password </span>
+<span class="source-line-no">319</span><span id="line-319">         * @param string </span>
+<span class="source-line-no">320</span><span id="line-320">         */</span>
+<span class="source-line-no">321</span><span id="line-321">        public MonitorChannel(OpenMailMonitor event, Channel channel,</span>
+<span class="source-line-no">322</span><span id="line-322">                Store store, String user, Password password) {</span>
+<span class="source-line-no">323</span><span id="line-323">            super(event, channel);</span>
+<span class="source-line-no">324</span><span id="line-324">            this.store = store;</span>
+<span class="source-line-no">325</span><span id="line-325">            this.user = user;</span>
+<span class="source-line-no">326</span><span id="line-326">            this.password = password;</span>
+<span class="source-line-no">327</span><span id="line-327">            this.subscribed = event.folderNames();</span>
+<span class="source-line-no">328</span><span id="line-328">            requestPipeline = event.processedBy().get();</span>
+<span class="source-line-no">329</span><span id="line-329">            store.addConnectionListener(this);</span>
+<span class="source-line-no">330</span><span id="line-330">            idleTimer = Components.schedule(t -&gt; {</span>
+<span class="source-line-no">331</span><span id="line-331">                requestPipeline.fire(new UpdateFolders(), this);</span>
+<span class="source-line-no">332</span><span id="line-332">            }, maxIdleTime);</span>
+<span class="source-line-no">333</span><span id="line-333">            connect(</span>
+<span class="source-line-no">334</span><span id="line-334">                t -&gt; downPipeline().fire(new ConnectError(event, t), channel));</span>
+<span class="source-line-no">335</span><span id="line-335">        }</span>
+<span class="source-line-no">336</span><span id="line-336"></span>
+<span class="source-line-no">337</span><span id="line-337">        /**</span>
+<span class="source-line-no">338</span><span id="line-338">         * Attempt connections until connected. Attempts are stopped</span>
+<span class="source-line-no">339</span><span id="line-339">         * if it is the first time that the connection is to be</span>
+<span class="source-line-no">340</span><span id="line-340">         * established and the error indicates that the connection</span>
+<span class="source-line-no">341</span><span id="line-341">         * will never succeed (e.g. due to an authentication</span>
+<span class="source-line-no">342</span><span id="line-342">         * problem).</span>
+<span class="source-line-no">343</span><span id="line-343">         *</span>
+<span class="source-line-no">344</span><span id="line-344">         * @param onOpenFailed the on open failed</span>
+<span class="source-line-no">345</span><span id="line-345">         */</span>
+<span class="source-line-no">346</span><span id="line-346">        private void connect(Consumer&lt;Throwable&gt; onOpenFailed) {</span>
+<span class="source-line-no">347</span><span id="line-347">            synchronized (this) {</span>
+<span class="source-line-no">348</span><span id="line-348">                if (state.isOpen()) {</span>
+<span class="source-line-no">349</span><span id="line-349">                    return;</span>
+<span class="source-line-no">350</span><span id="line-350">                }</span>
+<span class="source-line-no">351</span><span id="line-351">                activeEventPipeline().executorService().submit(() -&gt; {</span>
+<span class="source-line-no">352</span><span id="line-352">                    while (state.isOpening()) {</span>
+<span class="source-line-no">353</span><span id="line-353">                        try {</span>
+<span class="source-line-no">354</span><span id="line-354">                            attemptConnect(onOpenFailed);</span>
+<span class="source-line-no">355</span><span id="line-355">                        } catch (InterruptedException e) {</span>
+<span class="source-line-no">356</span><span id="line-356">                            break;</span>
+<span class="source-line-no">357</span><span id="line-357">                        }</span>
+<span class="source-line-no">358</span><span id="line-358">                    }</span>
+<span class="source-line-no">359</span><span id="line-359">                });</span>
+<span class="source-line-no">360</span><span id="line-360">            }</span>
+<span class="source-line-no">361</span><span id="line-361">        }</span>
+<span class="source-line-no">362</span><span id="line-362"></span>
+<span class="source-line-no">363</span><span id="line-363">        /**</span>
+<span class="source-line-no">364</span><span id="line-364">         * Single connection attempt.</span>
+<span class="source-line-no">365</span><span id="line-365">         *</span>
+<span class="source-line-no">366</span><span id="line-366">         * @param onOpenFailed the on open failed</span>
+<span class="source-line-no">367</span><span id="line-367">         * @throws InterruptedException the interrupted exception</span>
+<span class="source-line-no">368</span><span id="line-368">         */</span>
+<span class="source-line-no">369</span><span id="line-369">        @SuppressWarnings("PMD.AvoidInstanceofChecksInCatchClause")</span>
+<span class="source-line-no">370</span><span id="line-370">        private void attemptConnect(Consumer&lt;Throwable&gt; onOpenFailed)</span>
+<span class="source-line-no">371</span><span id="line-371">                throws InterruptedException {</span>
+<span class="source-line-no">372</span><span id="line-372">            try {</span>
+<span class="source-line-no">373</span><span id="line-373">                store.connect(user, new String(password.password()));</span>
+<span class="source-line-no">374</span><span id="line-374">                synchronized (this) {</span>
+<span class="source-line-no">375</span><span id="line-375">                    if (state == ChannelState.Opening) {</span>
+<span class="source-line-no">376</span><span id="line-376">                        state = ChannelState.Open;</span>
+<span class="source-line-no">377</span><span id="line-377">                    } else {</span>
+<span class="source-line-no">378</span><span id="line-378">                        state = ChannelState.Reopened;</span>
+<span class="source-line-no">379</span><span id="line-379">                        // Already registered</span>
+<span class="source-line-no">380</span><span id="line-380">                        return;</span>
+<span class="source-line-no">381</span><span id="line-381">                    }</span>
+<span class="source-line-no">382</span><span id="line-382">                }</span>
+<span class="source-line-no">383</span><span id="line-383">                // Works "in general", register.</span>
+<span class="source-line-no">384</span><span id="line-384">                synchronized (channels) {</span>
+<span class="source-line-no">385</span><span id="line-385">                    if (channels.isEmpty()) {</span>
+<span class="source-line-no">386</span><span id="line-386">                        registerAsGenerator();</span>
+<span class="source-line-no">387</span><span id="line-387">                    }</span>
+<span class="source-line-no">388</span><span id="line-388">                    channels.add(this);</span>
+<span class="source-line-no">389</span><span id="line-389">                }</span>
+<span class="source-line-no">390</span><span id="line-390">            } catch (MessagingException e) {</span>
+<span class="source-line-no">391</span><span id="line-391">                synchronized (this) {</span>
+<span class="source-line-no">392</span><span id="line-392">                    if (state == ChannelState.Opening</span>
+<span class="source-line-no">393</span><span id="line-393">                        &amp;&amp; (e instanceof AuthenticationFailedException</span>
+<span class="source-line-no">394</span><span id="line-394">                            || e instanceof NoSuchProviderException)) {</span>
+<span class="source-line-no">395</span><span id="line-395">                        logger.log(Level.WARNING,</span>
+<span class="source-line-no">396</span><span id="line-396">                            "Connecting to store failed, closing.", e);</span>
+<span class="source-line-no">397</span><span id="line-397">                        state = ChannelState.Closed;</span>
+<span class="source-line-no">398</span><span id="line-398">                        if (onOpenFailed != null) {</span>
+<span class="source-line-no">399</span><span id="line-399">                            onOpenFailed.accept(e);</span>
+<span class="source-line-no">400</span><span id="line-400">                        }</span>
+<span class="source-line-no">401</span><span id="line-401">                        return;</span>
+<span class="source-line-no">402</span><span id="line-402">                    }</span>
+<span class="source-line-no">403</span><span id="line-403">                }</span>
+<span class="source-line-no">404</span><span id="line-404">                logger.log(Level.WARNING,</span>
+<span class="source-line-no">405</span><span id="line-405">                    "(Re)connecting to store failed, retrying.", e);</span>
+<span class="source-line-no">406</span><span id="line-406">                Thread.sleep(5000);</span>
+<span class="source-line-no">407</span><span id="line-407">            }</span>
+<span class="source-line-no">408</span><span id="line-408">        }</span>
+<span class="source-line-no">409</span><span id="line-409"></span>
+<span class="source-line-no">410</span><span id="line-410">        /**</span>
+<span class="source-line-no">411</span><span id="line-411">         * Close the connection to the store.</span>
+<span class="source-line-no">412</span><span id="line-412">         */</span>
+<span class="source-line-no">413</span><span id="line-413">        public void close() {</span>
+<span class="source-line-no">414</span><span id="line-414">            synchronized (this) {</span>
+<span class="source-line-no">415</span><span id="line-415">                if (state == ChannelState.Closing</span>
+<span class="source-line-no">416</span><span id="line-416">                    || state == ChannelState.Closed) {</span>
+<span class="source-line-no">417</span><span id="line-417">                    return;</span>
+<span class="source-line-no">418</span><span id="line-418">                }</span>
+<span class="source-line-no">419</span><span id="line-419">                state = ChannelState.Closing;</span>
+<span class="source-line-no">420</span><span id="line-420">            }</span>
+<span class="source-line-no">421</span><span id="line-421"></span>
+<span class="source-line-no">422</span><span id="line-422">            idleTimer.cancel();</span>
+<span class="source-line-no">423</span><span id="line-423">            try {</span>
+<span class="source-line-no">424</span><span id="line-424">                // Initiate close, callback will inform downstream components.</span>
+<span class="source-line-no">425</span><span id="line-425">                store.close();</span>
+<span class="source-line-no">426</span><span id="line-426">            } catch (MessagingException e) {</span>
+<span class="source-line-no">427</span><span id="line-427">                // According to the documentation, the listeners should</span>
+<span class="source-line-no">428</span><span id="line-428">                // be invoked nevertheless.</span>
+<span class="source-line-no">429</span><span id="line-429">                logger.log(Level.WARNING, "Cannot close connection properly.",</span>
+<span class="source-line-no">430</span><span id="line-430">                    e);</span>
+<span class="source-line-no">431</span><span id="line-431">            }</span>
+<span class="source-line-no">432</span><span id="line-432">        }</span>
+<span class="source-line-no">433</span><span id="line-433"></span>
+<span class="source-line-no">434</span><span id="line-434">        /**</span>
+<span class="source-line-no">435</span><span id="line-435">         * Callback from store.connect is the connection is successful.</span>
+<span class="source-line-no">436</span><span id="line-436">         *</span>
+<span class="source-line-no">437</span><span id="line-437">         * @param event the event</span>
+<span class="source-line-no">438</span><span id="line-438">         */</span>
+<span class="source-line-no">439</span><span id="line-439">        @Override</span>
+<span class="source-line-no">440</span><span id="line-440">        @SuppressWarnings({ "PMD.GuardLogStatement",</span>
+<span class="source-line-no">441</span><span id="line-441">            "PMD.AvoidDuplicateLiterals" })</span>
+<span class="source-line-no">442</span><span id="line-442">        public void opened(ConnectionEvent event) {</span>
+<span class="source-line-no">443</span><span id="line-443">            folderCache.clear();</span>
+<span class="source-line-no">444</span><span id="line-444">            if (state == ChannelState.Reopened) {</span>
+<span class="source-line-no">445</span><span id="line-445">                // This is a re-open, only retrieve messages.</span>
+<span class="source-line-no">446</span><span id="line-446">                requestPipeline.fire(new UpdateFolders(), this);</span>
+<span class="source-line-no">447</span><span id="line-447">                return;</span>
+<span class="source-line-no">448</span><span id="line-448">            }</span>
+<span class="source-line-no">449</span><span id="line-449">            // (1) Opening, (2) Opened, (3) start retrieving mails</span>
+<span class="source-line-no">450</span><span id="line-450">            downPipeline().fire(Event.onCompletion(new Opening&lt;Void&gt;(),</span>
+<span class="source-line-no">451</span><span id="line-451">                o -&gt; downPipeline().fire(</span>
+<span class="source-line-no">452</span><span id="line-452">                    Event.onCompletion(</span>
+<span class="source-line-no">453</span><span id="line-453">                        new MailMonitorOpened(openEvent(), store),</span>
+<span class="source-line-no">454</span><span id="line-454">                        p -&gt; requestPipeline</span>
+<span class="source-line-no">455</span><span id="line-455">                            .fire(new UpdateFolders(), this)),</span>
+<span class="source-line-no">456</span><span id="line-456">                    this)),</span>
+<span class="source-line-no">457</span><span id="line-457">                this);</span>
+<span class="source-line-no">458</span><span id="line-458">        }</span>
+<span class="source-line-no">459</span><span id="line-459"></span>
+<span class="source-line-no">460</span><span id="line-460">        /**</span>
+<span class="source-line-no">461</span><span id="line-461">         * According to the documentation,</span>
+<span class="source-line-no">462</span><span id="line-462">         * {@link ConnectionEvent#DISCONNECTED} is currently not</span>
+<span class="source-line-no">463</span><span id="line-463">         * used. It's implemented nevertheless and called explicitly.</span>
+<span class="source-line-no">464</span><span id="line-464">         *</span>
+<span class="source-line-no">465</span><span id="line-465">         * @param event the event or `null` if called explicitly</span>
+<span class="source-line-no">466</span><span id="line-466">         */</span>
+<span class="source-line-no">467</span><span id="line-467">        @Override</span>
+<span class="source-line-no">468</span><span id="line-468">        public void disconnected(ConnectionEvent event) {</span>
+<span class="source-line-no">469</span><span id="line-469">            synchronized (this) {</span>
+<span class="source-line-no">470</span><span id="line-470">                folderCache.clear();</span>
+<span class="source-line-no">471</span><span id="line-471">                if (state.isOpen()) {</span>
+<span class="source-line-no">472</span><span id="line-472">                    state = ChannelState.Reopening;</span>
+<span class="source-line-no">473</span><span id="line-473">                    connect(null);</span>
+<span class="source-line-no">474</span><span id="line-474">                }</span>
+<span class="source-line-no">475</span><span id="line-475">            }</span>
+<span class="source-line-no">476</span><span id="line-476">        }</span>
+<span class="source-line-no">477</span><span id="line-477"></span>
+<span class="source-line-no">478</span><span id="line-478">        /**</span>
+<span class="source-line-no">479</span><span id="line-479">         * Callback that indicates the connection close,</span>
+<span class="source-line-no">480</span><span id="line-480">         * can be called any time by jakarta mail.</span>
+<span class="source-line-no">481</span><span id="line-481">         * </span>
+<span class="source-line-no">482</span><span id="line-482">         * Whether closing is intended (callback after a call to </span>
+<span class="source-line-no">483</span><span id="line-483">         * {@link #close}) can be checked by looking at the state. </span>
+<span class="source-line-no">484</span><span id="line-484">         *</span>
+<span class="source-line-no">485</span><span id="line-485">         * @param event the event</span>
+<span class="source-line-no">486</span><span id="line-486">         */</span>
+<span class="source-line-no">487</span><span id="line-487">        @Override</span>
+<span class="source-line-no">488</span><span id="line-488">        public void closed(ConnectionEvent event) {</span>
+<span class="source-line-no">489</span><span id="line-489">            // Ignore if already closed.</span>
+<span class="source-line-no">490</span><span id="line-490">            if (state == ChannelState.Closed) {</span>
+<span class="source-line-no">491</span><span id="line-491">                return;</span>
+<span class="source-line-no">492</span><span id="line-492">            }</span>
+<span class="source-line-no">493</span><span id="line-493"></span>
+<span class="source-line-no">494</span><span id="line-494">            // Handle involuntary close by reopening.</span>
+<span class="source-line-no">495</span><span id="line-495">            if (state != ChannelState.Closing) {</span>
+<span class="source-line-no">496</span><span id="line-496">                disconnected(event);</span>
+<span class="source-line-no">497</span><span id="line-497">                return;</span>
+<span class="source-line-no">498</span><span id="line-498">            }</span>
+<span class="source-line-no">499</span><span id="line-499"></span>
+<span class="source-line-no">500</span><span id="line-500">            // Cleanup and remove channel.</span>
+<span class="source-line-no">501</span><span id="line-501">            synchronized (this) {</span>
+<span class="source-line-no">502</span><span id="line-502">                state = ChannelState.Closed;</span>
+<span class="source-line-no">503</span><span id="line-503">                folderCache.clear();</span>
+<span class="source-line-no">504</span><span id="line-504">            }</span>
+<span class="source-line-no">505</span><span id="line-505">            downPipeline().fire(new Closed());</span>
+<span class="source-line-no">506</span><span id="line-506">            synchronized (channels) {</span>
+<span class="source-line-no">507</span><span id="line-507">                channels.remove(this);</span>
+<span class="source-line-no">508</span><span id="line-508">                if (channels.isEmpty()) {</span>
+<span class="source-line-no">509</span><span id="line-509">                    unregisterAsGenerator();</span>
+<span class="source-line-no">510</span><span id="line-510">                }</span>
 <span class="source-line-no">511</span><span id="line-511">            }</span>
-<span class="source-line-no">512</span><span id="line-512">            downPipeline().fire(new Closed());</span>
-<span class="source-line-no">513</span><span id="line-513">            synchronized (channels) {</span>
-<span class="source-line-no">514</span><span id="line-514">                channels.remove(this);</span>
-<span class="source-line-no">515</span><span id="line-515">                if (channels.isEmpty()) {</span>
-<span class="source-line-no">516</span><span id="line-516">                    unregisterAsGenerator();</span>
-<span class="source-line-no">517</span><span id="line-517">                }</span>
-<span class="source-line-no">518</span><span id="line-518">            }</span>
-<span class="source-line-no">519</span><span id="line-519">        }</span>
-<span class="source-line-no">520</span><span id="line-520"></span>
-<span class="source-line-no">521</span><span id="line-521">        /**</span>
-<span class="source-line-no">522</span><span id="line-522">         * Retrieve the new messages from the folders specified in the</span>
-<span class="source-line-no">523</span><span id="line-523">         * event.</span>
-<span class="source-line-no">524</span><span id="line-524">         * </span>
-<span class="source-line-no">525</span><span id="line-525">         * @param event</span>
-<span class="source-line-no">526</span><span id="line-526">         */</span>
-<span class="source-line-no">527</span><span id="line-527">        @SuppressWarnings({ "PMD.CognitiveComplexity",</span>
-<span class="source-line-no">528</span><span id="line-528">            "PMD.AvoidInstantiatingObjectsInLoops",</span>
-<span class="source-line-no">529</span><span id="line-529">            "PMD.AvoidDuplicateLiterals" })</span>
-<span class="source-line-no">530</span><span id="line-530">        public void retrieveMessages(RetrieveMessages event) {</span>
-<span class="source-line-no">531</span><span id="line-531">            @SuppressWarnings("PMD.UseConcurrentHashMap")</span>
-<span class="source-line-no">532</span><span id="line-532">            Map&lt;String, List&lt;Message&gt;&gt; allMsgs = new HashMap&lt;&gt;();</span>
-<span class="source-line-no">533</span><span id="line-533">            List&lt;Message&gt; newMsgs = new ArrayList&lt;&gt;();</span>
-<span class="source-line-no">534</span><span id="line-534">            if (store.isConnected()) {</span>
-<span class="source-line-no">535</span><span id="line-535">                Set&lt;String&gt; folderNames</span>
-<span class="source-line-no">536</span><span id="line-536">                    = new HashSet&lt;&gt;(Arrays.asList(subscribed));</span>
-<span class="source-line-no">537</span><span id="line-537">                if (event.folderNames().length &gt; 0) {</span>
-<span class="source-line-no">538</span><span id="line-538">                    folderNames.retainAll(Arrays.asList(event.folderNames()));</span>
-<span class="source-line-no">539</span><span id="line-539">                }</span>
-<span class="source-line-no">540</span><span id="line-540">                try {</span>
-<span class="source-line-no">541</span><span id="line-541">                    for (var folderName : folderNames) {</span>
-<span class="source-line-no">542</span><span id="line-542">                        Folder folder = folderFromStore(folderName);</span>
-<span class="source-line-no">543</span><span id="line-543">                        if (folder == null) {</span>
-<span class="source-line-no">544</span><span id="line-544">                            continue;</span>
-<span class="source-line-no">545</span><span id="line-545">                        }</span>
-<span class="source-line-no">546</span><span id="line-546">                        scanFolder(folder, newMsgs);</span>
-<span class="source-line-no">547</span><span id="line-547">                        allMsgs.put(folder.getFullName(), new ArrayList&lt;&gt;(</span>
-<span class="source-line-no">548</span><span id="line-548">                            messages.get(folder.getFullName()).values()));</span>
-<span class="source-line-no">549</span><span id="line-549">                    }</span>
-<span class="source-line-no">550</span><span id="line-550">                } catch (FolderClosedException e) {</span>
-<span class="source-line-no">551</span><span id="line-551">                    disconnected(null);</span>
-<span class="source-line-no">552</span><span id="line-552">                }</span>
-<span class="source-line-no">553</span><span id="line-553">            } else {</span>
-<span class="source-line-no">554</span><span id="line-554">                disconnected(null);</span>
-<span class="source-line-no">555</span><span id="line-555">            }</span>
-<span class="source-line-no">556</span><span id="line-556">            event.setResult(allMsgs);</span>
-<span class="source-line-no">557</span><span id="line-557">            Event.onCompletion(event, e -&gt; downPipeline().fire(Event</span>
-<span class="source-line-no">558</span><span id="line-558">                .onCompletion(new MessagesRetrieved(allMsgs, newMsgs),</span>
-<span class="source-line-no">559</span><span id="line-559">                    evt -&gt; refreshWatches(evt)),</span>
-<span class="source-line-no">560</span><span id="line-560">                this));</span>
-<span class="source-line-no">561</span><span id="line-561">        }</span>
-<span class="source-line-no">562</span><span id="line-562"></span>
-<span class="source-line-no">563</span><span id="line-563">        @SuppressWarnings({ "PMD.GuardLogStatement",</span>
-<span class="source-line-no">564</span><span id="line-564">            "PMD.AvoidRethrowingException" })</span>
-<span class="source-line-no">565</span><span id="line-565">        private Folder folderFromStore(String folderName)</span>
-<span class="source-line-no">566</span><span id="line-566">                throws FolderClosedException {</span>
-<span class="source-line-no">567</span><span id="line-567">            try {</span>
-<span class="source-line-no">568</span><span id="line-568">                Folder folder = store.getFolder(folderName);</span>
-<span class="source-line-no">569</span><span id="line-569">                if (folder == null || !folder.exists()) {</span>
-<span class="source-line-no">570</span><span id="line-570">                    logger.fine(() -&gt; "No folder \"" + folderName</span>
-<span class="source-line-no">571</span><span id="line-571">                        + "\" in store " + store);</span>
-<span class="source-line-no">572</span><span id="line-572">                    return null;</span>
-<span class="source-line-no">573</span><span id="line-573">                }</span>
-<span class="source-line-no">574</span><span id="line-574">                folder.open(Folder.READ_WRITE);</span>
-<span class="source-line-no">575</span><span id="line-575">                // Add MessageCountListener to listen for new messages.</span>
-<span class="source-line-no">576</span><span id="line-576">                folder.addMessageCountListener(new MessageCountAdapter() {</span>
-<span class="source-line-no">577</span><span id="line-577">                    @Override</span>
-<span class="source-line-no">578</span><span id="line-578">                    public void messagesAdded(MessageCountEvent countEvent) {</span>
-<span class="source-line-no">579</span><span id="line-579">                        retrievals.submit("UpdateFolder",</span>
-<span class="source-line-no">580</span><span id="line-580">                            () -&gt; updateFolders(countEvent));</span>
-<span class="source-line-no">581</span><span id="line-581">                    }</span>
-<span class="source-line-no">582</span><span id="line-582"></span>
-<span class="source-line-no">583</span><span id="line-583">                    @Override</span>
-<span class="source-line-no">584</span><span id="line-584">                    public void messagesRemoved(MessageCountEvent countEvent) {</span>
-<span class="source-line-no">585</span><span id="line-585">                        retrievals.submit("UpdateFolder",</span>
-<span class="source-line-no">586</span><span id="line-586">                            () -&gt; updateFolders(countEvent));</span>
-<span class="source-line-no">587</span><span id="line-587">                    }</span>
-<span class="source-line-no">588</span><span id="line-588">                });</span>
-<span class="source-line-no">589</span><span id="line-589">                return folder;</span>
-<span class="source-line-no">590</span><span id="line-590">            } catch (FolderClosedException e) {</span>
-<span class="source-line-no">591</span><span id="line-591">                throw e;</span>
-<span class="source-line-no">592</span><span id="line-592">            } catch (MessagingException e) {</span>
-<span class="source-line-no">593</span><span id="line-593">                logger.log(Level.FINE,</span>
-<span class="source-line-no">594</span><span id="line-594">                    "Cannot open folder: " + e.getMessage(), e);</span>
+<span class="source-line-no">512</span><span id="line-512">        }</span>
+<span class="source-line-no">513</span><span id="line-513"></span>
+<span class="source-line-no">514</span><span id="line-514">        /**</span>
+<span class="source-line-no">515</span><span id="line-515">         * Retrieve the new messages from the folders specified in the</span>
+<span class="source-line-no">516</span><span id="line-516">         * event.</span>
+<span class="source-line-no">517</span><span id="line-517">         * </span>
+<span class="source-line-no">518</span><span id="line-518">         * @param event</span>
+<span class="source-line-no">519</span><span id="line-519">         */</span>
+<span class="source-line-no">520</span><span id="line-520">        @SuppressWarnings({ "PMD.CognitiveComplexity",</span>
+<span class="source-line-no">521</span><span id="line-521">            "PMD.AvoidInstantiatingObjectsInLoops",</span>
+<span class="source-line-no">522</span><span id="line-522">            "PMD.AvoidDuplicateLiterals" })</span>
+<span class="source-line-no">523</span><span id="line-523">        public void onUpdateFolders(UpdateFolders event) {</span>
+<span class="source-line-no">524</span><span id="line-524">            List&lt;Folder&gt; folders = new ArrayList&lt;&gt;();</span>
+<span class="source-line-no">525</span><span id="line-525">            List&lt;Message&gt; newMsgs = new ArrayList&lt;&gt;();</span>
+<span class="source-line-no">526</span><span id="line-526">            if (store.isConnected()) {</span>
+<span class="source-line-no">527</span><span id="line-527">                Set&lt;String&gt; folderNames</span>
+<span class="source-line-no">528</span><span id="line-528">                    = new HashSet&lt;&gt;(Arrays.asList(subscribed));</span>
+<span class="source-line-no">529</span><span id="line-529">                if (event.folderNames().length &gt; 0) {</span>
+<span class="source-line-no">530</span><span id="line-530">                    folderNames.retainAll(Arrays.asList(event.folderNames()));</span>
+<span class="source-line-no">531</span><span id="line-531">                }</span>
+<span class="source-line-no">532</span><span id="line-532">                try {</span>
+<span class="source-line-no">533</span><span id="line-533">                    for (var folderName : folderNames) {</span>
+<span class="source-line-no">534</span><span id="line-534">                        Folder folder = getFolder(folderName);</span>
+<span class="source-line-no">535</span><span id="line-535">                        if (folder == null) {</span>
+<span class="source-line-no">536</span><span id="line-536">                            continue;</span>
+<span class="source-line-no">537</span><span id="line-537">                        }</span>
+<span class="source-line-no">538</span><span id="line-538">                        folders.add(folder);</span>
+<span class="source-line-no">539</span><span id="line-539">                    }</span>
+<span class="source-line-no">540</span><span id="line-540">                } catch (FolderClosedException e) {</span>
+<span class="source-line-no">541</span><span id="line-541">                    disconnected(null);</span>
+<span class="source-line-no">542</span><span id="line-542">                }</span>
+<span class="source-line-no">543</span><span id="line-543">            } else {</span>
+<span class="source-line-no">544</span><span id="line-544">                disconnected(null);</span>
+<span class="source-line-no">545</span><span id="line-545">            }</span>
+<span class="source-line-no">546</span><span id="line-546">            event.setResult(folders);</span>
+<span class="source-line-no">547</span><span id="line-547">            Event.onCompletion(event, e -&gt; downPipeline().fire(Event</span>
+<span class="source-line-no">548</span><span id="line-548">                .onCompletion(new FoldersUpdated(folders, newMsgs),</span>
+<span class="source-line-no">549</span><span id="line-549">                    evt -&gt; refreshWatches(evt)),</span>
+<span class="source-line-no">550</span><span id="line-550">                this));</span>
+<span class="source-line-no">551</span><span id="line-551">        }</span>
+<span class="source-line-no">552</span><span id="line-552"></span>
+<span class="source-line-no">553</span><span id="line-553">        @SuppressWarnings({ "PMD.GuardLogStatement",</span>
+<span class="source-line-no">554</span><span id="line-554">            "PMD.AvoidRethrowingException" })</span>
+<span class="source-line-no">555</span><span id="line-555">        private Folder getFolder(String folderName)</span>
+<span class="source-line-no">556</span><span id="line-556">                throws FolderClosedException {</span>
+<span class="source-line-no">557</span><span id="line-557">            synchronized (folderCache) {</span>
+<span class="source-line-no">558</span><span id="line-558">                Folder folder = folderCache.get(folderName);</span>
+<span class="source-line-no">559</span><span id="line-559">                if (folder != null) {</span>
+<span class="source-line-no">560</span><span id="line-560">                    return folder;</span>
+<span class="source-line-no">561</span><span id="line-561">                }</span>
+<span class="source-line-no">562</span><span id="line-562">                try {</span>
+<span class="source-line-no">563</span><span id="line-563">                    folder = store.getFolder(folderName);</span>
+<span class="source-line-no">564</span><span id="line-564">                    if (folder == null || !folder.exists()) {</span>
+<span class="source-line-no">565</span><span id="line-565">                        logger.fine(() -&gt; "No folder \"" + folderName</span>
+<span class="source-line-no">566</span><span id="line-566">                            + "\" in store " + store);</span>
+<span class="source-line-no">567</span><span id="line-567">                        return null;</span>
+<span class="source-line-no">568</span><span id="line-568">                    }</span>
+<span class="source-line-no">569</span><span id="line-569">                    folder.open(Folder.READ_WRITE);</span>
+<span class="source-line-no">570</span><span id="line-570">                    folderCache.put(folderName, folder);</span>
+<span class="source-line-no">571</span><span id="line-571">                    // Add MessageCountListener to listen for new messages.</span>
+<span class="source-line-no">572</span><span id="line-572">                    folder.addMessageCountListener(new MessageCountAdapter() {</span>
+<span class="source-line-no">573</span><span id="line-573">                        @Override</span>
+<span class="source-line-no">574</span><span id="line-574">                        public void</span>
+<span class="source-line-no">575</span><span id="line-575">                                messagesAdded(MessageCountEvent countEvent) {</span>
+<span class="source-line-no">576</span><span id="line-576">                            retrievals.submit("UpdateFolder",</span>
+<span class="source-line-no">577</span><span id="line-577">                                () -&gt; updateFolders(countEvent));</span>
+<span class="source-line-no">578</span><span id="line-578">                        }</span>
+<span class="source-line-no">579</span><span id="line-579"></span>
+<span class="source-line-no">580</span><span id="line-580">                        @Override</span>
+<span class="source-line-no">581</span><span id="line-581">                        public void</span>
+<span class="source-line-no">582</span><span id="line-582">                                messagesRemoved(MessageCountEvent countEvent) {</span>
+<span class="source-line-no">583</span><span id="line-583">                            retrievals.submit("UpdateFolder",</span>
+<span class="source-line-no">584</span><span id="line-584">                                () -&gt; updateFolders(countEvent));</span>
+<span class="source-line-no">585</span><span id="line-585">                        }</span>
+<span class="source-line-no">586</span><span id="line-586">                    });</span>
+<span class="source-line-no">587</span><span id="line-587">                    return folder;</span>
+<span class="source-line-no">588</span><span id="line-588">                } catch (FolderClosedException e) {</span>
+<span class="source-line-no">589</span><span id="line-589">                    throw e;</span>
+<span class="source-line-no">590</span><span id="line-590">                } catch (MessagingException e) {</span>
+<span class="source-line-no">591</span><span id="line-591">                    logger.log(Level.FINE,</span>
+<span class="source-line-no">592</span><span id="line-592">                        "Cannot open folder: " + e.getMessage(), e);</span>
+<span class="source-line-no">593</span><span id="line-593">                }</span>
+<span class="source-line-no">594</span><span id="line-594">                return null;</span>
 <span class="source-line-no">595</span><span id="line-595">            }</span>
-<span class="source-line-no">596</span><span id="line-596">            return null;</span>
-<span class="source-line-no">597</span><span id="line-597">        }</span>
-<span class="source-line-no">598</span><span id="line-598"></span>
-<span class="source-line-no">599</span><span id="line-599">        @SuppressWarnings({ "PMD.GuardLogStatement",</span>
-<span class="source-line-no">600</span><span id="line-600">            "PMD.AvoidRethrowingException" })</span>
-<span class="source-line-no">601</span><span id="line-601">        private void scanFolder(Folder folder, List&lt;Message&gt; newMessages)</span>
-<span class="source-line-no">602</span><span id="line-602">                throws FolderClosedException {</span>
-<span class="source-line-no">603</span><span id="line-603">            TreeMap&lt;Long, Message&gt; folderCache = messages</span>
-<span class="source-line-no">604</span><span id="line-604">                .computeIfAbsent(folder.getFullName(), k -&gt; new TreeMap&lt;&gt;());</span>
-<span class="source-line-no">605</span><span id="line-605">            try {</span>
-<span class="source-line-no">606</span><span id="line-606">                synchronized (folderCache) {</span>
-<span class="source-line-no">607</span><span id="line-607">                    Set&lt;Long&gt; found = new HashSet&lt;&gt;();</span>
-<span class="source-line-no">608</span><span id="line-608">                    for (var msg : folder.getMessages()) {</span>
-<span class="source-line-no">609</span><span id="line-609">                        if (msg.getFlags().contains(Flag.DELETED)) {</span>
-<span class="source-line-no">610</span><span id="line-610">                            continue;</span>
-<span class="source-line-no">611</span><span id="line-611">                        }</span>
-<span class="source-line-no">612</span><span id="line-612">                        long msgUid = ((UIDFolder) folder).getUID(msg);</span>
-<span class="source-line-no">613</span><span id="line-613">                        found.add(msgUid);</span>
-<span class="source-line-no">614</span><span id="line-614">                        if (!folderCache.containsKey(msgUid)) {</span>
-<span class="source-line-no">615</span><span id="line-615">                            // New message.</span>
-<span class="source-line-no">616</span><span id="line-616">                            newMessages.add(msg);</span>
-<span class="source-line-no">617</span><span id="line-617">                            folderCache.put(msgUid, msg);</span>
-<span class="source-line-no">618</span><span id="line-618">                        }</span>
-<span class="source-line-no">619</span><span id="line-619">                    }</span>
-<span class="source-line-no">620</span><span id="line-620">                    // Remove from cache messages that haven't been found again.</span>
-<span class="source-line-no">621</span><span id="line-621">                    for (var itr = folderCache.entrySet().iterator();</span>
-<span class="source-line-no">622</span><span id="line-622">                            itr.hasNext();) {</span>
-<span class="source-line-no">623</span><span id="line-623">                        var entry = itr.next();</span>
-<span class="source-line-no">624</span><span id="line-624">                        if (!found.contains(entry.getKey())) {</span>
-<span class="source-line-no">625</span><span id="line-625">                            itr.remove();</span>
-<span class="source-line-no">626</span><span id="line-626">                        }</span>
-<span class="source-line-no">627</span><span id="line-627">                    }</span>
-<span class="source-line-no">628</span><span id="line-628">                }</span>
-<span class="source-line-no">629</span><span id="line-629">            } catch (FolderClosedException e) {</span>
-<span class="source-line-no">630</span><span id="line-630">                throw e;</span>
-<span class="source-line-no">631</span><span id="line-631">            } catch (MessagingException e) {</span>
-<span class="source-line-no">632</span><span id="line-632">                logger.log(Level.WARNING,</span>
-<span class="source-line-no">633</span><span id="line-633">                    "Problem processing messages: " + e.getMessage(), e);</span>
-<span class="source-line-no">634</span><span id="line-634">            }</span>
-<span class="source-line-no">635</span><span id="line-635">        }</span>
+<span class="source-line-no">596</span><span id="line-596">        }</span>
+<span class="source-line-no">597</span><span id="line-597"></span>
+<span class="source-line-no">598</span><span id="line-598">        @SuppressWarnings({ "PMD.AvoidInstantiatingObjectsInLoops",</span>
+<span class="source-line-no">599</span><span id="line-599">            "PMD.GuardLogStatement" })</span>
+<span class="source-line-no">600</span><span id="line-600">        private void updateFolders(MessageCountEvent event) {</span>
+<span class="source-line-no">601</span><span id="line-601">            List&lt;Message&gt; newMsgs = new ArrayList&lt;&gt;();</span>
+<span class="source-line-no">602</span><span id="line-602">            if (event.getType() == MessageCountEvent.ADDED) {</span>
+<span class="source-line-no">603</span><span id="line-603">                newMsgs.addAll(Arrays.asList(event.getMessages()));</span>
+<span class="source-line-no">604</span><span id="line-604">            } else if (event.getType() != MessageCountEvent.REMOVED) {</span>
+<span class="source-line-no">605</span><span id="line-605">                return;</span>
+<span class="source-line-no">606</span><span id="line-606">            }</span>
+<span class="source-line-no">607</span><span id="line-607">            downPipeline().fire(</span>
+<span class="source-line-no">608</span><span id="line-608">                Event.onCompletion(</span>
+<span class="source-line-no">609</span><span id="line-609">                    new FoldersUpdated(new ArrayList&lt;&gt;(folderCache.values()),</span>
+<span class="source-line-no">610</span><span id="line-610">                        newMsgs),</span>
+<span class="source-line-no">611</span><span id="line-611">                    evt -&gt; refreshWatches(evt)),</span>
+<span class="source-line-no">612</span><span id="line-612">                this);</span>
+<span class="source-line-no">613</span><span id="line-613">        }</span>
+<span class="source-line-no">614</span><span id="line-614"></span>
+<span class="source-line-no">615</span><span id="line-615">        /**</span>
+<span class="source-line-no">616</span><span id="line-616">         * Registers the folders from which messages have been received</span>
+<span class="source-line-no">617</span><span id="line-617">         * with the {@link IdleManager}.</span>
+<span class="source-line-no">618</span><span id="line-618">         *</span>
+<span class="source-line-no">619</span><span id="line-619">         * @param event the event</span>
+<span class="source-line-no">620</span><span id="line-620">         */</span>
+<span class="source-line-no">621</span><span id="line-621">        private void refreshWatches(FoldersUpdated event) {</span>
+<span class="source-line-no">622</span><span id="line-622">            if (!state.isOpen()) {</span>
+<span class="source-line-no">623</span><span id="line-623">                return;</span>
+<span class="source-line-no">624</span><span id="line-624">            }</span>
+<span class="source-line-no">625</span><span id="line-625">            for (Folder folder : event.folders()) {</span>
+<span class="source-line-no">626</span><span id="line-626">                try {</span>
+<span class="source-line-no">627</span><span id="line-627">                    idleManager.watch(getFolder(folder.getFullName()));</span>
+<span class="source-line-no">628</span><span id="line-628">                } catch (MessagingException e) {</span>
+<span class="source-line-no">629</span><span id="line-629">                    logger.log(Level.WARNING, "Cannot watch folder.",</span>
+<span class="source-line-no">630</span><span id="line-630">                        e);</span>
+<span class="source-line-no">631</span><span id="line-631">                }</span>
+<span class="source-line-no">632</span><span id="line-632">            }</span>
+<span class="source-line-no">633</span><span id="line-633">            idleTimer.reschedule(maxIdleTime);</span>
+<span class="source-line-no">634</span><span id="line-634">        }</span>
+<span class="source-line-no">635</span><span id="line-635">    }</span>
 <span class="source-line-no">636</span><span id="line-636"></span>
-<span class="source-line-no">637</span><span id="line-637">        @SuppressWarnings({ "PMD.AvoidInstantiatingObjectsInLoops",</span>
-<span class="source-line-no">638</span><span id="line-638">            "PMD.GuardLogStatement" })</span>
-<span class="source-line-no">639</span><span id="line-639">        private void updateFolders(MessageCountEvent event) {</span>
-<span class="source-line-no">640</span><span id="line-640">            List&lt;Message&gt; newMsgs = new ArrayList&lt;&gt;();</span>
-<span class="source-line-no">641</span><span id="line-641">            if (event.getType() == MessageCountEvent.ADDED) {</span>
-<span class="source-line-no">642</span><span id="line-642">                addMessages(event, newMsgs);</span>
-<span class="source-line-no">643</span><span id="line-643">            } else if (event.getType() == MessageCountEvent.REMOVED) {</span>
-<span class="source-line-no">644</span><span id="line-644">                removeMessages(event);</span>
-<span class="source-line-no">645</span><span id="line-645">            } else {</span>
-<span class="source-line-no">646</span><span id="line-646">                return;</span>
-<span class="source-line-no">647</span><span id="line-647">            }</span>
-<span class="source-line-no">648</span><span id="line-648">            @SuppressWarnings("PMD.UseConcurrentHashMap")</span>
-<span class="source-line-no">649</span><span id="line-649">            Map&lt;String, List&lt;Message&gt;&gt; allMsgs;</span>
-<span class="source-line-no">650</span><span id="line-650">            synchronized (this) {</span>
-<span class="source-line-no">651</span><span id="line-651">                allMsgs = Arrays.stream(subscribed)</span>
-<span class="source-line-no">652</span><span id="line-652">                    .filter(fn -&gt; messages.containsKey(fn))</span>
-<span class="source-line-no">653</span><span id="line-653">                    .collect(Collectors.toMap(Function.identity(),</span>
-<span class="source-line-no">654</span><span id="line-654">                        fn -&gt; new ArrayList&lt;&gt;(messages.get(fn).values())));</span>
-<span class="source-line-no">655</span><span id="line-655">            }</span>
-<span class="source-line-no">656</span><span id="line-656">            downPipeline().fire(</span>
-<span class="source-line-no">657</span><span id="line-657">                Event.onCompletion(new MessagesRetrieved(allMsgs, newMsgs),</span>
-<span class="source-line-no">658</span><span id="line-658">                    evt -&gt; refreshWatches(evt)),</span>
-<span class="source-line-no">659</span><span id="line-659">                this);</span>
-<span class="source-line-no">660</span><span id="line-660">        }</span>
-<span class="source-line-no">661</span><span id="line-661"></span>
-<span class="source-line-no">662</span><span id="line-662">        @SuppressWarnings("PMD.GuardLogStatement")</span>
-<span class="source-line-no">663</span><span id="line-663">        private void addMessages(MessageCountEvent event,</span>
-<span class="source-line-no">664</span><span id="line-664">                List&lt;Message&gt; newMsgs) {</span>
-<span class="source-line-no">665</span><span id="line-665">            for (var msg : event.getMessages()) {</span>
-<span class="source-line-no">666</span><span id="line-666">                try {</span>
-<span class="source-line-no">667</span><span id="line-667">                    if (msg.getFlags().contains(Flag.DELETED)) {</span>
-<span class="source-line-no">668</span><span id="line-668">                        continue;</span>
-<span class="source-line-no">669</span><span id="line-669">                    }</span>
-<span class="source-line-no">670</span><span id="line-670">                } catch (MessagingException e1) {</span>
-<span class="source-line-no">671</span><span id="line-671">                    continue;</span>
-<span class="source-line-no">672</span><span id="line-672">                }</span>
-<span class="source-line-no">673</span><span id="line-673">                Folder folder = msg.getFolder();</span>
-<span class="source-line-no">674</span><span id="line-674">                @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")</span>
-<span class="source-line-no">675</span><span id="line-675">                TreeMap&lt;Long, Message&gt; folderCache = messages.computeIfAbsent(</span>
-<span class="source-line-no">676</span><span id="line-676">                    folder.getFullName(), k -&gt; new TreeMap&lt;&gt;());</span>
-<span class="source-line-no">677</span><span id="line-677">                try {</span>
-<span class="source-line-no">678</span><span id="line-678">                    synchronized (folderCache) {</span>
-<span class="source-line-no">679</span><span id="line-679">                        long msgUid = ((UIDFolder) folder).getUID(msg);</span>
-<span class="source-line-no">680</span><span id="line-680">                        folderCache.put(msgUid, msg);</span>
-<span class="source-line-no">681</span><span id="line-681">                        newMsgs.add(msg);</span>
-<span class="source-line-no">682</span><span id="line-682">                    }</span>
-<span class="source-line-no">683</span><span id="line-683">                } catch (MessagingException e) {</span>
-<span class="source-line-no">684</span><span id="line-684">                    logger.log(Level.FINE,</span>
-<span class="source-line-no">685</span><span id="line-685">                        "Problem retrieving message: " + e.getMessage(), e);</span>
-<span class="source-line-no">686</span><span id="line-686">                }</span>
-<span class="source-line-no">687</span><span id="line-687">            }</span>
-<span class="source-line-no">688</span><span id="line-688">        }</span>
-<span class="source-line-no">689</span><span id="line-689"></span>
-<span class="source-line-no">690</span><span id="line-690">        @SuppressWarnings("PMD.GuardLogStatement")</span>
-<span class="source-line-no">691</span><span id="line-691">        private void removeMessages(MessageCountEvent event) {</span>
-<span class="source-line-no">692</span><span id="line-692">            for (var msg : event.getMessages()) {</span>
-<span class="source-line-no">693</span><span id="line-693">                Folder folder = msg.getFolder();</span>
-<span class="source-line-no">694</span><span id="line-694">                @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")</span>
-<span class="source-line-no">695</span><span id="line-695">                TreeMap&lt;Long, Message&gt; folderCache = messages.computeIfAbsent(</span>
-<span class="source-line-no">696</span><span id="line-696">                    folder.getFullName(), k -&gt; new TreeMap&lt;&gt;());</span>
-<span class="source-line-no">697</span><span id="line-697">                try {</span>
-<span class="source-line-no">698</span><span id="line-698">                    synchronized (folderCache) {</span>
-<span class="source-line-no">699</span><span id="line-699">                        long msgUid = ((UIDFolder) folder).getUID(msg);</span>
-<span class="source-line-no">700</span><span id="line-700">                        folderCache.remove(msgUid);</span>
-<span class="source-line-no">701</span><span id="line-701">                    }</span>
-<span class="source-line-no">702</span><span id="line-702">                } catch (MessagingException e) {</span>
-<span class="source-line-no">703</span><span id="line-703">                    logger.log(Level.FINE,</span>
-<span class="source-line-no">704</span><span id="line-704">                        "Problem retrieving message: " + e.getMessage(), e);</span>
-<span class="source-line-no">705</span><span id="line-705">                }</span>
-<span class="source-line-no">706</span><span id="line-706">            }</span>
-<span class="source-line-no">707</span><span id="line-707">        }</span>
-<span class="source-line-no">708</span><span id="line-708"></span>
-<span class="source-line-no">709</span><span id="line-709">        /**</span>
-<span class="source-line-no">710</span><span id="line-710">         * Registers the folders from which messages have been received</span>
-<span class="source-line-no">711</span><span id="line-711">         * with the {@link IdleManager}.</span>
-<span class="source-line-no">712</span><span id="line-712">         *</span>
-<span class="source-line-no">713</span><span id="line-713">         * @param event the event</span>
-<span class="source-line-no">714</span><span id="line-714">         */</span>
-<span class="source-line-no">715</span><span id="line-715">        private void refreshWatches(MessagesRetrieved event) {</span>
-<span class="source-line-no">716</span><span id="line-716">            if (!state.isOpen()) {</span>
-<span class="source-line-no">717</span><span id="line-717">                return;</span>
-<span class="source-line-no">718</span><span id="line-718">            }</span>
-<span class="source-line-no">719</span><span id="line-719">            for (String folderName : event.allMessages().keySet()) {</span>
-<span class="source-line-no">720</span><span id="line-720">                try {</span>
-<span class="source-line-no">721</span><span id="line-721">                    idleManager.watch(folderFromStore(folderName));</span>
-<span class="source-line-no">722</span><span id="line-722">                } catch (MessagingException e) {</span>
-<span class="source-line-no">723</span><span id="line-723">                    logger.log(Level.WARNING, "Cannot watch folder.",</span>
-<span class="source-line-no">724</span><span id="line-724">                        e);</span>
-<span class="source-line-no">725</span><span id="line-725">                }</span>
-<span class="source-line-no">726</span><span id="line-726">            }</span>
-<span class="source-line-no">727</span><span id="line-727">            idleTimer.reschedule(maxIdleTime);</span>
-<span class="source-line-no">728</span><span id="line-728">        }</span>
-<span class="source-line-no">729</span><span id="line-729">    }</span>
-<span class="source-line-no">730</span><span id="line-730"></span>
-<span class="source-line-no">731</span><span id="line-731">    @Override</span>
-<span class="source-line-no">732</span><span id="line-732">    public String toString() {</span>
-<span class="source-line-no">733</span><span id="line-733">        return Components.objectName(this);</span>
-<span class="source-line-no">734</span><span id="line-734">    }</span>
-<span class="source-line-no">735</span><span id="line-735"></span>
-<span class="source-line-no">736</span><span id="line-736">}</span>
+<span class="source-line-no">637</span><span id="line-637">    @Override</span>
+<span class="source-line-no">638</span><span id="line-638">    public String toString() {</span>
+<span class="source-line-no">639</span><span id="line-639">        return Components.objectName(this);</span>
+<span class="source-line-no">640</span><span id="line-640">    }</span>
+<span class="source-line-no">641</span><span id="line-641"></span>
+<span class="source-line-no">642</span><span id="line-642">}</span>
 
 
 
