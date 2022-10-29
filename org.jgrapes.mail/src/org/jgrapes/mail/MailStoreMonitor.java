@@ -148,9 +148,9 @@ public class MailStoreMonitor extends MailConnectionManager<OpenMailMonitor,
 
     /**
      * Open a store as specified by the event and monitor the folders
-     * (also specified by the event). All existing and all subsequently 
-     * arriving mails will be sent downstream using 
-     * {@link ReceivedMessage} events.
+     * (also specified by the event). Information about all existing 
+     * and all subsequently arriving mails will be signaled downstream 
+     * using {@link FoldersUpdated} events.
      *
      * @param event the event
      * @param channel the channel
@@ -204,7 +204,7 @@ public class MailStoreMonitor extends MailConnectionManager<OpenMailMonitor,
     }
 
     /**
-     * Retrieves new messages from the folders specified in the event.
+     * Retrieves the folders specified in the event.
      *
      * @param event the event
      * @param channel the channel
