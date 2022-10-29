@@ -18,10 +18,9 @@
 
 package org.jgrapes.mail.events;
 
-import jakarta.mail.Message;
+import jakarta.mail.Folder;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import org.jgrapes.core.Event;
 import org.jgrapes.mail.MailChannel;
 import org.jgrapes.mail.MailStoreMonitor;
@@ -30,7 +29,7 @@ import org.jgrapes.mail.MailStoreMonitor;
  * Triggers the retrieval of mails (update) by a {@link MailStoreMonitor}.
  * Must be fired on a {@link MailChannel}.
  */
-public class RetrieveMessages extends Event<Map<String, List<Message>>> {
+public class UpdateFolders extends Event<List<Folder>> {
 
     private final String[] folderNames;
 
@@ -44,7 +43,7 @@ public class RetrieveMessages extends Event<Map<String, List<Message>>> {
      * @param folderNames the folder names
      */
     @SuppressWarnings("PMD.ArrayIsStoredDirectly")
-    public RetrieveMessages(String... folderNames) {
+    public UpdateFolders(String... folderNames) {
         this.folderNames = Arrays.copyOf(folderNames, folderNames.length);
     }
 

@@ -27,7 +27,7 @@ import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Stop;
-import org.jgrapes.mail.events.MessagesRetrieved;
+import org.jgrapes.mail.events.FoldersUpdated;
 import org.jgrapes.mail.events.SendMessage;
 
 /**
@@ -40,7 +40,7 @@ public class ReplyGenerator extends Component {
     }
 
     @Handler
-    public void onMail(MessagesRetrieved event) throws MessagingException {
+    public void onMail(FoldersUpdated event) throws MessagingException {
         var msg = event.newMessages().get(0);
         msg.setFlag(Flag.DELETED, true);
         var response = msg.reply(false);

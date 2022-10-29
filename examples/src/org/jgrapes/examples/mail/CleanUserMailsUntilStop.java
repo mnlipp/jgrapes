@@ -30,7 +30,7 @@ import org.jgrapes.core.events.Stop;
 import org.jgrapes.io.events.Opened;
 import org.jgrapes.mail.MailChannel;
 import org.jgrapes.mail.MailStoreMonitor;
-import org.jgrapes.mail.events.MessagesRetrieved;
+import org.jgrapes.mail.events.FoldersUpdated;
 import org.jgrapes.mail.events.OpenMailMonitor;
 import org.jgrapes.util.ConfigurationStore;
 import org.jgrapes.util.Password;
@@ -61,9 +61,10 @@ public class CleanUserMailsUntilStop extends Component {
         }
 
         @Handler
-        public void onMail(MessagesRetrieved event, MailChannel channel)
+        public void onMail(FoldersUpdated event, MailChannel channel)
                 throws MessagingException {
-            for (var msg : event.newMessages()) {
+            var msgs = FoldersUpdated.messages(event.folders().get(0));
+            for (var msg : msgs) {
                 var subject = msg.getSubject();
                 System.out.println("Subject: " + subject);
                 if ("Stop".equals(subject)) {
