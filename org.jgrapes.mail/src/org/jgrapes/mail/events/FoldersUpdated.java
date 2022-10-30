@@ -21,6 +21,7 @@ package org.jgrapes.mail.events;
 import jakarta.mail.Flags.Flag;
 import jakarta.mail.Folder;
 import jakarta.mail.Message;
+import jakarta.mail.MessageRemovedException;
 import jakarta.mail.MessagingException;
 import java.util.LinkedList;
 import java.util.List;
@@ -96,6 +97,18 @@ public class FoldersUpdated extends Event<Void> {
     }
 
     /**
+     * Return all messages (which are not deleted) from the folder.
+     *
+     * @param folder the folder
+     * @return the message[]
+     * @throws MessagingException the messaging exception
+     */
+    public static List<Message> messages(Folder folder)
+            throws MessagingException {
+        return messages(folder, Integer.MAX_VALUE);
+    }
+
+    /**
      * Return all (or max) messages (which are not deleted) from the folder,
      * starting with the newest message.
      *
@@ -120,17 +133,11 @@ public class FoldersUpdated extends Event<Void> {
                     return msgs;
                 }
                 for (var msg : f.getMessages(start, available)) {
-                    if (msg.getFlags().contains(Flag.DELETED)) {
-                        continue;
-                    }
-                    msgs.add(0, msg);
+                    maybeAddMessage(msgs, msg);
                 }
                 while (start > 1 && msgs.size() < max) {
                     Message msg = f.getMessage(--start);
-                    if (msg.getFlags().contains(Flag.DELETED)) {
-                        continue;
-                    }
-                    msgs.add(0, msg);
+                    maybeAddMessage(msgs, msg);
                 }
             } catch (MessagingException e) {
                 logger.log(Level.FINE, "Problem getting messages: "
@@ -145,15 +152,15 @@ public class FoldersUpdated extends Event<Void> {
         return result;
     }
 
-    /**
-     * Return all messages (which are not deleted) from the folder.
-     *
-     * @param folder the folder
-     * @return the message[]
-     * @throws MessagingException the messaging exception
-     */
-    public static List<Message> messages(Folder folder)
+    private static void maybeAddMessage(List<Message> msgs, Message msg)
             throws MessagingException {
-        return messages(folder, Integer.MAX_VALUE);
+        try {
+            if (msg.getFlags().contains(Flag.DELETED)) {
+                return;
+            }
+        } catch (MessageRemovedException e) {
+            return;
+        }
+        msgs.add(0, msg);
     }
 }
