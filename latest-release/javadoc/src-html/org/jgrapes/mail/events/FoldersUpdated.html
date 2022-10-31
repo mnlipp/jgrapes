@@ -34,142 +34,156 @@
 <span class="source-line-no">021</span><span id="line-21">import jakarta.mail.Flags.Flag;</span>
 <span class="source-line-no">022</span><span id="line-22">import jakarta.mail.Folder;</span>
 <span class="source-line-no">023</span><span id="line-23">import jakarta.mail.Message;</span>
-<span class="source-line-no">024</span><span id="line-24">import jakarta.mail.MessagingException;</span>
-<span class="source-line-no">025</span><span id="line-25">import java.util.LinkedList;</span>
-<span class="source-line-no">026</span><span id="line-26">import java.util.List;</span>
-<span class="source-line-no">027</span><span id="line-27">import java.util.function.Function;</span>
-<span class="source-line-no">028</span><span id="line-28">import java.util.logging.Level;</span>
-<span class="source-line-no">029</span><span id="line-29">import java.util.logging.Logger;</span>
-<span class="source-line-no">030</span><span id="line-30">import org.jgrapes.core.Event;</span>
-<span class="source-line-no">031</span><span id="line-31">import org.jgrapes.mail.MailChannel;</span>
-<span class="source-line-no">032</span><span id="line-32">import org.jgrapes.mail.MailStoreMonitor;</span>
-<span class="source-line-no">033</span><span id="line-33"></span>
-<span class="source-line-no">034</span><span id="line-34">/**</span>
-<span class="source-line-no">035</span><span id="line-35"> * Signals the retrieval of mails (update) by a {@link MailStoreMonitor}.</span>
-<span class="source-line-no">036</span><span id="line-36"> * Must be fired on a {@link MailChannel}.</span>
-<span class="source-line-no">037</span><span id="line-37"> */</span>
-<span class="source-line-no">038</span><span id="line-38">@SuppressWarnings("PMD.DataflowAnomalyAnalysis")</span>
-<span class="source-line-no">039</span><span id="line-39">public class FoldersUpdated extends Event&lt;Void&gt; {</span>
-<span class="source-line-no">040</span><span id="line-40"></span>
-<span class="source-line-no">041</span><span id="line-41">    @SuppressWarnings("PMD.FieldNamingConventions")</span>
-<span class="source-line-no">042</span><span id="line-42">    private static final Logger logger</span>
-<span class="source-line-no">043</span><span id="line-43">        = Logger.getLogger(FoldersUpdated.class.getName());</span>
-<span class="source-line-no">044</span><span id="line-44"></span>
-<span class="source-line-no">045</span><span id="line-45">    private final List&lt;Folder&gt; folders;</span>
-<span class="source-line-no">046</span><span id="line-46">    private final List&lt;Message&gt; newMessages;</span>
-<span class="source-line-no">047</span><span id="line-47"></span>
-<span class="source-line-no">048</span><span id="line-48">    /**</span>
-<span class="source-line-no">049</span><span id="line-49">     * Instantiates a new event.</span>
-<span class="source-line-no">050</span><span id="line-50">     *</span>
-<span class="source-line-no">051</span><span id="line-51">     * @param allMessages the messages</span>
-<span class="source-line-no">052</span><span id="line-52">     */</span>
-<span class="source-line-no">053</span><span id="line-53">    public FoldersUpdated(List&lt;Folder&gt; folders, List&lt;Message&gt; newMessages) {</span>
-<span class="source-line-no">054</span><span id="line-54">        this.folders = folders;</span>
-<span class="source-line-no">055</span><span id="line-55">        this.newMessages = newMessages;</span>
-<span class="source-line-no">056</span><span id="line-56">    }</span>
-<span class="source-line-no">057</span><span id="line-57"></span>
-<span class="source-line-no">058</span><span id="line-58">    /**</span>
-<span class="source-line-no">059</span><span id="line-59">     * Returns the folders.</span>
-<span class="source-line-no">060</span><span id="line-60">     *</span>
-<span class="source-line-no">061</span><span id="line-61">     * @return the list</span>
-<span class="source-line-no">062</span><span id="line-62">     */</span>
-<span class="source-line-no">063</span><span id="line-63">    public List&lt;Folder&gt; folders() {</span>
-<span class="source-line-no">064</span><span id="line-64">        return folders;</span>
-<span class="source-line-no">065</span><span id="line-65">    }</span>
-<span class="source-line-no">066</span><span id="line-66"></span>
-<span class="source-line-no">067</span><span id="line-67">    /**</span>
-<span class="source-line-no">068</span><span id="line-68">     * Return the new messages. New messages have not been reported</span>
-<span class="source-line-no">069</span><span id="line-69">     * before by an event.</span>
-<span class="source-line-no">070</span><span id="line-70">     *</span>
-<span class="source-line-no">071</span><span id="line-71">     * @return the list</span>
-<span class="source-line-no">072</span><span id="line-72">     */</span>
-<span class="source-line-no">073</span><span id="line-73">    public List&lt;Message&gt; newMessages() {</span>
-<span class="source-line-no">074</span><span id="line-74">        return newMessages;</span>
-<span class="source-line-no">075</span><span id="line-75">    }</span>
-<span class="source-line-no">076</span><span id="line-76"></span>
-<span class="source-line-no">077</span><span id="line-77">    /**</span>
-<span class="source-line-no">078</span><span id="line-78">     * Execute the action with the given folder. The method ensures that</span>
-<span class="source-line-no">079</span><span id="line-79">     * the folder is open.</span>
-<span class="source-line-no">080</span><span id="line-80">     *</span>
-<span class="source-line-no">081</span><span id="line-81">     * @param folder the folder</span>
-<span class="source-line-no">082</span><span id="line-82">     * @param action the action</span>
-<span class="source-line-no">083</span><span id="line-83">     * @throws MessagingException the messaging exception</span>
-<span class="source-line-no">084</span><span id="line-84">     */</span>
-<span class="source-line-no">085</span><span id="line-85">    @SuppressWarnings("PMD.GuardLogStatement")</span>
-<span class="source-line-no">086</span><span id="line-86">    public static &lt;R&gt; R withFolder(Folder folder, Function&lt;Folder, R&gt; action)</span>
-<span class="source-line-no">087</span><span id="line-87">            throws MessagingException {</span>
-<span class="source-line-no">088</span><span id="line-88">        synchronized (folder) {</span>
-<span class="source-line-no">089</span><span id="line-89">            if (!folder.isOpen()) {</span>
-<span class="source-line-no">090</span><span id="line-90">                logger.fine("Found folder \"" + folder.getFullName()</span>
-<span class="source-line-no">091</span><span id="line-91">                    + "\" to be unexpectedly closed.");</span>
-<span class="source-line-no">092</span><span id="line-92">                folder.open(Folder.READ_WRITE);</span>
-<span class="source-line-no">093</span><span id="line-93">            }</span>
-<span class="source-line-no">094</span><span id="line-94">            return action.apply(folder);</span>
-<span class="source-line-no">095</span><span id="line-95">        }</span>
-<span class="source-line-no">096</span><span id="line-96">    }</span>
-<span class="source-line-no">097</span><span id="line-97"></span>
-<span class="source-line-no">098</span><span id="line-98">    /**</span>
-<span class="source-line-no">099</span><span id="line-99">     * Return all (or max) messages (which are not deleted) from the folder,</span>
-<span class="source-line-no">100</span><span id="line-100">     * starting with the newest message.</span>
+<span class="source-line-no">024</span><span id="line-24">import jakarta.mail.MessageRemovedException;</span>
+<span class="source-line-no">025</span><span id="line-25">import jakarta.mail.MessagingException;</span>
+<span class="source-line-no">026</span><span id="line-26">import java.util.LinkedList;</span>
+<span class="source-line-no">027</span><span id="line-27">import java.util.List;</span>
+<span class="source-line-no">028</span><span id="line-28">import java.util.function.Function;</span>
+<span class="source-line-no">029</span><span id="line-29">import java.util.logging.Level;</span>
+<span class="source-line-no">030</span><span id="line-30">import java.util.logging.Logger;</span>
+<span class="source-line-no">031</span><span id="line-31">import org.jgrapes.core.Event;</span>
+<span class="source-line-no">032</span><span id="line-32">import org.jgrapes.mail.MailChannel;</span>
+<span class="source-line-no">033</span><span id="line-33">import org.jgrapes.mail.MailStoreMonitor;</span>
+<span class="source-line-no">034</span><span id="line-34"></span>
+<span class="source-line-no">035</span><span id="line-35">/**</span>
+<span class="source-line-no">036</span><span id="line-36"> * Signals the retrieval of mails (update) by a {@link MailStoreMonitor}.</span>
+<span class="source-line-no">037</span><span id="line-37"> * Must be fired on a {@link MailChannel}.</span>
+<span class="source-line-no">038</span><span id="line-38"> */</span>
+<span class="source-line-no">039</span><span id="line-39">@SuppressWarnings("PMD.DataflowAnomalyAnalysis")</span>
+<span class="source-line-no">040</span><span id="line-40">public class FoldersUpdated extends Event&lt;Void&gt; {</span>
+<span class="source-line-no">041</span><span id="line-41"></span>
+<span class="source-line-no">042</span><span id="line-42">    @SuppressWarnings("PMD.FieldNamingConventions")</span>
+<span class="source-line-no">043</span><span id="line-43">    private static final Logger logger</span>
+<span class="source-line-no">044</span><span id="line-44">        = Logger.getLogger(FoldersUpdated.class.getName());</span>
+<span class="source-line-no">045</span><span id="line-45"></span>
+<span class="source-line-no">046</span><span id="line-46">    private final List&lt;Folder&gt; folders;</span>
+<span class="source-line-no">047</span><span id="line-47">    private final List&lt;Message&gt; newMessages;</span>
+<span class="source-line-no">048</span><span id="line-48"></span>
+<span class="source-line-no">049</span><span id="line-49">    /**</span>
+<span class="source-line-no">050</span><span id="line-50">     * Instantiates a new event.</span>
+<span class="source-line-no">051</span><span id="line-51">     *</span>
+<span class="source-line-no">052</span><span id="line-52">     * @param allMessages the messages</span>
+<span class="source-line-no">053</span><span id="line-53">     */</span>
+<span class="source-line-no">054</span><span id="line-54">    public FoldersUpdated(List&lt;Folder&gt; folders, List&lt;Message&gt; newMessages) {</span>
+<span class="source-line-no">055</span><span id="line-55">        this.folders = folders;</span>
+<span class="source-line-no">056</span><span id="line-56">        this.newMessages = newMessages;</span>
+<span class="source-line-no">057</span><span id="line-57">    }</span>
+<span class="source-line-no">058</span><span id="line-58"></span>
+<span class="source-line-no">059</span><span id="line-59">    /**</span>
+<span class="source-line-no">060</span><span id="line-60">     * Returns the folders.</span>
+<span class="source-line-no">061</span><span id="line-61">     *</span>
+<span class="source-line-no">062</span><span id="line-62">     * @return the list</span>
+<span class="source-line-no">063</span><span id="line-63">     */</span>
+<span class="source-line-no">064</span><span id="line-64">    public List&lt;Folder&gt; folders() {</span>
+<span class="source-line-no">065</span><span id="line-65">        return folders;</span>
+<span class="source-line-no">066</span><span id="line-66">    }</span>
+<span class="source-line-no">067</span><span id="line-67"></span>
+<span class="source-line-no">068</span><span id="line-68">    /**</span>
+<span class="source-line-no">069</span><span id="line-69">     * Return the new messages. New messages have not been reported</span>
+<span class="source-line-no">070</span><span id="line-70">     * before by an event.</span>
+<span class="source-line-no">071</span><span id="line-71">     *</span>
+<span class="source-line-no">072</span><span id="line-72">     * @return the list</span>
+<span class="source-line-no">073</span><span id="line-73">     */</span>
+<span class="source-line-no">074</span><span id="line-74">    public List&lt;Message&gt; newMessages() {</span>
+<span class="source-line-no">075</span><span id="line-75">        return newMessages;</span>
+<span class="source-line-no">076</span><span id="line-76">    }</span>
+<span class="source-line-no">077</span><span id="line-77"></span>
+<span class="source-line-no">078</span><span id="line-78">    /**</span>
+<span class="source-line-no">079</span><span id="line-79">     * Execute the action with the given folder. The method ensures that</span>
+<span class="source-line-no">080</span><span id="line-80">     * the folder is open.</span>
+<span class="source-line-no">081</span><span id="line-81">     *</span>
+<span class="source-line-no">082</span><span id="line-82">     * @param folder the folder</span>
+<span class="source-line-no">083</span><span id="line-83">     * @param action the action</span>
+<span class="source-line-no">084</span><span id="line-84">     * @throws MessagingException the messaging exception</span>
+<span class="source-line-no">085</span><span id="line-85">     */</span>
+<span class="source-line-no">086</span><span id="line-86">    @SuppressWarnings("PMD.GuardLogStatement")</span>
+<span class="source-line-no">087</span><span id="line-87">    public static &lt;R&gt; R withFolder(Folder folder, Function&lt;Folder, R&gt; action)</span>
+<span class="source-line-no">088</span><span id="line-88">            throws MessagingException {</span>
+<span class="source-line-no">089</span><span id="line-89">        synchronized (folder) {</span>
+<span class="source-line-no">090</span><span id="line-90">            if (!folder.isOpen()) {</span>
+<span class="source-line-no">091</span><span id="line-91">                logger.fine("Found folder \"" + folder.getFullName()</span>
+<span class="source-line-no">092</span><span id="line-92">                    + "\" to be unexpectedly closed.");</span>
+<span class="source-line-no">093</span><span id="line-93">                folder.open(Folder.READ_WRITE);</span>
+<span class="source-line-no">094</span><span id="line-94">            }</span>
+<span class="source-line-no">095</span><span id="line-95">            return action.apply(folder);</span>
+<span class="source-line-no">096</span><span id="line-96">        }</span>
+<span class="source-line-no">097</span><span id="line-97">    }</span>
+<span class="source-line-no">098</span><span id="line-98"></span>
+<span class="source-line-no">099</span><span id="line-99">    /**</span>
+<span class="source-line-no">100</span><span id="line-100">     * Return all messages (which are not deleted) from the folder.</span>
 <span class="source-line-no">101</span><span id="line-101">     *</span>
 <span class="source-line-no">102</span><span id="line-102">     * @param folder the folder</span>
-<span class="source-line-no">103</span><span id="line-103">     * @param max the limit</span>
-<span class="source-line-no">104</span><span id="line-104">     * @return the message[]</span>
-<span class="source-line-no">105</span><span id="line-105">     * @throws MessagingException the messaging exception</span>
-<span class="source-line-no">106</span><span id="line-106">     */</span>
-<span class="source-line-no">107</span><span id="line-107">    @SuppressWarnings("PMD.CognitiveComplexity")</span>
-<span class="source-line-no">108</span><span id="line-108">    public static List&lt;Message&gt; messages(Folder folder, int max)</span>
-<span class="source-line-no">109</span><span id="line-109">            throws MessagingException {</span>
-<span class="source-line-no">110</span><span id="line-110">        MessagingException[] exception = { null };</span>
-<span class="source-line-no">111</span><span id="line-111">        @SuppressWarnings({ "PMD.PrematureDeclaration",</span>
-<span class="source-line-no">112</span><span id="line-112">            "PMD.GuardLogStatement" })</span>
-<span class="source-line-no">113</span><span id="line-113">        var result = withFolder(folder, f -&gt; {</span>
-<span class="source-line-no">114</span><span id="line-114">            List&lt;Message&gt; msgs = new LinkedList&lt;&gt;();</span>
-<span class="source-line-no">115</span><span id="line-115">            try {</span>
-<span class="source-line-no">116</span><span id="line-116">                int available = folder.getMessageCount();</span>
-<span class="source-line-no">117</span><span id="line-117">                int retrieve = Math.min(available, max);</span>
-<span class="source-line-no">118</span><span id="line-118">                int start = available - retrieve + 1;</span>
-<span class="source-line-no">119</span><span id="line-119">                if (start &gt; available) {</span>
-<span class="source-line-no">120</span><span id="line-120">                    return msgs;</span>
-<span class="source-line-no">121</span><span id="line-121">                }</span>
-<span class="source-line-no">122</span><span id="line-122">                for (var msg : f.getMessages(start, available)) {</span>
-<span class="source-line-no">123</span><span id="line-123">                    if (msg.getFlags().contains(Flag.DELETED)) {</span>
-<span class="source-line-no">124</span><span id="line-124">                        continue;</span>
-<span class="source-line-no">125</span><span id="line-125">                    }</span>
-<span class="source-line-no">126</span><span id="line-126">                    msgs.add(0, msg);</span>
-<span class="source-line-no">127</span><span id="line-127">                }</span>
-<span class="source-line-no">128</span><span id="line-128">                while (start &gt; 1 &amp;&amp; msgs.size() &lt; max) {</span>
-<span class="source-line-no">129</span><span id="line-129">                    Message msg = f.getMessage(--start);</span>
-<span class="source-line-no">130</span><span id="line-130">                    if (msg.getFlags().contains(Flag.DELETED)) {</span>
-<span class="source-line-no">131</span><span id="line-131">                        continue;</span>
-<span class="source-line-no">132</span><span id="line-132">                    }</span>
-<span class="source-line-no">133</span><span id="line-133">                    msgs.add(0, msg);</span>
+<span class="source-line-no">103</span><span id="line-103">     * @return the message[]</span>
+<span class="source-line-no">104</span><span id="line-104">     * @throws MessagingException the messaging exception</span>
+<span class="source-line-no">105</span><span id="line-105">     */</span>
+<span class="source-line-no">106</span><span id="line-106">    public static List&lt;Message&gt; messages(Folder folder)</span>
+<span class="source-line-no">107</span><span id="line-107">            throws MessagingException {</span>
+<span class="source-line-no">108</span><span id="line-108">        return messages(folder, Integer.MAX_VALUE);</span>
+<span class="source-line-no">109</span><span id="line-109">    }</span>
+<span class="source-line-no">110</span><span id="line-110"></span>
+<span class="source-line-no">111</span><span id="line-111">    /**</span>
+<span class="source-line-no">112</span><span id="line-112">     * Return all (or max) messages (which are not deleted) from the folder,</span>
+<span class="source-line-no">113</span><span id="line-113">     * starting with the newest message.</span>
+<span class="source-line-no">114</span><span id="line-114">     *</span>
+<span class="source-line-no">115</span><span id="line-115">     * @param folder the folder</span>
+<span class="source-line-no">116</span><span id="line-116">     * @param max the limit</span>
+<span class="source-line-no">117</span><span id="line-117">     * @return the message[]</span>
+<span class="source-line-no">118</span><span id="line-118">     * @throws MessagingException the messaging exception</span>
+<span class="source-line-no">119</span><span id="line-119">     */</span>
+<span class="source-line-no">120</span><span id="line-120">    @SuppressWarnings("PMD.CognitiveComplexity")</span>
+<span class="source-line-no">121</span><span id="line-121">    public static List&lt;Message&gt; messages(Folder folder, int max)</span>
+<span class="source-line-no">122</span><span id="line-122">            throws MessagingException {</span>
+<span class="source-line-no">123</span><span id="line-123">        MessagingException[] exception = { null };</span>
+<span class="source-line-no">124</span><span id="line-124">        @SuppressWarnings({ "PMD.PrematureDeclaration",</span>
+<span class="source-line-no">125</span><span id="line-125">            "PMD.GuardLogStatement" })</span>
+<span class="source-line-no">126</span><span id="line-126">        var result = withFolder(folder, f -&gt; {</span>
+<span class="source-line-no">127</span><span id="line-127">            List&lt;Message&gt; msgs = new LinkedList&lt;&gt;();</span>
+<span class="source-line-no">128</span><span id="line-128">            try {</span>
+<span class="source-line-no">129</span><span id="line-129">                int available = folder.getMessageCount();</span>
+<span class="source-line-no">130</span><span id="line-130">                int retrieve = Math.min(available, max);</span>
+<span class="source-line-no">131</span><span id="line-131">                int start = available - retrieve + 1;</span>
+<span class="source-line-no">132</span><span id="line-132">                if (start &gt; available) {</span>
+<span class="source-line-no">133</span><span id="line-133">                    return msgs;</span>
 <span class="source-line-no">134</span><span id="line-134">                }</span>
-<span class="source-line-no">135</span><span id="line-135">            } catch (MessagingException e) {</span>
-<span class="source-line-no">136</span><span id="line-136">                logger.log(Level.FINE, "Problem getting messages: "</span>
-<span class="source-line-no">137</span><span id="line-137">                    + e.getMessage(), e);</span>
-<span class="source-line-no">138</span><span id="line-138">                exception[0] = e;</span>
-<span class="source-line-no">139</span><span id="line-139">            }</span>
-<span class="source-line-no">140</span><span id="line-140">            return msgs;</span>
-<span class="source-line-no">141</span><span id="line-141">        });</span>
-<span class="source-line-no">142</span><span id="line-142">        if (exception[0] != null) {</span>
-<span class="source-line-no">143</span><span id="line-143">            throw exception[0];</span>
-<span class="source-line-no">144</span><span id="line-144">        }</span>
-<span class="source-line-no">145</span><span id="line-145">        return result;</span>
-<span class="source-line-no">146</span><span id="line-146">    }</span>
-<span class="source-line-no">147</span><span id="line-147"></span>
-<span class="source-line-no">148</span><span id="line-148">    /**</span>
-<span class="source-line-no">149</span><span id="line-149">     * Return all messages (which are not deleted) from the folder.</span>
-<span class="source-line-no">150</span><span id="line-150">     *</span>
-<span class="source-line-no">151</span><span id="line-151">     * @param folder the folder</span>
-<span class="source-line-no">152</span><span id="line-152">     * @return the message[]</span>
-<span class="source-line-no">153</span><span id="line-153">     * @throws MessagingException the messaging exception</span>
-<span class="source-line-no">154</span><span id="line-154">     */</span>
-<span class="source-line-no">155</span><span id="line-155">    public static List&lt;Message&gt; messages(Folder folder)</span>
-<span class="source-line-no">156</span><span id="line-156">            throws MessagingException {</span>
-<span class="source-line-no">157</span><span id="line-157">        return messages(folder, Integer.MAX_VALUE);</span>
-<span class="source-line-no">158</span><span id="line-158">    }</span>
-<span class="source-line-no">159</span><span id="line-159">}</span>
+<span class="source-line-no">135</span><span id="line-135">                // Loops from older to newer</span>
+<span class="source-line-no">136</span><span id="line-136">                for (var msg : f.getMessages(start, available)) {</span>
+<span class="source-line-no">137</span><span id="line-137">                    if (canBeAdded(msg)) {</span>
+<span class="source-line-no">138</span><span id="line-138">                        // prepend newer</span>
+<span class="source-line-no">139</span><span id="line-139">                        msgs.add(0, msg);</span>
+<span class="source-line-no">140</span><span id="line-140">                    }</span>
+<span class="source-line-no">141</span><span id="line-141">                }</span>
+<span class="source-line-no">142</span><span id="line-142">                // Adds older messages to fill until max</span>
+<span class="source-line-no">143</span><span id="line-143">                while (start &gt; 1 &amp;&amp; msgs.size() &lt; max) {</span>
+<span class="source-line-no">144</span><span id="line-144">                    Message msg = f.getMessage(--start);</span>
+<span class="source-line-no">145</span><span id="line-145">                    if (canBeAdded(msg)) {</span>
+<span class="source-line-no">146</span><span id="line-146">                        msgs.add(msg);</span>
+<span class="source-line-no">147</span><span id="line-147">                    }</span>
+<span class="source-line-no">148</span><span id="line-148">                }</span>
+<span class="source-line-no">149</span><span id="line-149">            } catch (MessagingException e) {</span>
+<span class="source-line-no">150</span><span id="line-150">                logger.log(Level.FINE, "Problem getting messages: "</span>
+<span class="source-line-no">151</span><span id="line-151">                    + e.getMessage(), e);</span>
+<span class="source-line-no">152</span><span id="line-152">                exception[0] = e;</span>
+<span class="source-line-no">153</span><span id="line-153">            }</span>
+<span class="source-line-no">154</span><span id="line-154">            return msgs;</span>
+<span class="source-line-no">155</span><span id="line-155">        });</span>
+<span class="source-line-no">156</span><span id="line-156">        if (exception[0] != null) {</span>
+<span class="source-line-no">157</span><span id="line-157">            throw exception[0];</span>
+<span class="source-line-no">158</span><span id="line-158">        }</span>
+<span class="source-line-no">159</span><span id="line-159">        return result;</span>
+<span class="source-line-no">160</span><span id="line-160">    }</span>
+<span class="source-line-no">161</span><span id="line-161"></span>
+<span class="source-line-no">162</span><span id="line-162">    private static boolean canBeAdded(Message msg)</span>
+<span class="source-line-no">163</span><span id="line-163">            throws MessagingException {</span>
+<span class="source-line-no">164</span><span id="line-164">        try {</span>
+<span class="source-line-no">165</span><span id="line-165">            if (msg.getFlags().contains(Flag.DELETED)) {</span>
+<span class="source-line-no">166</span><span id="line-166">                return false;</span>
+<span class="source-line-no">167</span><span id="line-167">            }</span>
+<span class="source-line-no">168</span><span id="line-168">        } catch (MessageRemovedException e) {</span>
+<span class="source-line-no">169</span><span id="line-169">            return false;</span>
+<span class="source-line-no">170</span><span id="line-170">        }</span>
+<span class="source-line-no">171</span><span id="line-171">        return true;</span>
+<span class="source-line-no">172</span><span id="line-172">    }</span>
+<span class="source-line-no">173</span><span id="line-173">}</span>
 
 
 
