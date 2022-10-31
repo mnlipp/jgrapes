@@ -132,12 +132,19 @@ public class FoldersUpdated extends Event<Void> {
                 if (start > available) {
                     return msgs;
                 }
+                // Loops from older to newer
                 for (var msg : f.getMessages(start, available)) {
-                    maybeAddMessage(msgs, msg);
+                    if (canBeAdded(msg)) {
+                        // prepend newer
+                        msgs.add(0, msg);
+                    }
                 }
+                // Adds older messages to fill until max
                 while (start > 1 && msgs.size() < max) {
                     Message msg = f.getMessage(--start);
-                    maybeAddMessage(msgs, msg);
+                    if (canBeAdded(msg)) {
+                        msgs.add(msg);
+                    }
                 }
             } catch (MessagingException e) {
                 logger.log(Level.FINE, "Problem getting messages: "
@@ -152,15 +159,15 @@ public class FoldersUpdated extends Event<Void> {
         return result;
     }
 
-    private static void maybeAddMessage(List<Message> msgs, Message msg)
+    private static boolean canBeAdded(Message msg)
             throws MessagingException {
         try {
             if (msg.getFlags().contains(Flag.DELETED)) {
-                return;
+                return false;
             }
         } catch (MessageRemovedException e) {
-            return;
+            return false;
         }
-        msgs.add(0, msg);
+        return true;
     }
 }
