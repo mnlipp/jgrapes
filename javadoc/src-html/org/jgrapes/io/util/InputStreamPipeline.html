@@ -36,107 +36,152 @@
 <span class="source-line-no">023</span><span id="line-23">import java.nio.ByteBuffer;</span>
 <span class="source-line-no">024</span><span id="line-24">import java.nio.channels.Channels;</span>
 <span class="source-line-no">025</span><span id="line-25">import java.nio.channels.ReadableByteChannel;</span>
-<span class="source-line-no">026</span><span id="line-26">import org.jgrapes.core.EventPipeline;</span>
-<span class="source-line-no">027</span><span id="line-27">import org.jgrapes.io.IOSubchannel;</span>
-<span class="source-line-no">028</span><span id="line-28">import org.jgrapes.io.events.Close;</span>
-<span class="source-line-no">029</span><span id="line-29">import org.jgrapes.io.events.IOError;</span>
-<span class="source-line-no">030</span><span id="line-30">import org.jgrapes.io.events.Output;</span>
-<span class="source-line-no">031</span><span id="line-31"></span>
-<span class="source-line-no">032</span><span id="line-32">/**</span>
-<span class="source-line-no">033</span><span id="line-33"> * Forwards the content of an input stream as a sequence of {@link Output}</span>
-<span class="source-line-no">034</span><span id="line-34"> * events.</span>
-<span class="source-line-no">035</span><span id="line-35"> */</span>
-<span class="source-line-no">036</span><span id="line-36">@SuppressWarnings("PMD.DataflowAnomalyAnalysis")</span>
-<span class="source-line-no">037</span><span id="line-37">public class InputStreamPipeline implements Runnable {</span>
-<span class="source-line-no">038</span><span id="line-38"></span>
-<span class="source-line-no">039</span><span id="line-39">    private InputStream inStream;</span>
-<span class="source-line-no">040</span><span id="line-40">    private IOSubchannel channel;</span>
-<span class="source-line-no">041</span><span id="line-41">    private EventPipeline eventPipeline;</span>
-<span class="source-line-no">042</span><span id="line-42">    private boolean sendClose = true;</span>
-<span class="source-line-no">043</span><span id="line-43"></span>
-<span class="source-line-no">044</span><span id="line-44">    /**</span>
-<span class="source-line-no">045</span><span id="line-45">     * Creates a new pipeline that sends the data from the given input stream</span>
-<span class="source-line-no">046</span><span id="line-46">     * as events on the given channel, using the given event pipeline.</span>
-<span class="source-line-no">047</span><span id="line-47">     * </span>
-<span class="source-line-no">048</span><span id="line-48">     * @param in the input stream to read from</span>
-<span class="source-line-no">049</span><span id="line-49">     * @param channel the channel to send to</span>
-<span class="source-line-no">050</span><span id="line-50">     * @param eventPipeline</span>
-<span class="source-line-no">051</span><span id="line-51">     *            the event pipeline used for firing events</span>
-<span class="source-line-no">052</span><span id="line-52">     */</span>
-<span class="source-line-no">053</span><span id="line-53">    @SuppressWarnings("PMD.ShortVariable")</span>
-<span class="source-line-no">054</span><span id="line-54">    public InputStreamPipeline(InputStream in, IOSubchannel channel,</span>
-<span class="source-line-no">055</span><span id="line-55">            EventPipeline eventPipeline) {</span>
-<span class="source-line-no">056</span><span id="line-56">        this.inStream = in;</span>
-<span class="source-line-no">057</span><span id="line-57">        this.channel = channel;</span>
-<span class="source-line-no">058</span><span id="line-58">        this.eventPipeline = eventPipeline;</span>
-<span class="source-line-no">059</span><span id="line-59">    }</span>
-<span class="source-line-no">060</span><span id="line-60"></span>
-<span class="source-line-no">061</span><span id="line-61">    /**</span>
-<span class="source-line-no">062</span><span id="line-62">     * Creates a new pipeline that sends the data from the given input stream</span>
-<span class="source-line-no">063</span><span id="line-63">     * as events on the given channel, using the channel's response pipeline.</span>
-<span class="source-line-no">064</span><span id="line-64">     * </span>
-<span class="source-line-no">065</span><span id="line-65">     * @param in the input stream to read from</span>
-<span class="source-line-no">066</span><span id="line-66">     * @param channel the channel to send to</span>
-<span class="source-line-no">067</span><span id="line-67">     */</span>
-<span class="source-line-no">068</span><span id="line-68">    @SuppressWarnings("PMD.ShortVariable")</span>
-<span class="source-line-no">069</span><span id="line-69">    public InputStreamPipeline(InputStream in, IOSubchannel channel) {</span>
-<span class="source-line-no">070</span><span id="line-70">        this(in, channel, channel.responsePipeline());</span>
-<span class="source-line-no">071</span><span id="line-71">    }</span>
-<span class="source-line-no">072</span><span id="line-72"></span>
-<span class="source-line-no">073</span><span id="line-73">    /**</span>
-<span class="source-line-no">074</span><span id="line-74">     * Suppresses the sending of a close event when the stream is closed. </span>
-<span class="source-line-no">075</span><span id="line-75">     * </span>
-<span class="source-line-no">076</span><span id="line-76">     * @return the stream for easy chaining</span>
-<span class="source-line-no">077</span><span id="line-77">     */</span>
-<span class="source-line-no">078</span><span id="line-78">    public InputStreamPipeline suppressClose() {</span>
-<span class="source-line-no">079</span><span id="line-79">        sendClose = false;</span>
-<span class="source-line-no">080</span><span id="line-80">        return this;</span>
-<span class="source-line-no">081</span><span id="line-81">    }</span>
-<span class="source-line-no">082</span><span id="line-82"></span>
-<span class="source-line-no">083</span><span id="line-83">    @Override</span>
-<span class="source-line-no">084</span><span id="line-84">    public void run() {</span>
-<span class="source-line-no">085</span><span id="line-85">        try (ReadableByteChannel inChannel = Channels.newChannel(inStream)) {</span>
-<span class="source-line-no">086</span><span id="line-86">            ManagedBuffer&lt;ByteBuffer&gt; lookAhead = ManagedBuffer.wrap(</span>
-<span class="source-line-no">087</span><span id="line-87">                ByteBuffer.allocate(channel.byteBufferPool().bufferSize()));</span>
-<span class="source-line-no">088</span><span id="line-88">            // First attempt</span>
-<span class="source-line-no">089</span><span id="line-89">            if (lookAhead.fillFromChannel(inChannel) == -1) {</span>
-<span class="source-line-no">090</span><span id="line-90">                ManagedBuffer&lt;ByteBuffer&gt; buffer</span>
-<span class="source-line-no">091</span><span id="line-91">                    = channel.byteBufferPool().acquire();</span>
-<span class="source-line-no">092</span><span id="line-92">                eventPipeline.fire(Output.fromSink(buffer, true), channel);</span>
-<span class="source-line-no">093</span><span id="line-93">            } else {</span>
-<span class="source-line-no">094</span><span id="line-94">                while (true) {</span>
-<span class="source-line-no">095</span><span id="line-95">                    // Save data read so far</span>
-<span class="source-line-no">096</span><span id="line-96">                    ManagedBuffer&lt;ByteBuffer&gt; buffer</span>
-<span class="source-line-no">097</span><span id="line-97">                        = channel.byteBufferPool().acquire();</span>
-<span class="source-line-no">098</span><span id="line-98">                    buffer.linkBackingBuffer(lookAhead);</span>
-<span class="source-line-no">099</span><span id="line-99">                    // Get new look ahead</span>
-<span class="source-line-no">100</span><span id="line-100">                    lookAhead = ManagedBuffer.wrap(ByteBuffer.allocate(</span>
-<span class="source-line-no">101</span><span id="line-101">                        channel.byteBufferPool().bufferSize()));</span>
-<span class="source-line-no">102</span><span id="line-102">                    // Next read attempt</span>
-<span class="source-line-no">103</span><span id="line-103">                    boolean eof;</span>
-<span class="source-line-no">104</span><span id="line-104">                    try {</span>
-<span class="source-line-no">105</span><span id="line-105">                        eof = lookAhead.fillFromChannel(inChannel) == -1;</span>
-<span class="source-line-no">106</span><span id="line-106">                    } catch (IOException e) {</span>
-<span class="source-line-no">107</span><span id="line-107">                        buffer.unlockBuffer();</span>
-<span class="source-line-no">108</span><span id="line-108">                        throw e;</span>
-<span class="source-line-no">109</span><span id="line-109">                    }</span>
-<span class="source-line-no">110</span><span id="line-110">                    // Fire "old" data with up-to-date end of record flag.</span>
-<span class="source-line-no">111</span><span id="line-111">                    eventPipeline.fire(Output.fromSink(buffer, eof), channel);</span>
-<span class="source-line-no">112</span><span id="line-112">                    if (eof) {</span>
-<span class="source-line-no">113</span><span id="line-113">                        break;</span>
-<span class="source-line-no">114</span><span id="line-114">                    }</span>
-<span class="source-line-no">115</span><span id="line-115">                }</span>
-<span class="source-line-no">116</span><span id="line-116">            }</span>
-<span class="source-line-no">117</span><span id="line-117">            if (sendClose) {</span>
-<span class="source-line-no">118</span><span id="line-118">                eventPipeline.fire(new Close(), channel);</span>
-<span class="source-line-no">119</span><span id="line-119">            }</span>
-<span class="source-line-no">120</span><span id="line-120">        } catch (InterruptedException e) {</span>
-<span class="source-line-no">121</span><span id="line-121">            // Just stop</span>
-<span class="source-line-no">122</span><span id="line-122">        } catch (IOException e) {</span>
-<span class="source-line-no">123</span><span id="line-123">            eventPipeline.fire(new IOError(null, e), channel);</span>
-<span class="source-line-no">124</span><span id="line-124">        }</span>
-<span class="source-line-no">125</span><span id="line-125">    }</span>
-<span class="source-line-no">126</span><span id="line-126">}</span>
+<span class="source-line-no">026</span><span id="line-26">import java.util.Map;</span>
+<span class="source-line-no">027</span><span id="line-27">import org.jgrapes.core.Event;</span>
+<span class="source-line-no">028</span><span id="line-28">import org.jgrapes.core.EventPipeline;</span>
+<span class="source-line-no">029</span><span id="line-29">import org.jgrapes.io.IOSubchannel;</span>
+<span class="source-line-no">030</span><span id="line-30">import org.jgrapes.io.events.Close;</span>
+<span class="source-line-no">031</span><span id="line-31">import org.jgrapes.io.events.IOError;</span>
+<span class="source-line-no">032</span><span id="line-32">import org.jgrapes.io.events.IOEvent;</span>
+<span class="source-line-no">033</span><span id="line-33">import org.jgrapes.io.events.Input;</span>
+<span class="source-line-no">034</span><span id="line-34">import org.jgrapes.io.events.Output;</span>
+<span class="source-line-no">035</span><span id="line-35"></span>
+<span class="source-line-no">036</span><span id="line-36">/**</span>
+<span class="source-line-no">037</span><span id="line-37"> * Forwards the content of an input stream as a sequence of {@link Output}</span>
+<span class="source-line-no">038</span><span id="line-38"> * events.</span>
+<span class="source-line-no">039</span><span id="line-39"> */</span>
+<span class="source-line-no">040</span><span id="line-40">@SuppressWarnings("PMD.DataflowAnomalyAnalysis")</span>
+<span class="source-line-no">041</span><span id="line-41">public class InputStreamPipeline implements Runnable {</span>
+<span class="source-line-no">042</span><span id="line-42"></span>
+<span class="source-line-no">043</span><span id="line-43">    private InputStream inStream;</span>
+<span class="source-line-no">044</span><span id="line-44">    private IOSubchannel channel;</span>
+<span class="source-line-no">045</span><span id="line-45">    private EventPipeline eventPipeline;</span>
+<span class="source-line-no">046</span><span id="line-46">    private boolean sendClose = true;</span>
+<span class="source-line-no">047</span><span id="line-47">    private Map&lt;Object, Object&gt; eventAssociations;</span>
+<span class="source-line-no">048</span><span id="line-48">    private boolean sendInputEvents;</span>
+<span class="source-line-no">049</span><span id="line-49"></span>
+<span class="source-line-no">050</span><span id="line-50">    /**</span>
+<span class="source-line-no">051</span><span id="line-51">     * Creates a new pipeline that sends the data from the given input stream</span>
+<span class="source-line-no">052</span><span id="line-52">     * as events on the given channel, using the given event pipeline.</span>
+<span class="source-line-no">053</span><span id="line-53">     * </span>
+<span class="source-line-no">054</span><span id="line-54">     * @param in the input stream to read from</span>
+<span class="source-line-no">055</span><span id="line-55">     * @param channel the channel to send to</span>
+<span class="source-line-no">056</span><span id="line-56">     * @param eventPipeline</span>
+<span class="source-line-no">057</span><span id="line-57">     *            the event pipeline used for firing events</span>
+<span class="source-line-no">058</span><span id="line-58">     */</span>
+<span class="source-line-no">059</span><span id="line-59">    @SuppressWarnings("PMD.ShortVariable")</span>
+<span class="source-line-no">060</span><span id="line-60">    public InputStreamPipeline(InputStream in, IOSubchannel channel,</span>
+<span class="source-line-no">061</span><span id="line-61">            EventPipeline eventPipeline) {</span>
+<span class="source-line-no">062</span><span id="line-62">        this.inStream = in;</span>
+<span class="source-line-no">063</span><span id="line-63">        this.channel = channel;</span>
+<span class="source-line-no">064</span><span id="line-64">        this.eventPipeline = eventPipeline;</span>
+<span class="source-line-no">065</span><span id="line-65">    }</span>
+<span class="source-line-no">066</span><span id="line-66"></span>
+<span class="source-line-no">067</span><span id="line-67">    /**</span>
+<span class="source-line-no">068</span><span id="line-68">     * Creates a new pipeline that sends the data from the given input stream</span>
+<span class="source-line-no">069</span><span id="line-69">     * as events on the given channel, using the channel's response pipeline.</span>
+<span class="source-line-no">070</span><span id="line-70">     * </span>
+<span class="source-line-no">071</span><span id="line-71">     * @param in the input stream to read from</span>
+<span class="source-line-no">072</span><span id="line-72">     * @param channel the channel to send to</span>
+<span class="source-line-no">073</span><span id="line-73">     */</span>
+<span class="source-line-no">074</span><span id="line-74">    @SuppressWarnings("PMD.ShortVariable")</span>
+<span class="source-line-no">075</span><span id="line-75">    public InputStreamPipeline(InputStream in, IOSubchannel channel) {</span>
+<span class="source-line-no">076</span><span id="line-76">        this(in, channel, channel.responsePipeline());</span>
+<span class="source-line-no">077</span><span id="line-77">    }</span>
+<span class="source-line-no">078</span><span id="line-78"></span>
+<span class="source-line-no">079</span><span id="line-79">    /**</span>
+<span class="source-line-no">080</span><span id="line-80">     * Causes the data to be fired as {@link Input} events rather</span>
+<span class="source-line-no">081</span><span id="line-81">     * than the usual {@link Output} events. </span>
+<span class="source-line-no">082</span><span id="line-82">     * </span>
+<span class="source-line-no">083</span><span id="line-83">     * @return the stream for easy chaining</span>
+<span class="source-line-no">084</span><span id="line-84">     */</span>
+<span class="source-line-no">085</span><span id="line-85">    public InputStreamPipeline sendInputEvents() {</span>
+<span class="source-line-no">086</span><span id="line-86">        sendInputEvents = true;</span>
+<span class="source-line-no">087</span><span id="line-87">        return this;</span>
+<span class="source-line-no">088</span><span id="line-88">    }</span>
+<span class="source-line-no">089</span><span id="line-89"></span>
+<span class="source-line-no">090</span><span id="line-90">    /**</span>
+<span class="source-line-no">091</span><span id="line-91">     * Suppresses the sending of a close event when the stream is closed. </span>
+<span class="source-line-no">092</span><span id="line-92">     * </span>
+<span class="source-line-no">093</span><span id="line-93">     * @return the stream for easy chaining</span>
+<span class="source-line-no">094</span><span id="line-94">     */</span>
+<span class="source-line-no">095</span><span id="line-95">    public InputStreamPipeline suppressClose() {</span>
+<span class="source-line-no">096</span><span id="line-96">        sendClose = false;</span>
+<span class="source-line-no">097</span><span id="line-97">        return this;</span>
+<span class="source-line-no">098</span><span id="line-98">    }</span>
+<span class="source-line-no">099</span><span id="line-99"></span>
+<span class="source-line-no">100</span><span id="line-100">    /**</span>
+<span class="source-line-no">101</span><span id="line-101">     * Configure associations that are applied to the generated</span>
+<span class="source-line-no">102</span><span id="line-102">     * Output events, see {@link Event#setAssociated}.</span>
+<span class="source-line-no">103</span><span id="line-103">     * </span>
+<span class="source-line-no">104</span><span id="line-104">     * @param associations</span>
+<span class="source-line-no">105</span><span id="line-105">     */</span>
+<span class="source-line-no">106</span><span id="line-106">    public void setEventAssociations(Map&lt;Object, Object&gt; associations) {</span>
+<span class="source-line-no">107</span><span id="line-107">        eventAssociations = associations;</span>
+<span class="source-line-no">108</span><span id="line-108">    }</span>
+<span class="source-line-no">109</span><span id="line-109"></span>
+<span class="source-line-no">110</span><span id="line-110">    @Override</span>
+<span class="source-line-no">111</span><span id="line-111">    public void run() {</span>
+<span class="source-line-no">112</span><span id="line-112">        try (ReadableByteChannel inChannel = Channels.newChannel(inStream)) {</span>
+<span class="source-line-no">113</span><span id="line-113">            ManagedBuffer&lt;ByteBuffer&gt; lookAhead = ManagedBuffer.wrap(</span>
+<span class="source-line-no">114</span><span id="line-114">                ByteBuffer.allocate(channel.byteBufferPool().bufferSize()));</span>
+<span class="source-line-no">115</span><span id="line-115">            // First attempt</span>
+<span class="source-line-no">116</span><span id="line-116">            if (lookAhead.fillFromChannel(inChannel) == -1) {</span>
+<span class="source-line-no">117</span><span id="line-117">                ManagedBuffer&lt;ByteBuffer&gt; buffer</span>
+<span class="source-line-no">118</span><span id="line-118">                    = channel.byteBufferPool().acquire();</span>
+<span class="source-line-no">119</span><span id="line-119">                eventPipeline.fire(prepareEvent(buffer, true), channel);</span>
+<span class="source-line-no">120</span><span id="line-120">            } else {</span>
+<span class="source-line-no">121</span><span id="line-121">                while (true) {</span>
+<span class="source-line-no">122</span><span id="line-122">                    // Save data read so far</span>
+<span class="source-line-no">123</span><span id="line-123">                    ManagedBuffer&lt;ByteBuffer&gt; buffer</span>
+<span class="source-line-no">124</span><span id="line-124">                        = channel.byteBufferPool().acquire();</span>
+<span class="source-line-no">125</span><span id="line-125">                    buffer.linkBackingBuffer(lookAhead);</span>
+<span class="source-line-no">126</span><span id="line-126">                    // Get new look ahead</span>
+<span class="source-line-no">127</span><span id="line-127">                    lookAhead = ManagedBuffer.wrap(ByteBuffer.allocate(</span>
+<span class="source-line-no">128</span><span id="line-128">                        channel.byteBufferPool().bufferSize()));</span>
+<span class="source-line-no">129</span><span id="line-129">                    // Next read attempt</span>
+<span class="source-line-no">130</span><span id="line-130">                    boolean eof;</span>
+<span class="source-line-no">131</span><span id="line-131">                    try {</span>
+<span class="source-line-no">132</span><span id="line-132">                        eof = lookAhead.fillFromChannel(inChannel) == -1;</span>
+<span class="source-line-no">133</span><span id="line-133">                    } catch (IOException e) {</span>
+<span class="source-line-no">134</span><span id="line-134">                        buffer.unlockBuffer();</span>
+<span class="source-line-no">135</span><span id="line-135">                        throw e;</span>
+<span class="source-line-no">136</span><span id="line-136">                    }</span>
+<span class="source-line-no">137</span><span id="line-137">                    // Fire "old" data with up-to-date end of record flag.</span>
+<span class="source-line-no">138</span><span id="line-138">                    eventPipeline.fire(prepareEvent(buffer, eof),</span>
+<span class="source-line-no">139</span><span id="line-139">                        channel);</span>
+<span class="source-line-no">140</span><span id="line-140">                    if (eof) {</span>
+<span class="source-line-no">141</span><span id="line-141">                        break;</span>
+<span class="source-line-no">142</span><span id="line-142">                    }</span>
+<span class="source-line-no">143</span><span id="line-143">                }</span>
+<span class="source-line-no">144</span><span id="line-144">            }</span>
+<span class="source-line-no">145</span><span id="line-145">            if (sendClose) {</span>
+<span class="source-line-no">146</span><span id="line-146">                eventPipeline.fire(new Close(), channel);</span>
+<span class="source-line-no">147</span><span id="line-147">            }</span>
+<span class="source-line-no">148</span><span id="line-148">        } catch (InterruptedException e) {</span>
+<span class="source-line-no">149</span><span id="line-149">            // Just stop</span>
+<span class="source-line-no">150</span><span id="line-150">        } catch (IOException e) {</span>
+<span class="source-line-no">151</span><span id="line-151">            eventPipeline.fire(new IOError(null, e), channel);</span>
+<span class="source-line-no">152</span><span id="line-152">        }</span>
+<span class="source-line-no">153</span><span id="line-153">    }</span>
+<span class="source-line-no">154</span><span id="line-154"></span>
+<span class="source-line-no">155</span><span id="line-155">    private IOEvent&lt;ByteBuffer&gt; prepareEvent(ManagedBuffer&lt;ByteBuffer&gt; buffer,</span>
+<span class="source-line-no">156</span><span id="line-156">            boolean eor) {</span>
+<span class="source-line-no">157</span><span id="line-157">        IOEvent&lt;ByteBuffer&gt; event;</span>
+<span class="source-line-no">158</span><span id="line-158">        if (sendInputEvents) {</span>
+<span class="source-line-no">159</span><span id="line-159">            event = Input.fromSink(buffer, eor);</span>
+<span class="source-line-no">160</span><span id="line-160">        } else {</span>
+<span class="source-line-no">161</span><span id="line-161">            event = Output.fromSink(buffer, eor);</span>
+<span class="source-line-no">162</span><span id="line-162">        }</span>
+<span class="source-line-no">163</span><span id="line-163">        if (eventAssociations != null) {</span>
+<span class="source-line-no">164</span><span id="line-164">            for (var entry : eventAssociations.entrySet()) {</span>
+<span class="source-line-no">165</span><span id="line-165">                event.setAssociated(entry.getKey(), entry.getValue());</span>
+<span class="source-line-no">166</span><span id="line-166">            }</span>
+<span class="source-line-no">167</span><span id="line-167">        }</span>
+<span class="source-line-no">168</span><span id="line-168">        return event;</span>
+<span class="source-line-no">169</span><span id="line-169">    }</span>
+<span class="source-line-no">170</span><span id="line-170"></span>
+<span class="source-line-no">171</span><span id="line-171">}</span>
 
 
 
