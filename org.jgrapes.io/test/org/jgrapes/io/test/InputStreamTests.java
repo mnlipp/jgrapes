@@ -10,6 +10,7 @@ import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.io.events.Close;
+import org.jgrapes.io.events.Input;
 import org.jgrapes.io.events.Output;
 import org.jgrapes.io.util.InputStreamPipeline;
 import static org.junit.Assert.*;
@@ -20,6 +21,7 @@ public class InputStreamTests {
     public static class Tracker extends Component {
 
         public int outputs = 0;
+        public int inputs = 0;
         public long collected = 0;
         public int eors = 0;
         public int closed = 0;
@@ -32,6 +34,17 @@ public class InputStreamTests {
         public void onOutput(Output<ByteBuffer> event, IOSubchannel channel)
                 throws UnsupportedEncodingException {
             outputs += 1;
+            int length = event.data().limit();
+            collected += length;
+            if (event.isEndOfRecord()) {
+                eors += 1;
+            }
+        }
+
+        @Handler
+        public void onInput(Input<ByteBuffer> event, IOSubchannel channel)
+                throws UnsupportedEncodingException {
+            inputs += 1;
             int length = event.data().limit();
             collected += length;
             if (event.isEndOfRecord()) {
@@ -127,6 +140,25 @@ public class InputStreamTests {
         // Two must be available
         channel.byteBufferPool().acquire();
         channel.byteBufferPool().acquire();
+    }
+
+    @Test
+    public void testInputEorAndClose()
+            throws InterruptedException, IOException {
+        Tracker tracker = new Tracker();
+        Components.start(tracker);
+        IOSubchannel channel = IOSubchannel.create(
+            tracker, tracker.newEventPipeline());
+        ByteArrayInputStream in = new ByteArrayInputStream("Test".getBytes());
+        InputStreamPipeline isp = new InputStreamPipeline(in, channel);
+        isp.sendInputEvents();
+        isp.run();
+        Components.awaitExhaustion();
+        Components.checkAssertions();
+        assertEquals(1, tracker.inputs);
+        assertTrue(tracker.collected > 0);
+        assertEquals(1, tracker.eors);
+        assertEquals(1, tracker.closed);
     }
 
 }
