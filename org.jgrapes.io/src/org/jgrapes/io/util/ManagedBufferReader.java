@@ -1,6 +1,6 @@
 /*
  * JGrapes Event Driven Framework
- * Copyright (C) 2022 Michael N. Lipp
+ * Copyright (C) 2022, 2023 Michael N. Lipp
  * 
  * This program is free software; you can redistribute it and/or modify it 
  * under the terms of the GNU Affero General Public License as published by 
@@ -21,7 +21,12 @@ package org.jgrapes.io.util;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.io.Reader;
+import java.nio.Buffer;
+import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
 /**
@@ -33,7 +38,27 @@ public class ManagedBufferReader extends Reader {
 
     private boolean isEndOfFeed;
     private boolean isOpen = true;
-    private ManagedBuffer<CharBuffer> current;
+    private ManagedBuffer<? extends Buffer> current;
+    private CharsetDecoder decoder;
+    private CharBuffer decoded;
+    private Charset charset = StandardCharsets.UTF_8;
+
+    /**
+     * Sets the charset to be used if {@link #feed(ManagedBuffer)}
+     * is invoked with `ManagedBuffer<Charset>`. Defaults to UTF-8. 
+     * Must be set before the first invocation of 
+     * {@link #feed(ManagedBuffer)}.  
+     *
+     * @param charset the charset
+     * @return the managed buffer reader
+     */
+    public ManagedBufferReader setCharset(Charset charset) {
+        if (decoder != null) {
+            throw new IllegalStateException("Charset cannot be changed.");
+        }
+        this.charset = charset;
+        return this;
+    }
 
     /**
      * Feed data to the reader. The call blocks while data from a previous
@@ -43,13 +68,14 @@ public class ManagedBufferReader extends Reader {
      * 
      * Calling this method with `null` as argument closes the feed.
      * After consuming any data still available from a previous
-     * invocation, further calls to {@link #read} return -1.
+     * invocation, further calls to {@link #read} therefore return -1.
      *
      * @param buffer the buffer
      * @throws IOException Signals that an I/O exception has occurred.
      */
-    @SuppressWarnings("PMD.PreserveStackTrace")
-    public void feed(ManagedBuffer<CharBuffer> buffer) throws IOException {
+    @SuppressWarnings({ "PMD.PreserveStackTrace" })
+    public <W extends Buffer> void feed(ManagedBuffer<W> buffer)
+            throws IOException {
         synchronized (lock) {
             if (buffer == null) {
                 isEndOfFeed = true;
@@ -95,7 +121,9 @@ public class ManagedBufferReader extends Reader {
     }
 
     @Override
-    @SuppressWarnings("PMD.PreserveStackTrace")
+    @SuppressWarnings({ "PMD.PreserveStackTrace", "unchecked",
+        "PMD.CognitiveComplexity", "PMD.DataflowAnomalyAnalysis",
+        "PMD.NcssCount" })
     public int read(char[] cbuf, int off, int len) throws IOException {
         Objects.checkFromIndexSize(off, len, cbuf.length);
         synchronized (lock) {
@@ -112,18 +140,36 @@ public class ManagedBufferReader extends Reader {
             if (!isOpen || isEndOfFeed && current == null) {
                 return -1;
             }
+            CharBuffer input;
+            if (current.backingBuffer() instanceof CharBuffer) {
+                input = ((ManagedBuffer<CharBuffer>) current).backingBuffer();
+            } else {
+                if (decoder == null) {
+                    decoder = charset.newDecoder();
+                    decoded = CharBuffer.allocate(current.capacity());
+                }
+                var result = decoder.decode(
+                    ((ManagedBuffer<ByteBuffer>) current).backingBuffer(),
+                    decoded, isEndOfFeed);
+                assert !result.isOverflow();
+                decoded.flip();
+                input = decoded;
+            }
             int transferred;
-            if (current.remaining() <= len) {
+            if (input.remaining() <= len) {
                 // Get all remaining.
-                transferred = current.remaining();
-                current.backingBuffer().get(cbuf, off, transferred);
+                transferred = input.remaining();
+                input.get(cbuf, off, transferred);
+                if (decoded != null) {
+                    decoded.clear();
+                }
                 current.unlockBuffer();
                 current = null;
                 lock.notifyAll();
             } else {
                 // Get requested.
                 transferred = len;
-                current.backingBuffer().get(cbuf, off, transferred);
+                input.get(cbuf, off, transferred);
             }
             return transferred;
         }
