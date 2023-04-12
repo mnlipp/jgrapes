@@ -4,6 +4,8 @@ on: [push]
 
 permissions:
   id-token: write
+  pull-requests: write
+  repository-projects: write
 
 concurrency:
   group: doc_generation
