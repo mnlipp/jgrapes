@@ -60,7 +60,8 @@ apply from: "${project.rootDir}/gradle/docgen.gradle"
 // Prepare github authentication for plugins
 if (System.properties['org.ajoberstar.grgit.auth.username'] == null) {
     System.setProperty('org.ajoberstar.grgit.auth.username',
-        project.properties['github.token'] ?: "nouser")
+        System.getenv("GITHUB_TOKEN") ?: project.properties['jgrapes.push']
+            ?: "nouser")
 }
 
 print "org.ajoberstar.grgit.auth.username: " + System.properties['org.ajoberstar.grgit.auth.username']
