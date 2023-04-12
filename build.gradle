@@ -63,6 +63,8 @@ if (System.properties['org.ajoberstar.grgit.auth.username'] == null) {
         project.properties['github.token'] ?: "nouser")
 }
 
+print "org.ajoberstar.grgit.auth.username: " + System.properties['org.ajoberstar.grgit.auth.username']
+
 task stage {
 	description = 'To be executed by CI, build and update JavaDoc.'
 	group = 'build'
