@@ -116,72 +116,74 @@
 <span class="source-line-no">103</span><span id="line-103">     * </span>
 <span class="source-line-no">104</span><span id="line-104">     * @param associations</span>
 <span class="source-line-no">105</span><span id="line-105">     */</span>
-<span class="source-line-no">106</span><span id="line-106">    public void setEventAssociations(Map&lt;Object, Object&gt; associations) {</span>
-<span class="source-line-no">107</span><span id="line-107">        eventAssociations = associations;</span>
-<span class="source-line-no">108</span><span id="line-108">    }</span>
-<span class="source-line-no">109</span><span id="line-109"></span>
-<span class="source-line-no">110</span><span id="line-110">    @Override</span>
-<span class="source-line-no">111</span><span id="line-111">    public void run() {</span>
-<span class="source-line-no">112</span><span id="line-112">        try (ReadableByteChannel inChannel = Channels.newChannel(inStream)) {</span>
-<span class="source-line-no">113</span><span id="line-113">            ManagedBuffer&lt;ByteBuffer&gt; lookAhead = ManagedBuffer.wrap(</span>
-<span class="source-line-no">114</span><span id="line-114">                ByteBuffer.allocate(channel.byteBufferPool().bufferSize()));</span>
-<span class="source-line-no">115</span><span id="line-115">            // First attempt</span>
-<span class="source-line-no">116</span><span id="line-116">            if (lookAhead.fillFromChannel(inChannel) == -1) {</span>
-<span class="source-line-no">117</span><span id="line-117">                ManagedBuffer&lt;ByteBuffer&gt; buffer</span>
-<span class="source-line-no">118</span><span id="line-118">                    = channel.byteBufferPool().acquire();</span>
-<span class="source-line-no">119</span><span id="line-119">                eventPipeline.fire(prepareEvent(buffer, true), channel);</span>
-<span class="source-line-no">120</span><span id="line-120">            } else {</span>
-<span class="source-line-no">121</span><span id="line-121">                while (true) {</span>
-<span class="source-line-no">122</span><span id="line-122">                    // Save data read so far</span>
-<span class="source-line-no">123</span><span id="line-123">                    ManagedBuffer&lt;ByteBuffer&gt; buffer</span>
-<span class="source-line-no">124</span><span id="line-124">                        = channel.byteBufferPool().acquire();</span>
-<span class="source-line-no">125</span><span id="line-125">                    buffer.linkBackingBuffer(lookAhead);</span>
-<span class="source-line-no">126</span><span id="line-126">                    // Get new look ahead</span>
-<span class="source-line-no">127</span><span id="line-127">                    lookAhead = ManagedBuffer.wrap(ByteBuffer.allocate(</span>
-<span class="source-line-no">128</span><span id="line-128">                        channel.byteBufferPool().bufferSize()));</span>
-<span class="source-line-no">129</span><span id="line-129">                    // Next read attempt</span>
-<span class="source-line-no">130</span><span id="line-130">                    boolean eof;</span>
-<span class="source-line-no">131</span><span id="line-131">                    try {</span>
-<span class="source-line-no">132</span><span id="line-132">                        eof = lookAhead.fillFromChannel(inChannel) == -1;</span>
-<span class="source-line-no">133</span><span id="line-133">                    } catch (IOException e) {</span>
-<span class="source-line-no">134</span><span id="line-134">                        buffer.unlockBuffer();</span>
-<span class="source-line-no">135</span><span id="line-135">                        throw e;</span>
-<span class="source-line-no">136</span><span id="line-136">                    }</span>
-<span class="source-line-no">137</span><span id="line-137">                    // Fire "old" data with up-to-date end of record flag.</span>
-<span class="source-line-no">138</span><span id="line-138">                    eventPipeline.fire(prepareEvent(buffer, eof),</span>
-<span class="source-line-no">139</span><span id="line-139">                        channel);</span>
-<span class="source-line-no">140</span><span id="line-140">                    if (eof) {</span>
-<span class="source-line-no">141</span><span id="line-141">                        break;</span>
-<span class="source-line-no">142</span><span id="line-142">                    }</span>
-<span class="source-line-no">143</span><span id="line-143">                }</span>
-<span class="source-line-no">144</span><span id="line-144">            }</span>
-<span class="source-line-no">145</span><span id="line-145">            if (sendClose) {</span>
-<span class="source-line-no">146</span><span id="line-146">                eventPipeline.fire(new Close(), channel);</span>
-<span class="source-line-no">147</span><span id="line-147">            }</span>
-<span class="source-line-no">148</span><span id="line-148">        } catch (InterruptedException e) {</span>
-<span class="source-line-no">149</span><span id="line-149">            // Just stop</span>
-<span class="source-line-no">150</span><span id="line-150">        } catch (IOException e) {</span>
-<span class="source-line-no">151</span><span id="line-151">            eventPipeline.fire(new IOError(null, e), channel);</span>
-<span class="source-line-no">152</span><span id="line-152">        }</span>
-<span class="source-line-no">153</span><span id="line-153">    }</span>
-<span class="source-line-no">154</span><span id="line-154"></span>
-<span class="source-line-no">155</span><span id="line-155">    private IOEvent&lt;ByteBuffer&gt; prepareEvent(ManagedBuffer&lt;ByteBuffer&gt; buffer,</span>
-<span class="source-line-no">156</span><span id="line-156">            boolean eor) {</span>
-<span class="source-line-no">157</span><span id="line-157">        IOEvent&lt;ByteBuffer&gt; event;</span>
-<span class="source-line-no">158</span><span id="line-158">        if (sendInputEvents) {</span>
-<span class="source-line-no">159</span><span id="line-159">            event = Input.fromSink(buffer, eor);</span>
-<span class="source-line-no">160</span><span id="line-160">        } else {</span>
-<span class="source-line-no">161</span><span id="line-161">            event = Output.fromSink(buffer, eor);</span>
-<span class="source-line-no">162</span><span id="line-162">        }</span>
-<span class="source-line-no">163</span><span id="line-163">        if (eventAssociations != null) {</span>
-<span class="source-line-no">164</span><span id="line-164">            for (var entry : eventAssociations.entrySet()) {</span>
-<span class="source-line-no">165</span><span id="line-165">                event.setAssociated(entry.getKey(), entry.getValue());</span>
-<span class="source-line-no">166</span><span id="line-166">            }</span>
-<span class="source-line-no">167</span><span id="line-167">        }</span>
-<span class="source-line-no">168</span><span id="line-168">        return event;</span>
-<span class="source-line-no">169</span><span id="line-169">    }</span>
-<span class="source-line-no">170</span><span id="line-170"></span>
-<span class="source-line-no">171</span><span id="line-171">}</span>
+<span class="source-line-no">106</span><span id="line-106">    public InputStreamPipeline</span>
+<span class="source-line-no">107</span><span id="line-107">            setEventAssociations(Map&lt;Object, Object&gt; associations) {</span>
+<span class="source-line-no">108</span><span id="line-108">        eventAssociations = associations;</span>
+<span class="source-line-no">109</span><span id="line-109">        return this;</span>
+<span class="source-line-no">110</span><span id="line-110">    }</span>
+<span class="source-line-no">111</span><span id="line-111"></span>
+<span class="source-line-no">112</span><span id="line-112">    @Override</span>
+<span class="source-line-no">113</span><span id="line-113">    public void run() {</span>
+<span class="source-line-no">114</span><span id="line-114">        try (ReadableByteChannel inChannel = Channels.newChannel(inStream)) {</span>
+<span class="source-line-no">115</span><span id="line-115">            ManagedBuffer&lt;ByteBuffer&gt; lookAhead = ManagedBuffer.wrap(</span>
+<span class="source-line-no">116</span><span id="line-116">                ByteBuffer.allocate(channel.byteBufferPool().bufferSize()));</span>
+<span class="source-line-no">117</span><span id="line-117">            // First attempt</span>
+<span class="source-line-no">118</span><span id="line-118">            if (lookAhead.fillFromChannel(inChannel) == -1) {</span>
+<span class="source-line-no">119</span><span id="line-119">                ManagedBuffer&lt;ByteBuffer&gt; buffer</span>
+<span class="source-line-no">120</span><span id="line-120">                    = channel.byteBufferPool().acquire();</span>
+<span class="source-line-no">121</span><span id="line-121">                eventPipeline.fire(prepareEvent(buffer, true), channel);</span>
+<span class="source-line-no">122</span><span id="line-122">            } else {</span>
+<span class="source-line-no">123</span><span id="line-123">                while (true) {</span>
+<span class="source-line-no">124</span><span id="line-124">                    // Save data read so far</span>
+<span class="source-line-no">125</span><span id="line-125">                    ManagedBuffer&lt;ByteBuffer&gt; buffer</span>
+<span class="source-line-no">126</span><span id="line-126">                        = channel.byteBufferPool().acquire();</span>
+<span class="source-line-no">127</span><span id="line-127">                    buffer.linkBackingBuffer(lookAhead);</span>
+<span class="source-line-no">128</span><span id="line-128">                    // Get new look ahead</span>
+<span class="source-line-no">129</span><span id="line-129">                    lookAhead = ManagedBuffer.wrap(ByteBuffer.allocate(</span>
+<span class="source-line-no">130</span><span id="line-130">                        channel.byteBufferPool().bufferSize()));</span>
+<span class="source-line-no">131</span><span id="line-131">                    // Next read attempt</span>
+<span class="source-line-no">132</span><span id="line-132">                    boolean eof;</span>
+<span class="source-line-no">133</span><span id="line-133">                    try {</span>
+<span class="source-line-no">134</span><span id="line-134">                        eof = lookAhead.fillFromChannel(inChannel) == -1;</span>
+<span class="source-line-no">135</span><span id="line-135">                    } catch (IOException e) {</span>
+<span class="source-line-no">136</span><span id="line-136">                        buffer.unlockBuffer();</span>
+<span class="source-line-no">137</span><span id="line-137">                        throw e;</span>
+<span class="source-line-no">138</span><span id="line-138">                    }</span>
+<span class="source-line-no">139</span><span id="line-139">                    // Fire "old" data with up-to-date end of record flag.</span>
+<span class="source-line-no">140</span><span id="line-140">                    eventPipeline.fire(prepareEvent(buffer, eof),</span>
+<span class="source-line-no">141</span><span id="line-141">                        channel);</span>
+<span class="source-line-no">142</span><span id="line-142">                    if (eof) {</span>
+<span class="source-line-no">143</span><span id="line-143">                        break;</span>
+<span class="source-line-no">144</span><span id="line-144">                    }</span>
+<span class="source-line-no">145</span><span id="line-145">                }</span>
+<span class="source-line-no">146</span><span id="line-146">            }</span>
+<span class="source-line-no">147</span><span id="line-147">            if (sendClose) {</span>
+<span class="source-line-no">148</span><span id="line-148">                eventPipeline.fire(new Close(), channel);</span>
+<span class="source-line-no">149</span><span id="line-149">            }</span>
+<span class="source-line-no">150</span><span id="line-150">        } catch (InterruptedException e) {</span>
+<span class="source-line-no">151</span><span id="line-151">            // Just stop</span>
+<span class="source-line-no">152</span><span id="line-152">        } catch (IOException e) {</span>
+<span class="source-line-no">153</span><span id="line-153">            eventPipeline.fire(new IOError(null, e), channel);</span>
+<span class="source-line-no">154</span><span id="line-154">        }</span>
+<span class="source-line-no">155</span><span id="line-155">    }</span>
+<span class="source-line-no">156</span><span id="line-156"></span>
+<span class="source-line-no">157</span><span id="line-157">    private IOEvent&lt;ByteBuffer&gt; prepareEvent(ManagedBuffer&lt;ByteBuffer&gt; buffer,</span>
+<span class="source-line-no">158</span><span id="line-158">            boolean eor) {</span>
+<span class="source-line-no">159</span><span id="line-159">        IOEvent&lt;ByteBuffer&gt; event;</span>
+<span class="source-line-no">160</span><span id="line-160">        if (sendInputEvents) {</span>
+<span class="source-line-no">161</span><span id="line-161">            event = Input.fromSink(buffer, eor);</span>
+<span class="source-line-no">162</span><span id="line-162">        } else {</span>
+<span class="source-line-no">163</span><span id="line-163">            event = Output.fromSink(buffer, eor);</span>
+<span class="source-line-no">164</span><span id="line-164">        }</span>
+<span class="source-line-no">165</span><span id="line-165">        if (eventAssociations != null) {</span>
+<span class="source-line-no">166</span><span id="line-166">            for (var entry : eventAssociations.entrySet()) {</span>
+<span class="source-line-no">167</span><span id="line-167">                event.setAssociated(entry.getKey(), entry.getValue());</span>
+<span class="source-line-no">168</span><span id="line-168">            }</span>
+<span class="source-line-no">169</span><span id="line-169">        }</span>
+<span class="source-line-no">170</span><span id="line-170">        return event;</span>
+<span class="source-line-no">171</span><span id="line-171">    }</span>
+<span class="source-line-no">172</span><span id="line-172"></span>
+<span class="source-line-no">173</span><span id="line-173">}</span>
 
 
 
