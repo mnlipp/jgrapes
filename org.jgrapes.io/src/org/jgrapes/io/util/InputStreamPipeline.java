@@ -103,8 +103,10 @@ public class InputStreamPipeline implements Runnable {
      * 
      * @param associations
      */
-    public void setEventAssociations(Map<Object, Object> associations) {
+    public InputStreamPipeline
+            setEventAssociations(Map<Object, Object> associations) {
         eventAssociations = associations;
+        return this;
     }
 
     @Override
