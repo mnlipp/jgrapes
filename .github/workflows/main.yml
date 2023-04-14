@@ -25,6 +25,4 @@ jobs:
           java-version: ${{ matrix.java-version }}
           distribution: 'adopt'
       - name: Build with Gradle
-        run: ./gradlew stage
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
+        run: ./gradlew -Prepo.access.token=${{ secrets.REPO_ACCESS_TOKEN }} stage
