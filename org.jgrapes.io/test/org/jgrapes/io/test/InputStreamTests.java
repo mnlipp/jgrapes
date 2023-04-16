@@ -9,7 +9,7 @@ import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.io.IOSubchannel;
-import org.jgrapes.io.events.Close;
+import org.jgrapes.io.events.Closed;
 import org.jgrapes.io.events.Input;
 import org.jgrapes.io.events.Output;
 import org.jgrapes.io.util.InputStreamPipeline;
@@ -53,7 +53,7 @@ public class InputStreamTests {
         }
 
         @Handler
-        public void onClose(Close event, IOSubchannel channel) {
+        public void onClosed(Closed event, IOSubchannel channel) {
             closed += 1;
         }
     }
@@ -85,7 +85,7 @@ public class InputStreamTests {
             tracker, tracker.newEventPipeline());
         ByteArrayInputStream in = new ByteArrayInputStream("Test".getBytes());
         InputStreamPipeline isp = new InputStreamPipeline(in, channel)
-            .suppressClose();
+            .suppressClosed();
         isp.run();
         Components.awaitExhaustion();
         Components.checkAssertions();
@@ -106,7 +106,7 @@ public class InputStreamTests {
             = new byte[(int) (channel.byteBufferPool().bufferSize() * 2.5)];
         ByteArrayInputStream in = new ByteArrayInputStream(data);
         InputStreamPipeline isp = new InputStreamPipeline(in, channel)
-            .suppressClose();
+            .suppressClosed();
         isp.run();
         Components.awaitExhaustion();
         Components.checkAssertions();
@@ -129,7 +129,7 @@ public class InputStreamTests {
         byte[] data = new byte[0];
         ByteArrayInputStream in = new ByteArrayInputStream(data);
         InputStreamPipeline isp = new InputStreamPipeline(in, channel)
-            .suppressClose();
+            .suppressClosed();
         isp.run();
         Components.awaitExhaustion();
         Components.checkAssertions();
