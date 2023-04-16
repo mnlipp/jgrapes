@@ -199,7 +199,7 @@
 <span class="source-line-no">186</span><span id="line-186">            response.setStatus(HttpStatus.OK);</span>
 <span class="source-line-no">187</span><span id="line-187">            channel.respond(new Response(response));</span>
 <span class="source-line-no">188</span><span id="line-188">            // Start sending content (Output events as resonses)</span>
-<span class="source-line-no">189</span><span id="line-189">            (new InputStreamPipeline(resIn, channel).suppressClose()).run();</span>
+<span class="source-line-no">189</span><span id="line-189">            (new InputStreamPipeline(resIn, channel).suppressClosed()).run();</span>
 <span class="source-line-no">190</span><span id="line-190">        }</span>
 <span class="source-line-no">191</span><span id="line-191">        return true;</span>
 <span class="source-line-no">192</span><span id="line-192">    }</span>
