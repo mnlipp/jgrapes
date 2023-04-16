@@ -186,7 +186,7 @@ public abstract class ResponseCreationSupport {
             response.setStatus(HttpStatus.OK);
             channel.respond(new Response(response));
             // Start sending content (Output events as resonses)
-            (new InputStreamPipeline(resIn, channel).suppressClose()).run();
+            (new InputStreamPipeline(resIn, channel).suppressClosed()).run();
         }
         return true;
     }

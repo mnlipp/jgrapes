@@ -27,7 +27,7 @@ import java.util.Map;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.EventPipeline;
 import org.jgrapes.io.IOSubchannel;
-import org.jgrapes.io.events.Close;
+import org.jgrapes.io.events.Closed;
 import org.jgrapes.io.events.IOError;
 import org.jgrapes.io.events.IOEvent;
 import org.jgrapes.io.events.Input;
@@ -43,7 +43,7 @@ public class InputStreamPipeline implements Runnable {
     private InputStream inStream;
     private IOSubchannel channel;
     private EventPipeline eventPipeline;
-    private boolean sendClose = true;
+    private boolean sendClosed = true;
     private Map<Object, Object> eventAssociations;
     private boolean sendInputEvents;
 
@@ -88,12 +88,12 @@ public class InputStreamPipeline implements Runnable {
     }
 
     /**
-     * Suppresses the sending of a close event when the stream is closed. 
+     * Suppresses the sending of a closed event when the stream is closed. 
      * 
      * @return the stream for easy chaining
      */
-    public InputStreamPipeline suppressClose() {
-        sendClose = false;
+    public InputStreamPipeline suppressClosed() {
+        sendClosed = false;
         return this;
     }
 
@@ -101,7 +101,8 @@ public class InputStreamPipeline implements Runnable {
      * Configure associations that are applied to the generated
      * Output events, see {@link Event#setAssociated}.
      * 
-     * @param associations
+     * @param the associations to apply
+     * @return the pipeline for easy chaining
      */
     public InputStreamPipeline
             setEventAssociations(Map<Object, Object> associations) {
@@ -118,7 +119,7 @@ public class InputStreamPipeline implements Runnable {
             if (lookAhead.fillFromChannel(inChannel) == -1) {
                 ManagedBuffer<ByteBuffer> buffer
                     = channel.byteBufferPool().acquire();
-                eventPipeline.fire(prepareEvent(buffer, true), channel);
+                eventPipeline.fire(associate(ioEvent(buffer, true)), channel);
             } else {
                 while (true) {
                     // Save data read so far
@@ -137,31 +138,32 @@ public class InputStreamPipeline implements Runnable {
                         throw e;
                     }
                     // Fire "old" data with up-to-date end of record flag.
-                    eventPipeline.fire(prepareEvent(buffer, eof),
+                    eventPipeline.fire(associate(ioEvent(buffer, eof)),
                         channel);
                     if (eof) {
                         break;
                     }
                 }
             }
-            if (sendClose) {
-                eventPipeline.fire(new Close(), channel);
+            if (sendClosed) {
+                eventPipeline.fire(associate(new Closed()), channel);
             }
         } catch (InterruptedException e) {
             // Just stop
         } catch (IOException e) {
-            eventPipeline.fire(new IOError(null, e), channel);
+            eventPipeline.fire(associate(new IOError(null, e)), channel);
         }
     }
 
-    private IOEvent<ByteBuffer> prepareEvent(ManagedBuffer<ByteBuffer> buffer,
+    private IOEvent<ByteBuffer> ioEvent(ManagedBuffer<ByteBuffer> buffer,
             boolean eor) {
-        IOEvent<ByteBuffer> event;
         if (sendInputEvents) {
-            event = Input.fromSink(buffer, eor);
-        } else {
-            event = Output.fromSink(buffer, eor);
+            return Input.fromSink(buffer, eor);
         }
+        return Output.fromSink(buffer, eor);
+    }
+
+    private Event<?> associate(Event<?> event) {
         if (eventAssociations != null) {
             for (var entry : eventAssociations.entrySet()) {
                 event.setAssociated(entry.getKey(), entry.getValue());
