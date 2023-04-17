@@ -18,6 +18,9 @@
 
 package org.jgrapes.mail.events;
 
+/**
+ * Fired to open a connection for sending mails.
+ */
 public class OpenMailSender extends OpenMailConnection {
 
 }
