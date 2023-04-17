@@ -88,6 +88,7 @@ public abstract class NightConfigStore extends ConfigurationStore {
 
         // Walk down to node.
         var segs = new StringTokenizer(path, "/");
+        @SuppressWarnings("PMD.CloseResource")
         Config cur = config;
         while (segs.hasMoreTokens()) {
             var nextSeg = segs.nextToken();
