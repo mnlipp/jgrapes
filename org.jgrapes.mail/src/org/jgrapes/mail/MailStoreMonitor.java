@@ -531,6 +531,7 @@ public class MailStoreMonitor extends MailConnectionManager<OpenMailMonitor,
                 }
                 try {
                     for (var folderName : folderNames) {
+                        @SuppressWarnings("PMD.CloseResource")
                         Folder folder = getFolder(folderName);
                         if (folder == null) {
                             continue;
@@ -551,7 +552,7 @@ public class MailStoreMonitor extends MailConnectionManager<OpenMailMonitor,
         }
 
         @SuppressWarnings({ "PMD.GuardLogStatement",
-            "PMD.AvoidRethrowingException" })
+            "PMD.AvoidRethrowingException", "PMD.CloseResource" })
         private Folder getFolder(String folderName)
                 throws FolderClosedException {
             synchronized (folderCache) {
@@ -618,6 +619,7 @@ public class MailStoreMonitor extends MailConnectionManager<OpenMailMonitor,
          *
          * @param event the event
          */
+        @SuppressWarnings("PMD.CloseResource")
         private void refreshWatches(FoldersUpdated event) {
             if (!state.isOpen()) {
                 return;
