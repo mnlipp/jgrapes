@@ -53,7 +53,7 @@ public class InputStreamTests {
         }
 
         @Handler
-        public void onClosed(Closed event, IOSubchannel channel) {
+        public void onClosed(Closed<?> event, IOSubchannel channel) {
             closed += 1;
         }
     }
