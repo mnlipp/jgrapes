@@ -34,7 +34,7 @@ import org.jgrapes.core.CompletionEvent;
 import org.jgrapes.core.Components;
 import org.jgrapes.http.ResourcePattern;
 import org.jgrapes.http.ResourcePattern.PathSpliterator;
-import org.jgrapes.net.TcpChannel;
+import org.jgrapes.net.SocketIOChannel;
 
 /**
  * The base class for all HTTP requests such as {@link Request.In.Get},
@@ -637,7 +637,7 @@ public class Request<R> extends MessageReceived<R> {
     public static class Out extends Request<Void> {
 
         private HttpRequest request;
-        private BiConsumer<Request.Out, TcpChannel> connectedCallback;
+        private BiConsumer<Request.Out, SocketIOChannel> connectedCallback;
 
         /**
          * Instantiates a new request.
@@ -668,7 +668,7 @@ public class Request<R> extends MessageReceived<R> {
          * @return the out
          */
         public Out setConnectedCallback(
-                BiConsumer<Request.Out, TcpChannel> connectedCallback) {
+                BiConsumer<Request.Out, SocketIOChannel> connectedCallback) {
             this.connectedCallback = connectedCallback;
             return this;
         }
@@ -678,7 +678,7 @@ public class Request<R> extends MessageReceived<R> {
          *
          * @return the connected callback, if set
          */
-        public Optional<BiConsumer<Request.Out, TcpChannel>>
+        public Optional<BiConsumer<Request.Out, SocketIOChannel>>
                 connectedCallback() {
             return Optional.ofNullable(connectedCallback);
         }

@@ -1,6 +1,6 @@
 /*
  * JGrapes Event Driven Framework
- * Copyright (C) 2016-2018 Michael N. Lipp
+ * Copyright (C) 2016-2023 Michael N. Lipp
  * 
  * This program is free software; you can redistribute it and/or modify it 
  * under the terms of the GNU Affero General Public License as published by 
@@ -43,21 +43,22 @@ import org.jgrapes.io.events.HalfClosed;
 import org.jgrapes.io.events.Input;
 import org.jgrapes.io.events.NioRegistration;
 import org.jgrapes.io.events.NioRegistration.Registration;
-import org.jgrapes.io.events.OpenTcpConnection;
+import org.jgrapes.io.events.OpenSocketConnection;
 import org.jgrapes.io.events.Output;
 import org.jgrapes.io.util.ManagedBuffer;
 import org.jgrapes.io.util.ManagedBufferPool;
 
 /**
- * Provides a base class for the {@link TcpServer} and the {@link TcpConnector}.
+ * Provides a base class for the {@link SocketServer} and the 
+ * {@link SocketConnector}.
  */
 @SuppressWarnings({ "PMD.ExcessiveImports", "PMD.ExcessivePublicCount",
     "PMD.NcssCount", "PMD.EmptyCatchBlock", "PMD.AvoidDuplicateLiterals",
     "PMD.ExcessiveClassLength" })
-public abstract class TcpConnectionManager extends Component {
+public abstract class SocketConnectionManager extends Component {
 
     private int bufferSize = 32_768;
-    protected final Set<TcpChannelImpl> channels = new HashSet<>();
+    protected final Set<SocketChannelImpl> channels = new HashSet<>();
     private ExecutorService executorService;
 
     /**
@@ -65,7 +66,7 @@ public abstract class TcpConnectionManager extends Component {
      * 
      * @param componentChannel the component's channel
      */
-    public TcpConnectionManager(Channel componentChannel) {
+    public SocketConnectionManager(Channel componentChannel) {
         super(componentChannel);
     }
 
@@ -74,9 +75,9 @@ public abstract class TcpConnectionManager extends Component {
      * If no size is set, a default value of 32768 will be used.
      * 
      * @param bufferSize the size to use for the send and receive buffers
-     * @return the TCP connection manager for easy chaining
+     * @return the socket connection manager for easy chaining
      */
-    public TcpConnectionManager setBufferSize(int bufferSize) {
+    public SocketConnectionManager setBufferSize(int bufferSize) {
         this.bufferSize = bufferSize;
         return this;
     }
@@ -97,10 +98,10 @@ public abstract class TcpConnectionManager extends Component {
      * allows to control the maximum load from the network.
      * 
      * @param executorService the executorService to set
-     * @return the TCP connection manager for easy chaining
+     * @return the socket connection manager for easy chaining
      * @see Manager#newEventPipeline(ExecutorService)
      */
-    public TcpConnectionManager
+    public SocketConnectionManager
             setExecutorService(ExecutorService executorService) {
         this.executorService = executorService;
         return this;
@@ -130,7 +131,7 @@ public abstract class TcpConnectionManager extends Component {
      */
     @Handler
     public void onOutput(Output<ByteBuffer> event,
-            TcpChannelImpl channel) throws InterruptedException {
+            SocketChannelImpl channel) throws InterruptedException {
         if (channels.contains(channel)) {
             channel.write(event);
         }
@@ -142,7 +143,7 @@ public abstract class TcpConnectionManager extends Component {
      * @param channel the channel
      * @return true, if channel was registered
      */
-    protected boolean removeChannel(TcpChannelImpl channel) {
+    protected boolean removeChannel(SocketChannelImpl channel) {
         synchronized (channels) {
             return channels.remove(channel);
         }
@@ -179,10 +180,10 @@ public abstract class TcpConnectionManager extends Component {
      * 
      */
     @SuppressWarnings("PMD.GodClass")
-    protected class TcpChannelImpl
-            extends DefaultIOSubchannel implements NioHandler, TcpChannel {
+    protected class SocketChannelImpl
+            extends DefaultIOSubchannel implements NioHandler, SocketIOChannel {
 
-        private final OpenTcpConnection openEvent;
+        private final OpenSocketConnection openEvent;
         private final SocketChannel nioChannel;
         private final SocketAddress localAddress;
         private final SocketAddress remoteAddress;
@@ -200,9 +201,9 @@ public abstract class TcpConnectionManager extends Component {
 
         /**
          * @param nioChannel the channel
-         * @throws IOException if an I/O error occured
+         * @throws IOException if an I/O error occurred
          */
-        public TcpChannelImpl(OpenTcpConnection openEvent,
+        public SocketChannelImpl(OpenSocketConnection openEvent,
                 SocketChannel nioChannel) throws IOException {
             super(channel(), newEventPipeline());
             this.openEvent = openEvent;
@@ -216,7 +217,7 @@ public abstract class TcpConnectionManager extends Component {
                 downPipeline = newEventPipeline(executorService);
             }
             String channelName
-                = Components.objectName(TcpConnectionManager.this)
+                = Components.objectName(SocketConnectionManager.this)
                     + "." + Components.objectName(this);
 
             // Prepare write buffers
@@ -237,9 +238,9 @@ public abstract class TcpConnectionManager extends Component {
 
             // Register with dispatcher
             nioChannel.configureBlocking(false);
-            TcpConnectionManager.this.fire(
+            SocketConnectionManager.this.fire(
                 new NioRegistration(this, nioChannel, 0,
-                    TcpConnectionManager.this),
+                    SocketConnectionManager.this),
                 Channel.BROADCAST);
         }
 
@@ -251,7 +252,7 @@ public abstract class TcpConnectionManager extends Component {
          * 
          * @return the event
          */
-        public Optional<OpenTcpConnection> openEvent() {
+        public Optional<OpenSocketConnection> openEvent() {
             return Optional.ofNullable(openEvent);
         }
 

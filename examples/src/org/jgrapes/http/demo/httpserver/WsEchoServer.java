@@ -119,7 +119,7 @@ public class WsEchoServer extends Component {
      * @param channel the channel
      */
     @Handler
-    public void onClosed(Closed event, IOSubchannel channel) {
+    public void onClosed(Closed<?> event, IOSubchannel channel) {
         openChannels.remove(channel);
     }
 }

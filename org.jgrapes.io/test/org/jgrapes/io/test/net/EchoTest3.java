@@ -53,14 +53,14 @@ import org.jgrapes.io.NioDispatcher;
 import org.jgrapes.io.events.Close;
 import org.jgrapes.io.events.Closed;
 import org.jgrapes.io.events.Input;
-import org.jgrapes.io.events.OpenTcpConnection;
+import org.jgrapes.io.events.OpenSocketConnection;
 import org.jgrapes.io.events.Output;
 import org.jgrapes.io.test.WaitForTests;
 import org.jgrapes.io.util.ByteBufferOutputStream;
 import org.jgrapes.io.util.ManagedBuffer;
+import org.jgrapes.net.SocketConnector;
+import org.jgrapes.net.SocketServer;
 import org.jgrapes.net.SslCodec;
-import org.jgrapes.net.TcpConnector;
-import org.jgrapes.net.TcpServer;
 import org.jgrapes.net.events.ClientConnected;
 import org.jgrapes.net.events.Ready;
 import static org.junit.Assert.*;
@@ -115,7 +115,8 @@ public class EchoTest3 {
 
         @Handler
         public void onStarted(Started event) throws InterruptedException {
-            fire(new OpenTcpConnection(serverAddr).setAssociated("test", true));
+            fire(new OpenSocketConnection(serverAddr).setAssociated("test",
+                true));
         }
 
         @Handler
@@ -206,7 +207,7 @@ public class EchoTest3 {
             ExecutionException, TimeoutException {
         // Create server
         EchoServer srvApp = new EchoServer();
-        srvApp.attach(new TcpServer(srvApp));
+        srvApp.attach(new SocketServer(srvApp));
         srvApp.attach(new NioDispatcher());
         WaitForTests<Ready> wf = new WaitForTests<>(
             srvApp, Ready.class, srvApp.defaultCriterion());
@@ -220,7 +221,7 @@ public class EchoTest3 {
 
         // Create client
         ClientApp clntApp = new ClientApp(serverAddr);
-        clntApp.attach(new TcpConnector(clntApp));
+        clntApp.attach(new SocketConnector(clntApp));
         clntApp.attach(new NioDispatcher());
         WaitForTests<Done> done
             = new WaitForTests<>(clntApp, Done.class,
@@ -271,7 +272,7 @@ public class EchoTest3 {
         sslSrvContext.init(kmf.getKeyManagers(), null, new SecureRandom());
 
         // Create a TCP server for SSL
-        TcpServer secSrvNetwork = srvApp.attach(new TcpServer());
+        SocketServer secSrvNetwork = srvApp.attach(new SocketServer());
         srvApp.attach(new SslCodec(srvApp, secSrvNetwork, sslSrvContext));
 
         // Server prepared, start it.
@@ -290,7 +291,7 @@ public class EchoTest3 {
         clntApp.attach(new NioDispatcher());
 
         // Create a TCP connector for SSL
-        TcpConnector secClntNetwork = clntApp.attach(new TcpConnector());
+        SocketConnector secClntNetwork = clntApp.attach(new SocketConnector());
         clntApp.attach(new SslCodec(clntApp, secClntNetwork, true));
         WaitForTests<Ready> done
             = new WaitForTests<>(clntApp, Done.class,

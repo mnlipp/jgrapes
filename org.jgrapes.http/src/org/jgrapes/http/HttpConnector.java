@@ -61,11 +61,11 @@ import org.jgrapes.io.events.Close;
 import org.jgrapes.io.events.Closed;
 import org.jgrapes.io.events.IOError;
 import org.jgrapes.io.events.Input;
-import org.jgrapes.io.events.OpenTcpConnection;
+import org.jgrapes.io.events.OpenSocketConnection;
 import org.jgrapes.io.events.Output;
 import org.jgrapes.io.util.ManagedBuffer;
 import org.jgrapes.io.util.ManagedBufferPool;
-import org.jgrapes.net.TcpChannel;
+import org.jgrapes.net.SocketIOChannel;
 import org.jgrapes.net.events.Connected;
 
 /**
@@ -80,7 +80,7 @@ public class HttpConnector extends Component {
     @SuppressWarnings("PMD.UseConcurrentHashMap")
     private final Map<SocketAddress, Set<WebAppMsgChannel>> connecting
         = new HashMap<>();
-    private final PoolingIndex<SocketAddress, TcpChannel> pooled
+    private final PoolingIndex<SocketAddress, SocketIOChannel> pooled
         = new PoolingIndex<>();
 
     /**
@@ -168,7 +168,7 @@ public class HttpConnector extends Component {
      */
     @Handler(channels = NetworkChannel.class)
     @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
-    public void onConnected(Connected<?> event, TcpChannel netConnChannel)
+    public void onConnected(Connected<?> event, SocketIOChannel netConnChannel)
             throws InterruptedException, IOException {
         // Check if an app channel has been waiting for such a connection
         WebAppMsgChannel[] appChannel = { null };
@@ -194,9 +194,9 @@ public class HttpConnector extends Component {
     @Handler(channels = NetworkChannel.class)
     public void onIoError(IOError event) throws IOException {
         for (Channel channel : event.channels()) {
-            if (channel instanceof TcpChannel) {
+            if (channel instanceof SocketIOChannel) {
                 // Error while using established network connection
-                TcpChannel netConnChannel = (TcpChannel) channel;
+                SocketIOChannel netConnChannel = (SocketIOChannel) channel;
                 Optional<WebAppMsgChannel> appChannel
                     = netConnChannel.associated(WebAppMsgChannel.class);
                 if (appChannel.isPresent()) {
@@ -209,9 +209,9 @@ public class HttpConnector extends Component {
                 continue;
             }
             // Error while trying to establish the network connection
-            if (event.event() instanceof OpenTcpConnection) {
-                OpenTcpConnection connEvent
-                    = (OpenTcpConnection) event.event();
+            if (event.event() instanceof OpenSocketConnection) {
+                OpenSocketConnection connEvent
+                    = (OpenSocketConnection) event.event();
                 Optional<Set<WebAppMsgChannel>> erroneous;
                 synchronized (connecting) {
                     erroneous = Optional
@@ -236,7 +236,7 @@ public class HttpConnector extends Component {
      * @throws ProtocolException if the protocol is violated
      */
     @Handler(channels = NetworkChannel.class)
-    public void onInput(Input<ByteBuffer> event, TcpChannel netConnChannel)
+    public void onInput(Input<ByteBuffer> event, SocketIOChannel netConnChannel)
             throws InterruptedException, ProtocolException {
         Optional<WebAppMsgChannel> appChannel
             = netConnChannel.associated(WebAppMsgChannel.class);
@@ -252,7 +252,7 @@ public class HttpConnector extends Component {
      * @param netConnChannel the net conn channel
      */
     @Handler(channels = NetworkChannel.class)
-    public void onClosed(Closed<?> event, TcpChannel netConnChannel) {
+    public void onClosed(Closed<?> event, SocketIOChannel netConnChannel) {
         netConnChannel.associated(WebAppMsgChannel.class).ifPresent(
             appChannel -> appChannel.handleClosed(event));
         pooled.remove(netConnChannel.remoteAddress(), netConnChannel);
@@ -290,7 +290,7 @@ public class HttpConnector extends Component {
         private ManagedBufferPool<ManagedBuffer<CharBuffer>,
                 CharBuffer> charBufferPool;
         private ManagedBufferPool<?, ?> currentPool;
-        private TcpChannel netConnChannel;
+        private SocketIOChannel netConnChannel;
         private final EventPipeline downPipeline;
         private WsMessageHeader currentWsMessage;
 
@@ -322,7 +322,7 @@ public class HttpConnector extends Component {
             }
 
             // Re-use TCP connection, if possible
-            TcpChannel recycled = pooled.poll(serverAddress);
+            SocketIOChannel recycled = pooled.poll(serverAddress);
             if (recycled != null) {
                 connected(recycled);
                 return;
@@ -335,7 +335,7 @@ public class HttpConnector extends Component {
 
             // Fire on main network channel (targeting the tcp connector)
             // as a follow up event (using the current pipeline).
-            fire(new OpenTcpConnection(serverAddress), netMainChannel);
+            fire(new OpenSocketConnection(serverAddress), netMainChannel);
         }
 
         /**
@@ -354,7 +354,8 @@ public class HttpConnector extends Component {
          * @param event the event
          * @param netConnChannel the network channel
          */
-        public void handleIoError(IOError event, TcpChannel netConnChannel) {
+        public void handleIoError(IOError event,
+                SocketIOChannel netConnChannel) {
             downPipeline.fire(IOError.duplicate(event), this);
         }
 
@@ -366,7 +367,7 @@ public class HttpConnector extends Component {
          * @throws IOException Signals that an I/O exception has occurred.
          */
         @SuppressWarnings("PMD.AvoidLiteralsInIfCondition")
-        public final void connected(TcpChannel netConnChannel)
+        public final void connected(SocketIOChannel netConnChannel)
                 throws InterruptedException, IOException {
             // Associate the network channel with this application channel
             this.netConnChannel = netConnChannel;
@@ -414,7 +415,7 @@ public class HttpConnector extends Component {
         @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",
             "PMD.CognitiveComplexity", "PMD.AvoidDuplicateLiterals" })
         private void sendMessageUpstream(MessageHeader message,
-                TcpChannel netConnChannel) {
+                SocketIOChannel netConnChannel) {
             // Now send request as if it came from downstream (to
             // avoid confusion with output events that may be
             // generated in parallel, see below).
@@ -527,7 +528,7 @@ public class HttpConnector extends Component {
         @SuppressWarnings({ "PMD.CommentRequired",
             "PMD.DataflowAnomalyAnalysis", "PMD.CognitiveComplexity" })
         public void handleNetInput(Input<ByteBuffer> event,
-                TcpChannel netConnChannel)
+                SocketIOChannel netConnChannel)
                 throws InterruptedException, ProtocolException {
             // Send the data from the event through the decoder.
             ByteBuffer inData = event.data();

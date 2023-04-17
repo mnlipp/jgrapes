@@ -30,34 +30,34 @@ import org.jgrapes.io.NioHandler;
 import org.jgrapes.io.events.Close;
 import org.jgrapes.io.events.ConnectError;
 import org.jgrapes.io.events.NioRegistration;
-import org.jgrapes.io.events.OpenTcpConnection;
+import org.jgrapes.io.events.OpenSocketConnection;
 import org.jgrapes.io.events.Opening;
 import org.jgrapes.net.events.ClientConnected;
 import org.jgrapes.net.events.Connected;
 
 /**
- * A component that reads from or write to a TCP connection.
+ * A component that reads from or write to a socket connection.
  */
-public class TcpConnector extends TcpConnectionManager {
+public class SocketConnector extends SocketConnectionManager {
 
     /**
      * Create a new instance using the given channel.
      * 
      * @param channel the component's channel 
      */
-    public TcpConnector(Channel channel) {
+    public SocketConnector(Channel channel) {
         super(channel);
     }
 
     /**
      * Creates a new connector, using itself as component channel. 
      */
-    public TcpConnector() {
+    public SocketConnector() {
         this(Channel.SELF);
     }
 
     @Override
-    public TcpConnector setBufferSize(int size) {
+    public SocketConnector setBufferSize(int size) {
         super.setBufferSize(size);
         return this;
     }
@@ -68,15 +68,16 @@ public class TcpConnector extends TcpConnectionManager {
      * @param event the event
      */
     @Handler
-    public void onOpenConnection(OpenTcpConnection event) {
+    public void onOpenConnection(OpenSocketConnection event) {
         try {
             @SuppressWarnings("PMD.CloseResource")
             SocketChannel socketChannel = SocketChannel.open(event.address());
-            channels.add(new TcpChannelImpl(event, socketChannel));
+            channels.add(new SocketChannelImpl(event, socketChannel));
         } catch (ConnectException e) {
             fire(new ConnectError(event, "Connection refused.", e));
         } catch (IOException e) {
-            fire(new ConnectError(event, "Failed to open TCP connection.", e));
+            fire(new ConnectError(event, "Failed to open socket connection.",
+                e));
         }
     }
 
@@ -92,7 +93,7 @@ public class TcpConnector extends TcpConnectionManager {
     public void onRegistered(NioRegistration.Completed event)
             throws InterruptedException, IOException {
         NioHandler handler = event.event().handler();
-        if (!(handler instanceof TcpChannelImpl)) {
+        if (!(handler instanceof SocketChannelImpl)) {
             return;
         }
         if (event.event().get() == null) {
@@ -100,7 +101,7 @@ public class TcpConnector extends TcpConnectionManager {
                 new Throwable()));
             return;
         }
-        TcpChannelImpl channel = (TcpChannelImpl) handler;
+        SocketChannelImpl channel = (SocketChannelImpl) handler;
         Connected<?> connected;
         if (channel.openEvent().isPresent()) {
             connected = new ClientConnected(channel.openEvent().get(),
@@ -131,9 +132,9 @@ public class TcpConnector extends TcpConnectionManager {
     @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
     public void onClose(Close event) throws IOException, InterruptedException {
         for (Channel channel : event.channels()) {
-            if (channel instanceof TcpChannelImpl
+            if (channel instanceof SocketChannelImpl
                 && channels.contains(channel)) {
-                ((TcpChannelImpl) channel).close();
+                ((SocketChannelImpl) channel).close();
             }
         }
     }

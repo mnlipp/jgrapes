@@ -22,6 +22,8 @@ import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.ref.WeakReference;
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+import java.net.UnixDomainSocketAddress;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
@@ -70,7 +72,7 @@ import org.jgrapes.net.events.Ready;
 import org.jgrapes.util.events.ConfigurationUpdate;
 
 /**
- * Provides a TCP server. The server binds to the given address. If the
+ * Provides a socket server. The server binds to the given address. If the
  * address is {@code null}, address and port are automatically assigned.
  * The port may be overwritten by a configuration event
  * (see {@link #onConfigurationUpdate(ConfigurationUpdate)}).
@@ -91,7 +93,7 @@ import org.jgrapes.util.events.ConfigurationUpdate;
  * each channel that is purgeable for at least the time span
  * set with {@link #setMinimalPurgeableTime(long)}. Purgeability 
  * is derived from the end of record flag of {@link Output} events
- * (see {@link #onOutput(Output, TcpChannelImpl)}. When using this feature, 
+ * (see {@link #onOutput(Output, SocketChannelImpl)}. When using this feature, 
  * make sure that connections are either short lived or the application
  * level components support the {@link Purge} event. Else, it may become
  * impossible to establish new connections.
@@ -99,9 +101,10 @@ import org.jgrapes.util.events.ConfigurationUpdate;
 @SuppressWarnings({ "PMD.ExcessiveImports", "PMD.ExcessivePublicCount",
     "PMD.NcssCount", "PMD.EmptyCatchBlock", "PMD.AvoidDuplicateLiterals",
     "PMD.ExcessiveClassLength" })
-public class TcpServer extends TcpConnectionManager implements NioHandler {
+public class SocketServer extends SocketConnectionManager
+        implements NioHandler {
 
-    private InetSocketAddress serverAddress;
+    private SocketAddress serverAddress;
     private ServerSocketChannel serverSocketChannel;
     private boolean closing;
     private int backlog;
@@ -156,7 +159,7 @@ public class TcpServer extends TcpConnectionManager implements NioHandler {
                         }
                     }
                     // Copy to avoid ConcurrentModificationException
-                    List<TcpChannelImpl> candidates;
+                    List<SocketChannelImpl> candidates;
                     synchronized (channels) {
                         candidates = new ArrayList<>(channels);
                     }
@@ -165,11 +168,11 @@ public class TcpServer extends TcpConnectionManager implements NioHandler {
                     candidates = candidates.stream()
                         .filter(channel -> channel.isPurgeable()
                             && channel.purgeableSince() < purgeableSince)
-                        .sorted(new Comparator<TcpChannelImpl>() {
+                        .sorted(new Comparator<SocketChannelImpl>() {
                             @Override
                             @SuppressWarnings("PMD.ShortVariable")
-                            public int compare(TcpChannelImpl c1,
-                                    TcpChannelImpl c2) {
+                            public int compare(SocketChannelImpl c1,
+                                    SocketChannelImpl c2) {
                                 if (c1.purgeableSince() < c2
                                     .purgeableSince()) {
                                     return 1;
@@ -182,7 +185,7 @@ public class TcpServer extends TcpConnectionManager implements NioHandler {
                             }
                         })
                         .collect(Collectors.toList());
-                    for (TcpChannelImpl channel : candidates) {
+                    for (SocketChannelImpl channel : candidates) {
                         // Sorting may have taken time...
                         if (!channel.isPurgeable()) {
                             continue;
@@ -207,7 +210,7 @@ public class TcpServer extends TcpConnectionManager implements NioHandler {
     /**
      * Creates a new server, using itself as component channel. 
      */
-    public TcpServer() {
+    public SocketServer() {
         this(Channel.SELF);
     }
 
@@ -216,7 +219,7 @@ public class TcpServer extends TcpConnectionManager implements NioHandler {
      * 
      * @param componentChannel the component's channel
      */
-    public TcpServer(Channel componentChannel) {
+    public SocketServer(Channel componentChannel) {
         super(componentChannel);
     }
 
@@ -225,15 +228,15 @@ public class TcpServer extends TcpConnectionManager implements NioHandler {
      * are assigned automatically.
      * 
      * @param serverAddress the address to bind to
-     * @return the TCP server for easy chaining
+     * @return the socket server for easy chaining
      */
-    public TcpServer setServerAddress(InetSocketAddress serverAddress) {
+    public SocketServer setServerAddress(SocketAddress serverAddress) {
         this.serverAddress = serverAddress;
         return this;
     }
 
     @Override
-    public TcpServer setBufferSize(int size) {
+    public SocketServer setBufferSize(int size) {
         super.setBufferSize(size);
         return this;
     }
@@ -301,10 +304,10 @@ public class TcpServer extends TcpConnectionManager implements NioHandler {
      * 
      * @return the serverAddress
      */
-    public InetSocketAddress serverAddress() {
+    public SocketAddress serverAddress() {
         try {
             return serverSocketChannel == null ? serverAddress
-                : (InetSocketAddress) serverSocketChannel.getLocalAddress();
+                : serverSocketChannel.getLocalAddress();
         } catch (IOException e) {
             return serverAddress;
         }
@@ -314,9 +317,9 @@ public class TcpServer extends TcpConnectionManager implements NioHandler {
      * Sets the backlog size.
      * 
      * @param backlog the backlog to set
-     * @return the TCP server for easy chaining
+     * @return the socket server for easy chaining
      */
-    public TcpServer setBacklog(int backlog) {
+    public SocketServer setBacklog(int backlog) {
         this.backlog = backlog;
         return this;
     }
@@ -337,9 +340,9 @@ public class TcpServer extends TcpConnectionManager implements NioHandler {
      * A connection limiter must be set before starting the component.
      * 
      * @param connectionLimiter the connection pool to set
-     * @return the TCP server for easy chaining
+     * @return the socket server for easy chaining
      */
-    public TcpServer setConnectionLimiter(PermitsPool connectionLimiter) {
+    public SocketServer setConnectionLimiter(PermitsPool connectionLimiter) {
         this.connLimiter = connectionLimiter;
         return this;
     }
@@ -358,9 +361,9 @@ public class TcpServer extends TcpConnectionManager implements NioHandler {
      * before it may be purged.
      *
      * @param millis the millis
-     * @return the tcp server
+     * @return the socket server
      */
-    public TcpServer setMinimalPurgeableTime(long millis) {
+    public SocketServer setMinimalPurgeableTime(long millis) {
         this.minimumPurgeableTime = millis;
         return this;
     }
@@ -413,8 +416,8 @@ public class TcpServer extends TcpConnectionManager implements NioHandler {
             fire(new Ready(serverSocketChannel.getLocalAddress()));
             return;
         }
-        if (handler instanceof TcpChannelImpl) {
-            TcpChannelImpl channel = (TcpChannelImpl) handler;
+        if (handler instanceof SocketChannelImpl) {
+            SocketChannelImpl channel = (SocketChannelImpl) handler;
             var accepted = new Accepted(channel.nioChannel().getLocalAddress(),
                 channel.nioChannel().getRemoteAddress(), false,
                 Collections.emptyList());
@@ -452,7 +455,7 @@ public class TcpServer extends TcpConnectionManager implements NioHandler {
                     }
                     return;
                 }
-                channels.add(new TcpChannelImpl(null, socketChannel));
+                channels.add(new SocketChannelImpl(null, socketChannel));
             } catch (IOException e) {
                 fire(new IOError(null, e));
             }
@@ -460,7 +463,7 @@ public class TcpServer extends TcpConnectionManager implements NioHandler {
     }
 
     @Override
-    protected boolean removeChannel(TcpChannelImpl channel) {
+    protected boolean removeChannel(SocketChannelImpl channel) {
         synchronized (channels) {
             if (!channels.remove(channel)) {
                 // Closed already
@@ -488,7 +491,7 @@ public class TcpServer extends TcpConnectionManager implements NioHandler {
         boolean closeServer = false;
         for (Channel channel : event.channels()) {
             if (channels.contains(channel)) {
-                ((TcpChannelImpl) channel).close();
+                ((SocketChannelImpl) channel).close();
                 continue;
             }
             if (channel instanceof Subchannel) {
@@ -510,8 +513,8 @@ public class TcpServer extends TcpConnectionManager implements NioHandler {
         synchronized (channels) {
             closing = true;
             // Copy to avoid concurrent modification exception
-            Set<TcpChannelImpl> conns = new HashSet<>(channels);
-            for (TcpChannelImpl conn : conns) {
+            Set<SocketChannelImpl> conns = new HashSet<>(channels);
+            for (SocketChannelImpl conn : conns) {
                 conn.close();
             }
             while (!channels.isEmpty()) {
@@ -542,23 +545,23 @@ public class TcpServer extends TcpConnectionManager implements NioHandler {
     }
 
     /**
-     * The Interface of the TcpServer MXBean.
+     * The Interface of the SocketServer MXBean.
      */
-    public interface TcpServerMXBean {
+    public interface SocketServerMXBean {
 
         /**
          * The Class ChannelInfo.
          */
         class ChannelInfo {
 
-            private final TcpChannelImpl channel;
+            private final SocketChannelImpl channel;
 
             /**
              * Instantiates a new channel info.
              *
              * @param channel the channel
              */
-            public ChannelInfo(TcpChannelImpl channel) {
+            public ChannelInfo(SocketChannelImpl channel) {
                 this.channel = channel;
             }
 
@@ -598,13 +601,6 @@ public class TcpServer extends TcpConnectionManager implements NioHandler {
         String getComponentPath();
 
         /**
-         * Gets the port.
-         *
-         * @return the port
-         */
-        int getPort();
-
-        /**
          * Gets the channel count.
          *
          * @return the channel count
@@ -621,31 +617,43 @@ public class TcpServer extends TcpConnectionManager implements NioHandler {
     }
 
     /**
-     * The Class TcpServerInfo.
+     * The Class SocketServerInfo.
      */
-    public static class TcpServerInfo implements TcpServerMXBean {
+    public static class SocketServerInfo implements SocketServerMXBean {
 
         private static MBeanServer mbs
             = ManagementFactory.getPlatformMBeanServer();
 
         private ObjectName mbeanName;
-        private final WeakReference<TcpServer> serverRef;
+        private final WeakReference<SocketServer> serverRef;
 
         /**
-         * Instantiates a new tcp server info.
+         * Instantiates a new socket server info.
          *
          * @param server the server
          */
         @SuppressWarnings({ "PMD.EmptyCatchBlock",
-            "PMD.AvoidCatchingGenericException" })
-        public TcpServerInfo(TcpServer server) {
+            "PMD.AvoidCatchingGenericException",
+            "PMD.ConstructorCallsOverridableMethod" })
+        public SocketServerInfo(SocketServer server) {
             serverRef = new WeakReference<>(server);
             try {
-                int port = server.serverAddress().getPort();
+                String endPoint = "";
+                if (server.serverAddress instanceof InetSocketAddress) {
+                    endPoint = " (:"
+                        + ((InetSocketAddress) server.serverAddress).getPort()
+                        + ")";
+                } else if (server.serverAddress instanceof UnixDomainSocketAddress) {
+                    endPoint = " ("
+                        + ((UnixDomainSocketAddress) server.serverAddress)
+                            .getPath()
+                        + ")";
+
+                }
                 mbeanName = new ObjectName("org.jgrapes.io:type="
-                    + TcpServer.class.getSimpleName() + ",name="
-                    + ObjectName.quote(Components.objectName(server)
-                        + " (:" + port + ")"));
+                    + SocketServer.class.getSimpleName() + ",name="
+                    + ObjectName
+                        .quote(Components.objectName(server) + endPoint));
             } catch (MalformedObjectNameException e) {
                 // Should not happen
             }
@@ -669,8 +677,8 @@ public class TcpServer extends TcpConnectionManager implements NioHandler {
          */
         @SuppressWarnings({ "PMD.AvoidCatchingGenericException",
             "PMD.EmptyCatchBlock" })
-        public Optional<TcpServer> server() {
-            TcpServer server = serverRef.get();
+        public Optional<SocketServer> server() {
+            SocketServer server = serverRef.get();
             if (server == null) {
                 try {
                     mbs.unregisterMBean(mbeanName);
@@ -681,48 +689,22 @@ public class TcpServer extends TcpConnectionManager implements NioHandler {
             return Optional.ofNullable(server);
         }
 
-        /*
-         * (non-Javadoc)
-         * 
-         * @see org.jgrapes.net.TcpServer.TcpServerMXBean#getComponentPath()
-         */
         @Override
         public String getComponentPath() {
             return server().map(mgr -> mgr.componentPath()).orElse("<removed>");
         }
 
-        /*
-         * (non-Javadoc)
-         * 
-         * @see org.jgrapes.net.TcpServer.TcpServerMXBean#getPort()
-         */
-        @Override
-        public int getPort() {
-            return server().map(server -> server
-                .serverAddress().getPort()).orElse(0);
-        }
-
-        /*
-         * (non-Javadoc)
-         * 
-         * @see org.jgrapes.net.TcpServer.TcpServerMXBean#getChannelCount()
-         */
         @Override
         public int getChannelCount() {
             return server().map(server -> server.channels.size()).orElse(0);
         }
 
-        /*
-         * (non-Javadoc)
-         * 
-         * @see org.jgrapes.net.TcpServer.TcpServerMXBean#getChannels()
-         */
         @Override
         @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
         public SortedMap<String, ChannelInfo> getChannels() {
             return server().map(server -> {
                 SortedMap<String, ChannelInfo> result = new TreeMap<>();
-                for (TcpChannelImpl channel : server.channels) {
+                for (SocketChannelImpl channel : server.channels) {
                     result.put(channel.nioChannel().socket()
                         .getRemoteSocketAddress().toString(),
                         new ChannelInfo(channel));
@@ -733,10 +715,10 @@ public class TcpServer extends TcpConnectionManager implements NioHandler {
     }
 
     /**
-     * An MBean interface for getting information about the TCP servers
+     * An MBean interface for getting information about the socket servers
      * and established connections.
      */
-    public interface TcpServerSummaryMXBean {
+    public interface SocketServerSummaryMXBean {
 
         /**
          * Gets the connections per server statistics.
@@ -750,23 +732,23 @@ public class TcpServer extends TcpConnectionManager implements NioHandler {
          *
          * @return the servers
          */
-        Set<TcpServerMXBean> getServers();
+        Set<SocketServerMXBean> getServers();
     }
 
     /**
      * The MBeanView.
      */
-    private static class MBeanView implements TcpServerSummaryMXBean {
-        private static Set<TcpServerInfo> serverInfos = new HashSet<>();
+    private static class MBeanView implements SocketServerSummaryMXBean {
+        private static Set<SocketServerInfo> serverInfos = new HashSet<>();
 
         /**
          * Adds the server to the reported servers.
          *
          * @param server the server
          */
-        public static void addServer(TcpServer server) {
+        public static void addServer(SocketServer server) {
             synchronized (serverInfos) {
-                serverInfos.add(new TcpServerInfo(server));
+                serverInfos.add(new SocketServerInfo(server));
             }
         }
 
@@ -775,10 +757,10 @@ public class TcpServer extends TcpConnectionManager implements NioHandler {
          *
          * @return the sets the
          */
-        private Set<TcpServerInfo> infos() {
-            Set<TcpServerInfo> expired = new HashSet<>();
+        private Set<SocketServerInfo> infos() {
+            Set<SocketServerInfo> expired = new HashSet<>();
             synchronized (serverInfos) {
-                for (TcpServerInfo serverInfo : serverInfos) {
+                for (SocketServerInfo serverInfo : serverInfos) {
                     if (!serverInfo.server().isPresent()) {
                         expired.add(serverInfo);
                     }
@@ -790,8 +772,8 @@ public class TcpServer extends TcpConnectionManager implements NioHandler {
 
         @SuppressWarnings("unchecked")
         @Override
-        public Set<TcpServerMXBean> getServers() {
-            return (Set<TcpServerMXBean>) (Object) infos();
+        public Set<SocketServerMXBean> getServers() {
+            return (Set<SocketServerMXBean>) (Object) infos();
         }
 
         @Override
@@ -806,7 +788,7 @@ public class TcpServer extends TcpConnectionManager implements NioHandler {
         try {
             MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
             ObjectName mxbeanName = new ObjectName("org.jgrapes.io:type="
-                + TcpServer.class.getSimpleName() + "s");
+                + SocketServer.class.getSimpleName() + "s");
             mbs.registerMBean(new MBeanView(), mxbeanName);
         } catch (MalformedObjectNameException | InstanceAlreadyExistsException
                 | MBeanRegistrationException | NotCompliantMBeanException e) {

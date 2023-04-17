@@ -58,8 +58,8 @@ import org.jgrapes.io.events.Input;
 import org.jgrapes.io.events.Output;
 import org.jgrapes.io.test.WaitForTests;
 import org.jgrapes.io.util.ManagedBuffer;
+import org.jgrapes.net.SocketServer;
 import org.jgrapes.net.SslCodec;
-import org.jgrapes.net.TcpServer;
 import org.jgrapes.net.events.Ready;
 import static org.junit.Assert.*;
 import org.junit.Test;
@@ -152,7 +152,7 @@ public class EchoTest {
     public void testTcp() throws IOException, InterruptedException,
             ExecutionException, TimeoutException {
         EchoServer app = new EchoServer();
-        app.attach(new TcpServer(app));
+        app.attach(new SocketServer(app));
         app.attach(new NioDispatcher());
         WaitForTests<Ready> wf = new WaitForTests<>(
             app, Ready.class, app.defaultCriterion());
@@ -214,7 +214,7 @@ public class EchoTest {
         sslContext.init(kmf.getKeyManagers(), null, new SecureRandom());
 
         // Create a TCP server for SSL
-        TcpServer securedNetwork = app.attach(new TcpServer());
+        SocketServer securedNetwork = app.attach(new SocketServer());
         app.attach(new SslCodec(app, securedNetwork, sslContext));
 
         // App ready.

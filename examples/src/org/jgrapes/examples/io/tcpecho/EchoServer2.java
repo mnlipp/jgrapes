@@ -31,7 +31,7 @@ import org.jgrapes.io.NioDispatcher;
 import org.jgrapes.io.events.Input;
 import org.jgrapes.io.events.Output;
 import org.jgrapes.io.util.ManagedBuffer;
-import org.jgrapes.net.TcpServer;
+import org.jgrapes.net.SocketServer;
 
 /**
  * An application that echoes data on a TCP connection.
@@ -86,7 +86,7 @@ public class EchoServer2 extends Component {
         Channel networkChannel = new NamedChannel("network i/o");
         Component app = new EchoServer2(networkChannel)
             .attach(new NioDispatcher())
-            .attach(new TcpServer(networkChannel).setServerAddress(
+            .attach(new SocketServer(networkChannel).setServerAddress(
                 new InetSocketAddress(8888)).setBufferSize(120000));
         Components.start(app);
         Components.awaitExhaustion();

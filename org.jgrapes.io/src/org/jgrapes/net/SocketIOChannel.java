@@ -22,9 +22,9 @@ import java.net.SocketAddress;
 import org.jgrapes.io.IOSubchannel;
 
 /**
- * A special sub channel used for TCP connections.
+ * A special sub channel used for socket connections.
  */
-public interface TcpChannel extends IOSubchannel {
+public interface SocketIOChannel extends IOSubchannel {
 
     /**
      * Returns the local address.

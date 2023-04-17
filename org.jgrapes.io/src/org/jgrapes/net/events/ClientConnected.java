@@ -19,13 +19,13 @@
 package org.jgrapes.net.events;
 
 import java.net.SocketAddress;
-import org.jgrapes.io.events.OpenTcpConnection;
+import org.jgrapes.io.events.OpenSocketConnection;
 
 /**
  * This event signals that a new connection has been made by a client.
  */
 @SuppressWarnings("PMD.DataClass")
-public class ClientConnected extends Connected<OpenTcpConnection> {
+public class ClientConnected extends Connected<OpenSocketConnection> {
 
     /**
      * Creates a new instance.
@@ -35,7 +35,7 @@ public class ClientConnected extends Connected<OpenTcpConnection> {
      * @param remoteAddress the remote address
      * (in case of a TLS connection)
      */
-    public ClientConnected(OpenTcpConnection openEvent,
+    public ClientConnected(OpenSocketConnection openEvent,
             SocketAddress localAddress, SocketAddress remoteAddress) {
         super(localAddress, remoteAddress);
         setResult(openEvent);
@@ -46,7 +46,7 @@ public class ClientConnected extends Connected<OpenTcpConnection> {
      * 
      * @return the event
      */
-    public OpenTcpConnection openEvent() {
+    public OpenSocketConnection openEvent() {
         return currentResults().get(0);
     }
 }

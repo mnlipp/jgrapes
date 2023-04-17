@@ -55,7 +55,7 @@ import org.jgrapes.io.events.ConnectError;
 import org.jgrapes.io.events.Input;
 import org.jgrapes.io.events.Output;
 import org.jgrapes.io.util.CharBufferWriter;
-import org.jgrapes.net.TcpConnector;
+import org.jgrapes.net.SocketConnector;
 import org.junit.AfterClass;
 import static org.junit.Assert.*;
 import org.junit.BeforeClass;
@@ -135,7 +135,7 @@ public class ClientTest {
 
         public TestClient() throws IOException {
             attach(new NioDispatcher());
-            TcpConnector conn = attach(new TcpConnector(SELF));
+            SocketConnector conn = attach(new SocketConnector(SELF));
             attach(new HttpConnector(this, conn));
         }
 

@@ -54,7 +54,7 @@ import org.jgrapes.io.events.Closed;
 import org.jgrapes.io.events.HalfClosed;
 import org.jgrapes.io.events.IOError;
 import org.jgrapes.io.events.Input;
-import org.jgrapes.io.events.OpenTcpConnection;
+import org.jgrapes.io.events.OpenSocketConnection;
 import org.jgrapes.io.events.Output;
 import org.jgrapes.io.events.Purge;
 import org.jgrapes.io.util.LinkedIOSubchannel;
@@ -168,8 +168,8 @@ public class SslCodec extends Component {
      * @param event the event
      */
     @Handler
-    public void onOpenConnection(OpenTcpConnection event) {
-        fire(new OpenTcpConnection(event.address())
+    public void onOpenConnection(OpenSocketConnection event) {
+        fire(new OpenSocketConnection(event.address())
             .setAssociated(SslCodec.class, event), encryptedChannel);
     }
 
@@ -369,7 +369,7 @@ public class SslCodec extends Component {
             if (event instanceof ClientConnected) {
                 downPipeline.fire(new ClientConnected(
                     ((ClientConnected) event).openEvent().associated(
-                        SslCodec.class, OpenTcpConnection.class).get(),
+                        SslCodec.class, OpenSocketConnection.class).get(),
                     event.localAddress(), event.remoteAddress()), this);
 
             } else {

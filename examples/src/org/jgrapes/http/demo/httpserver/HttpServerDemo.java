@@ -40,7 +40,7 @@ import org.jgrapes.io.FileStorage;
 import org.jgrapes.io.NioDispatcher;
 import org.jgrapes.io.util.PermitsPool;
 import org.jgrapes.net.SslCodec;
-import org.jgrapes.net.TcpServer;
+import org.jgrapes.net.SocketServer;
 import org.jgrapes.util.PreferencesStore;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -71,7 +71,7 @@ public class HttpServerDemo extends Component implements BundleActivator {
         Channel httpTransport = new NamedChannel("httpTransport");
         // Create a TCP server listening on port 8888
         // (may be overridden by preferences)
-        app.attach(new TcpServer(httpTransport)
+        app.attach(new SocketServer(httpTransport)
             .setServerAddress(new InetSocketAddress(8888))
             .setName("HttpServer"));
 
@@ -88,7 +88,7 @@ public class HttpServerDemo extends Component implements BundleActivator {
         sslContext.init(kmf.getKeyManagers(), null, new SecureRandom());
         // Create a TCP server for SSL
         Channel securedNetwork = app.attach(
-            new TcpServer().setServerAddress(new InetSocketAddress(4443))
+            new SocketServer().setServerAddress(new InetSocketAddress(4443))
                 .setBacklog(3000).setConnectionLimiter(new PermitsPool(50))
                 .setName("HttpsServer"));
         app.attach(new SslCodec(httpTransport, securedNetwork, sslContext));

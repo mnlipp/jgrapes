@@ -20,21 +20,22 @@ package org.jgrapes.io.events;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import org.jgrapes.core.Event;
 
 /**
  * 
  */
-public class OpenTcpConnection extends Event<Void> {
+public class OpenSocketConnection extends Event<Void> {
 
-    private final InetSocketAddress address;
+    private final SocketAddress address;
 
     /**
-     * Signals that a new TCP connection should be opened.
+     * Signals that a new socket connection should be opened.
      *
      * @param address the address
      */
-    public OpenTcpConnection(InetSocketAddress address) {
+    public OpenSocketConnection(SocketAddress address) {
         this.address = address;
     }
 
@@ -44,7 +45,7 @@ public class OpenTcpConnection extends Event<Void> {
      * @param address the address
      * @param port the port
      */
-    public OpenTcpConnection(InetAddress address, int port) {
+    public OpenSocketConnection(InetAddress address, int port) {
         this.address = new InetSocketAddress(address, port);
     }
 
@@ -53,7 +54,7 @@ public class OpenTcpConnection extends Event<Void> {
      *
      * @return the address
      */
-    public InetSocketAddress address() {
+    public SocketAddress address() {
         return address;
     }
 }

@@ -72,7 +72,7 @@ import org.jgrapes.io.events.Purge;
 import org.jgrapes.io.util.LinkedIOSubchannel;
 import org.jgrapes.io.util.ManagedBuffer;
 import org.jgrapes.io.util.ManagedBufferPool;
-import org.jgrapes.net.TcpServer;
+import org.jgrapes.net.SocketServer;
 import org.jgrapes.net.events.Accepted;
 
 /**
@@ -145,9 +145,9 @@ public class HttpServer extends Component {
     @SafeVarargs
     public HttpServer(Channel appChannel, InetSocketAddress serverAddress,
             Class<? extends Request.In>... fallbacks) {
-        this(appChannel, new TcpServer().setServerAddress(serverAddress),
+        this(appChannel, new SocketServer().setServerAddress(serverAddress),
             fallbacks);
-        attach((TcpServer) networkChannelPassBack.get());
+        attach((SocketServer) networkChannelPassBack.get());
     }
 
     /**
