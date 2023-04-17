@@ -85,7 +85,7 @@
 <span class="source-line-no">072</span><span id="line-72">import org.jgrapes.io.util.LinkedIOSubchannel;</span>
 <span class="source-line-no">073</span><span id="line-73">import org.jgrapes.io.util.ManagedBuffer;</span>
 <span class="source-line-no">074</span><span id="line-74">import org.jgrapes.io.util.ManagedBufferPool;</span>
-<span class="source-line-no">075</span><span id="line-75">import org.jgrapes.net.TcpServer;</span>
+<span class="source-line-no">075</span><span id="line-75">import org.jgrapes.net.SocketServer;</span>
 <span class="source-line-no">076</span><span id="line-76">import org.jgrapes.net.events.Accepted;</span>
 <span class="source-line-no">077</span><span id="line-77"></span>
 <span class="source-line-no">078</span><span id="line-78">/**</span>
@@ -158,9 +158,9 @@
 <span class="source-line-no">145</span><span id="line-145">    @SafeVarargs</span>
 <span class="source-line-no">146</span><span id="line-146">    public HttpServer(Channel appChannel, InetSocketAddress serverAddress,</span>
 <span class="source-line-no">147</span><span id="line-147">            Class&lt;? extends Request.In&gt;... fallbacks) {</span>
-<span class="source-line-no">148</span><span id="line-148">        this(appChannel, new TcpServer().setServerAddress(serverAddress),</span>
+<span class="source-line-no">148</span><span id="line-148">        this(appChannel, new SocketServer().setServerAddress(serverAddress),</span>
 <span class="source-line-no">149</span><span id="line-149">            fallbacks);</span>
-<span class="source-line-no">150</span><span id="line-150">        attach((TcpServer) networkChannelPassBack.get());</span>
+<span class="source-line-no">150</span><span id="line-150">        attach((SocketServer) networkChannelPassBack.get());</span>
 <span class="source-line-no">151</span><span id="line-151">    }</span>
 <span class="source-line-no">152</span><span id="line-152"></span>
 <span class="source-line-no">153</span><span id="line-153">    /**</span>

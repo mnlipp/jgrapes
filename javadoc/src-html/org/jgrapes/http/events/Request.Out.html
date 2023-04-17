@@ -47,7 +47,7 @@
 <span class="source-line-no">034</span><span id="line-34">import org.jgrapes.core.Components;</span>
 <span class="source-line-no">035</span><span id="line-35">import org.jgrapes.http.ResourcePattern;</span>
 <span class="source-line-no">036</span><span id="line-36">import org.jgrapes.http.ResourcePattern.PathSpliterator;</span>
-<span class="source-line-no">037</span><span id="line-37">import org.jgrapes.net.TcpChannel;</span>
+<span class="source-line-no">037</span><span id="line-37">import org.jgrapes.net.SocketIOChannel;</span>
 <span class="source-line-no">038</span><span id="line-38"></span>
 <span class="source-line-no">039</span><span id="line-39">/**</span>
 <span class="source-line-no">040</span><span id="line-40"> * The base class for all HTTP requests such as {@link Request.In.Get},</span>
@@ -650,7 +650,7 @@
 <span class="source-line-no">637</span><span id="line-637">    public static class Out extends Request&lt;Void&gt; {</span>
 <span class="source-line-no">638</span><span id="line-638"></span>
 <span class="source-line-no">639</span><span id="line-639">        private HttpRequest request;</span>
-<span class="source-line-no">640</span><span id="line-640">        private BiConsumer&lt;Request.Out, TcpChannel&gt; connectedCallback;</span>
+<span class="source-line-no">640</span><span id="line-640">        private BiConsumer&lt;Request.Out, SocketIOChannel&gt; connectedCallback;</span>
 <span class="source-line-no">641</span><span id="line-641"></span>
 <span class="source-line-no">642</span><span id="line-642">        /**</span>
 <span class="source-line-no">643</span><span id="line-643">         * Instantiates a new request.</span>
@@ -681,7 +681,7 @@
 <span class="source-line-no">668</span><span id="line-668">         * @return the out</span>
 <span class="source-line-no">669</span><span id="line-669">         */</span>
 <span class="source-line-no">670</span><span id="line-670">        public Out setConnectedCallback(</span>
-<span class="source-line-no">671</span><span id="line-671">                BiConsumer&lt;Request.Out, TcpChannel&gt; connectedCallback) {</span>
+<span class="source-line-no">671</span><span id="line-671">                BiConsumer&lt;Request.Out, SocketIOChannel&gt; connectedCallback) {</span>
 <span class="source-line-no">672</span><span id="line-672">            this.connectedCallback = connectedCallback;</span>
 <span class="source-line-no">673</span><span id="line-673">            return this;</span>
 <span class="source-line-no">674</span><span id="line-674">        }</span>
@@ -691,7 +691,7 @@
 <span class="source-line-no">678</span><span id="line-678">         *</span>
 <span class="source-line-no">679</span><span id="line-679">         * @return the connected callback, if set</span>
 <span class="source-line-no">680</span><span id="line-680">         */</span>
-<span class="source-line-no">681</span><span id="line-681">        public Optional&lt;BiConsumer&lt;Request.Out, TcpChannel&gt;&gt;</span>
+<span class="source-line-no">681</span><span id="line-681">        public Optional&lt;BiConsumer&lt;Request.Out, SocketIOChannel&gt;&gt;</span>
 <span class="source-line-no">682</span><span id="line-682">                connectedCallback() {</span>
 <span class="source-line-no">683</span><span id="line-683">            return Optional.ofNullable(connectedCallback);</span>
 <span class="source-line-no">684</span><span id="line-684">        }</span>

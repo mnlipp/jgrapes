@@ -67,7 +67,7 @@
 <span class="source-line-no">054</span><span id="line-54">import org.jgrapes.io.events.HalfClosed;</span>
 <span class="source-line-no">055</span><span id="line-55">import org.jgrapes.io.events.IOError;</span>
 <span class="source-line-no">056</span><span id="line-56">import org.jgrapes.io.events.Input;</span>
-<span class="source-line-no">057</span><span id="line-57">import org.jgrapes.io.events.OpenTcpConnection;</span>
+<span class="source-line-no">057</span><span id="line-57">import org.jgrapes.io.events.OpenSocketConnection;</span>
 <span class="source-line-no">058</span><span id="line-58">import org.jgrapes.io.events.Output;</span>
 <span class="source-line-no">059</span><span id="line-59">import org.jgrapes.io.events.Purge;</span>
 <span class="source-line-no">060</span><span id="line-60">import org.jgrapes.io.util.LinkedIOSubchannel;</span>
@@ -181,8 +181,8 @@
 <span class="source-line-no">168</span><span id="line-168">     * @param event the event</span>
 <span class="source-line-no">169</span><span id="line-169">     */</span>
 <span class="source-line-no">170</span><span id="line-170">    @Handler</span>
-<span class="source-line-no">171</span><span id="line-171">    public void onOpenConnection(OpenTcpConnection event) {</span>
-<span class="source-line-no">172</span><span id="line-172">        fire(new OpenTcpConnection(event.address())</span>
+<span class="source-line-no">171</span><span id="line-171">    public void onOpenConnection(OpenSocketConnection event) {</span>
+<span class="source-line-no">172</span><span id="line-172">        fire(new OpenSocketConnection(event.address())</span>
 <span class="source-line-no">173</span><span id="line-173">            .setAssociated(SslCodec.class, event), encryptedChannel);</span>
 <span class="source-line-no">174</span><span id="line-174">    }</span>
 <span class="source-line-no">175</span><span id="line-175"></span>
@@ -382,7 +382,7 @@
 <span class="source-line-no">369</span><span id="line-369">            if (event instanceof ClientConnected) {</span>
 <span class="source-line-no">370</span><span id="line-370">                downPipeline.fire(new ClientConnected(</span>
 <span class="source-line-no">371</span><span id="line-371">                    ((ClientConnected) event).openEvent().associated(</span>
-<span class="source-line-no">372</span><span id="line-372">                        SslCodec.class, OpenTcpConnection.class).get(),</span>
+<span class="source-line-no">372</span><span id="line-372">                        SslCodec.class, OpenSocketConnection.class).get(),</span>
 <span class="source-line-no">373</span><span id="line-373">                    event.localAddress(), event.remoteAddress()), this);</span>
 <span class="source-line-no">374</span><span id="line-374"></span>
 <span class="source-line-no">375</span><span id="line-375">            } else {</span>
