@@ -252,7 +252,7 @@
 <span class="source-line-no">239</span><span id="line-239">     * @throws SSLException </span>
 <span class="source-line-no">240</span><span id="line-240">     */</span>
 <span class="source-line-no">241</span><span id="line-241">    @Handler(channels = EncryptedChannel.class)</span>
-<span class="source-line-no">242</span><span id="line-242">    public void onClosed(Closed event, IOSubchannel encryptedChannel)</span>
+<span class="source-line-no">242</span><span id="line-242">    public void onClosed(Closed&lt;Void&gt; event, IOSubchannel encryptedChannel)</span>
 <span class="source-line-no">243</span><span id="line-243">            throws SSLException, InterruptedException {</span>
 <span class="source-line-no">244</span><span id="line-244">        @SuppressWarnings("unchecked")</span>
 <span class="source-line-no">245</span><span id="line-245">        final Optional&lt;PlainChannel&gt; plainChannel</span>
@@ -724,7 +724,7 @@
 <span class="source-line-no">711</span><span id="line-711">         */</span>
 <span class="source-line-no">712</span><span id="line-712">        public void upstreamClosed()</span>
 <span class="source-line-no">713</span><span id="line-713">                throws SSLException, InterruptedException {</span>
-<span class="source-line-no">714</span><span id="line-714">            downPipeline.fire(new Closed(), this);</span>
+<span class="source-line-no">714</span><span id="line-714">            downPipeline.fire(new Closed&lt;Void&gt;(), this);</span>
 <span class="source-line-no">715</span><span id="line-715">        }</span>
 <span class="source-line-no">716</span><span id="line-716"></span>
 <span class="source-line-no">717</span><span id="line-717">        private ManagedBuffer&lt;ByteBuffer&gt; acquireUpstreamBuffer()</span>

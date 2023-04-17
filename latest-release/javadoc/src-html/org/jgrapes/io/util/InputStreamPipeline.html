@@ -159,7 +159,7 @@
 <span class="source-line-no">146</span><span id="line-146">                }</span>
 <span class="source-line-no">147</span><span id="line-147">            }</span>
 <span class="source-line-no">148</span><span id="line-148">            if (sendClosed) {</span>
-<span class="source-line-no">149</span><span id="line-149">                eventPipeline.fire(associate(new Closed()), channel);</span>
+<span class="source-line-no">149</span><span id="line-149">                eventPipeline.fire(associate(new Closed&lt;Void&gt;()), channel);</span>
 <span class="source-line-no">150</span><span id="line-150">            }</span>
 <span class="source-line-no">151</span><span id="line-151">        } catch (InterruptedException e) {</span>
 <span class="source-line-no">152</span><span id="line-152">            // Just stop</span>

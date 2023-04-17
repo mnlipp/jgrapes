@@ -280,7 +280,7 @@
 <span class="source-line-no">267</span><span id="line-267">     * @param netChannel the net channel</span>
 <span class="source-line-no">268</span><span id="line-268">     */</span>
 <span class="source-line-no">269</span><span id="line-269">    @Handler(channels = NetworkChannel.class)</span>
-<span class="source-line-no">270</span><span id="line-270">    public void onClosed(Closed event, IOSubchannel netChannel) {</span>
+<span class="source-line-no">270</span><span id="line-270">    public void onClosed(Closed&lt;?&gt; event, IOSubchannel netChannel) {</span>
 <span class="source-line-no">271</span><span id="line-271">        LinkedIOSubchannel.downstreamChannel(this, netChannel,</span>
 <span class="source-line-no">272</span><span id="line-272">            WebAppMsgChannel.class).ifPresent(appChannel -&gt; {</span>
 <span class="source-line-no">273</span><span id="line-273">                appChannel.handleClosed(event);</span>
@@ -795,8 +795,8 @@
 <span class="source-line-no">782</span><span id="line-782">         *</span>
 <span class="source-line-no">783</span><span id="line-783">         * @param event the event</span>
 <span class="source-line-no">784</span><span id="line-784">         */</span>
-<span class="source-line-no">785</span><span id="line-785">        public void handleClosed(Closed event) {</span>
-<span class="source-line-no">786</span><span id="line-786">            downPipeline.fire(new Closed(), this);</span>
+<span class="source-line-no">785</span><span id="line-785">        public void handleClosed(Closed&lt;?&gt; event) {</span>
+<span class="source-line-no">786</span><span id="line-786">            downPipeline.fire(new Closed&lt;Void&gt;(), this);</span>
 <span class="source-line-no">787</span><span id="line-787">        }</span>
 <span class="source-line-no">788</span><span id="line-788"></span>
 <span class="source-line-no">789</span><span id="line-789">        /**</span>

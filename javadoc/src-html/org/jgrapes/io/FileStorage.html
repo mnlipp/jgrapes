@@ -230,14 +230,14 @@
 <span class="source-line-no">217</span><span id="line-217">                } catch (IOException e) {</span>
 <span class="source-line-no">218</span><span id="line-218">                    ioExc = e;</span>
 <span class="source-line-no">219</span><span id="line-219">                }</span>
-<span class="source-line-no">220</span><span id="line-220">                channel.respond(new Closed(ioExc));</span>
+<span class="source-line-no">220</span><span id="line-220">                channel.respond(new Closed&lt;Void&gt;(ioExc));</span>
 <span class="source-line-no">221</span><span id="line-221">                unregisterAsGenerator();</span>
 <span class="source-line-no">222</span><span id="line-222">            }</span>
 <span class="source-line-no">223</span><span id="line-223"></span>
 <span class="source-line-no">224</span><span id="line-224">            @Override</span>
 <span class="source-line-no">225</span><span id="line-225">            public void failed(</span>
 <span class="source-line-no">226</span><span id="line-226">                    Throwable exc, ManagedBuffer&lt;ByteBuffer&gt; context) {</span>
-<span class="source-line-no">227</span><span id="line-227">                channel.respond(new Closed(exc));</span>
+<span class="source-line-no">227</span><span id="line-227">                channel.respond(new Closed&lt;Void&gt;(exc));</span>
 <span class="source-line-no">228</span><span id="line-228">                unregisterAsGenerator();</span>
 <span class="source-line-no">229</span><span id="line-229">            }</span>
 <span class="source-line-no">230</span><span id="line-230">        }</span>
@@ -280,7 +280,7 @@
 <span class="source-line-no">267</span><span id="line-267">                    } catch (IOException e) {</span>
 <span class="source-line-no">268</span><span id="line-268">                        ioExc = e;</span>
 <span class="source-line-no">269</span><span id="line-269">                    }</span>
-<span class="source-line-no">270</span><span id="line-270">                    channel.respond(new Closed(ioExc));</span>
+<span class="source-line-no">270</span><span id="line-270">                    channel.respond(new Closed&lt;Void&gt;(ioExc));</span>
 <span class="source-line-no">271</span><span id="line-271">                }</span>
 <span class="source-line-no">272</span><span id="line-272">            });</span>
 <span class="source-line-no">273</span><span id="line-273">        }</span>
@@ -601,7 +601,7 @@
 <span class="source-line-no">588</span><span id="line-588">            } catch (IOException e) {</span>
 <span class="source-line-no">589</span><span id="line-589">                ioExc = e;</span>
 <span class="source-line-no">590</span><span id="line-590">            }</span>
-<span class="source-line-no">591</span><span id="line-591">            channel.respond(new Closed(ioExc));</span>
+<span class="source-line-no">591</span><span id="line-591">            channel.respond(new Closed&lt;Void&gt;(ioExc));</span>
 <span class="source-line-no">592</span><span id="line-592">            inputWriters.remove(channel);</span>
 <span class="source-line-no">593</span><span id="line-593">            outputWriters.remove(channel);</span>
 <span class="source-line-no">594</span><span id="line-594">        }</span>

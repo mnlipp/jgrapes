@@ -515,7 +515,7 @@
 <span class="source-line-no">502</span><span id="line-502">                state = ChannelState.Closed;</span>
 <span class="source-line-no">503</span><span id="line-503">                folderCache.clear();</span>
 <span class="source-line-no">504</span><span id="line-504">            }</span>
-<span class="source-line-no">505</span><span id="line-505">            downPipeline().fire(new Closed());</span>
+<span class="source-line-no">505</span><span id="line-505">            downPipeline().fire(new Closed&lt;Void&gt;());</span>
 <span class="source-line-no">506</span><span id="line-506">            synchronized (channels) {</span>
 <span class="source-line-no">507</span><span id="line-507">                channels.remove(this);</span>
 <span class="source-line-no">508</span><span id="line-508">                if (channels.isEmpty()) {</span>
