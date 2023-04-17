@@ -415,7 +415,7 @@ public abstract class TcpConnectionManager extends Component {
                         // Ignored for close
                     }
                     connState = ConnectionState.CLOSED;
-                    downPipeline.fire(new Closed(), this);
+                    downPipeline.fire(new Closed<Void>(), this);
                     return;
                 }
             }
@@ -428,7 +428,7 @@ public abstract class TcpConnectionManager extends Component {
                     newEventPipeline().fire(new HalfClosed(), this).get();
                     // All settled.
                     removeChannel(this);
-                    downPipeline.fire(new Closed(), this);
+                    downPipeline.fire(new Closed<Void>(), this);
                     // Close our end if everything has been written.
                     synchronized (pendingWrites) {
                         synchronized (nioChannel) {
@@ -552,7 +552,7 @@ public abstract class TcpConnectionManager extends Component {
                 // Closed only to make sure, any failure can be ignored.
             }
             if (removeChannel(this)) {
-                Closed evt = new Closed(error);
+                var evt = new Closed<Void>(error);
                 downPipeline.fire(evt, this);
             }
         }

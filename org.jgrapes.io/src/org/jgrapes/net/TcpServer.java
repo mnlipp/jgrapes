@@ -504,7 +504,7 @@ public class TcpServer extends TcpConnectionManager implements NioHandler {
         }
         if (!serverSocketChannel.isOpen()) {
             // Closed already
-            fire(new Closed());
+            fire(new Closed<Void>());
             return;
         }
         synchronized (channels) {
@@ -521,7 +521,7 @@ public class TcpServer extends TcpConnectionManager implements NioHandler {
         serverSocketChannel.close();
         purger.interrupt();
         closing = false;
-        fire(new Closed());
+        fire(new Closed<Void>());
     }
 
     /**
