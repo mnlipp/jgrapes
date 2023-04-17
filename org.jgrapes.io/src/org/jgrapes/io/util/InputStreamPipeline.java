@@ -146,7 +146,7 @@ public class InputStreamPipeline implements Runnable {
                 }
             }
             if (sendClosed) {
-                eventPipeline.fire(associate(new Closed()), channel);
+                eventPipeline.fire(associate(new Closed<Void>()), channel);
             }
         } catch (InterruptedException e) {
             // Just stop

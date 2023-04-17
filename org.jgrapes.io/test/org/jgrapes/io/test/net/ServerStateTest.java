@@ -63,7 +63,7 @@ public class ServerStateTest {
         }
 
         @Handler
-        public void onClosed(Closed event) {
+        public void onClosed(Closed<?> event) {
             assertTrue(state == State.CLOSING);
             state = State.CLOSED;
         }

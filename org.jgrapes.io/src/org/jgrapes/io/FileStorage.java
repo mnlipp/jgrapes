@@ -217,14 +217,14 @@ public class FileStorage extends Component {
                 } catch (IOException e) {
                     ioExc = e;
                 }
-                channel.respond(new Closed(ioExc));
+                channel.respond(new Closed<Void>(ioExc));
                 unregisterAsGenerator();
             }
 
             @Override
             public void failed(
                     Throwable exc, ManagedBuffer<ByteBuffer> context) {
-                channel.respond(new Closed(exc));
+                channel.respond(new Closed<Void>(exc));
                 unregisterAsGenerator();
             }
         }
@@ -267,7 +267,7 @@ public class FileStorage extends Component {
                     } catch (IOException e) {
                         ioExc = e;
                     }
-                    channel.respond(new Closed(ioExc));
+                    channel.respond(new Closed<Void>(ioExc));
                 }
             });
         }
@@ -588,7 +588,7 @@ public class FileStorage extends Component {
             } catch (IOException e) {
                 ioExc = e;
             }
-            channel.respond(new Closed(ioExc));
+            channel.respond(new Closed<Void>(ioExc));
             inputWriters.remove(channel);
             outputWriters.remove(channel);
         }

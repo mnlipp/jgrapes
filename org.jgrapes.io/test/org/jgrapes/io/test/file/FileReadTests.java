@@ -101,7 +101,7 @@ public class FileReadTests {
         }
 
         @Handler
-        public void closed(Closed event) {
+        public void closed(Closed<?> event) {
             assertTrue(state == State.CLOSING);
             state = State.CLOSED;
         }

@@ -239,7 +239,7 @@ public class SslCodec extends Component {
      * @throws SSLException 
      */
     @Handler(channels = EncryptedChannel.class)
-    public void onClosed(Closed event, IOSubchannel encryptedChannel)
+    public void onClosed(Closed<Void> event, IOSubchannel encryptedChannel)
             throws SSLException, InterruptedException {
         @SuppressWarnings("unchecked")
         final Optional<PlainChannel> plainChannel
@@ -711,7 +711,7 @@ public class SslCodec extends Component {
          */
         public void upstreamClosed()
                 throws SSLException, InterruptedException {
-            downPipeline.fire(new Closed(), this);
+            downPipeline.fire(new Closed<Void>(), this);
         }
 
         private ManagedBuffer<ByteBuffer> acquireUpstreamBuffer()

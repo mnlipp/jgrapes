@@ -83,7 +83,7 @@ public class FileInputWriteTests {
         }
 
         @Handler
-        public void closed(Closed event) {
+        public void closed(Closed<?> event) {
             assertTrue(state == State.OPENED);
             state = State.CLOSED;
         }

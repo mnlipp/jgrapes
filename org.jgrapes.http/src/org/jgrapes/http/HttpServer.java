@@ -267,7 +267,7 @@ public class HttpServer extends Component {
      * @param netChannel the net channel
      */
     @Handler(channels = NetworkChannel.class)
-    public void onClosed(Closed event, IOSubchannel netChannel) {
+    public void onClosed(Closed<?> event, IOSubchannel netChannel) {
         LinkedIOSubchannel.downstreamChannel(this, netChannel,
             WebAppMsgChannel.class).ifPresent(appChannel -> {
                 appChannel.handleClosed(event);
@@ -782,8 +782,8 @@ public class HttpServer extends Component {
          *
          * @param event the event
          */
-        public void handleClosed(Closed event) {
-            downPipeline.fire(new Closed(), this);
+        public void handleClosed(Closed<?> event) {
+            downPipeline.fire(new Closed<Void>(), this);
         }
 
         /**

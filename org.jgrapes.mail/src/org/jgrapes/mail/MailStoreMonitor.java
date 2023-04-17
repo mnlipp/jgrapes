@@ -502,7 +502,7 @@ public class MailStoreMonitor extends MailConnectionManager<OpenMailMonitor,
                 state = ChannelState.Closed;
                 folderCache.clear();
             }
-            downPipeline().fire(new Closed());
+            downPipeline().fire(new Closed<Void>());
             synchronized (channels) {
                 channels.remove(this);
                 if (channels.isEmpty()) {

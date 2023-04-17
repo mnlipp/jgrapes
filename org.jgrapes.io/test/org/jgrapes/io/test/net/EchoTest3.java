@@ -187,7 +187,7 @@ public class EchoTest3 {
         }
 
         @Handler
-        public void onClosed(Closed event, IOSubchannel channel)
+        public void onClosed(Closed<?> event, IOSubchannel channel)
                 throws IOException {
             fire(new Done());
         }

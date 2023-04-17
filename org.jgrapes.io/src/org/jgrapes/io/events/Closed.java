@@ -22,18 +22,25 @@ import java.io.IOException;
 import java.util.Optional;
 import org.jgrapes.core.Event;
 
+// TODO: Auto-generated Javadoc
 /**
  * This event signals that an I/O subchannel will no longer be used.
  * Components that have allocated resources for that channel should
  * release them in response to receiving this event.
+ *
+ * @param <T> Result type. Usually {@link Void}, but certain kinds
+ * of I/O channels have additional information associated with their
+ * closing.
  */
-public class Closed extends Event<Void> {
+public class Closed<T> extends Event<T> {
 
     private Throwable error;
 
     /**
      * Creates a new event that signals a close in response to
      * an error (usually an {@link IOException}.
+     *
+     * @param error the error
      */
     public Closed(Throwable error) {
         this.error = error;

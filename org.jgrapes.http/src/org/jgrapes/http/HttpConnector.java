@@ -252,7 +252,7 @@ public class HttpConnector extends Component {
      * @param netConnChannel the net conn channel
      */
     @Handler(channels = NetworkChannel.class)
-    public void onClosed(Closed event, TcpChannel netConnChannel) {
+    public void onClosed(Closed<?> event, TcpChannel netConnChannel) {
         netConnChannel.associated(WebAppMsgChannel.class).ifPresent(
             appChannel -> appChannel.handleClosed(event));
         pooled.remove(netConnChannel.remoteAddress(), netConnChannel);
@@ -260,7 +260,7 @@ public class HttpConnector extends Component {
 
     /**
      * Handles a close event from the application channel. Such an
-     * event may only be fired of the connection has been upgraded
+     * event may only be fired if the connection has been upgraded
      * to a websocket connection.
      *
      * @param event the event
@@ -623,7 +623,7 @@ public class HttpConnector extends Component {
                     return;
                 }
                 // Is web socket close, inform application layer
-                downPipeline.fire(new Closed(), this);
+                downPipeline.fire(new Closed<Void>(), this);
             }
             netConnChannel.setAssociated(WebAppMsgChannel.class, null);
             if (!result.closeConnection()) {
@@ -642,9 +642,9 @@ public class HttpConnector extends Component {
         }
 
         @SuppressWarnings("PMD.CommentRequired")
-        public void handleClosed(Closed event) {
+        public void handleClosed(Closed<?> event) {
             if (engine.switchedTo().equals(Optional.of("websocket"))) {
-                downPipeline.fire(new Closed(), this);
+                downPipeline.fire(new Closed<Void>(), this);
             }
         }
 

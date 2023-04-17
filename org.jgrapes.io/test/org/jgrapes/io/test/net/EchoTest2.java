@@ -117,7 +117,7 @@ public class EchoTest2 {
         }
 
         @Handler
-        public void onClosed(Closed event, IOSubchannel channel) {
+        public void onClosed(Closed<?> event, IOSubchannel channel) {
             fire(new Done());
         }
     }

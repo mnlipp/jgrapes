@@ -183,7 +183,7 @@ public class ClientTest {
         }
 
         @Handler
-        public void onClosed(Closed event, IOSubchannel channel) {
+        public void onClosed(Closed<?> event, IOSubchannel channel) {
             if (!channel.associated(TestClient.class).isPresent()) {
                 return;
             }

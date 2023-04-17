@@ -105,7 +105,7 @@ public class WsEchoProvider extends Component {
     }
 
     @Handler
-    public void onClosed(Closed event, IOSubchannel channel) {
+    public void onClosed(Closed<?> event, IOSubchannel channel) {
         openChannels.remove(channel);
     }
 }
