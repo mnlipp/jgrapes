@@ -428,7 +428,7 @@
 <span class="source-line-no">415</span><span id="line-415">                        // Ignored for close</span>
 <span class="source-line-no">416</span><span id="line-416">                    }</span>
 <span class="source-line-no">417</span><span id="line-417">                    connState = ConnectionState.CLOSED;</span>
-<span class="source-line-no">418</span><span id="line-418">                    downPipeline.fire(new Closed(), this);</span>
+<span class="source-line-no">418</span><span id="line-418">                    downPipeline.fire(new Closed&lt;Void&gt;(), this);</span>
 <span class="source-line-no">419</span><span id="line-419">                    return;</span>
 <span class="source-line-no">420</span><span id="line-420">                }</span>
 <span class="source-line-no">421</span><span id="line-421">            }</span>
@@ -441,7 +441,7 @@
 <span class="source-line-no">428</span><span id="line-428">                    newEventPipeline().fire(new HalfClosed(), this).get();</span>
 <span class="source-line-no">429</span><span id="line-429">                    // All settled.</span>
 <span class="source-line-no">430</span><span id="line-430">                    removeChannel(this);</span>
-<span class="source-line-no">431</span><span id="line-431">                    downPipeline.fire(new Closed(), this);</span>
+<span class="source-line-no">431</span><span id="line-431">                    downPipeline.fire(new Closed&lt;Void&gt;(), this);</span>
 <span class="source-line-no">432</span><span id="line-432">                    // Close our end if everything has been written.</span>
 <span class="source-line-no">433</span><span id="line-433">                    synchronized (pendingWrites) {</span>
 <span class="source-line-no">434</span><span id="line-434">                        synchronized (nioChannel) {</span>
@@ -565,7 +565,7 @@
 <span class="source-line-no">552</span><span id="line-552">                // Closed only to make sure, any failure can be ignored.</span>
 <span class="source-line-no">553</span><span id="line-553">            }</span>
 <span class="source-line-no">554</span><span id="line-554">            if (removeChannel(this)) {</span>
-<span class="source-line-no">555</span><span id="line-555">                Closed evt = new Closed(error);</span>
+<span class="source-line-no">555</span><span id="line-555">                var evt = new Closed&lt;Void&gt;(error);</span>
 <span class="source-line-no">556</span><span id="line-556">                downPipeline.fire(evt, this);</span>
 <span class="source-line-no">557</span><span id="line-557">            }</span>
 <span class="source-line-no">558</span><span id="line-558">        }</span>

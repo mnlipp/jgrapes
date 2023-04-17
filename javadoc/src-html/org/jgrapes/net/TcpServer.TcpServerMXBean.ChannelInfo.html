@@ -517,7 +517,7 @@
 <span class="source-line-no">504</span><span id="line-504">        }</span>
 <span class="source-line-no">505</span><span id="line-505">        if (!serverSocketChannel.isOpen()) {</span>
 <span class="source-line-no">506</span><span id="line-506">            // Closed already</span>
-<span class="source-line-no">507</span><span id="line-507">            fire(new Closed());</span>
+<span class="source-line-no">507</span><span id="line-507">            fire(new Closed&lt;Void&gt;());</span>
 <span class="source-line-no">508</span><span id="line-508">            return;</span>
 <span class="source-line-no">509</span><span id="line-509">        }</span>
 <span class="source-line-no">510</span><span id="line-510">        synchronized (channels) {</span>
@@ -534,7 +534,7 @@
 <span class="source-line-no">521</span><span id="line-521">        serverSocketChannel.close();</span>
 <span class="source-line-no">522</span><span id="line-522">        purger.interrupt();</span>
 <span class="source-line-no">523</span><span id="line-523">        closing = false;</span>
-<span class="source-line-no">524</span><span id="line-524">        fire(new Closed());</span>
+<span class="source-line-no">524</span><span id="line-524">        fire(new Closed&lt;Void&gt;());</span>
 <span class="source-line-no">525</span><span id="line-525">    }</span>
 <span class="source-line-no">526</span><span id="line-526"></span>
 <span class="source-line-no">527</span><span id="line-527">    /**</span>
