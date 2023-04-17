@@ -8,6 +8,7 @@ org.jgrapes.http.events
 org.jgrapes.http.freemarker
 org.jgrapes.io
 org.jgrapes.io.events
+org.jgrapes.io.process
 org.jgrapes.io.util
 org.jgrapes.mail
 org.jgrapes.mail.events
