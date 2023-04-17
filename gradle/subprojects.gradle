@@ -12,11 +12,6 @@ if (project.name.startsWith("org.jgrapes") || project.name == "examples") {
     apply plugin: 'groovy'
     apply from: "${project.rootDir}/gradle/layout.gradle"
 
-    if (project.name != "examples") {
-        apply from: "${project.rootDir}/gradle/baseline.gradle"
-        apply from: "${project.rootDir}/gradle/publishing.gradle"
-    }
-        
     java {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -35,6 +30,11 @@ if (project.name.startsWith("org.jgrapes") || project.name == "examples") {
     }
     version = scmVersion.version
     ext.isSnapshot = version.endsWith('-SNAPSHOT')
+
+    if (project.name != "examples") {
+        apply from: "${project.rootDir}/gradle/baseline.gradle"
+        apply from: "${project.rootDir}/gradle/publishing.gradle"
+    }
     
     // Provide the Bundle-Version (shared by all libraries)
     def releaseVersion = version.replaceAll(/-SNAPSHOT$/, "")
