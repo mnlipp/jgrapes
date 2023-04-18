@@ -27,8 +27,12 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+import java.net.UnixDomainSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -79,18 +83,6 @@ public class EchoTest3 {
         @Handler
         public void onInput(Input<ByteBuffer> event, IOSubchannel channel)
                 throws InterruptedException {
-
-//            ByteBuffer buf = event.data().duplicate();
-//            byte[] data = new byte[buf.remaining()];
-//            buf.get(data);
-//            int range = Math.min(20, data.length);
-//            String start = new String(data, 0, range);
-//            String tail
-//                = new String(data, data.length - range, range);
-//            System.out.println("Server received: "
-//                + start.replace("\n", "\\n") + " ... "
-//                + tail.replace("\n", "\\n"));
-
             ManagedBuffer<ByteBuffer> out = channel.byteBufferPool().acquire();
             out.backingBuffer().put(event.data());
             channel.respond(Output.fromSink(out, event.isEndOfRecord()));
@@ -101,7 +93,7 @@ public class EchoTest3 {
     }
 
     public class ClientApp extends Component {
-        private InetSocketAddress serverAddr;
+        private SocketAddress serverAddr;
         private ByteArrayOutputStream responseBuffer;
         private boolean handlingErrorSeen;
         public boolean infoPropagated;
@@ -109,7 +101,7 @@ public class EchoTest3 {
         /**
          * @param serverAddr
          */
-        public ClientApp(InetSocketAddress serverAddr) {
+        public ClientApp(SocketAddress serverAddr) {
             this.serverAddr = serverAddr;
         }
 
@@ -148,18 +140,6 @@ public class EchoTest3 {
             if (responseBuffer == null) {
                 responseBuffer = new ByteArrayOutputStream();
             }
-
-//            ByteBuffer buf = event.data().duplicate();
-//            byte[] data = new byte[buf.remaining()];
-//            buf.get(data);
-//            int range = Math.min(20, data.length);
-//            String start = new String(data, 0, range);
-//            String tail
-//                = new String(data, data.length - range, range);
-//            System.out.println("Client received: "
-//                + start.replace("\n", "\\n") + " ... "
-//                + tail.replace("\n", "\\n"));
-
             ByteBuffer check = event.data().duplicate();
             check.position(check.remaining() - 1);
             if (check.get() != '\032') {
@@ -248,6 +228,56 @@ public class EchoTest3 {
             break;
         }
         Components.checkAssertions();
+    }
+
+    @Test
+    public void testUds() throws IOException, InterruptedException,
+            ExecutionException, TimeoutException {
+        // Create server
+        EchoServer srvApp = new EchoServer();
+        var udsPath = Paths.get("/tmp/jgrapes.socket");
+        Files.deleteIfExists(udsPath);
+        var udsAddress = UnixDomainSocketAddress.of(udsPath);
+        srvApp.attach(new SocketServer(srvApp).setServerAddress(udsAddress));
+        srvApp.attach(new NioDispatcher());
+        WaitForTests<Ready> wf = new WaitForTests<>(
+            srvApp, Ready.class, srvApp.defaultCriterion());
+        Components.start(srvApp);
+        Ready readyEvent = (Ready) wf.get();
+        if (!(readyEvent.listenAddress() instanceof UnixDomainSocketAddress)) {
+            fail();
+        }
+
+        // Create client
+        ClientApp clntApp = new ClientApp(udsAddress);
+        clntApp.attach(new SocketConnector(clntApp));
+        clntApp.attach(new NioDispatcher());
+        WaitForTests<Done> done
+            = new WaitForTests<>(clntApp, Done.class,
+                clntApp.defaultCriterion());
+        Components.start(clntApp);
+        done.get();
+        assertTrue(clntApp.infoPropagated);
+
+        // Stop
+        Components.manager(clntApp).fire(new Stop(), Channel.BROADCAST);
+        Components.manager(srvApp).fire(new Stop(), Channel.BROADCAST);
+        long waitEnd = System.currentTimeMillis() + 3000;
+        while (true) {
+            long waitTime = waitEnd - System.currentTimeMillis();
+            if (waitTime <= 0) {
+                fail();
+            }
+            Components.checkAssertions();
+            try {
+                assertTrue(Components.awaitExhaustion(waitTime));
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            break;
+        }
+        Components.checkAssertions();
+        Files.deleteIfExists(udsPath);
     }
 
     @Test
