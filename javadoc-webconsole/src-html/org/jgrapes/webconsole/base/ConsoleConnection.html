@@ -313,7 +313,7 @@
 <span class="source-line-no">300</span><span id="line-300">        if (connections.remove(connectionId) != null) {</span>
 <span class="source-line-no">301</span><span id="line-301">            connected = false;</span>
 <span class="source-line-no">302</span><span id="line-302">            open = false;</span>
-<span class="source-line-no">303</span><span id="line-303">            console.newEventPipeline().fire(new Closed(), this);</span>
+<span class="source-line-no">303</span><span id="line-303">            console.newEventPipeline().fire(new Closed&lt;Void&gt;(), this);</span>
 <span class="source-line-no">304</span><span id="line-304">        }</span>
 <span class="source-line-no">305</span><span id="line-305">    }</span>
 <span class="source-line-no">306</span><span id="line-306"></span>

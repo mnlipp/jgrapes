@@ -724,7 +724,7 @@
 <span class="source-line-no">711</span><span id="line-711">        // Check if reload required</span>
 <span class="source-line-no">712</span><span id="line-712">        String[] connectionIds = passedIn.get();</span>
 <span class="source-line-no">713</span><span id="line-713">        if (connectionIds[0] == null) {</span>
-<span class="source-line-no">714</span><span id="line-714">            @SuppressWarnings("resource")</span>
+<span class="source-line-no">714</span><span id="line-714">            @SuppressWarnings({ "resource", "PMD.CloseResource" })</span>
 <span class="source-line-no">715</span><span id="line-715">            CharBufferWriter out = new CharBufferWriter(wsChannel,</span>
 <span class="source-line-no">716</span><span id="line-716">                wsChannel.responsePipeline()).suppressClose();</span>
 <span class="source-line-no">717</span><span id="line-717">            new SimpleConsoleCommand("reload").toJson(out);</span>
@@ -798,7 +798,7 @@
 <span class="source-line-no">785</span><span id="line-785">     */</span>
 <span class="source-line-no">786</span><span id="line-786">    @Handler</span>
 <span class="source-line-no">787</span><span id="line-787">    public void onClosed(</span>
-<span class="source-line-no">788</span><span id="line-788">            Closed event, IOSubchannel wsChannel) throws IOException {</span>
+<span class="source-line-no">788</span><span id="line-788">            Closed&lt;?&gt; event, IOSubchannel wsChannel) throws IOException {</span>
 <span class="source-line-no">789</span><span id="line-789">        Optional&lt;WebSocketInputSink&gt; optWsInputReader</span>
 <span class="source-line-no">790</span><span id="line-790">            = wsChannel.associated(this, WebSocketInputSink.class);</span>
 <span class="source-line-no">791</span><span id="line-791">        if (optWsInputReader.isPresent()) {</span>
@@ -825,7 +825,7 @@
 <span class="source-line-no">812</span><span id="line-812">            ConsoleCommand event, ConsoleConnection channel)</span>
 <span class="source-line-no">813</span><span id="line-813">            throws InterruptedException, IOException {</span>
 <span class="source-line-no">814</span><span id="line-814">        IOSubchannel upstream = channel.upstreamChannel();</span>
-<span class="source-line-no">815</span><span id="line-815">        @SuppressWarnings("resource")</span>
+<span class="source-line-no">815</span><span id="line-815">        @SuppressWarnings({ "resource", "PMD.CloseResource" })</span>
 <span class="source-line-no">816</span><span id="line-816">        CharBufferWriter out = new CharBufferWriter(upstream,</span>
 <span class="source-line-no">817</span><span id="line-817">            upstream.responsePipeline()).suppressClose();</span>
 <span class="source-line-no">818</span><span id="line-818">        event.toJson(out);</span>
