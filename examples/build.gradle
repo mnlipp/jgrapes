@@ -60,7 +60,7 @@ eclipse {
        natures += 'bndtools.core.bndnature'
     }
     jdt {
-        javaRuntimeName = "JavaSE-11"
+        javaRuntimeName = "JavaSE-17"
     }
 }
 
