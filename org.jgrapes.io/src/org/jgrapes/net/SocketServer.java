@@ -23,6 +23,7 @@ import java.lang.management.ManagementFactory;
 import java.lang.ref.WeakReference;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.net.StandardProtocolFamily;
 import java.net.UnixDomainSocketAddress;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.ServerSocketChannel;
@@ -386,7 +387,12 @@ public class SocketServer extends SocketConnectionManager
     @Handler
     public void onStart(Start event) throws IOException {
         closing = false;
-        serverSocketChannel = ServerSocketChannel.open();
+        if (serverAddress instanceof UnixDomainSocketAddress) {
+            serverSocketChannel
+                = ServerSocketChannel.open(StandardProtocolFamily.UNIX);
+        } else {
+            serverSocketChannel = ServerSocketChannel.open();
+        }
         serverSocketChannel.bind(serverAddress, backlog);
         MBeanView.addServer(this);
         fire(new NioRegistration(this, serverSocketChannel,
@@ -416,8 +422,7 @@ public class SocketServer extends SocketConnectionManager
             fire(new Ready(serverSocketChannel.getLocalAddress()));
             return;
         }
-        if (handler instanceof SocketChannelImpl) {
-            SocketChannelImpl channel = (SocketChannelImpl) handler;
+        if (handler instanceof SocketChannelImpl channel) {
             var accepted = new Accepted(channel.nioChannel().getLocalAddress(),
                 channel.nioChannel().getRemoteAddress(), false,
                 Collections.emptyList());
@@ -639,16 +644,11 @@ public class SocketServer extends SocketConnectionManager
             serverRef = new WeakReference<>(server);
             try {
                 String endPoint = "";
-                if (server.serverAddress instanceof InetSocketAddress) {
-                    endPoint = " (:"
-                        + ((InetSocketAddress) server.serverAddress).getPort()
+                if (server.serverAddress instanceof InetSocketAddress addr) {
+                    endPoint = " (" + addr.getHostName() + ":" + addr.getPort()
                         + ")";
-                } else if (server.serverAddress instanceof UnixDomainSocketAddress) {
-                    endPoint = " ("
-                        + ((UnixDomainSocketAddress) server.serverAddress)
-                            .getPath()
-                        + ")";
-
+                } else if (server.serverAddress instanceof UnixDomainSocketAddress addr) {
+                    endPoint = " (" + addr.getPath() + ")";
                 }
                 mbeanName = new ObjectName("org.jgrapes.io:type="
                     + SocketServer.class.getSimpleName() + ",name="
