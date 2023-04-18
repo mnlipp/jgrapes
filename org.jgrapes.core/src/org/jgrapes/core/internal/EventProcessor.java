@@ -18,12 +18,12 @@
 
 package org.jgrapes.core.internal;
 
-import java.util.ArrayDeque;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Components;
@@ -43,7 +43,9 @@ public class EventProcessor implements InternalEventPipeline, Runnable {
     private final ExecutorService executorService;
     private final ComponentTree componentTree;
     private final EventPipeline asEventPipeline;
-    protected final Queue<EventChannelsTuple> queue = new ArrayDeque<>();
+    // Must not use synchronized in toString, leads to unexpected deadlock
+    protected final Queue<EventChannelsTuple> queue
+        = new ConcurrentLinkedQueue<>();
     private Iterator<HandlerReference> invoking;
     // Used by this thread only.
     private final Set<EventBase<?>> suspended = new HashSet<>();
@@ -298,10 +300,7 @@ public class EventProcessor implements InternalEventPipeline, Runnable {
         builder.append(Components.objectName(this))
             .append(" [");
         if (queue != null) {
-            // Avoid concurrency for queue.toString().
-            synchronized (this) {
-                builder.append("queue=").append(queue);
-            }
+            builder.append("queue=").append(queue);
         }
         builder.append(']');
         return builder.toString();
