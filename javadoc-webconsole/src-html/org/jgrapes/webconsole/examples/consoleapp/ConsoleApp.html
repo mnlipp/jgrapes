@@ -60,7 +60,7 @@
 <span class="source-line-no">047</span><span id="line-47">import org.jgrapes.io.NioDispatcher;</span>
 <span class="source-line-no">048</span><span id="line-48">import org.jgrapes.io.util.PermitsPool;</span>
 <span class="source-line-no">049</span><span id="line-49">import org.jgrapes.net.SslCodec;</span>
-<span class="source-line-no">050</span><span id="line-50">import org.jgrapes.net.TcpServer;</span>
+<span class="source-line-no">050</span><span id="line-50">import org.jgrapes.net.SocketServer;</span>
 <span class="source-line-no">051</span><span id="line-51">import org.jgrapes.util.ComponentCollector;</span>
 <span class="source-line-no">052</span><span id="line-52">import org.jgrapes.util.PreferencesStore;</span>
 <span class="source-line-no">053</span><span id="line-53">import org.jgrapes.webconsole.base.BrowserLocalBackedKVStore;</span>
@@ -101,7 +101,7 @@
 <span class="source-line-no">088</span><span id="line-88">        // Network level unencrypted channel.</span>
 <span class="source-line-no">089</span><span id="line-89">        Channel httpTransport = new NamedChannel("httpTransport");</span>
 <span class="source-line-no">090</span><span id="line-90">        // Create a TCP server listening on port 8888</span>
-<span class="source-line-no">091</span><span id="line-91">        app.attach(new TcpServer(httpTransport)</span>
+<span class="source-line-no">091</span><span id="line-91">        app.attach(new SocketServer(httpTransport)</span>
 <span class="source-line-no">092</span><span id="line-92">            .setServerAddress(new InetSocketAddress(8888)));</span>
 <span class="source-line-no">093</span><span id="line-93"></span>
 <span class="source-line-no">094</span><span id="line-94">        // Create TLS "converter"</span>
@@ -117,7 +117,7 @@
 <span class="source-line-no">104</span><span id="line-104">        sslContext.init(kmf.getKeyManagers(), null, new SecureRandom());</span>
 <span class="source-line-no">105</span><span id="line-105">        // Create a TCP server for SSL</span>
 <span class="source-line-no">106</span><span id="line-106">        Channel securedNetwork = app.attach(</span>
-<span class="source-line-no">107</span><span id="line-107">            new TcpServer().setServerAddress(new InetSocketAddress(8443))</span>
+<span class="source-line-no">107</span><span id="line-107">            new SocketServer().setServerAddress(new InetSocketAddress(8443))</span>
 <span class="source-line-no">108</span><span id="line-108">                .setBacklog(3000).setConnectionLimiter(new PermitsPool(50)));</span>
 <span class="source-line-no">109</span><span id="line-109">        app.attach(new SslCodec(httpTransport, securedNetwork, sslContext));</span>
 <span class="source-line-no">110</span><span id="line-110"></span>
