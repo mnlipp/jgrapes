@@ -36,7 +36,7 @@ if (project.name.startsWith("org.jgrapes") || project.name == "examples") {
         apply from: "${project.rootDir}/gradle/publishing.gradle"
     }
     
-    // Provide the Bundle-Version (shared by all libraries)
+    // Provide the Bundle-Version (derive from project version)
     def releaseVersion = version.replaceAll(/-SNAPSHOT$/, "")
     ext.bundleVersion = "$releaseVersion" +
          (isSnapshot ? '.-\${tstamp}-SNAPSHOT' : '.ga')
@@ -53,7 +53,8 @@ if (project.name.startsWith("org.jgrapes") || project.name == "examples") {
             // Set Git revision information in the manifests of built bundles
             attributes([
                 "Git-Descriptor": grgit.describe(always: true),
-                "Git-SHA": grgit.head().id
+                "Git-SHA": grgit.head().id,
+                "Bundle-Version": bundleVersion
             ])
         }
         bundle {
