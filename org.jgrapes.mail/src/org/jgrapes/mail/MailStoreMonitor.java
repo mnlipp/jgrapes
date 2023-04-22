@@ -18,8 +18,6 @@
 
 package org.jgrapes.mail;
 
-import com.sun.mail.imap.IMAPFolder;
-import com.sun.mail.imap.IdleManager;
 import jakarta.mail.AuthenticationFailedException;
 import jakarta.mail.Authenticator;
 import jakarta.mail.Folder;
@@ -48,6 +46,8 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.eclipse.angus.mail.imap.IMAPFolder;
+import org.eclipse.angus.mail.imap.IdleManager;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.Components.Timer;
