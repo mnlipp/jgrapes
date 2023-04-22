@@ -26,7 +26,13 @@ import org.jgrapes.mail.MailComponent;
 import org.jgrapes.util.Password;
 
 /**
+ * Common base class for events that open a mail connection for
+ * sending or receiving mail. Note that all configuration information
+ * (such as mail server, protocol, user name) is provided as mail 
+ * properties (see {@link #setMailProperties(Map)).
  * 
+ * Also note that a component receiving the event may have default
+ * or system wide values configured for the properties.
  */
 public abstract class OpenMailConnection extends Event<Void> {
 

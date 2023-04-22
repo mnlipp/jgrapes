@@ -29,7 +29,8 @@ public class OpenMailMonitor extends OpenMailConnection {
     private String[] folderNames = { "INBOX" };
 
     /**
-     * Creates a new monitor connection, watching the specified folders.
+     * Creates a new monitor connection (see {@link OpenMailConnection}) 
+     * that sends events related to watching the specified folders.
      *
      * @param folderNames the folders, defaults to "INBOX"
      * @return the open mail monitor
