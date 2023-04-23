@@ -25,6 +25,7 @@ import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeBodyPart;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
+import org.jgrapes.core.Subchannel;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Stop;
 import org.jgrapes.mail.events.FoldersUpdated;
@@ -40,7 +41,8 @@ public class ReplyGenerator extends Component {
     }
 
     @Handler
-    public void onMail(FoldersUpdated event) throws MessagingException {
+    public void onMail(FoldersUpdated event, Subchannel channel)
+            throws MessagingException {
         var msg = event.newMessages().get(0);
         msg.setFlag(Flag.DELETED, true);
         var response = msg.reply(false);
