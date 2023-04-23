@@ -54,8 +54,6 @@ import org.jgrapes.core.Components.Timer;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.annotation.Handler;
-import org.jgrapes.core.events.Stop;
-import org.jgrapes.io.events.Close;
 import org.jgrapes.io.events.Closed;
 import org.jgrapes.io.events.ConnectError;
 import org.jgrapes.io.events.IOError;
@@ -111,6 +109,11 @@ public class MailStoreMonitor extends MailConnectionManager<OpenMailMonitor,
      */
     public MailStoreMonitor(Channel componentChannel) {
         super(componentChannel);
+    }
+
+    @Override
+    protected boolean channelsGenerate() {
+        return true;
     }
 
     /**
@@ -170,7 +173,8 @@ public class MailStoreMonitor extends MailConnectionManager<OpenMailMonitor,
                         getPasswordAuthentication() {
                     return new PasswordAuthentication(
                         sessionProps.getProperty("mail.user"),
-                        new String(event.password().password()));
+                        new String(event.password().or(() -> password())
+                            .map(Password::password).orElse(new char[0])));
                 }
             });
 
@@ -183,23 +187,12 @@ public class MailStoreMonitor extends MailConnectionManager<OpenMailMonitor,
                 }
             }
             new MonitorChannel(event, channel, session.getStore(),
-                sessionProps.getProperty("mail.user"), event.password());
+                sessionProps.getProperty("mail.user"),
+                event.password().or(this::password).orElse(null));
         } catch (NoSuchProviderException e) {
             fire(new ConnectError(event, "Cannot create store.", e));
         } catch (IOException e) {
             fire(new IOError(event, "Cannot create resource.", e));
-        }
-    }
-
-    /**
-     * Closes the channel.
-     *
-     * @param event the event
-     */
-    @Handler
-    public void onClose(Close event, Channel channel) {
-        if (channels.contains(channel)) {
-            ((MonitorChannel) channel).close();
         }
     }
 
@@ -217,27 +210,6 @@ public class MailStoreMonitor extends MailConnectionManager<OpenMailMonitor,
         // This can take very long.
         retrievals
             .submit(() -> ((MonitorChannel) channel).onUpdateFolders(event));
-    }
-
-    /**
-     * Stops the thread that is associated with this dispatcher.
-     * 
-     * @param event the event
-     * @throws InterruptedException if the execution is interrupted
-     */
-    @Handler
-    public void onStop(Stop event) throws InterruptedException {
-        while (true) {
-            MonitorChannel channel;
-            synchronized (channels) {
-                var itr = channels.iterator();
-                if (!itr.hasNext()) {
-                    return;
-                }
-                channel = itr.next();
-            }
-            channel.close();
-        }
     }
 
     /**
@@ -376,16 +348,8 @@ public class MailStoreMonitor extends MailConnectionManager<OpenMailMonitor,
                         state = ChannelState.Open;
                     } else {
                         state = ChannelState.Reopened;
-                        // Already registered
                         return;
                     }
-                }
-                // Works "in general", register.
-                synchronized (channels) {
-                    if (channels.isEmpty()) {
-                        registerAsGenerator();
-                    }
-                    channels.add(this);
                 }
             } catch (MessagingException e) {
                 synchronized (this) {
@@ -395,6 +359,7 @@ public class MailStoreMonitor extends MailConnectionManager<OpenMailMonitor,
                         logger.log(Level.WARNING,
                             "Connecting to store failed, closing.", e);
                         state = ChannelState.Closed;
+                        super.close();
                         if (onOpenFailed != null) {
                             onOpenFailed.accept(e);
                         }
@@ -410,6 +375,7 @@ public class MailStoreMonitor extends MailConnectionManager<OpenMailMonitor,
         /**
          * Close the connection to the store.
          */
+        @Override
         public void close() {
             synchronized (this) {
                 if (state == ChannelState.Closing
@@ -502,13 +468,8 @@ public class MailStoreMonitor extends MailConnectionManager<OpenMailMonitor,
                 state = ChannelState.Closed;
                 folderCache.clear();
             }
-            downPipeline().fire(new Closed<Void>());
-            synchronized (channels) {
-                channels.remove(this);
-                if (channels.isEmpty()) {
-                    unregisterAsGenerator();
-                }
-            }
+            downPipeline().fire(new Closed<Void>(), this);
+            super.close();
         }
 
         /**

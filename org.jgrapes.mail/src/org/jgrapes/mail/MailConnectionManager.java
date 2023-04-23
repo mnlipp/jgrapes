@@ -26,6 +26,8 @@ import org.jgrapes.core.Components;
 import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.Manager;
 import org.jgrapes.core.Subchannel.DefaultSubchannel;
+import org.jgrapes.core.annotation.Handler;
+import org.jgrapes.core.events.Stop;
 import org.jgrapes.mail.events.OpenMailConnection;
 
 /**
@@ -38,7 +40,7 @@ public abstract class MailConnectionManager<O extends OpenMailConnection,
         C extends MailConnectionManager<O, C>.AbstractMailChannel>
         extends MailComponent {
 
-    protected final Set<C> channels = new HashSet<>();
+    protected final Set<AbstractMailChannel> channels = new HashSet<>();
     private ExecutorService executorService;
 
     /**
@@ -79,6 +81,36 @@ public abstract class MailConnectionManager<O extends OpenMailConnection,
     }
 
     /**
+     * If channels are event generators, register the component as
+     * generator upon the creation of the first channel and unregister
+     * it when closing the last one.  
+     *
+     * @return true, if channels generate
+     */
+    protected abstract boolean channelsGenerate();
+
+    /**
+     * Stops the thread that is associated with this dispatcher.
+     * 
+     * @param event the event
+     * @throws InterruptedException if the execution is interrupted
+     */
+    @Handler
+    public void onStop(Stop event) throws InterruptedException {
+        while (true) {
+            AbstractMailChannel channel;
+            synchronized (channels) {
+                var itr = channels.iterator();
+                if (!itr.hasNext()) {
+                    return;
+                }
+                channel = itr.next();
+            }
+            channel.close();
+        }
+    }
+
+    /**
      * A sub-channel for mail connections.
      */
     protected abstract class AbstractMailChannel
@@ -94,11 +126,29 @@ public abstract class MailConnectionManager<O extends OpenMailConnection,
          */
         public AbstractMailChannel(O event, Channel channel) {
             super(channel);
+            synchronized (this) {
+                if (channels.isEmpty()) {
+                    registerAsGenerator();
+                }
+                channels.add(this);
+            }
             openEvent = event;
             if (executorService == null) {
                 downPipeline = newEventPipeline();
             } else {
                 downPipeline = newEventPipeline(executorService);
+            }
+        }
+
+        /**
+         * Close the channel.
+         */
+        public void close() {
+            synchronized (this) {
+                channels.remove(this);
+                if (channels.isEmpty()) {
+                    unregisterAsGenerator();
+                }
             }
         }
 
