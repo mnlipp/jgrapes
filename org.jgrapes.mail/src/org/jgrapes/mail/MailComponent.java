@@ -20,6 +20,7 @@ package org.jgrapes.mail;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
@@ -28,6 +29,7 @@ import org.jgrapes.core.Event;
 import org.jgrapes.core.Manager;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.annotation.HandlerDefinition.ChannelReplacements;
+import org.jgrapes.util.Password;
 import org.jgrapes.util.events.ConfigurationUpdate;
 
 /**
@@ -36,6 +38,7 @@ import org.jgrapes.util.events.ConfigurationUpdate;
 public abstract class MailComponent extends Component {
 
     protected final Properties mailProps = new Properties();
+    private Password password;
 
     /**
      * Creates a new component with its channel set to itself.
@@ -90,6 +93,25 @@ public abstract class MailComponent extends Component {
     }
 
     /**
+     * Sets the password.
+     *
+     * @param password the new password
+     */
+    public MailComponent setPassword(Password password) {
+        this.password = password;
+        return this;
+    }
+
+    /**
+     * Return the password.
+     *
+     * @return the optional password
+     */
+    protected Optional<Password> password() {
+        return Optional.ofNullable(password);
+    }
+
+    /**
      * Configure the component. Attempts to access all paths specified
      * in the package description in sequence as described in 
      * {@link org.jgrapes.mail}. For each path, merges the
@@ -99,6 +121,7 @@ public abstract class MailComponent extends Component {
      * @param event the event
      */
     @Handler
+    @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
     public void onConfigUpdate(ConfigurationUpdate event) {
         for (var path : List.of("/org.jgrapes.mail/Component",
             "/org.jgrapes.mail/" + getClass().getSimpleName(),
@@ -111,6 +134,8 @@ public abstract class MailComponent extends Component {
                 }
             });
             event.values(path).ifPresent(v -> {
+                Optional.ofNullable(v.get("password"))
+                    .ifPresent(p -> setPassword(new Password(p.toCharArray())));
                 configureComponent(v);
             });
         }
