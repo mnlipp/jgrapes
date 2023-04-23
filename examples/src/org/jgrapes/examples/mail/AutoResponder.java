@@ -46,6 +46,8 @@ public class AutoResponder extends Component {
         app.attach(new SystemMailSender(app));
         app.attach(new ReplyGenerator(app));
         Components.start(app);
+        // Open a mail monitor connection using the values
+        // from the mail monitor component configuration.
         app.fire(new OpenMailMonitor()).get();
         Components.awaitExhaustion();
     }
