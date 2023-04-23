@@ -11,9 +11,6 @@ dependencies {
 //	implementation 'org.eclipse.angus:imap:[1.0.0,2.0.0)'
 }
 
-ext.releaseVersion = "0.0.1"
-ext.isSnapshot = false
-	
 jar {
     dependsOn ":org.jgrapes.core:generatePomFileForMavenPublication"
 }
