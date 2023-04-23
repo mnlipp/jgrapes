@@ -21,6 +21,7 @@ package org.jgrapes.mail.events;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import org.jgrapes.core.Event;
 import org.jgrapes.mail.MailComponent;
 import org.jgrapes.util.Password;
@@ -90,7 +91,7 @@ public abstract class OpenMailConnection extends Event<Void> {
      *
      * @return the password
      */
-    public Password password() {
-        return password;
+    public Optional<Password> password() {
+        return Optional.ofNullable(password);
     }
 }
