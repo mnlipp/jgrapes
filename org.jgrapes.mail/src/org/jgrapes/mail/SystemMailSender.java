@@ -43,7 +43,9 @@ import org.jgrapes.mail.events.SendMessage;
 import org.jgrapes.util.Password;
 
 /**
- * A component that sends mail.
+ * A component that sends mail using a system wide (user independant)
+ * configuration to access the server.
+ * 
  * The component uses [Jakarta Mail](https://eclipse-ee4j.github.io/mail/)
  * to connect to a mail server.
  */
@@ -54,7 +56,6 @@ public class SystemMailSender extends MailComponent {
     private static final Logger logger
         = Logger.getLogger(SystemMailSender.class.getName());
 
-    private Password password;
     private Session session;
     private Transport transport;
     private Duration maxIdleTime = Duration.ofMinutes(1);
@@ -99,16 +100,6 @@ public class SystemMailSender extends MailComponent {
     }
 
     /**
-     * Sets the password.
-     *
-     * @param password the new password
-     */
-    public SystemMailSender setPassword(Password password) {
-        this.password = password;
-        return this;
-    }
-
-    /**
      * Sets the mail properties. See 
      * [the Jakarta Mail](https://jakarta.ee/specifications/mail/2.0/apidocs/jakarta.mail/jakarta/mail/package-summary.html)
      * documentation for available settings.
@@ -143,8 +134,6 @@ public class SystemMailSender extends MailComponent {
 
     @Override
     protected void configureComponent(Map<String, String> values) {
-        Optional.ofNullable(values.get("password"))
-            .ifPresent(p -> setPassword(new Password(p.toCharArray())));
         Optional.ofNullable(values.get("maxIdleTime"))
             .map(Integer::parseInt).map(Duration::ofSeconds)
             .ifPresent(d -> setMaxIdleTime(d));
@@ -164,7 +153,8 @@ public class SystemMailSender extends MailComponent {
                     getPasswordAuthentication() {
                 return new PasswordAuthentication(
                     mailProps.getProperty("mail.user"),
-                    new String(password.password()));
+                    password().map(Password::password).map(String::new)
+                        .orElse(null));
             }
         });
         transport = session.getTransport();
