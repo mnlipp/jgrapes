@@ -23,12 +23,12 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Components;
+import org.jgrapes.core.Event;
 import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.Manager;
 import org.jgrapes.core.Subchannel.DefaultSubchannel;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Stop;
-import org.jgrapes.mail.events.OpenMailConnection;
 
 /**
  * Provides a base class for mail components using connections.
@@ -36,7 +36,7 @@ import org.jgrapes.mail.events.OpenMailConnection;
  * @param <O> the type of the open event
  * @param <C> the type of the channel
  */
-public abstract class MailConnectionManager<O extends OpenMailConnection,
+public abstract class MailConnectionManager<O extends Event<?>,
         C extends MailConnectionManager<O, C>.AbstractMailChannel>
         extends MailComponent {
 
@@ -127,7 +127,7 @@ public abstract class MailConnectionManager<O extends OpenMailConnection,
         public AbstractMailChannel(O event, Channel channel) {
             super(channel);
             synchronized (this) {
-                if (channels.isEmpty()) {
+                if (channels.isEmpty() && channelsGenerate()) {
                     registerAsGenerator();
                 }
                 channels.add(this);
@@ -146,7 +146,7 @@ public abstract class MailConnectionManager<O extends OpenMailConnection,
         public void close() {
             synchronized (this) {
                 channels.remove(this);
-                if (channels.isEmpty()) {
+                if (channels.isEmpty() && channelsGenerate()) {
                     unregisterAsGenerator();
                 }
             }
