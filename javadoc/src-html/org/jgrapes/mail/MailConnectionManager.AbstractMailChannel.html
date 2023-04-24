@@ -36,12 +36,12 @@
 <span class="source-line-no">023</span><span id="line-23">import java.util.concurrent.ExecutorService;</span>
 <span class="source-line-no">024</span><span id="line-24">import org.jgrapes.core.Channel;</span>
 <span class="source-line-no">025</span><span id="line-25">import org.jgrapes.core.Components;</span>
-<span class="source-line-no">026</span><span id="line-26">import org.jgrapes.core.EventPipeline;</span>
-<span class="source-line-no">027</span><span id="line-27">import org.jgrapes.core.Manager;</span>
-<span class="source-line-no">028</span><span id="line-28">import org.jgrapes.core.Subchannel.DefaultSubchannel;</span>
-<span class="source-line-no">029</span><span id="line-29">import org.jgrapes.core.annotation.Handler;</span>
-<span class="source-line-no">030</span><span id="line-30">import org.jgrapes.core.events.Stop;</span>
-<span class="source-line-no">031</span><span id="line-31">import org.jgrapes.mail.events.OpenMailConnection;</span>
+<span class="source-line-no">026</span><span id="line-26">import org.jgrapes.core.Event;</span>
+<span class="source-line-no">027</span><span id="line-27">import org.jgrapes.core.EventPipeline;</span>
+<span class="source-line-no">028</span><span id="line-28">import org.jgrapes.core.Manager;</span>
+<span class="source-line-no">029</span><span id="line-29">import org.jgrapes.core.Subchannel.DefaultSubchannel;</span>
+<span class="source-line-no">030</span><span id="line-30">import org.jgrapes.core.annotation.Handler;</span>
+<span class="source-line-no">031</span><span id="line-31">import org.jgrapes.core.events.Stop;</span>
 <span class="source-line-no">032</span><span id="line-32"></span>
 <span class="source-line-no">033</span><span id="line-33">/**</span>
 <span class="source-line-no">034</span><span id="line-34"> * Provides a base class for mail components using connections.</span>
@@ -49,7 +49,7 @@
 <span class="source-line-no">036</span><span id="line-36"> * @param &lt;O&gt; the type of the open event</span>
 <span class="source-line-no">037</span><span id="line-37"> * @param &lt;C&gt; the type of the channel</span>
 <span class="source-line-no">038</span><span id="line-38"> */</span>
-<span class="source-line-no">039</span><span id="line-39">public abstract class MailConnectionManager&lt;O extends OpenMailConnection,</span>
+<span class="source-line-no">039</span><span id="line-39">public abstract class MailConnectionManager&lt;O extends Event&lt;?&gt;,</span>
 <span class="source-line-no">040</span><span id="line-40">        C extends MailConnectionManager&lt;O, C&gt;.AbstractMailChannel&gt;</span>
 <span class="source-line-no">041</span><span id="line-41">        extends MailComponent {</span>
 <span class="source-line-no">042</span><span id="line-42"></span>
@@ -140,7 +140,7 @@
 <span class="source-line-no">127</span><span id="line-127">        public AbstractMailChannel(O event, Channel channel) {</span>
 <span class="source-line-no">128</span><span id="line-128">            super(channel);</span>
 <span class="source-line-no">129</span><span id="line-129">            synchronized (this) {</span>
-<span class="source-line-no">130</span><span id="line-130">                if (channels.isEmpty()) {</span>
+<span class="source-line-no">130</span><span id="line-130">                if (channels.isEmpty() &amp;&amp; channelsGenerate()) {</span>
 <span class="source-line-no">131</span><span id="line-131">                    registerAsGenerator();</span>
 <span class="source-line-no">132</span><span id="line-132">                }</span>
 <span class="source-line-no">133</span><span id="line-133">                channels.add(this);</span>
@@ -159,7 +159,7 @@
 <span class="source-line-no">146</span><span id="line-146">        public void close() {</span>
 <span class="source-line-no">147</span><span id="line-147">            synchronized (this) {</span>
 <span class="source-line-no">148</span><span id="line-148">                channels.remove(this);</span>
-<span class="source-line-no">149</span><span id="line-149">                if (channels.isEmpty()) {</span>
+<span class="source-line-no">149</span><span id="line-149">                if (channels.isEmpty() &amp;&amp; channelsGenerate()) {</span>
 <span class="source-line-no">150</span><span id="line-150">                    unregisterAsGenerator();</span>
 <span class="source-line-no">151</span><span id="line-151">                }</span>
 <span class="source-line-no">152</span><span id="line-152">            }</span>
