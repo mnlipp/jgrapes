@@ -43,6 +43,9 @@ public class ReplyGenerator extends Component {
     @Handler
     public void onMail(FoldersUpdated event, Subchannel channel)
             throws MessagingException {
+        if (event.newMessages().isEmpty()) {
+            return;
+        }
         var msg = event.newMessages().get(0);
         msg.setFlag(Flag.DELETED, true);
         var response = msg.reply(false);
