@@ -43,11 +43,8 @@ import org.jgrapes.mail.events.SendMessage;
 import org.jgrapes.util.Password;
 
 /**
- * A component that sends mail using a system wide (user independant)
+ * A component that sends mail using a system wide (user independent)
  * configuration to access the server.
- * 
- * The component uses [Jakarta Mail](https://eclipse-ee4j.github.io/mail/)
- * to connect to a mail server.
  */
 @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 public class SystemMailSender extends MailComponent {
