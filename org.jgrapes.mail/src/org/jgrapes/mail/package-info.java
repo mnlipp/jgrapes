@@ -17,7 +17,10 @@
  */
 
 /**
- * Components for handling mail. All components handle 
+ * Components for handling mail. The components are based on the 
+ * [Jakarta Mail API](https://github.com/jakartaee/mail-api).
+ *
+ * All components handle 
  * {@link org.jgrapes.util.events.ConfigurationUpdate} events. They
  * process properties from three paths:
  * 
@@ -31,7 +34,7 @@
  *  
  * In each source, there can be a sub-section "`.../mail`". The valid keys 
  * in this sub-section are all properties defined for 
- * [Jakarta Mail](https://jakarta.ee/specifications/mail/2.0/apidocs/jakarta.mail/jakarta/mail/package-summary.html)
+ * [Jakarta Mail](https://jakarta.ee/specifications/mail/2.1/apidocs/jakarta.mail/jakarta/mail/package-summary.html)
  * with the prefix "`mail.`" removed to avoid unnecessary redundancy.
  * 
  * The additional key/value defined with the paths above are used to
