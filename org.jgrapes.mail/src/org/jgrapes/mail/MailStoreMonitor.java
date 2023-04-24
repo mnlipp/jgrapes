@@ -284,15 +284,15 @@ public class MailStoreMonitor extends MailConnectionManager<OpenMailMonitor,
         /**
          * Instantiates a new monitor channel.
          *
-         * @param event the event
-         * @param channel the channel
+         * @param event the event that triggered the creation
+         * @param mainChannel the main channel (of this {@link SubChannel})
          * @param store the store
          * @param password 
          * @param string 
          */
-        public MonitorChannel(OpenMailMonitor event, Channel channel,
+        public MonitorChannel(OpenMailMonitor event, Channel mainChannel,
                 Store store, String user, Password password) {
-            super(event, channel);
+            super(event, mainChannel);
             this.store = store;
             this.user = user;
             this.password = password;
@@ -303,7 +303,8 @@ public class MailStoreMonitor extends MailConnectionManager<OpenMailMonitor,
                 requestPipeline.fire(new UpdateFolders(), this);
             }, maxIdleTime);
             connect(
-                t -> downPipeline().fire(new ConnectError(event, t), channel));
+                t -> downPipeline().fire(new ConnectError(event, t),
+                    mainChannel));
         }
 
         /**
