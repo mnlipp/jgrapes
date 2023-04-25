@@ -41,13 +41,13 @@ import org.jgrapes.net.SocketServer;
  * object "app: EchoServer" as app
  * object "networkChannel: NamedChannel" as channel
  * object "connectionChannel: IOSubchannel" as subchannel
- * object "tcpServer: TcpServer" as tcpServer
+ * object "socketServer: SocketServer" as socketServer
  * object "dispatcher: NioDispatcher" as dispatcher
  * 
  * app *-- dispatcher
- * app *-- tcpServer
+ * app *-- socketServer
  * app -- channel: connected to >
- * tcpServer -up- channel: connected to >
+ * socketServer -up- channel: connected to >
  * subchannel -up-> channel
  * 
  * @enduml

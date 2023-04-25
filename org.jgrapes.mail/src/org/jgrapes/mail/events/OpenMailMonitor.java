@@ -33,7 +33,6 @@ public class OpenMailMonitor extends OpenMailConnection {
      * that sends events related to watching the specified folders.
      *
      * @param folderNames the folders, defaults to "INBOX"
-     * @return the open mail monitor
      */
     public OpenMailMonitor(String... folderNames) {
         if (folderNames.length > 0) {

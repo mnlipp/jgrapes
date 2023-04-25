@@ -101,7 +101,7 @@ public class InputStreamPipeline implements Runnable {
      * Configure associations that are applied to the generated
      * Output events, see {@link Event#setAssociated}.
      * 
-     * @param the associations to apply
+     * @param associations the associations to apply
      * @return the pipeline for easy chaining
      */
     public InputStreamPipeline

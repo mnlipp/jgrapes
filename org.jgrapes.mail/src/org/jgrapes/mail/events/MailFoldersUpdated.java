@@ -49,7 +49,8 @@ public class MailFoldersUpdated extends Event<Void> {
     /**
      * Instantiates a new event.
      *
-     * @param allMessages the messages
+     * @param folders the folders
+     * @param newMessages the new messages
      */
     public MailFoldersUpdated(List<Folder> folders, List<Message> newMessages) {
         this.folders = folders;

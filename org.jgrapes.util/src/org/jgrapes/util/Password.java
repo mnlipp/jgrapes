@@ -97,7 +97,7 @@ public class Password {
     /**
      * Compare to a given string.
      *
-     * @param password the password
+     * @param value the value to compare to
      * @return true, if successful
      */
     public boolean compareTo(String value) {
@@ -111,7 +111,7 @@ public class Password {
     /**
      * Compare to a given char array.
      *
-     * @param password the password
+     * @param value the value to compare to
      * @return true, if successful
      */
     @SuppressWarnings("PMD.UseVarargs")

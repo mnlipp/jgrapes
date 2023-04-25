@@ -53,6 +53,7 @@ import org.jgrapes.core.Components;
 import org.jgrapes.core.Components.Timer;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.EventPipeline;
+import org.jgrapes.core.Subchannel;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.io.events.Closed;
 import org.jgrapes.io.events.ConnectError;
@@ -285,10 +286,10 @@ public class MailStoreMonitor extends MailConnectionManager<OpenMailMonitor,
          * Instantiates a new monitor channel.
          *
          * @param event the event that triggered the creation
-         * @param mainChannel the main channel (of this {@link SubChannel})
+         * @param mainChannel the main channel (of this {@link Subchannel})
          * @param store the store
-         * @param password 
-         * @param string 
+         * @param user the user
+         * @param password the password
          */
         public MonitorChannel(OpenMailMonitor event, Channel mainChannel,
                 Store store, String user, Password password) {
@@ -569,7 +570,8 @@ public class MailStoreMonitor extends MailConnectionManager<OpenMailMonitor,
             }
             downPipeline().fire(
                 Event.onCompletion(
-                    new MailFoldersUpdated(new ArrayList<>(folderCache.values()),
+                    new MailFoldersUpdated(
+                        new ArrayList<>(folderCache.values()),
                         newMsgs),
                     evt -> refreshWatches(evt)),
                 this);

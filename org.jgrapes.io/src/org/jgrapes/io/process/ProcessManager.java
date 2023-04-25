@@ -84,8 +84,8 @@ public class ProcessManager extends Component {
 
     /**
      * Create a new instance using the given channel.
-     * 
-     * @param channel the component's channel 
+     *
+     * @param componentChannel the component channel
      */
     public ProcessManager(Channel componentChannel) {
         super(componentChannel);

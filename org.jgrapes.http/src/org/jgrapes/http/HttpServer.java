@@ -134,8 +134,8 @@ public class HttpServer extends Component {
     }
 
     /**
-     * Create a new server that creates its own {@link TcpServer} with the given
-     * address and uses it for network level I/O.
+     * Create a new server that creates its own {@link SocketServer} with 
+     * the given address and uses it for network level I/O.
      * 
      * @param appChannel
      *            this component's channel

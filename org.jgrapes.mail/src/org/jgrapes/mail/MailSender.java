@@ -37,6 +37,7 @@ import org.jgrapes.core.Components;
 import org.jgrapes.core.Components.Timer;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.Manager;
+import org.jgrapes.core.Subchannel;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Start;
 import org.jgrapes.mail.events.OpenMailSender;
@@ -183,10 +184,10 @@ public class MailSender extends MailConnectionManager<Event<?>,
          * Instantiates a new monitor channel.
          *
          * @param event the event that triggered the creation
-         * @param mainChannel the main channel (of this {@link SubChannel})
-         * @param store the store
-         * @param password 
-         * @param string 
+         * @param mainChannel the main channel (of this {@link Subchannel})
+         * @param sessionProps the session properties
+         * @param password the password
+         * @throws MessagingException the messaging exception
          */
         public SenderChannel(Event<?> event, Channel mainChannel,
                 Properties sessionProps, Optional<Password> password)

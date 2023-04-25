@@ -79,7 +79,7 @@ public class StartProcess extends Event<Void> {
      * The values given will be merged with the defaults
      * used by the {@link ProcessBuilder}. Overrides any
      * values from a previous invocation or from invoking
-     * {@link #setEnvValue(String, String)}.
+     * {@link #environment(String, String)}.
      *
      * @param environment the environment
      * @return the event for method chaining

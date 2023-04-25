@@ -28,7 +28,8 @@ public class ProcessExited extends Closed<Integer> {
     /**
      * Instantiates a new event.
      *
-     * @param startEvent the start event
+     * @param startedBy the event that started the process
+     * @param exitValue the exit value
      */
     public ProcessExited(StartProcess startedBy, int exitValue) {
         setResult(exitValue);
