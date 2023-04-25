@@ -24,7 +24,7 @@ method[^NioDispatcher].
         Channel networkChannel = new NamedChannel("network i/o");
         Component app = new EchoServer(networkChannel)
             .attach(new NioDispatcher())
-            .attach(new TcpServer(networkChannel).setServerAddress(
+            .attach(new SocketServer(networkChannel).setServerAddress(
                 new InetSocketAddress(8888)).setBufferSize(120000));
         Components.start(app);
         Components.awaitExhaustion();
@@ -46,7 +46,7 @@ to the associations between components and the "main" channel. However,
 when an event is delivered to a handler, the channel that it is associated
 with is the `IOSubchannel` that the event was fired on.
 
-In our example application, the `TcpServer` creates a new `IOSubchannel` 
+In our example application, the `SocketServer` creates a new `IOSubchannel` 
 instance (with `networkChannel`
 as "main" channel) for each incoming connection (a sample instance is shown 
 as `connectionChannel` in the object diagram). The server then fires all

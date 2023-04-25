@@ -26,19 +26,19 @@ log of
 ```
 2018-10-17 P1: Attached#1 [ROOT <―― EchoServer#1, channels=[network i/o]] (unhandled)
 2018-10-17 P1: Attached#2 [EchoServer#1 <―― NioDispatcher#1, channels=[network i/o, NioDispatcher#1]] (unhandled)
-2018-10-17 P1: Attached#3 [NioDispatcher#1 <―― TcpServer#1, channels=[NioDispatcher#1, network i/o]] (unhandled)
+2018-10-17 P1: Attached#3 [NioDispatcher#1 <―― SocketServer#1, channels=[NioDispatcher#1, network i/o]] (unhandled)
 2018-10-17 P1: Start#1 [channels=[BROADCAST]] >> Handler [method=NioDispatcher#1.onStart, filter=Scope [handledEvents=[Start], handledChannels=[NioDispatcher#1]], priority=0]
-2018-10-17 P1: Start#1 [channels=[BROADCAST]] >> Handler [method=TcpServer#1.onStart, filter=Scope [handledEvents=[Start], handledChannels=[TcpServer#1, network i/o]], priority=0]
+2018-10-17 P1: Start#1 [channels=[BROADCAST]] >> Handler [method=SocketServer#1.onStart, filter=Scope [handledEvents=[Start], handledChannels=[SocketServer#1, network i/o]], priority=0]
 2018-10-17 P1: NioRegistration#1 [channels=[BROADCAST]] >> Handler [method=NioDispatcher#1.onNioRegistration, filter=Scope [handledEvents=[NioRegistration], handledChannels=[NioDispatcher#1]], priority=0]
-2018-10-17 P1: Completed(NioRegistration#1) [channels=[TcpServer#1]] >> Handler [method=TcpServer#1.onRegistered, filter=Scope [handledEvents=[Completed], handledChannels=[TcpServer#1]], priority=0]
+2018-10-17 P1: Completed(NioRegistration#1) [channels=[SocketServer#1]] >> Handler [method=SocketServer#1.onRegistered, filter=Scope [handledEvents=[Completed], handledChannels=[SocketServer#1]], priority=0]
 2018-10-17 P1: Ready#1 [/0:0:0:0:0:0:0:0:8888, channels=[network i/o]] (unhandled)
 2018-10-17 P1: Started(Start#1) [channels=[BROADCAST]] (unhandled)
 2018-10-17 Thread main is waiting, 2 generators registered: [EventProcessor#1 [queue=[]], NioDispatcher#1]
 2018-10-17 P1: NioRegistration#2 [channels=[BROADCAST]] >> Handler [method=NioDispatcher#1.onNioRegistration, filter=Scope [handledEvents=[NioRegistration], handledChannels=[NioDispatcher#1]], priority=0]
-2018-10-17 P1: Completed(NioRegistration#2) [channels=[TcpServer#1]] >> Handler [method=TcpServer#1.onRegistered, filter=Scope [handledEvents=[Completed], handledChannels=[TcpServer#1]], priority=0]
+2018-10-17 P1: Completed(NioRegistration#2) [channels=[SocketServer#1]] >> Handler [method=SocketServer#1.onRegistered, filter=Scope [handledEvents=[Completed], handledChannels=[SocketServer#1]], priority=0]
 2018-10-17 P2: Accepted#1 [/127.0.0.1:8888 <― /127.0.0.1:38794, channels=[network i/o{TcpChannelImpl#1}], secure=false] (unhandled)
 2018-10-17 P2: Input#1 [channels=[network i/o{TcpChannelImpl#1}],size=8,eor=false] >> Handler [method=EchoServer#1.onRead, filter=Scope [handledEvents=[Input], handledChannels=[network i/o, EchoServer#1]], priority=0]
-2018-10-17 P3: Output#1 [channels=[network i/o{TcpChannelImpl#1}],size=8,eor=false] >> Handler [method=TcpServer#1.onOutput, filter=Scope [handledEvents=[Output], handledChannels=[TcpServer#1, network i/o]], priority=0]
+2018-10-17 P3: Output#1 [channels=[network i/o{TcpChannelImpl#1}],size=8,eor=false] >> Handler [method=SocketServer#1.onOutput, filter=Scope [handledEvents=[Output], handledChannels=[SocketServer#1, network i/o]], priority=0]
 2018-10-17 P2: RunnableActionEvent#1 [channels=[]] >> Handler [method=ActionExecutor#1.execute, filter=wildcard, priority=0]
 2018-10-17 P4: HalfClosed#1 [channels=[network i/o{TcpChannelImpl#1}]] (unhandled)
 2018-10-17 P2: Closed#1 [channels=[network i/o{TcpChannelImpl#1}]] (unhandled)
