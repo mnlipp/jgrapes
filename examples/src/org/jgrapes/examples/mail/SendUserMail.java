@@ -27,7 +27,7 @@ import java.util.List;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
 import org.jgrapes.mail.MailSender;
-import org.jgrapes.mail.events.SendMessage;
+import org.jgrapes.mail.events.SendMailMessage;
 import org.jgrapes.util.TomlConfigurationStore;
 
 /**
@@ -50,7 +50,7 @@ public class SendUserMail extends Component {
         Components.start(app);
         var bp1 = new MimeBodyPart();
         bp1.setText("Test mail.");
-        app.fire(new SendMessage()
+        app.fire(new SendMailMessage()
             .setFrom(new InternetAddress("test@jgrapes.org"))
             .setTo(List.of(new InternetAddress("mnl@mnl.de")))
             .setSubject("Mail Test")

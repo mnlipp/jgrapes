@@ -40,7 +40,7 @@ import org.jgrapes.core.Manager;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Start;
 import org.jgrapes.mail.events.OpenMailSender;
-import org.jgrapes.mail.events.SendMessage;
+import org.jgrapes.mail.events.SendMailMessage;
 import org.jgrapes.util.Password;
 
 /**
@@ -160,7 +160,7 @@ public class MailSender extends MailConnectionManager<Event<?>,
      * @throws MessagingException the messaging exception
      */
     @Handler
-    public void onMessage(SendMessage event, Channel channel)
+    public void onMessage(SendMailMessage event, Channel channel)
             throws MessagingException {
         if (channel instanceof SenderChannel chan) {
             chan.sendMessage(event);
@@ -217,7 +217,7 @@ public class MailSender extends MailConnectionManager<Event<?>,
          * @param event the event
          * @throws MessagingException 
          */
-        protected void sendMessage(SendMessage event)
+        protected void sendMessage(SendMailMessage event)
                 throws MessagingException {
             synchronized (transport) {
                 if (idleTimer != null) {

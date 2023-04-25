@@ -29,7 +29,7 @@ import org.jgrapes.mail.MailStoreMonitor;
  * Triggers the retrieval of mails (update) by a {@link MailStoreMonitor}.
  * Must be fired on a {@link MailChannel}.
  */
-public class UpdateFolders extends Event<List<Folder>> {
+public class UpdateMailFolders extends Event<List<Folder>> {
 
     private final String[] folderNames;
 
@@ -43,7 +43,7 @@ public class UpdateFolders extends Event<List<Folder>> {
      * @param folderNames the folder names
      */
     @SuppressWarnings("PMD.ArrayIsStoredDirectly")
-    public UpdateFolders(String... folderNames) {
+    public UpdateMailFolders(String... folderNames) {
         this.folderNames = Arrays.copyOf(folderNames, folderNames.length);
     }
 

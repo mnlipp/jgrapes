@@ -28,8 +28,8 @@ import org.jgrapes.core.Component;
 import org.jgrapes.core.Subchannel;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Stop;
-import org.jgrapes.mail.events.FoldersUpdated;
-import org.jgrapes.mail.events.SendMessage;
+import org.jgrapes.mail.events.MailFoldersUpdated;
+import org.jgrapes.mail.events.SendMailMessage;
 
 /**
  * Wait for mail with subject stop. Delete all other mails.
@@ -41,7 +41,7 @@ public class ReplyGenerator extends Component {
     }
 
     @Handler
-    public void onMail(FoldersUpdated event, Subchannel channel)
+    public void onMail(MailFoldersUpdated event, Subchannel channel)
             throws MessagingException {
         if (event.newMessages().isEmpty()) {
             return;
@@ -51,7 +51,7 @@ public class ReplyGenerator extends Component {
         var response = msg.reply(false);
         var bp1 = new MimeBodyPart();
         bp1.setText("Your message has been received.", "utf-8");
-        fire(new SendMessage()
+        fire(new SendMailMessage()
             .setFrom(new InternetAddress("Auto-Reply@jgrapes.org"))
             .setTo(response.getRecipients(RecipientType.TO))
             .setSubject(response.getSubject()).addContent(bp1));

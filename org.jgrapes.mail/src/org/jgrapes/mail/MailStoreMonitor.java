@@ -58,10 +58,10 @@ import org.jgrapes.io.events.Closed;
 import org.jgrapes.io.events.ConnectError;
 import org.jgrapes.io.events.IOError;
 import org.jgrapes.io.events.Opening;
-import org.jgrapes.mail.events.FoldersUpdated;
+import org.jgrapes.mail.events.MailFoldersUpdated;
 import org.jgrapes.mail.events.MailMonitorOpened;
 import org.jgrapes.mail.events.OpenMailMonitor;
-import org.jgrapes.mail.events.UpdateFolders;
+import org.jgrapes.mail.events.UpdateMailFolders;
 import org.jgrapes.util.Password;
 
 /**
@@ -69,7 +69,7 @@ import org.jgrapes.util.Password;
  * mails. After establishing a connection to a store and selected 
  * folders (see {@link #onOpenMailMonitor(OpenMailMonitor, Channel)}), 
  * the existing and all subsequently arriving mails will be sent 
- * downstream using {@link FoldersUpdated} events.
+ * downstream using {@link MailFoldersUpdated} events.
  * 
  * This implementation uses the {@link IdleManager}. The 
  * {@link IdleManager} works only if its {@link IdleManager#watch}
@@ -77,17 +77,17 @@ import org.jgrapes.util.Password;
  * Note that operations such as e.g. setting the deleted flag of 
  * a message is also an operation on a folder.
  * 
- * Folders are updated in response to an {@link UpdateFolders} event 
+ * Folders are updated in response to an {@link UpdateMailFolders} event 
  * or when the store signals the arrival of new messages. Information 
- * about the folders is delivered by a {@link FoldersUpdated} event. 
+ * about the folders is delivered by a {@link MailFoldersUpdated} event. 
  * Folders may be freely used while handling the event, because the
  * folders will be re-registered with the {@link IdleManager}
- * when the {@link FoldersUpdated} event completes.
+ * when the {@link MailFoldersUpdated} event completes.
  * Any usage of folders independent of handling the events mentioned
  * will result in a loss of the monitor function.
  * 
  * If required, the monitor function may be reestablished any time
- * by firing a {@link UpdateFolders} event for the folders used.
+ * by firing a {@link UpdateMailFolders} event for the folders used.
  */
 @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",
     "PMD.DataflowAnomalyAnalysis", "PMD.ExcessiveImports" })
@@ -153,7 +153,7 @@ public class MailStoreMonitor extends MailConnectionManager<OpenMailMonitor,
      * Open a store as specified by the event and monitor the folders
      * (also specified by the event). Information about all existing 
      * and all subsequently arriving mails will be signaled downstream 
-     * using {@link FoldersUpdated} events.
+     * using {@link MailFoldersUpdated} events.
      *
      * @param event the event
      * @param channel the channel
@@ -203,7 +203,7 @@ public class MailStoreMonitor extends MailConnectionManager<OpenMailMonitor,
      * @param channel the channel
      */
     @Handler
-    public void onUpdateFolders(UpdateFolders event, MailChannel channel) {
+    public void onUpdateFolders(UpdateMailFolders event, MailChannel channel) {
         if (!channels.contains(channel)) {
             return;
         }
@@ -300,7 +300,7 @@ public class MailStoreMonitor extends MailConnectionManager<OpenMailMonitor,
             requestPipeline = event.processedBy().get();
             store.addConnectionListener(this);
             idleTimer = Components.schedule(t -> {
-                requestPipeline.fire(new UpdateFolders(), this);
+                requestPipeline.fire(new UpdateMailFolders(), this);
             }, maxIdleTime);
             connect(
                 t -> downPipeline().fire(new ConnectError(event, t),
@@ -410,7 +410,7 @@ public class MailStoreMonitor extends MailConnectionManager<OpenMailMonitor,
             folderCache.clear();
             if (state == ChannelState.Reopened) {
                 // This is a re-open, only retrieve messages.
-                requestPipeline.fire(new UpdateFolders(), this);
+                requestPipeline.fire(new UpdateMailFolders(), this);
                 return;
             }
             // (1) Opening, (2) Opened, (3) start retrieving mails
@@ -419,7 +419,7 @@ public class MailStoreMonitor extends MailConnectionManager<OpenMailMonitor,
                     Event.onCompletion(
                         new MailMonitorOpened(openEvent(), store),
                         p -> requestPipeline
-                            .fire(new UpdateFolders(), this)),
+                            .fire(new UpdateMailFolders(), this)),
                     this)),
                 this);
         }
@@ -482,7 +482,7 @@ public class MailStoreMonitor extends MailConnectionManager<OpenMailMonitor,
         @SuppressWarnings({ "PMD.CognitiveComplexity",
             "PMD.AvoidInstantiatingObjectsInLoops",
             "PMD.AvoidDuplicateLiterals" })
-        public void onUpdateFolders(UpdateFolders event) {
+        public void onUpdateFolders(UpdateMailFolders event) {
             List<Folder> folders = new ArrayList<>();
             List<Message> newMsgs = new ArrayList<>();
             if (store.isConnected()) {
@@ -508,7 +508,7 @@ public class MailStoreMonitor extends MailConnectionManager<OpenMailMonitor,
             }
             event.setResult(folders);
             Event.onCompletion(event, e -> downPipeline().fire(Event
-                .onCompletion(new FoldersUpdated(folders, newMsgs),
+                .onCompletion(new MailFoldersUpdated(folders, newMsgs),
                     evt -> refreshWatches(evt)),
                 this));
         }
@@ -569,7 +569,7 @@ public class MailStoreMonitor extends MailConnectionManager<OpenMailMonitor,
             }
             downPipeline().fire(
                 Event.onCompletion(
-                    new FoldersUpdated(new ArrayList<>(folderCache.values()),
+                    new MailFoldersUpdated(new ArrayList<>(folderCache.values()),
                         newMsgs),
                     evt -> refreshWatches(evt)),
                 this);
@@ -582,7 +582,7 @@ public class MailStoreMonitor extends MailConnectionManager<OpenMailMonitor,
          * @param event the event
          */
         @SuppressWarnings("PMD.CloseResource")
-        private void refreshWatches(FoldersUpdated event) {
+        private void refreshWatches(MailFoldersUpdated event) {
             if (!state.isOpen()) {
                 return;
             }

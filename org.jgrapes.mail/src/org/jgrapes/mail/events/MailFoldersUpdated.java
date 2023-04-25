@@ -37,11 +37,11 @@ import org.jgrapes.mail.MailStoreMonitor;
  * Must be fired on a {@link MailChannel}.
  */
 @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
-public class FoldersUpdated extends Event<Void> {
+public class MailFoldersUpdated extends Event<Void> {
 
     @SuppressWarnings("PMD.FieldNamingConventions")
     private static final Logger logger
-        = Logger.getLogger(FoldersUpdated.class.getName());
+        = Logger.getLogger(MailFoldersUpdated.class.getName());
 
     private final List<Folder> folders;
     private final List<Message> newMessages;
@@ -51,7 +51,7 @@ public class FoldersUpdated extends Event<Void> {
      *
      * @param allMessages the messages
      */
-    public FoldersUpdated(List<Folder> folders, List<Message> newMessages) {
+    public MailFoldersUpdated(List<Folder> folders, List<Message> newMessages) {
         this.folders = folders;
         this.newMessages = newMessages;
     }
