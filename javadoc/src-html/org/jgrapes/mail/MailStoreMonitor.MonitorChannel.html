@@ -71,10 +71,10 @@
 <span class="source-line-no">058</span><span id="line-58">import org.jgrapes.io.events.ConnectError;</span>
 <span class="source-line-no">059</span><span id="line-59">import org.jgrapes.io.events.IOError;</span>
 <span class="source-line-no">060</span><span id="line-60">import org.jgrapes.io.events.Opening;</span>
-<span class="source-line-no">061</span><span id="line-61">import org.jgrapes.mail.events.FoldersUpdated;</span>
+<span class="source-line-no">061</span><span id="line-61">import org.jgrapes.mail.events.MailFoldersUpdated;</span>
 <span class="source-line-no">062</span><span id="line-62">import org.jgrapes.mail.events.MailMonitorOpened;</span>
 <span class="source-line-no">063</span><span id="line-63">import org.jgrapes.mail.events.OpenMailMonitor;</span>
-<span class="source-line-no">064</span><span id="line-64">import org.jgrapes.mail.events.UpdateFolders;</span>
+<span class="source-line-no">064</span><span id="line-64">import org.jgrapes.mail.events.UpdateMailFolders;</span>
 <span class="source-line-no">065</span><span id="line-65">import org.jgrapes.util.Password;</span>
 <span class="source-line-no">066</span><span id="line-66"></span>
 <span class="source-line-no">067</span><span id="line-67">/**</span>
@@ -82,7 +82,7 @@
 <span class="source-line-no">069</span><span id="line-69"> * mails. After establishing a connection to a store and selected </span>
 <span class="source-line-no">070</span><span id="line-70"> * folders (see {@link #onOpenMailMonitor(OpenMailMonitor, Channel)}), </span>
 <span class="source-line-no">071</span><span id="line-71"> * the existing and all subsequently arriving mails will be sent </span>
-<span class="source-line-no">072</span><span id="line-72"> * downstream using {@link FoldersUpdated} events.</span>
+<span class="source-line-no">072</span><span id="line-72"> * downstream using {@link MailFoldersUpdated} events.</span>
 <span class="source-line-no">073</span><span id="line-73"> * </span>
 <span class="source-line-no">074</span><span id="line-74"> * This implementation uses the {@link IdleManager}. The </span>
 <span class="source-line-no">075</span><span id="line-75"> * {@link IdleManager} works only if its {@link IdleManager#watch}</span>
@@ -90,17 +90,17 @@
 <span class="source-line-no">077</span><span id="line-77"> * Note that operations such as e.g. setting the deleted flag of </span>
 <span class="source-line-no">078</span><span id="line-78"> * a message is also an operation on a folder.</span>
 <span class="source-line-no">079</span><span id="line-79"> * </span>
-<span class="source-line-no">080</span><span id="line-80"> * Folders are updated in response to an {@link UpdateFolders} event </span>
+<span class="source-line-no">080</span><span id="line-80"> * Folders are updated in response to an {@link UpdateMailFolders} event </span>
 <span class="source-line-no">081</span><span id="line-81"> * or when the store signals the arrival of new messages. Information </span>
-<span class="source-line-no">082</span><span id="line-82"> * about the folders is delivered by a {@link FoldersUpdated} event. </span>
+<span class="source-line-no">082</span><span id="line-82"> * about the folders is delivered by a {@link MailFoldersUpdated} event. </span>
 <span class="source-line-no">083</span><span id="line-83"> * Folders may be freely used while handling the event, because the</span>
 <span class="source-line-no">084</span><span id="line-84"> * folders will be re-registered with the {@link IdleManager}</span>
-<span class="source-line-no">085</span><span id="line-85"> * when the {@link FoldersUpdated} event completes.</span>
+<span class="source-line-no">085</span><span id="line-85"> * when the {@link MailFoldersUpdated} event completes.</span>
 <span class="source-line-no">086</span><span id="line-86"> * Any usage of folders independent of handling the events mentioned</span>
 <span class="source-line-no">087</span><span id="line-87"> * will result in a loss of the monitor function.</span>
 <span class="source-line-no">088</span><span id="line-88"> * </span>
 <span class="source-line-no">089</span><span id="line-89"> * If required, the monitor function may be reestablished any time</span>
-<span class="source-line-no">090</span><span id="line-90"> * by firing a {@link UpdateFolders} event for the folders used.</span>
+<span class="source-line-no">090</span><span id="line-90"> * by firing a {@link UpdateMailFolders} event for the folders used.</span>
 <span class="source-line-no">091</span><span id="line-91"> */</span>
 <span class="source-line-no">092</span><span id="line-92">@SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",</span>
 <span class="source-line-no">093</span><span id="line-93">    "PMD.DataflowAnomalyAnalysis", "PMD.ExcessiveImports" })</span>
@@ -166,7 +166,7 @@
 <span class="source-line-no">153</span><span id="line-153">     * Open a store as specified by the event and monitor the folders</span>
 <span class="source-line-no">154</span><span id="line-154">     * (also specified by the event). Information about all existing </span>
 <span class="source-line-no">155</span><span id="line-155">     * and all subsequently arriving mails will be signaled downstream </span>
-<span class="source-line-no">156</span><span id="line-156">     * using {@link FoldersUpdated} events.</span>
+<span class="source-line-no">156</span><span id="line-156">     * using {@link MailFoldersUpdated} events.</span>
 <span class="source-line-no">157</span><span id="line-157">     *</span>
 <span class="source-line-no">158</span><span id="line-158">     * @param event the event</span>
 <span class="source-line-no">159</span><span id="line-159">     * @param channel the channel</span>
@@ -216,7 +216,7 @@
 <span class="source-line-no">203</span><span id="line-203">     * @param channel the channel</span>
 <span class="source-line-no">204</span><span id="line-204">     */</span>
 <span class="source-line-no">205</span><span id="line-205">    @Handler</span>
-<span class="source-line-no">206</span><span id="line-206">    public void onUpdateFolders(UpdateFolders event, MailChannel channel) {</span>
+<span class="source-line-no">206</span><span id="line-206">    public void onUpdateFolders(UpdateMailFolders event, MailChannel channel) {</span>
 <span class="source-line-no">207</span><span id="line-207">        if (!channels.contains(channel)) {</span>
 <span class="source-line-no">208</span><span id="line-208">            return;</span>
 <span class="source-line-no">209</span><span id="line-209">        }</span>
@@ -313,7 +313,7 @@
 <span class="source-line-no">300</span><span id="line-300">            requestPipeline = event.processedBy().get();</span>
 <span class="source-line-no">301</span><span id="line-301">            store.addConnectionListener(this);</span>
 <span class="source-line-no">302</span><span id="line-302">            idleTimer = Components.schedule(t -&gt; {</span>
-<span class="source-line-no">303</span><span id="line-303">                requestPipeline.fire(new UpdateFolders(), this);</span>
+<span class="source-line-no">303</span><span id="line-303">                requestPipeline.fire(new UpdateMailFolders(), this);</span>
 <span class="source-line-no">304</span><span id="line-304">            }, maxIdleTime);</span>
 <span class="source-line-no">305</span><span id="line-305">            connect(</span>
 <span class="source-line-no">306</span><span id="line-306">                t -&gt; downPipeline().fire(new ConnectError(event, t),</span>
@@ -423,7 +423,7 @@
 <span class="source-line-no">410</span><span id="line-410">            folderCache.clear();</span>
 <span class="source-line-no">411</span><span id="line-411">            if (state == ChannelState.Reopened) {</span>
 <span class="source-line-no">412</span><span id="line-412">                // This is a re-open, only retrieve messages.</span>
-<span class="source-line-no">413</span><span id="line-413">                requestPipeline.fire(new UpdateFolders(), this);</span>
+<span class="source-line-no">413</span><span id="line-413">                requestPipeline.fire(new UpdateMailFolders(), this);</span>
 <span class="source-line-no">414</span><span id="line-414">                return;</span>
 <span class="source-line-no">415</span><span id="line-415">            }</span>
 <span class="source-line-no">416</span><span id="line-416">            // (1) Opening, (2) Opened, (3) start retrieving mails</span>
@@ -432,7 +432,7 @@
 <span class="source-line-no">419</span><span id="line-419">                    Event.onCompletion(</span>
 <span class="source-line-no">420</span><span id="line-420">                        new MailMonitorOpened(openEvent(), store),</span>
 <span class="source-line-no">421</span><span id="line-421">                        p -&gt; requestPipeline</span>
-<span class="source-line-no">422</span><span id="line-422">                            .fire(new UpdateFolders(), this)),</span>
+<span class="source-line-no">422</span><span id="line-422">                            .fire(new UpdateMailFolders(), this)),</span>
 <span class="source-line-no">423</span><span id="line-423">                    this)),</span>
 <span class="source-line-no">424</span><span id="line-424">                this);</span>
 <span class="source-line-no">425</span><span id="line-425">        }</span>
@@ -495,7 +495,7 @@
 <span class="source-line-no">482</span><span id="line-482">        @SuppressWarnings({ "PMD.CognitiveComplexity",</span>
 <span class="source-line-no">483</span><span id="line-483">            "PMD.AvoidInstantiatingObjectsInLoops",</span>
 <span class="source-line-no">484</span><span id="line-484">            "PMD.AvoidDuplicateLiterals" })</span>
-<span class="source-line-no">485</span><span id="line-485">        public void onUpdateFolders(UpdateFolders event) {</span>
+<span class="source-line-no">485</span><span id="line-485">        public void onUpdateFolders(UpdateMailFolders event) {</span>
 <span class="source-line-no">486</span><span id="line-486">            List&lt;Folder&gt; folders = new ArrayList&lt;&gt;();</span>
 <span class="source-line-no">487</span><span id="line-487">            List&lt;Message&gt; newMsgs = new ArrayList&lt;&gt;();</span>
 <span class="source-line-no">488</span><span id="line-488">            if (store.isConnected()) {</span>
@@ -521,7 +521,7 @@
 <span class="source-line-no">508</span><span id="line-508">            }</span>
 <span class="source-line-no">509</span><span id="line-509">            event.setResult(folders);</span>
 <span class="source-line-no">510</span><span id="line-510">            Event.onCompletion(event, e -&gt; downPipeline().fire(Event</span>
-<span class="source-line-no">511</span><span id="line-511">                .onCompletion(new FoldersUpdated(folders, newMsgs),</span>
+<span class="source-line-no">511</span><span id="line-511">                .onCompletion(new MailFoldersUpdated(folders, newMsgs),</span>
 <span class="source-line-no">512</span><span id="line-512">                    evt -&gt; refreshWatches(evt)),</span>
 <span class="source-line-no">513</span><span id="line-513">                this));</span>
 <span class="source-line-no">514</span><span id="line-514">        }</span>
@@ -582,7 +582,7 @@
 <span class="source-line-no">569</span><span id="line-569">            }</span>
 <span class="source-line-no">570</span><span id="line-570">            downPipeline().fire(</span>
 <span class="source-line-no">571</span><span id="line-571">                Event.onCompletion(</span>
-<span class="source-line-no">572</span><span id="line-572">                    new FoldersUpdated(new ArrayList&lt;&gt;(folderCache.values()),</span>
+<span class="source-line-no">572</span><span id="line-572">                    new MailFoldersUpdated(new ArrayList&lt;&gt;(folderCache.values()),</span>
 <span class="source-line-no">573</span><span id="line-573">                        newMsgs),</span>
 <span class="source-line-no">574</span><span id="line-574">                    evt -&gt; refreshWatches(evt)),</span>
 <span class="source-line-no">575</span><span id="line-575">                this);</span>
@@ -595,7 +595,7 @@
 <span class="source-line-no">582</span><span id="line-582">         * @param event the event</span>
 <span class="source-line-no">583</span><span id="line-583">         */</span>
 <span class="source-line-no">584</span><span id="line-584">        @SuppressWarnings("PMD.CloseResource")</span>
-<span class="source-line-no">585</span><span id="line-585">        private void refreshWatches(FoldersUpdated event) {</span>
+<span class="source-line-no">585</span><span id="line-585">        private void refreshWatches(MailFoldersUpdated event) {</span>
 <span class="source-line-no">586</span><span id="line-586">            if (!state.isOpen()) {</span>
 <span class="source-line-no">587</span><span id="line-587">                return;</span>
 <span class="source-line-no">588</span><span id="line-588">            }</span>
