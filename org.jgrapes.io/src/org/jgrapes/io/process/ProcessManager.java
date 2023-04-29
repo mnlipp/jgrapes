@@ -293,13 +293,13 @@ public class ProcessManager extends Component {
             outOpen = true;
             executorService.submit(
                 new InputStreamPipeline(process.getInputStream(), this,
-                    downPipeline()).sendInputEvents()
-                        .setEventAssociations(Map.of(FileDescriptor.class, 1)));
+                    downPipeline()).sendInputEvents().setEventAssociations(
+                        Map.of(FileDescriptor.class, 1)));
             errOpen = true;
             executorService.submit(
                 new InputStreamPipeline(process.getErrorStream(), this,
-                    downPipeline()).sendInputEvents()
-                        .setEventAssociations(Map.of(FileDescriptor.class, 2)));
+                    downPipeline()).sendInputEvents().setEventAssociations(
+                        Map.of(FileDescriptor.class, 2)));
         }
 
         /**
