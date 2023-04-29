@@ -9,11 +9,11 @@
  * 
  * This program is distributed in the hope that it will be useful, but 
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License 
- * for more details.
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public 
+ * License for more details.
  * 
- * You should have received a copy of the GNU Affero General Public License along 
- * with this program; if not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License 
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 package org.jgrapes.io.process;
@@ -21,10 +21,14 @@ package org.jgrapes.io.process;
 import java.io.FileDescriptor;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
@@ -32,6 +36,7 @@ import org.jgrapes.core.Event;
 import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.Manager;
 import org.jgrapes.core.annotation.Handler;
+import org.jgrapes.core.events.Stop;
 import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.io.IOSubchannel.DefaultIOSubchannel;
 import org.jgrapes.io.events.Close;
@@ -71,9 +76,14 @@ import org.jgrapes.io.util.InputStreamPipeline;
 @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 public class ProcessManager extends Component {
 
+    @SuppressWarnings("PMD.FieldNamingConventions")
+    private static final Logger logger
+        = Logger.getLogger(ProcessManager.class.getName());
+
     private ExecutorService executorService
         = Components.defaultExecutorService();
-    private final Set<ProcessChannel> channels = new HashSet<>();
+    private final Set<ProcessChannel> channels
+        = Collections.synchronizedSet(new HashSet<>());
 
     /**
      * Creates a new connector, using itself as component channel. 
@@ -126,7 +136,9 @@ public class ProcessManager extends Component {
             }
         }
         try {
-            new ProcessChannel(event, pbd.start());
+            Process proc;
+            new ProcessChannel(event, proc = pbd.start());
+            logger.fine(() -> "Started process pid=" + proc.toHandle().pid());
         } catch (IOException e) {
             fire(new StartProcessError(event, "Failed to start process.", e));
         }
@@ -155,19 +167,39 @@ public class ProcessManager extends Component {
     }
 
     /**
-     * Closes the output to the process.
+     * Closes the output to the process (the process's stdin).
+     * 
+     * If the event has an association with key {@link Process},
+     * the event additionally causes the process to be "closed",
+     * i.e. to be terminated (see {@link ProcessHandle#destroy}).
      *
      * @param event the event
      * @throws IOException if an I/O exception occurred
      * @throws InterruptedException if the execution was interrupted
      */
     @Handler
-    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
-    public void onClose(Close event) throws IOException, InterruptedException {
+    public void onClose(Close event) {
         for (Channel channel : event.channels()) {
             if (channel instanceof ProcessChannel
                 && channels.contains(channel)) {
                 ((ProcessChannel) channel).close(event);
+            }
+        }
+    }
+
+    /**
+     * Stop all running processes.
+     * 
+     * @param event
+     */
+    @Handler
+    public void onStop(Stop event) {
+        while (true) {
+            synchronized (channels) {
+                if (channels.isEmpty()) {
+                    break;
+                }
+                channels.iterator().next().doClose(true);
             }
         }
     }
@@ -200,6 +232,8 @@ public class ProcessManager extends Component {
         private final Process process;
         private final EventPipeline downPipeline;
         private boolean running;
+        private final AtomicBoolean closing = new AtomicBoolean();
+        private final AtomicBoolean terminating = new AtomicBoolean();
         private boolean outOpen;
         private boolean errOpen;
 
@@ -222,6 +256,8 @@ public class ProcessManager extends Component {
             running = true;
             process.onExit().thenAccept(p -> {
                 running = false;
+                logger.fine(() -> "Process pid=" + p.toHandle().pid()
+                    + " has exited with: " + p.exitValue());
                 downPipeline()
                     .fire(new ProcessExited(startEvent, p.exitValue()), this);
                 maybeUnregister();
@@ -267,14 +303,30 @@ public class ProcessManager extends Component {
         }
 
         /**
-         * Close the stream to the process (its stdin).
+         * Close the stream to the process (its stdin) and optionally
+         * terminates the process.
          *
          * @param event the event
          * @throws IOException Signals that an I/O exception has occurred.
          */
-        @SuppressWarnings("PMD.UnusedFormalParameter")
-        private void close(Close event) throws IOException {
-            process.getOutputStream().close();
+        private void close(Close event) {
+            doClose(event.associated(Process.class, Object.class).isPresent());
+        }
+
+        private void doClose(boolean terminate) {
+            if (!closing.getAndSet(true)) {
+                try {
+                    process.getOutputStream().close();
+                } catch (IOException e) {
+                    // Just trying to be nice
+                    logger.log(Level.FINE, e,
+                        () -> "Failed to close pipe to process (ignored): "
+                            + e.getMessage());
+                }
+            }
+            if (terminate && !terminating.getAndSet(true)) {
+                process.toHandle().destroy();
+            }
         }
 
         /**
