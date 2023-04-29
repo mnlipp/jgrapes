@@ -55,6 +55,16 @@ public class StartProcess extends Event<Void> {
     }
 
     /**
+     * Returns the command.
+     * 
+     * @return the command
+     */
+    @SuppressWarnings("PMD.MethodReturnsInternalArray")
+    public String[] command() {
+        return command;
+    }
+
+    /**
      * Sets the working directory for the process.
      *
      * @param directory the directory
@@ -112,15 +122,5 @@ public class StartProcess extends Event<Void> {
         }
         environment.put(key, value);
         return this;
-    }
-
-    /**
-     * Returns the command.
-     * 
-     * @return the command
-     */
-    @SuppressWarnings("PMD.MethodReturnsInternalArray")
-    public String[] command() {
-        return command;
     }
 }
