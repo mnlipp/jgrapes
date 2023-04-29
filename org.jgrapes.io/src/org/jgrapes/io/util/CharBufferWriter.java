@@ -21,6 +21,8 @@ package org.jgrapes.io.util;
 import java.io.IOException;
 import java.io.Writer;
 import java.nio.CharBuffer;
+import java.util.Map;
+import org.jgrapes.core.Event;
 import org.jgrapes.core.EventPipeline;
 import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.io.events.Close;
@@ -42,6 +44,7 @@ public class CharBufferWriter extends Writer {
     private boolean sendEor = true;
     private boolean eorSent;
     private boolean isClosed;
+    private Map<Object, Object> eventAssociations;
 
     /**
      * Creates a new instance that uses {@link Output} events to dispatch
@@ -61,8 +64,7 @@ public class CharBufferWriter extends Writer {
      * Creates a new instance that uses {@link Output} events to dispatch
      * buffers on the given channel, using the channel's response pipeline.
      * 
-     * @param channel
-     *            the channel to fire events on
+     * @param channel the channel to fire events on
      */
     public CharBufferWriter(IOSubchannel channel) {
         this(channel, channel.responsePipeline());
@@ -98,6 +100,19 @@ public class CharBufferWriter extends Writer {
      */
     public CharBufferWriter suppressEndOfRecord() {
         sendEor = false;
+        return this;
+    }
+
+    /**
+     * Configure associations that are applied to the generated
+     * Output events, see {@link Event#setAssociated}.
+     * 
+     * @param associations the associations to apply
+     * @return the pipeline for easy chaining
+     */
+    public CharBufferWriter
+            setEventAssociations(Map<Object, Object> associations) {
+        eventAssociations = associations;
         return this;
     }
 
@@ -155,11 +170,11 @@ public class CharBufferWriter extends Writer {
             buffer.unlockBuffer();
         } else {
             if (sendInputEvents) {
-                eventPipeline.fire(Input.fromSink(buffer, endOfRecord),
-                    channel);
+                eventPipeline.fire(
+                    associate(Input.fromSink(buffer, endOfRecord)), channel);
             } else {
-                eventPipeline.fire(Output.fromSink(buffer, endOfRecord),
-                    channel);
+                eventPipeline.fire(
+                    associate(Output.fromSink(buffer, endOfRecord)), channel);
             }
             eorSent = endOfRecord;
         }
@@ -194,8 +209,17 @@ public class CharBufferWriter extends Writer {
         }
         flush(sendEor);
         if (sendClose) {
-            eventPipeline.fire(new Close(), channel);
+            eventPipeline.fire(associate(new Close()), channel);
         }
         isClosed = true;
+    }
+
+    private Event<?> associate(Event<?> event) {
+        if (eventAssociations != null) {
+            for (var entry : eventAssociations.entrySet()) {
+                event.setAssociated(entry.getKey(), entry.getValue());
+            }
+        }
+        return event;
     }
 }
