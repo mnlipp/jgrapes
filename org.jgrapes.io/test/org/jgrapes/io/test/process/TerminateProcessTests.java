@@ -104,7 +104,8 @@ public class TerminateProcessTests {
         app.attach(consumer);
         app.attach(new OnStartedCloser(app));
         Components.start(app);
-        app.fire(new StartProcess("test-resources/destroy.sh")).get();
+        app.fire(new StartProcess("/bin/sh", "test-resources/destroy.sh"))
+            .get();
         Components.awaitExhaustion();
         Components.checkAssertions();
         assertEquals(0, consumer.exitValue);
