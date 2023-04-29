@@ -20,7 +20,7 @@ import org.jgrapes.io.util.ByteBufferOutputStream;
 import static org.junit.Assert.*;
 import org.junit.Test;
 
-public class BasicProcessTests {
+public class ProcessIoTests {
 
     public static class Producer extends Component {
 
