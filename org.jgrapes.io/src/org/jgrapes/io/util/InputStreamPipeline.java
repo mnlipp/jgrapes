@@ -34,8 +34,8 @@ import org.jgrapes.io.events.Input;
 import org.jgrapes.io.events.Output;
 
 /**
- * Forwards the content of an input stream as a sequence of {@link Output}
- * events.
+ * Forwards the content of an input stream as a sequence of 
+ * {@link Output} (or optionally {@link Input}) events.
  */
 @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 public class InputStreamPipeline implements Runnable {
