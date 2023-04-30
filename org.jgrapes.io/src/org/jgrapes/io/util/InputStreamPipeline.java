@@ -1,6 +1,6 @@
 /*
  * JGrapes Event Driven Framework
- * Copyright (C) 2016, 2018  Michael N. Lipp
+ * Copyright (C) 2016, 2023  Michael N. Lipp
  *
  * This program is free software; you can redistribute it and/or modify it 
  * under the terms of the GNU Affero General Public License as published by 
@@ -18,11 +18,12 @@
 
 package org.jgrapes.io.util;
 
+import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
+import java.nio.channels.SeekableByteChannel;
 import java.util.Map;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.EventPipeline;
@@ -36,6 +37,14 @@ import org.jgrapes.io.events.Output;
 /**
  * Forwards the content of an input stream as a sequence of 
  * {@link Output} (or optionally {@link Input}) events.
+ * 
+ * The default settings and the constructor 
+ * {@link #InputStreamPipeline(InputStream, IOSubchannel)} reflect
+ * the usage of this class for generating a response (e.g. provide
+ * the content of a file in response to a request from a client).
+ * Using the class with a "downstream" event pipeline, generating
+ * {@link Input} events is used when an input stream generates events
+ * that should be processed as requests by the application.
  */
 @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 public class InputStreamPipeline implements Runnable {
@@ -112,38 +121,11 @@ public class InputStreamPipeline implements Runnable {
 
     @Override
     public void run() {
-        try (ReadableByteChannel inChannel = Channels.newChannel(inStream)) {
-            ManagedBuffer<ByteBuffer> lookAhead = ManagedBuffer.wrap(
-                ByteBuffer.allocate(channel.byteBufferPool().bufferSize()));
-            // First attempt
-            if (lookAhead.fillFromChannel(inChannel) == -1) {
-                ManagedBuffer<ByteBuffer> buffer
-                    = channel.byteBufferPool().acquire();
-                eventPipeline.fire(associate(ioEvent(buffer, true)), channel);
+        try {
+            if (inStream instanceof FileInputStream fip) {
+                seekableTransfer(fip.getChannel());
             } else {
-                while (true) {
-                    // Save data read so far
-                    ManagedBuffer<ByteBuffer> buffer
-                        = channel.byteBufferPool().acquire();
-                    buffer.linkBackingBuffer(lookAhead);
-                    // Get new look ahead
-                    lookAhead = ManagedBuffer.wrap(ByteBuffer.allocate(
-                        channel.byteBufferPool().bufferSize()));
-                    // Next read attempt
-                    boolean eof;
-                    try {
-                        eof = lookAhead.fillFromChannel(inChannel) == -1;
-                    } catch (IOException e) {
-                        buffer.unlockBuffer();
-                        throw e;
-                    }
-                    // Fire "old" data with up-to-date end of record flag.
-                    eventPipeline.fire(associate(ioEvent(buffer, eof)),
-                        channel);
-                    if (eof) {
-                        break;
-                    }
-                }
+                defaultTransfer();
             }
             if (sendClosed) {
                 eventPipeline.fire(associate(new Closed<Void>()), channel);
@@ -152,6 +134,82 @@ public class InputStreamPipeline implements Runnable {
             // Just stop
         } catch (IOException e) {
             eventPipeline.fire(associate(new IOError(null, e)), channel);
+        }
+    }
+
+    private void defaultTransfer() throws InterruptedException, IOException {
+        // If available() returns remaining, we can optimize.
+        // Regrettably, there is no marker interface for this, but
+        // the assumption should be true for ByteArrayInputStream.
+        boolean availableIsRemaining = inStream instanceof ByteArrayInputStream;
+        while (true) {
+            ManagedBuffer<ByteBuffer> buffer = null;
+            try {
+                buffer = channel.byteBufferPool().acquire();
+                var backing = buffer.backing;
+                int recvd = inStream.read(backing.array(),
+                    backing.position(), backing.remaining());
+                if (recvd > 0) {
+                    boolean eof
+                        = availableIsRemaining && inStream.available() == 0;
+                    backing.position(backing.position() + recvd);
+                    eventPipeline.fire(associate(ioEvent(buffer, eof)),
+                        channel);
+                    if (eof) {
+                        break;
+                    }
+                    continue;
+                }
+                if (recvd == -1) {
+                    eventPipeline.fire(associate(ioEvent(buffer, true)),
+                        channel);
+                    break;
+                }
+                // Reading 0 bytes shouldn't happen.
+                buffer.unlockBuffer();
+            } catch (IOException e) {
+                buffer.unlockBuffer();
+                throw e;
+            }
+        }
+    }
+
+    /**
+     * A seekable channel allows us to avoid generating an event with
+     * no data and eof set, because we can check after reading if there
+     * is remaining data.
+     *
+     * @param input the input
+     * @throws InterruptedException the interrupted exception
+     * @throws IOException Signals that an I/O exception has occurred.
+     */
+    private void seekableTransfer(SeekableByteChannel input)
+            throws InterruptedException, IOException {
+        while (true) {
+            ManagedBuffer<ByteBuffer> buffer = null;
+            try {
+                buffer = channel.byteBufferPool().acquire();
+                int recvd = input.read(buffer.backing);
+                if (recvd > 0) {
+                    boolean eof = input.position() == input.size();
+                    eventPipeline.fire(associate(ioEvent(buffer, eof)),
+                        channel);
+                    if (eof) {
+                        break;
+                    }
+                    continue;
+                }
+                if (recvd == -1) {
+                    eventPipeline.fire(associate(ioEvent(buffer, true)),
+                        channel);
+                    break;
+                }
+                // Reading 0 bytes shouldn't happen.
+                buffer.unlockBuffer();
+            } catch (IOException e) {
+                buffer.unlockBuffer();
+                throw e;
+            }
         }
     }
 

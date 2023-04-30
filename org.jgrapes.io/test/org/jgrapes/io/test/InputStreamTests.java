@@ -1,9 +1,12 @@
 package org.jgrapes.io.test;
 
 import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
+import java.nio.file.Files;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
@@ -161,4 +164,28 @@ public class InputStreamTests {
         assertEquals(1, tracker.closed);
     }
 
+    @Test
+    public void testFileEorAndClose()
+            throws InterruptedException, IOException {
+        Tracker tracker = new Tracker();
+        Components.start(tracker);
+        IOSubchannel channel = IOSubchannel.create(
+            tracker, tracker.newEventPipeline());
+        var path = Files.createTempFile("test", null);
+        try (var out = Files.newOutputStream(path)) {
+            out.write("Test".getBytes());
+        }
+        try (InputStream in = new FileInputStream(path.toFile())) {
+            InputStreamPipeline isp = new InputStreamPipeline(in, channel);
+            isp.run();
+        } finally {
+            Files.delete(path);
+        }
+        Components.awaitExhaustion();
+        Components.checkAssertions();
+        assertEquals(1, tracker.outputs);
+        assertTrue(tracker.collected > 0);
+        assertEquals(1, tracker.eors);
+        assertEquals(1, tracker.closed);
+    }
 }
