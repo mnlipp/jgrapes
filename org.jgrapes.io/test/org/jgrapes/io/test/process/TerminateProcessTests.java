@@ -20,31 +20,6 @@ import org.junit.Test;
 
 public class TerminateProcessTests {
 
-    public static class OnStartedCloser extends Component {
-
-        public OnStartedCloser(Channel componentChannel) {
-            super(componentChannel);
-        }
-
-        @Handler
-        public void onInput(Input<ByteBuffer> event, Channel channel)
-                throws UnsupportedEncodingException {
-            if (event.associated(FileDescriptor.class, Integer.class)
-                .orElse(-1) != 1) {
-                return;
-            }
-            int length = event.data().limit();
-            byte[] bytes = new byte[length];
-            event.buffer().backingBuffer().mark();
-            event.buffer().backingBuffer().get(bytes);
-            event.buffer().backingBuffer().reset();
-            if ("Started".equals(new String(bytes))) {
-                fire(new Close().setAssociated(Process.class, true), channel);
-            }
-
-        }
-    }
-
     public static class Consumer extends Component {
 
         public StringBuilder collectedOut = new StringBuilder();
@@ -97,6 +72,31 @@ public class TerminateProcessTests {
         }
     }
 
+    public static class OnStartedCloser extends Component {
+
+        public OnStartedCloser(Channel componentChannel) {
+            super(componentChannel);
+        }
+
+        @Handler
+        public void onInput(Input<ByteBuffer> event, Channel channel)
+                throws UnsupportedEncodingException {
+            if (event.associated(FileDescriptor.class, Integer.class)
+                .orElse(-1) != 1) {
+                return;
+            }
+            int length = event.data().limit();
+            byte[] bytes = new byte[length];
+            event.buffer().backingBuffer().mark();
+            event.buffer().backingBuffer().get(bytes);
+            event.buffer().backingBuffer().reset();
+            if (new String(bytes).startsWith("Started")) {
+                fire(new Close().setAssociated(Process.class, true), channel);
+            }
+
+        }
+    }
+
     @Test
     public void testClose() throws InterruptedException, IOException {
         var app = new ProcessManager();
@@ -114,15 +114,40 @@ public class TerminateProcessTests {
         assertTrue(consumer.stdErrClosed);
     }
 
+    public static class OnStartedStopper extends Component {
+
+        public OnStartedStopper(Channel componentChannel) {
+            super(componentChannel);
+        }
+
+        @Handler
+        public void onInput(Input<ByteBuffer> event, Channel channel)
+                throws UnsupportedEncodingException {
+            if (event.associated(FileDescriptor.class, Integer.class)
+                .orElse(-1) != 1) {
+                return;
+            }
+            int length = event.data().limit();
+            byte[] bytes = new byte[length];
+            event.buffer().backingBuffer().mark();
+            event.buffer().backingBuffer().get(bytes);
+            event.buffer().backingBuffer().reset();
+            if (new String(bytes).startsWith("Started")) {
+                fire(new Stop(), channel);
+            }
+
+        }
+    }
+
     @Test
     public void testStop() throws InterruptedException, IOException {
         var app = new ProcessManager();
         var consumer = new Consumer(app);
         app.attach(consumer);
+        app.attach(new OnStartedStopper(app));
         Components.start(app);
         app.fire(new StartProcess("/bin/sh", "test-resources/destroy.sh"))
             .get();
-        app.fire(new Stop());
         Components.awaitExhaustion();
         Components.checkAssertions();
         assertEquals(0, consumer.exitValue);

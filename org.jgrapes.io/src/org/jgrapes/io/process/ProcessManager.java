@@ -49,6 +49,8 @@ import org.jgrapes.io.events.ProcessStarted;
 import org.jgrapes.io.events.StartProcess;
 import org.jgrapes.io.events.StartProcessError;
 import org.jgrapes.io.util.InputStreamPipeline;
+import org.jgrapes.io.util.ManagedBuffer;
+import org.jgrapes.io.util.ManagedBufferPool;
 
 /**
  * Provides a component that executes processes. A process is started
@@ -194,13 +196,12 @@ public class ProcessManager extends Component {
      */
     @Handler
     public void onStop(Stop event) {
-        while (true) {
-            synchronized (channels) {
-                if (channels.isEmpty()) {
-                    break;
-                }
-                channels.iterator().next().doClose(true);
-            }
+        Set<ProcessChannel> copy;
+        synchronized (channels) {
+            copy = new HashSet<>(channels);
+        }
+        for (var channel : copy) {
+            channel.doClose(true);
         }
     }
 
@@ -247,12 +248,22 @@ public class ProcessManager extends Component {
             super(channel(), newEventPipeline());
             this.startEvent = startEvent;
             this.process = process;
+
+            // Register
             synchronized (ProcessManager.this) {
                 if (channels.isEmpty()) {
                     registerAsGenerator();
                 }
                 channels.add(this);
             }
+
+            // Using the channel for two streams requires more buffers.
+            setByteBufferPool(new ManagedBufferPool<>(ManagedBuffer::new,
+                () -> {
+                    return ByteBuffer.allocate(4096);
+                }, 4).setName(Components.objectName(this)
+                    + ".upstream.byteBuffers"));
+
             running = true;
             process.onExit().thenAccept(p -> {
                 running = false;
