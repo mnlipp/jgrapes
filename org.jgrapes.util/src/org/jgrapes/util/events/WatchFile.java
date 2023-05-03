@@ -20,6 +20,7 @@ package org.jgrapes.util.events;
 
 import java.nio.file.Path;
 import org.jgrapes.core.Event;
+import org.jgrapes.util.FileSystemWatcher;
 
 /**
  * Registers a path to be watched with a {@link FileSystemWatcher}.
@@ -32,7 +33,6 @@ public class WatchFile extends Event<Void> {
      * Creates a new instance.
      *
      * @param path the file's path
-     * @param kinds the watch kinds
      */
     public WatchFile(Path path) {
         this.path = path;

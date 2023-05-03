@@ -40,7 +40,7 @@ public class FileChanged extends Event<Void> {
      * Instantiates a new event.
      *
      * @param path the path
-     * @param changes the changes
+     * @param change the change
      */
     public FileChanged(Path path, Kind change) {
         this.path = path;
