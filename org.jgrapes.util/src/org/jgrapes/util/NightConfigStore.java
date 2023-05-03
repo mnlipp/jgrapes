@@ -27,11 +27,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.StringTokenizer;
+import java.util.logging.Logger;
 import java.util.prefs.BackingStoreException;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Start;
 import org.jgrapes.util.events.ConfigurationUpdate;
+import org.jgrapes.util.events.FileChanged;
 import org.jgrapes.util.events.InitialConfiguration;
 
 /**
@@ -42,39 +44,100 @@ import org.jgrapes.util.events.InitialConfiguration;
     "PMD.GodClass" })
 public abstract class NightConfigStore extends ConfigurationStore {
 
+    @SuppressWarnings("PMD.FieldNamingConventions")
+    protected static final Logger logger
+        = Logger.getLogger(NightConfigStore.class.getName());
+
     protected FileConfig config;
 
     /**
      * Creates a new component with its channel set to the given 
-     * channel and the given file.
+     * channel and the given file. The component handles
+     * {@link ConfigurationUpdate} events and {@link FileChanged}
+     * events for the configuration file (see
+     * @link #NightConfigStore(Channel, File, boolean, boolean)}
      * 
      * @param componentChannel the channel 
-     * @param file the file used to store the TOML
+     * @param file the file used to store the configuration
      * @throws IOException
      */
+    @Deprecated
     public NightConfigStore(Channel componentChannel, File file)
             throws IOException {
-        this(componentChannel, file, true);
+        this(componentChannel, file, true, true);
+    }
+
+    /**
+     * Creates a new component with its channel set to the given 
+     * channel and the given file. The component handles
+     * {@link FileChanged} events for the configuration file (see
+     * @link #NightConfigStore(Channel, File, boolean, boolean)}
+     * 
+     * If `update` is `true`, the configuration file is updated
+     * when {@link ConfigurationUpdate} events are received.  
+     *
+     * @param componentChannel the channel
+     * @param file the file used to store the configuration
+     * @param update if the configuration file is to be updated
+     * @throws IOException Signals that an I/O exception has occurred.
+     */
+    @Deprecated
+    @SuppressWarnings("PMD.ShortVariable")
+    public NightConfigStore(Channel componentChannel, File file,
+            boolean update) throws IOException {
+        this(componentChannel, file, update, true);
     }
 
     /**
      * Creates a new component with its channel set to the given 
      * channel and the given file.
      * 
-     * @param componentChannel the channel 
-     * @param file the file used to store the TOML
-     * @throws IOException
+     * If `update` is `true`, the configuration file is updated
+     * when {@link ConfigurationUpdate} events are received.  
+     * 
+     * If `watch` is `true`, {@link FileChanged} events are processed
+     * and the configuration file is reloaded when it changes. Note
+     * that the generation of the {@link FileChanged} events must
+     * be configured independently (see {@link FileSystemWatcher}).
+     *
+     * @param componentChannel the channel
+     * @param file the file used to store the configuration
+     * @param update if the configuration file is to be updated
+     * @param watch if {@link FileChanged} events are to be processed
+     * @throws IOException Signals that an I/O exception has occurred.
      */
     @SuppressWarnings("PMD.ShortVariable")
     public NightConfigStore(Channel componentChannel, File file,
-            boolean update) throws IOException {
+            boolean update, boolean watch) throws IOException {
         super(componentChannel);
         if (update) {
             Handler.Evaluator.add(this, "onConfigurationUpdate",
                 channel().defaultCriterion());
         }
+        if (watch) {
+            Handler.Evaluator.add(this, "onFileChanged",
+                channel().defaultCriterion());
+        }
         if (!file.exists()) {
             file.createNewFile();
+        }
+    }
+
+    /**
+     * If watching the configuration file is enabled, fire
+     * a {@link ConfigurationUpdate} event with the complete
+     * configuration when the file changes.
+     *
+     * @param event the event
+     */
+    @Handler(dynamic = true)
+    public void onFileChanged(FileChanged event) {
+        if (config.getNioPath().equals(event.path())
+            && event.change() == FileChanged.Kind.MODIFIED) {
+            config.load();
+            ConfigurationUpdate updEvt = new ConfigurationUpdate();
+            addPrefs(updEvt, "/", config);
+            fire(updEvt);
         }
     }
 
