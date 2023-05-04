@@ -28,7 +28,6 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
@@ -77,10 +76,6 @@ import org.jgrapes.io.util.ManagedBufferPool;
  */
 @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 public class ProcessManager extends Component {
-
-    @SuppressWarnings("PMD.FieldNamingConventions")
-    private static final Logger logger
-        = Logger.getLogger(ProcessManager.class.getName());
 
     private ExecutorService executorService
         = Components.defaultExecutorService();
