@@ -18,6 +18,7 @@
 
 package org.jgrapes.core;
 
+import java.util.logging.Logger;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.annotation.HandlerDefinition.ChannelReplacements;
 import org.jgrapes.core.internal.ComponentVertex;
@@ -42,6 +43,8 @@ import org.jgrapes.core.internal.ComponentVertex;
 public abstract class Component extends ComponentVertex
         implements ComponentType, Channel {
 
+    @SuppressWarnings("PMD.FieldNamingConventions")
+    protected final Logger logger = Logger.getLogger(getClass().getName());
     private final Channel componentChannel;
 
     /**
