@@ -23,7 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import org.jgrapes.core.Event;
-import org.jgrapes.mail.MailComponent;
+import org.jgrapes.mail.MailConnectionManager;
 import org.jgrapes.util.Password;
 
 /**
@@ -43,7 +43,7 @@ public abstract class OpenMailConnection extends Event<Void> {
 
     /**
      * Specifies mail properties that override defaults set for
-     * the handling {@link MailComponent}. Merges the given
+     * the handling {@link MailConnectionManager}. Merges the given
      * properties with properties already set for the event.
      *
      * @param props the props

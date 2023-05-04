@@ -92,8 +92,8 @@ import org.jgrapes.util.Password;
  */
 @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",
     "PMD.DataflowAnomalyAnalysis", "PMD.ExcessiveImports" })
-public class MailStoreMonitor extends MailConnectionManager<OpenMailMonitor,
-        MailStoreMonitor.MonitorChannel> {
+public class MailStoreMonitor extends MailConnectionManager<
+        MailStoreMonitor.MonitorChannel, OpenMailMonitor> {
 
     @SuppressWarnings("PMD.FieldNamingConventions")
     private static final Logger logger
@@ -113,7 +113,7 @@ public class MailStoreMonitor extends MailConnectionManager<OpenMailMonitor,
     }
 
     @Override
-    protected boolean channelsGenerate() {
+    protected boolean connectionsGenerate() {
         return true;
     }
 
@@ -205,7 +205,7 @@ public class MailStoreMonitor extends MailConnectionManager<OpenMailMonitor,
      */
     @Handler
     public void onUpdateFolders(UpdateMailFolders event, MailChannel channel) {
-        if (!channels.contains(channel)) {
+        if (!connections.contains(channel)) {
             return;
         }
         // This can take very long.
@@ -267,9 +267,9 @@ public class MailStoreMonitor extends MailConnectionManager<OpenMailMonitor,
     /**
      * The specific implementation of the {@link MailChannel}.
      */
-    protected class MonitorChannel
-            extends MailConnectionManager<OpenMailMonitor,
-                    MailStoreMonitor.MonitorChannel>.AbstractMailChannel
+    protected class MonitorChannel extends
+            MailConnectionManager<MailStoreMonitor.MonitorChannel,
+                    OpenMailMonitor>.AbstractMailChannel
             implements ConnectionListener {
 
         private final EventPipeline requestPipeline;

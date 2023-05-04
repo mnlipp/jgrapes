@@ -53,8 +53,8 @@ import org.jgrapes.util.Password;
  * {@link OpenMailSender}.
  */
 @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
-public class MailSender extends MailConnectionManager<Event<?>,
-        MailSender.SenderChannel> {
+public class MailSender
+        extends MailConnectionManager<MailSender.SenderChannel, Event<?>> {
 
     @SuppressWarnings("PMD.FieldNamingConventions")
     private static final Logger logger
@@ -79,7 +79,7 @@ public class MailSender extends MailConnectionManager<Event<?>,
     }
 
     @Override
-    protected boolean channelsGenerate() {
+    protected boolean connectionsGenerate() {
         return false;
     }
 
@@ -173,8 +173,8 @@ public class MailSender extends MailConnectionManager<Event<?>,
     /**
      * The specific implementation of the {@link MailChannel}.
      */
-    protected class SenderChannel extends MailConnectionManager<Event<?>,
-            MailSender.SenderChannel>.AbstractMailChannel {
+    protected class SenderChannel extends MailConnectionManager<
+            MailSender.SenderChannel, Event<?>>.AbstractMailChannel {
 
         private final Session session;
         private final Transport transport;

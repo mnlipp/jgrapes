@@ -1,6 +1,6 @@
 /*
  * JGrapes Event Driven Framework
- * Copyright (C) 2022 Michael N. Lipp
+ * Copyright (C) 2022, 2023 Michael N. Lipp
  * 
  * This program is free software; you can redistribute it and/or modify it 
  * under the terms of the GNU Affero General Public License as published by 
@@ -9,26 +9,25 @@
  * 
  * This program is distributed in the hope that it will be useful, but 
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License 
- * for more details.
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public 
+ * License for more details.
  * 
- * You should have received a copy of the GNU Affero General Public License along 
- * with this program; if not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License 
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 package org.jgrapes.mail;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.ExecutorService;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Properties;
 import org.jgrapes.core.Channel;
-import org.jgrapes.core.Components;
 import org.jgrapes.core.Event;
-import org.jgrapes.core.EventPipeline;
-import org.jgrapes.core.Manager;
-import org.jgrapes.core.Subchannel.DefaultSubchannel;
 import org.jgrapes.core.annotation.Handler;
-import org.jgrapes.core.events.Stop;
+import org.jgrapes.io.util.ConnectionManager;
+import org.jgrapes.util.Password;
+import org.jgrapes.util.events.ConfigurationUpdate;
 
 /**
  * Provides a base class for mail components using connections.
@@ -36,12 +35,12 @@ import org.jgrapes.core.events.Stop;
  * @param <O> the type of the open event
  * @param <C> the type of the channel
  */
-public abstract class MailConnectionManager<O extends Event<?>,
-        C extends MailConnectionManager<O, C>.AbstractMailChannel>
-        extends MailComponent {
+public abstract class MailConnectionManager<
+        C extends MailConnectionManager<C, O>.AbstractMailChannel,
+        O extends Event<?>> extends ConnectionManager<C> {
 
-    protected final Set<AbstractMailChannel> channels = new HashSet<>();
-    private ExecutorService executorService;
+    protected final Properties mailProps = new Properties();
+    private Password password;
 
     /**
      * Creates a new server using the given channel.
@@ -53,70 +52,82 @@ public abstract class MailConnectionManager<O extends Event<?>,
     }
 
     /**
-     * Sets an executor service to be used by the event pipelines
-     * that process the data from the network. Setting this
-     * to an executor service with a limited number of threads
-     * allows to control the maximum load from the network.
-     * 
-     * @param executorService the executorService to set
-     * @return the TCP connection manager for easy chaining
-     * @see Manager#newEventPipeline(ExecutorService)
+     * Sets the mail properties. See 
+     * [the Jakarta Mail](https://jakarta.ee/specifications/mail/2.0/apidocs/jakarta.mail/jakarta/mail/package-summary.html)
+     * documentation for available settings. The given properties are
+     * merged with the already existing properties.
+     *
+     * @param props the props
+     * @return the mail monitor
      */
-    public MailConnectionManager<O, C>
-            setExecutorService(ExecutorService executorService) {
-        this.executorService = executorService;
+    public MailConnectionManager<C, O>
+            setMailProperties(Map<String, String> props) {
+        mailProps.putAll(props);
         return this;
     }
 
     /**
-     * Returns the executor service.
+     * Sets the password.
      *
-     * @return the executorService
+     * @param password the new password
      */
-    public ExecutorService executorService() {
-        if (executorService == null) {
-            return Components.defaultExecutorService();
-        }
-        return executorService;
+    public MailConnectionManager<C, O> setPassword(Password password) {
+        this.password = password;
+        return this;
     }
 
     /**
-     * If channels are event generators, register the component as
-     * generator upon the creation of the first channel and unregister
-     * it when closing the last one.  
+     * Return the password.
      *
-     * @return true, if channels generate
+     * @return the optional password
      */
-    protected abstract boolean channelsGenerate();
+    protected Optional<Password> password() {
+        return Optional.ofNullable(password);
+    }
 
     /**
-     * Close all channels.
-     * 
+     * Configure the component. Attempts to access all paths specified
+     * in the package description in sequence as described in 
+     * {@link org.jgrapes.mail}. For each path, merges the
+     * `mail` properties and invokes {@link #configureComponent}
+     * with the available key/value pairs.  
+     *  
      * @param event the event
-     * @throws InterruptedException if the execution is interrupted
      */
     @Handler
-    public void onStop(Stop event) throws InterruptedException {
-        while (true) {
-            AbstractMailChannel channel;
-            synchronized (channels) {
-                var itr = channels.iterator();
-                if (!itr.hasNext()) {
-                    return;
+    @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
+    public void onConfigUpdate(ConfigurationUpdate event) {
+        for (var path : List.of("/org.jgrapes.mail/Component",
+            "/org.jgrapes.mail/" + getClass().getSimpleName(),
+            "/org_jgrapes_mail/Component",
+            "/org_jgrapes_mail/" + getClass().getSimpleName(),
+            componentPath())) {
+            event.values(path + "/mail").ifPresent(c -> {
+                for (var e : c.entrySet()) {
+                    mailProps.put("mail." + e.getKey(), e.getValue());
                 }
-                channel = itr.next();
-            }
-            channel.close();
+            });
+            event.values(path).ifPresent(v -> {
+                Optional.ofNullable(v.get("password"))
+                    .ifPresent(p -> setPassword(new Password(p.toCharArray())));
+                configureComponent(v);
+            });
         }
     }
+
+    /**
+     * Configure the component specific values.
+     *
+     * @param values the values
+     */
+    protected abstract void configureComponent(Map<String, String> values);
 
     /**
      * A sub-channel for mail connections.
      */
     protected abstract class AbstractMailChannel
-            extends DefaultSubchannel implements MailChannel {
+            extends ConnectionManager<C>.Connection implements MailChannel {
 
-        private final EventPipeline downPipeline;
         private final O openEvent;
 
         /**
@@ -126,30 +137,7 @@ public abstract class MailConnectionManager<O extends Event<?>,
          */
         public AbstractMailChannel(O event, Channel channel) {
             super(channel);
-            synchronized (this) {
-                if (channels.isEmpty() && channelsGenerate()) {
-                    registerAsGenerator();
-                }
-                channels.add(this);
-            }
             openEvent = event;
-            if (executorService == null) {
-                downPipeline = newEventPipeline();
-            } else {
-                downPipeline = newEventPipeline(executorService);
-            }
-        }
-
-        /**
-         * Close the channel.
-         */
-        public void close() {
-            synchronized (this) {
-                channels.remove(this);
-                if (channels.isEmpty() && channelsGenerate()) {
-                    unregisterAsGenerator();
-                }
-            }
         }
 
         /**
@@ -159,15 +147,6 @@ public abstract class MailConnectionManager<O extends Event<?>,
          */
         public O openEvent() {
             return openEvent;
-        }
-
-        /**
-         * Gets the down pipeline.
-         *
-         * @return the downPipeline
-         */
-        public EventPipeline downPipeline() {
-            return downPipeline;
         }
 
     }
