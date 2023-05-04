@@ -90,7 +90,7 @@ public abstract class MailConnectionManager<O extends Event<?>,
     protected abstract boolean channelsGenerate();
 
     /**
-     * Stops the thread that is associated with this dispatcher.
+     * Close all channels.
      * 
      * @param event the event
      * @throws InterruptedException if the execution is interrupted
