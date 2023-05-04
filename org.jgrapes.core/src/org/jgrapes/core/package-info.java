@@ -145,12 +145,17 @@
  * when the event is passed to an event handler by 
  * {@link org.jgrapes.core.Event#channels()}. In some use cases, an
  * event handler has to perform an action for each of the channels. To
- * simplify this, an event handler may specify a second parameter
- * of type {@link org.jgrapes.core.Channel}. In this case, the handler
- * is invoked by the framework once for each channel that the event
- * was fired on. If the type of the second parameter is a subtype
- * of {@link org.jgrapes.core.Channel}, it is invoked only if the
- * parameter is assignable from the actual channel.
+ * simplify this, an event handler may specify a second parameter,
+ * usually of type {@link org.jgrapes.core.Channel}.
+ * 
+ * If the second parameter is specified, the handler is invoked for
+ * each channel that the event was fired on, provided that
+ * 
+ *  * the channel can be assigned to the second parameter 
+ *    (in this case the channel is simply used as second argument) or
+ *  * the channel is an {@link org.jgrapes.core.Associator}
+ *    and has an association with the type of the second parameter
+ *    (in this case the associated object is used as second argument).
  * 
  * 
  * Event Processors

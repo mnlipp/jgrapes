@@ -23,6 +23,7 @@ import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jgrapes.core.Associator;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.ComponentType;
 import org.jgrapes.core.Eligible;
@@ -108,7 +109,8 @@ class HandlerReference implements Comparable<HandlerReference> {
      * 
      * @param event the event
      */
-    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
+    @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",
+        "PMD.CognitiveComplexity" })
     public void invoke(EventBase<?> event) throws Throwable {
         // ADAPT VERBOSEHANDLERREFERENCE TO ANY CHANGES MADE HERE
         if (needsFiltering && !((InvocationFilter) filter).includes(event)) {
@@ -127,10 +129,17 @@ class HandlerReference implements Comparable<HandlerReference> {
 
         case 2:
             // Event and channel
-            Class<?> channelParam = method.type().parameterType(1);
+            Class<?> paramType = method.type().parameterType(1);
             for (Channel channel : event.channels()) {
-                if (channelParam.isAssignableFrom(channel.getClass())) {
+                if (paramType.isAssignableFrom(channel.getClass())) {
                     method.invoke(event, channel);
+                    continue;
+                }
+                if (channel instanceof Associator associator) {
+                    var associated = associator.associated(paramType);
+                    if (associated.isPresent()) {
+                        method.invoke(event, associated.get());
+                    }
                 }
             }
             break;
@@ -138,6 +147,7 @@ class HandlerReference implements Comparable<HandlerReference> {
         default:
             throw new IllegalStateException("Handle not usable");
         }
+
     }
 
     /**
