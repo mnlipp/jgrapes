@@ -30,7 +30,6 @@ import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.net.ssl.ExtendedSSLSession;
 import javax.net.ssl.SNIServerName;
 import javax.net.ssl.SSLContext;
@@ -76,10 +75,6 @@ import org.jgrapes.net.events.Connected;
  */
 @SuppressWarnings({ "PMD.ExcessiveImports" })
 public class SslCodec extends Component {
-
-    @SuppressWarnings("PMD.FieldNamingConventions")
-    private static final Logger logger
-        = Logger.getLogger(SslCodec.class.getName());
 
     private final Channel encryptedChannel;
     private final SSLContext sslContext;

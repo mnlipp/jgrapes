@@ -90,7 +90,7 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
         implements BufferCollector<W> {
 
     @SuppressWarnings("PMD.FieldNamingConventions")
-    protected static final Logger logger
+    protected final Logger logger
         = Logger.getLogger(ManagedBufferPool.class.getName());
 
     private static long defaultDrainDelay = 1500;
@@ -335,7 +335,7 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
     /**
      * Buffer properties.
      */
-    private static class BufferProperties {
+    private class BufferProperties {
 
         private final StackTraceElement[] createdBy;
 
