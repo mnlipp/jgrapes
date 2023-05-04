@@ -66,8 +66,8 @@
 <span class="source-line-no">053</span><span id="line-53"> * {@link OpenMailSender}.</span>
 <span class="source-line-no">054</span><span id="line-54"> */</span>
 <span class="source-line-no">055</span><span id="line-55">@SuppressWarnings("PMD.DataflowAnomalyAnalysis")</span>
-<span class="source-line-no">056</span><span id="line-56">public class MailSender extends MailConnectionManager&lt;Event&lt;?&gt;,</span>
-<span class="source-line-no">057</span><span id="line-57">        MailSender.SenderChannel&gt; {</span>
+<span class="source-line-no">056</span><span id="line-56">public class MailSender</span>
+<span class="source-line-no">057</span><span id="line-57">        extends MailConnectionManager&lt;MailSender.SenderChannel, Event&lt;?&gt;&gt; {</span>
 <span class="source-line-no">058</span><span id="line-58"></span>
 <span class="source-line-no">059</span><span id="line-59">    @SuppressWarnings("PMD.FieldNamingConventions")</span>
 <span class="source-line-no">060</span><span id="line-60">    private static final Logger logger</span>
@@ -92,7 +92,7 @@
 <span class="source-line-no">079</span><span id="line-79">    }</span>
 <span class="source-line-no">080</span><span id="line-80"></span>
 <span class="source-line-no">081</span><span id="line-81">    @Override</span>
-<span class="source-line-no">082</span><span id="line-82">    protected boolean channelsGenerate() {</span>
+<span class="source-line-no">082</span><span id="line-82">    protected boolean connectionsGenerate() {</span>
 <span class="source-line-no">083</span><span id="line-83">        return false;</span>
 <span class="source-line-no">084</span><span id="line-84">    }</span>
 <span class="source-line-no">085</span><span id="line-85"></span>
@@ -186,8 +186,8 @@
 <span class="source-line-no">173</span><span id="line-173">    /**</span>
 <span class="source-line-no">174</span><span id="line-174">     * The specific implementation of the {@link MailChannel}.</span>
 <span class="source-line-no">175</span><span id="line-175">     */</span>
-<span class="source-line-no">176</span><span id="line-176">    protected class SenderChannel extends MailConnectionManager&lt;Event&lt;?&gt;,</span>
-<span class="source-line-no">177</span><span id="line-177">            MailSender.SenderChannel&gt;.AbstractMailChannel {</span>
+<span class="source-line-no">176</span><span id="line-176">    protected class SenderChannel extends MailConnectionManager&lt;</span>
+<span class="source-line-no">177</span><span id="line-177">            MailSender.SenderChannel, Event&lt;?&gt;&gt;.AbstractMailChannel {</span>
 <span class="source-line-no">178</span><span id="line-178"></span>
 <span class="source-line-no">179</span><span id="line-179">        private final Session session;</span>
 <span class="source-line-no">180</span><span id="line-180">        private final Transport transport;</span>

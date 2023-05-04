@@ -105,8 +105,8 @@
 <span class="source-line-no">092</span><span id="line-92"> */</span>
 <span class="source-line-no">093</span><span id="line-93">@SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",</span>
 <span class="source-line-no">094</span><span id="line-94">    "PMD.DataflowAnomalyAnalysis", "PMD.ExcessiveImports" })</span>
-<span class="source-line-no">095</span><span id="line-95">public class MailStoreMonitor extends MailConnectionManager&lt;OpenMailMonitor,</span>
-<span class="source-line-no">096</span><span id="line-96">        MailStoreMonitor.MonitorChannel&gt; {</span>
+<span class="source-line-no">095</span><span id="line-95">public class MailStoreMonitor extends MailConnectionManager&lt;</span>
+<span class="source-line-no">096</span><span id="line-96">        MailStoreMonitor.MonitorChannel, OpenMailMonitor&gt; {</span>
 <span class="source-line-no">097</span><span id="line-97"></span>
 <span class="source-line-no">098</span><span id="line-98">    @SuppressWarnings("PMD.FieldNamingConventions")</span>
 <span class="source-line-no">099</span><span id="line-99">    private static final Logger logger</span>
@@ -126,7 +126,7 @@
 <span class="source-line-no">113</span><span id="line-113">    }</span>
 <span class="source-line-no">114</span><span id="line-114"></span>
 <span class="source-line-no">115</span><span id="line-115">    @Override</span>
-<span class="source-line-no">116</span><span id="line-116">    protected boolean channelsGenerate() {</span>
+<span class="source-line-no">116</span><span id="line-116">    protected boolean connectionsGenerate() {</span>
 <span class="source-line-no">117</span><span id="line-117">        return true;</span>
 <span class="source-line-no">118</span><span id="line-118">    }</span>
 <span class="source-line-no">119</span><span id="line-119"></span>
@@ -218,7 +218,7 @@
 <span class="source-line-no">205</span><span id="line-205">     */</span>
 <span class="source-line-no">206</span><span id="line-206">    @Handler</span>
 <span class="source-line-no">207</span><span id="line-207">    public void onUpdateFolders(UpdateMailFolders event, MailChannel channel) {</span>
-<span class="source-line-no">208</span><span id="line-208">        if (!channels.contains(channel)) {</span>
+<span class="source-line-no">208</span><span id="line-208">        if (!connections.contains(channel)) {</span>
 <span class="source-line-no">209</span><span id="line-209">            return;</span>
 <span class="source-line-no">210</span><span id="line-210">        }</span>
 <span class="source-line-no">211</span><span id="line-211">        // This can take very long.</span>
@@ -280,9 +280,9 @@
 <span class="source-line-no">267</span><span id="line-267">    /**</span>
 <span class="source-line-no">268</span><span id="line-268">     * The specific implementation of the {@link MailChannel}.</span>
 <span class="source-line-no">269</span><span id="line-269">     */</span>
-<span class="source-line-no">270</span><span id="line-270">    protected class MonitorChannel</span>
-<span class="source-line-no">271</span><span id="line-271">            extends MailConnectionManager&lt;OpenMailMonitor,</span>
-<span class="source-line-no">272</span><span id="line-272">                    MailStoreMonitor.MonitorChannel&gt;.AbstractMailChannel</span>
+<span class="source-line-no">270</span><span id="line-270">    protected class MonitorChannel extends</span>
+<span class="source-line-no">271</span><span id="line-271">            MailConnectionManager&lt;MailStoreMonitor.MonitorChannel,</span>
+<span class="source-line-no">272</span><span id="line-272">                    OpenMailMonitor&gt;.AbstractMailChannel</span>
 <span class="source-line-no">273</span><span id="line-273">            implements ConnectionListener {</span>
 <span class="source-line-no">274</span><span id="line-274"></span>
 <span class="source-line-no">275</span><span id="line-275">        private final EventPipeline requestPipeline;</span>

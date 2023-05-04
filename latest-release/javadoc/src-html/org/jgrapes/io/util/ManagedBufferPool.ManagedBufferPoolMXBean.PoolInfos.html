@@ -103,7 +103,7 @@
 <span class="source-line-no">090</span><span id="line-90">        implements BufferCollector&lt;W&gt; {</span>
 <span class="source-line-no">091</span><span id="line-91"></span>
 <span class="source-line-no">092</span><span id="line-92">    @SuppressWarnings("PMD.FieldNamingConventions")</span>
-<span class="source-line-no">093</span><span id="line-93">    protected static final Logger logger</span>
+<span class="source-line-no">093</span><span id="line-93">    protected final Logger logger</span>
 <span class="source-line-no">094</span><span id="line-94">        = Logger.getLogger(ManagedBufferPool.class.getName());</span>
 <span class="source-line-no">095</span><span id="line-95"></span>
 <span class="source-line-no">096</span><span id="line-96">    private static long defaultDrainDelay = 1500;</span>
@@ -348,7 +348,7 @@
 <span class="source-line-no">335</span><span id="line-335">    /**</span>
 <span class="source-line-no">336</span><span id="line-336">     * Buffer properties.</span>
 <span class="source-line-no">337</span><span id="line-337">     */</span>
-<span class="source-line-no">338</span><span id="line-338">    private static class BufferProperties {</span>
+<span class="source-line-no">338</span><span id="line-338">    private class BufferProperties {</span>
 <span class="source-line-no">339</span><span id="line-339"></span>
 <span class="source-line-no">340</span><span id="line-340">        private final StackTraceElement[] createdBy;</span>
 <span class="source-line-no">341</span><span id="line-341"></span>
