@@ -1,21 +1,21 @@
-[_org_jgrapes_mail._Component._mail]
-
-user = "xxxxxx"
-
-[_org_jgrapes_mail._SystemMailMonitor._mail]
+[_org_jgrapes_mail._MailMonitor._mail]
 
 host = "xxxxxx"
 store.protocol = "imap"
 imap.ssl.enable = true
 imap.port = 993
 
-[_org_jgrapes_mail._SystemMailSender._mail]
+[_org_jgrapes_mail._MailSender._mail]
 
 host = "xxxxxx"
 transport.protocol = "smtp"
 smtp.ssl.enable = true
 smtp.port = 465
 smtp.auth = true
+
+[_org_jgrapes_mail._Component._mail]
+
+user = "xxxxxx"
 
 [_org_jgrapes_mail._Component]
 

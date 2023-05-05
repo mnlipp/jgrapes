@@ -51,7 +51,7 @@
  *             },
  *             "password": "..."
  *         },
- *         "/SimpleMailMonitor": {
+ *         "/MailMonitor": {
  *             "/mail": {
  *                 "host": "...",
  *                 "store.protocol": "imap",
@@ -59,7 +59,7 @@
  *                 "imap.port": 993
  *             }
  *         },
- *         "/SimpleMailSender": {
+ *         "/MailSender": {
  *             "/mail": {
  *                 "host": "...",
  *                 "transport.protocol": "smtp",
