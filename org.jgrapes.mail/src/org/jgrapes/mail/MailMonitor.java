@@ -1,6 +1,6 @@
 /*
  * JGrapes Event Driven Framework
- * Copyright (C) 2022 Michael N. Lipp
+ * Copyright (C) 2022,2023 Michael N. Lipp
  * 
  * This program is free software; you can redistribute it and/or modify it 
  * under the terms of the GNU Affero General Public License as published by 
@@ -9,11 +9,11 @@
  * 
  * This program is distributed in the hope that it will be useful, but 
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License 
- * for more details.
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public 
+ * License for more details.
  * 
- * You should have received a copy of the GNU Affero General Public License along 
- * with this program; if not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License 
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 package org.jgrapes.mail;
@@ -92,12 +92,12 @@ import org.jgrapes.util.Password;
  */
 @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",
     "PMD.DataflowAnomalyAnalysis", "PMD.ExcessiveImports" })
-public class MailStoreMonitor extends MailConnectionManager<
-        MailStoreMonitor.MonitorChannel, OpenMailMonitor> {
+public class MailMonitor extends MailConnectionManager<
+        MailMonitor.MonitorChannel, OpenMailMonitor> {
 
     @SuppressWarnings("PMD.FieldNamingConventions")
     private static final Logger logger
-        = Logger.getLogger(MailStoreMonitor.class.getName());
+        = Logger.getLogger(MailMonitor.class.getName());
 
     private Duration maxIdleTime = Duration.ofMinutes(25);
     private static IdleManager idleManager;
@@ -108,7 +108,7 @@ public class MailStoreMonitor extends MailConnectionManager<
      * 
      * @param componentChannel the component's channel
      */
-    public MailStoreMonitor(Channel componentChannel) {
+    public MailMonitor(Channel componentChannel) {
         super(componentChannel);
     }
 
@@ -123,7 +123,7 @@ public class MailStoreMonitor extends MailConnectionManager<
      *
      * @param maxIdleTime the new max idle time
      */
-    public MailStoreMonitor setMaxIdleTime(Duration maxIdleTime) {
+    public MailMonitor setMaxIdleTime(Duration maxIdleTime) {
         this.maxIdleTime = maxIdleTime;
         return this;
     }
@@ -180,7 +180,7 @@ public class MailStoreMonitor extends MailConnectionManager<
             });
 
         try {
-            synchronized (MailStoreMonitor.class) {
+            synchronized (MailMonitor.class) {
                 // Cannot be created earlier, need session.
                 if (idleManager == null) {
                     idleManager = new IdleManager(session,
@@ -268,7 +268,7 @@ public class MailStoreMonitor extends MailConnectionManager<
      * The specific implementation of the {@link MailChannel}.
      */
     protected class MonitorChannel extends
-            MailConnectionManager<MailStoreMonitor.MonitorChannel,
+            MailConnectionManager<MailMonitor.MonitorChannel,
                     OpenMailMonitor>.AbstractMailChannel
             implements ConnectionListener {
 

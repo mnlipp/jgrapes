@@ -29,7 +29,7 @@ import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Stop;
 import org.jgrapes.io.events.Opened;
 import org.jgrapes.mail.MailChannel;
-import org.jgrapes.mail.MailStoreMonitor;
+import org.jgrapes.mail.MailMonitor;
 import org.jgrapes.mail.events.MailFoldersUpdated;
 import org.jgrapes.mail.events.OpenMailMonitor;
 import org.jgrapes.util.ConfigurationStore;
@@ -87,7 +87,7 @@ public class CleanUserMailsUntilStop extends Component {
         ConfigurationStore config = new TomlConfigurationStore(app,
             new File("user-wftest-config.toml"));
         app.attach(config);
-        app.attach(new MailStoreMonitor(app));
+        app.attach(new MailMonitor(app));
         app.attach(new WaitForStopMail(app));
         Components.start(app);
         Map<String, String> user1 = config.values("/user1").get();

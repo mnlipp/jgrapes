@@ -30,10 +30,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jgrapes.core.Event;
 import org.jgrapes.mail.MailChannel;
-import org.jgrapes.mail.MailStoreMonitor;
+import org.jgrapes.mail.MailMonitor;
 
 /**
- * Signals the retrieval of mails (update) by a {@link MailStoreMonitor}.
+ * Signals the retrieval of mails (update) by a {@link MailMonitor}.
  * Must be fired on a {@link MailChannel}.
  */
 @SuppressWarnings("PMD.DataflowAnomalyAnalysis")

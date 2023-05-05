@@ -23,7 +23,7 @@ import java.io.IOException;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
 import org.jgrapes.mail.MailSender;
-import org.jgrapes.mail.MailStoreMonitor;
+import org.jgrapes.mail.MailMonitor;
 import org.jgrapes.mail.events.OpenMailMonitor;
 import org.jgrapes.util.JsonConfigurationStore;
 
@@ -42,7 +42,7 @@ public class AutoResponder extends Component {
         var app = new AutoResponder();
         app.attach(new JsonConfigurationStore(app,
             new File("mail-examples-config.toml")));
-        app.attach(new MailStoreMonitor(app));
+        app.attach(new MailMonitor(app));
         app.attach(new MailSender(app));
         app.attach(new ReplyGenerator(app));
         Components.start(app);
