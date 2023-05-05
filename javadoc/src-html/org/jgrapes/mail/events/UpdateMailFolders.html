@@ -36,10 +36,10 @@
 <span class="source-line-no">023</span><span id="line-23">import java.util.List;</span>
 <span class="source-line-no">024</span><span id="line-24">import org.jgrapes.core.Event;</span>
 <span class="source-line-no">025</span><span id="line-25">import org.jgrapes.mail.MailChannel;</span>
-<span class="source-line-no">026</span><span id="line-26">import org.jgrapes.mail.MailStoreMonitor;</span>
+<span class="source-line-no">026</span><span id="line-26">import org.jgrapes.mail.MailMonitor;</span>
 <span class="source-line-no">027</span><span id="line-27"></span>
 <span class="source-line-no">028</span><span id="line-28">/**</span>
-<span class="source-line-no">029</span><span id="line-29"> * Triggers the retrieval of mails (update) by a {@link MailStoreMonitor}.</span>
+<span class="source-line-no">029</span><span id="line-29"> * Triggers the retrieval of mails (update) by a {@link MailMonitor}.</span>
 <span class="source-line-no">030</span><span id="line-30"> * Must be fired on a {@link MailChannel}.</span>
 <span class="source-line-no">031</span><span id="line-31"> */</span>
 <span class="source-line-no">032</span><span id="line-32">public class UpdateMailFolders extends Event&lt;List&lt;Folder&gt;&gt; {</span>
