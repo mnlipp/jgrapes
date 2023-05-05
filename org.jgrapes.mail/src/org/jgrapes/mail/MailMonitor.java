@@ -32,6 +32,8 @@ import jakarta.mail.event.ConnectionEvent;
 import jakarta.mail.event.ConnectionListener;
 import jakarta.mail.event.MessageCountAdapter;
 import jakarta.mail.event.MessageCountEvent;
+import jakarta.mail.event.StoreEvent;
+import jakarta.mail.event.StoreListener;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -265,7 +267,7 @@ public class MailMonitor extends MailConnectionManager<
     protected class MonitorChannel extends
             MailConnectionManager<MailMonitor.MonitorChannel,
                     OpenMailMonitor>.AbstractMailChannel
-            implements ConnectionListener {
+            implements ConnectionListener, StoreListener {
 
         private final EventPipeline requestPipeline;
         private ChannelState state = ChannelState.Opening;
@@ -295,6 +297,7 @@ public class MailMonitor extends MailConnectionManager<
             this.subscribed = event.folderNames();
             requestPipeline = event.processedBy().get();
             store.addConnectionListener(this);
+            store.addStoreListener(this);
             idleTimer = Components.schedule(t -> {
                 requestPipeline.fire(new UpdateMailFolders(), this);
             }, maxIdleTime);
@@ -467,6 +470,20 @@ public class MailMonitor extends MailConnectionManager<
             }
             downPipeline().fire(new Closed<Void>(), this);
             super.close();
+        }
+
+        @Override
+        public void notification(StoreEvent event) {
+            if (event.getMessage().contains("SocketException")) {
+                logger.fine(() -> "Problem with store: " + event.getMessage());
+                if (store.isConnected()) {
+                    logger.fine(() -> "Updating folders to resume");
+                    requestPipeline.fire(new UpdateMailFolders(), this);
+                    return;
+                }
+                logger.fine(() -> "Reconnecting to resume");
+                disconnected(null);
+            }
         }
 
         /**
