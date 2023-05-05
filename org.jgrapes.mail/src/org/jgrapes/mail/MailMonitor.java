@@ -45,7 +45,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.eclipse.angus.mail.imap.IMAPFolder;
 import org.eclipse.angus.mail.imap.IdleManager;
 import org.jgrapes.core.Channel;
@@ -94,10 +93,6 @@ import org.jgrapes.util.Password;
     "PMD.DataflowAnomalyAnalysis", "PMD.ExcessiveImports" })
 public class MailMonitor extends MailConnectionManager<
         MailMonitor.MonitorChannel, OpenMailMonitor> {
-
-    @SuppressWarnings("PMD.FieldNamingConventions")
-    private static final Logger logger
-        = Logger.getLogger(MailMonitor.class.getName());
 
     private Duration maxIdleTime = Duration.ofMinutes(25);
     private static IdleManager idleManager;

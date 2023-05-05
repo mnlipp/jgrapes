@@ -31,7 +31,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.Components.Timer;
@@ -56,9 +55,6 @@ import org.jgrapes.util.Password;
 public class MailSender
         extends MailConnectionManager<MailSender.SenderChannel, Event<?>> {
 
-    @SuppressWarnings("PMD.FieldNamingConventions")
-    private static final Logger logger
-        = Logger.getLogger(MailSender.class.getName());
     private Duration maxIdleTime = Duration.ofMinutes(1);
     private SenderChannel systemChannel;
 
