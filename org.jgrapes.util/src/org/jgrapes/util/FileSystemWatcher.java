@@ -89,7 +89,7 @@ public class FileSystemWatcher extends Component {
      */
     @Handler
     public void onWatchFile(WatchFile event) throws IOException {
-        final Path path = event.path().toAbsolutePath();
+        final Path path = event.path().toFile().getCanonicalFile().toPath();
         @SuppressWarnings("PMD.CloseResource")
         WatchServiceInfo serviceInfo = watchServices.get(path.getFileSystem());
         if (serviceInfo == null) {
