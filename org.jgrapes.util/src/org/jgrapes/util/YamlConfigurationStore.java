@@ -118,7 +118,8 @@ public class YamlConfigurationStore extends NightConfigStore {
     public YamlConfigurationStore(Channel componentChannel, File file,
             boolean update, boolean watch) throws IOException {
         super(componentChannel, file, update, watch);
-        config = FileConfig.builder(file).sync().concurrent().build();
+        config = FileConfig.builder(file.getCanonicalPath()).sync().concurrent()
+            .build();
         config.load();
     }
 

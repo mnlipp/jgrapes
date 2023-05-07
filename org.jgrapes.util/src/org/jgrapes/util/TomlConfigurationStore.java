@@ -114,7 +114,8 @@ public class TomlConfigurationStore extends NightConfigStore {
     public TomlConfigurationStore(Channel componentChannel, File file,
             boolean update, boolean watch) throws IOException {
         super(componentChannel, file, update, watch);
-        config = CommentedFileConfig.builder(file).sync().concurrent().build();
+        config = CommentedFileConfig.builder(file.getCanonicalPath()).sync()
+            .concurrent().build();
         config.load();
     }
 
