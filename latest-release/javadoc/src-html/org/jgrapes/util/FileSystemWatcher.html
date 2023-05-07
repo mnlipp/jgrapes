@@ -102,7 +102,7 @@
 <span class="source-line-no">089</span><span id="line-89">     */</span>
 <span class="source-line-no">090</span><span id="line-90">    @Handler</span>
 <span class="source-line-no">091</span><span id="line-91">    public void onWatchFile(WatchFile event) throws IOException {</span>
-<span class="source-line-no">092</span><span id="line-92">        final Path path = event.path().toAbsolutePath();</span>
+<span class="source-line-no">092</span><span id="line-92">        final Path path = event.path().toFile().getCanonicalFile().toPath();</span>
 <span class="source-line-no">093</span><span id="line-93">        @SuppressWarnings("PMD.CloseResource")</span>
 <span class="source-line-no">094</span><span id="line-94">        WatchServiceInfo serviceInfo = watchServices.get(path.getFileSystem());</span>
 <span class="source-line-no">095</span><span id="line-95">        if (serviceInfo == null) {</span>
