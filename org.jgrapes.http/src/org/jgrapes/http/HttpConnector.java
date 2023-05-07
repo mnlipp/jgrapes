@@ -403,7 +403,7 @@ public class HttpConnector extends Component {
                 }, 2, 100)
                     .setName(channelName + ".downstream.charBuffers");
 
-            sendMessageUpstream(request.httpRequest(), netConnChannel);
+            sendMsgUpstream(request.httpRequest(), netConnChannel);
 
             // Forward Connected event downstream to e.g. start preparation
             // of output events for payload data.
@@ -414,7 +414,7 @@ public class HttpConnector extends Component {
 
         @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",
             "PMD.CognitiveComplexity", "PMD.AvoidDuplicateLiterals" })
-        private void sendMessageUpstream(MessageHeader message,
+        private void sendMsgUpstream(MessageHeader message,
                 SocketIOChannel netConnChannel) {
             // Now send request as if it came from downstream (to
             // avoid confusion with output events that may be
@@ -545,7 +545,7 @@ public class HttpConnector extends Component {
                     bodyData == null ? null : bodyData.backingBuffer(),
                     event.isEndOfRecord());
                 if (result.response().isPresent()) {
-                    sendMessageUpstream(result.response().get(),
+                    sendMsgUpstream(result.response().get(),
                         netConnChannel);
                     if (result.isResponseOnly()) {
                         maybeReleaseConnection(result);
@@ -637,7 +637,7 @@ public class HttpConnector extends Component {
         @SuppressWarnings("PMD.CommentRequired")
         public void handleClose(Close event) {
             if (engine.switchedTo().equals(Optional.of("websocket"))) {
-                sendMessageUpstream(new WsCloseFrame(null, null),
+                sendMsgUpstream(new WsCloseFrame(null, null),
                     netConnChannel);
             }
         }
