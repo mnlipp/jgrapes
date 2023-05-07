@@ -98,152 +98,153 @@
 <span class="source-line-no">085</span><span id="line-85">     * Register a path for being watched.</span>
 <span class="source-line-no">086</span><span id="line-86">     *</span>
 <span class="source-line-no">087</span><span id="line-87">     * @param event the event</span>
-<span class="source-line-no">088</span><span id="line-88">     */</span>
-<span class="source-line-no">089</span><span id="line-89">    @Handler</span>
-<span class="source-line-no">090</span><span id="line-90">    public void onWatchFile(WatchFile event) {</span>
-<span class="source-line-no">091</span><span id="line-91">        final Path path = event.path().toAbsolutePath();</span>
-<span class="source-line-no">092</span><span id="line-92">        @SuppressWarnings("PMD.CloseResource")</span>
-<span class="source-line-no">093</span><span id="line-93">        WatchServiceInfo serviceInfo = watchServices.get(path.getFileSystem());</span>
-<span class="source-line-no">094</span><span id="line-94">        if (serviceInfo == null) {</span>
-<span class="source-line-no">095</span><span id="line-95">            try {</span>
-<span class="source-line-no">096</span><span id="line-96">                serviceInfo = new WatchServiceInfo(path.getFileSystem());</span>
-<span class="source-line-no">097</span><span id="line-97">                watchServices.put(path.getFileSystem(), serviceInfo);</span>
-<span class="source-line-no">098</span><span id="line-98">            } catch (IOException e) {</span>
-<span class="source-line-no">099</span><span id="line-99">                logger.log(Level.WARNING, e,</span>
-<span class="source-line-no">100</span><span id="line-100">                    () -&gt; "Cannot get watch service: " + e.getMessage());</span>
-<span class="source-line-no">101</span><span id="line-101">                return;</span>
-<span class="source-line-no">102</span><span id="line-102">            }</span>
-<span class="source-line-no">103</span><span id="line-103">        }</span>
-<span class="source-line-no">104</span><span id="line-104">        Path toWatch = path.getParent();</span>
-<span class="source-line-no">105</span><span id="line-105">        synchronized (watched) {</span>
-<span class="source-line-no">106</span><span id="line-106">            if (!watched.containsKey(toWatch)) {</span>
-<span class="source-line-no">107</span><span id="line-107">                try {</span>
-<span class="source-line-no">108</span><span id="line-108">                    watched.put(toWatch, new WatchInfo(</span>
-<span class="source-line-no">109</span><span id="line-109">                        toWatch.register(serviceInfo.watchService,</span>
-<span class="source-line-no">110</span><span id="line-110">                            ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY)));</span>
-<span class="source-line-no">111</span><span id="line-111">                } catch (IOException e) {</span>
-<span class="source-line-no">112</span><span id="line-112">                    logger.log(Level.WARNING, e,</span>
-<span class="source-line-no">113</span><span id="line-113">                        () -&gt; "Cannot watch: " + e.getMessage());</span>
-<span class="source-line-no">114</span><span id="line-114">                }</span>
-<span class="source-line-no">115</span><span id="line-115">            }</span>
-<span class="source-line-no">116</span><span id="line-116">        }</span>
-<span class="source-line-no">117</span><span id="line-117">        watched.get(toWatch).watched.add(new WatchedInfo(path));</span>
-<span class="source-line-no">118</span><span id="line-118">    }</span>
-<span class="source-line-no">119</span><span id="line-119"></span>
-<span class="source-line-no">120</span><span id="line-120">    private void handleWatchEvent(Path directory) {</span>
-<span class="source-line-no">121</span><span id="line-121">        Optional.ofNullable(watched.get(directory)).map(wi -&gt; wi.watched)</span>
-<span class="source-line-no">122</span><span id="line-122">            .orElse(Collections.emptyList()).forEach(wi -&gt; {</span>
-<span class="source-line-no">123</span><span id="line-123">                FileChanged.Kind change = checkForChange(wi);</span>
-<span class="source-line-no">124</span><span id="line-124">                if (change != null) {</span>
-<span class="source-line-no">125</span><span id="line-125">                    fire(new FileChanged(wi.path, change));</span>
-<span class="source-line-no">126</span><span id="line-126">                }</span>
-<span class="source-line-no">127</span><span id="line-127">            });</span>
-<span class="source-line-no">128</span><span id="line-128">    }</span>
-<span class="source-line-no">129</span><span id="line-129"></span>
-<span class="source-line-no">130</span><span id="line-130">    /**</span>
-<span class="source-line-no">131</span><span id="line-131">     * Watching file in directory.</span>
-<span class="source-line-no">132</span><span id="line-132">     * @param changes the changes</span>
-<span class="source-line-no">133</span><span id="line-133">     * @param path the path</span>
-<span class="source-line-no">134</span><span id="line-134">     * @param watched the wi</span>
-<span class="source-line-no">135</span><span id="line-135">     */</span>
-<span class="source-line-no">136</span><span id="line-136">    private FileChanged.Kind checkForChange(WatchedInfo watched) {</span>
-<span class="source-line-no">137</span><span id="line-137">        Instant prevModified = watched.lastModified;</span>
-<span class="source-line-no">138</span><span id="line-138">        watched.updateLastModified();</span>
-<span class="source-line-no">139</span><span id="line-139">        if (prevModified == null) {</span>
-<span class="source-line-no">140</span><span id="line-140">            // Check if created</span>
-<span class="source-line-no">141</span><span id="line-141">            if (watched.lastModified != null) {</span>
-<span class="source-line-no">142</span><span id="line-142">                return FileChanged.Kind.CREATED;</span>
-<span class="source-line-no">143</span><span id="line-143">            }</span>
-<span class="source-line-no">144</span><span id="line-144">            return null;</span>
-<span class="source-line-no">145</span><span id="line-145">        }</span>
-<span class="source-line-no">146</span><span id="line-146">        // File has existed</span>
-<span class="source-line-no">147</span><span id="line-147">        if (watched.lastModified == null) {</span>
-<span class="source-line-no">148</span><span id="line-148">            // Now deleted</span>
-<span class="source-line-no">149</span><span id="line-149">            return FileChanged.Kind.DELETED;</span>
-<span class="source-line-no">150</span><span id="line-150">        }</span>
-<span class="source-line-no">151</span><span id="line-151">        // Check if modified</span>
-<span class="source-line-no">152</span><span id="line-152">        if (!prevModified.equals(watched.lastModified)) {</span>
-<span class="source-line-no">153</span><span id="line-153">            return FileChanged.Kind.MODIFIED;</span>
-<span class="source-line-no">154</span><span id="line-154">        }</span>
-<span class="source-line-no">155</span><span id="line-155">        return null;</span>
-<span class="source-line-no">156</span><span id="line-156">    }</span>
-<span class="source-line-no">157</span><span id="line-157"></span>
-<span class="source-line-no">158</span><span id="line-158">    /**</span>
-<span class="source-line-no">159</span><span id="line-159">     * The Class WatchServiceInfo.</span>
-<span class="source-line-no">160</span><span id="line-160">     */</span>
-<span class="source-line-no">161</span><span id="line-161">    private class WatchServiceInfo {</span>
-<span class="source-line-no">162</span><span id="line-162">        private final WatchService watchService;</span>
-<span class="source-line-no">163</span><span id="line-163">        private final Thread watcher;</span>
-<span class="source-line-no">164</span><span id="line-164"></span>
-<span class="source-line-no">165</span><span id="line-165">        private WatchServiceInfo(FileSystem fileSystem) throws IOException {</span>
-<span class="source-line-no">166</span><span id="line-166">            watchService = fileSystem.newWatchService();</span>
-<span class="source-line-no">167</span><span id="line-167">            watcher = new Thread(() -&gt; {</span>
-<span class="source-line-no">168</span><span id="line-168">                while (true) {</span>
-<span class="source-line-no">169</span><span id="line-169">                    try {</span>
-<span class="source-line-no">170</span><span id="line-170">                        WatchKey key = watchService.take();</span>
-<span class="source-line-no">171</span><span id="line-171">                        if (!(key.watchable() instanceof Path)) {</span>
-<span class="source-line-no">172</span><span id="line-172">                            continue;</span>
-<span class="source-line-no">173</span><span id="line-173">                        }</span>
-<span class="source-line-no">174</span><span id="line-174">                        handleWatchEvent((Path) key.watchable());</span>
-<span class="source-line-no">175</span><span id="line-175">                        key.reset();</span>
-<span class="source-line-no">176</span><span id="line-176">                    } catch (InterruptedException e) {</span>
-<span class="source-line-no">177</span><span id="line-177">                        logger.log(Level.WARNING, e,</span>
-<span class="source-line-no">178</span><span id="line-178">                            () -&gt; "No WatchKey: " + e.getMessage());</span>
-<span class="source-line-no">179</span><span id="line-179">                    }</span>
-<span class="source-line-no">180</span><span id="line-180">                }</span>
-<span class="source-line-no">181</span><span id="line-181">            });</span>
-<span class="source-line-no">182</span><span id="line-182">            watcher.setDaemon(true);</span>
-<span class="source-line-no">183</span><span id="line-183">            watcher.setName(fileSystem.toString() + " watcher");</span>
-<span class="source-line-no">184</span><span id="line-184">            watcher.start();</span>
-<span class="source-line-no">185</span><span id="line-185">        }</span>
-<span class="source-line-no">186</span><span id="line-186"></span>
-<span class="source-line-no">187</span><span id="line-187">    }</span>
-<span class="source-line-no">188</span><span id="line-188"></span>
-<span class="source-line-no">189</span><span id="line-189">    /**</span>
-<span class="source-line-no">190</span><span id="line-190">     * The Class WatchInfo.</span>
-<span class="source-line-no">191</span><span id="line-191">     */</span>
-<span class="source-line-no">192</span><span id="line-192">    private static class WatchInfo {</span>
-<span class="source-line-no">193</span><span id="line-193">        @SuppressWarnings("unused")</span>
-<span class="source-line-no">194</span><span id="line-194">        private final WatchKey watchKey;</span>
-<span class="source-line-no">195</span><span id="line-195">        private final List&lt;WatchedInfo&gt; watched;</span>
-<span class="source-line-no">196</span><span id="line-196"></span>
-<span class="source-line-no">197</span><span id="line-197">        private WatchInfo(WatchKey watchKey) {</span>
-<span class="source-line-no">198</span><span id="line-198">            this.watchKey = watchKey;</span>
-<span class="source-line-no">199</span><span id="line-199">            watched = Collections.synchronizedList(new ArrayList&lt;&gt;());</span>
-<span class="source-line-no">200</span><span id="line-200">        }</span>
-<span class="source-line-no">201</span><span id="line-201"></span>
-<span class="source-line-no">202</span><span id="line-202">    }</span>
-<span class="source-line-no">203</span><span id="line-203"></span>
-<span class="source-line-no">204</span><span id="line-204">    /**</span>
-<span class="source-line-no">205</span><span id="line-205">     * The Class WatchedInfo.</span>
-<span class="source-line-no">206</span><span id="line-206">     */</span>
-<span class="source-line-no">207</span><span id="line-207">    private static class WatchedInfo {</span>
-<span class="source-line-no">208</span><span id="line-208">        private final Path path;</span>
-<span class="source-line-no">209</span><span id="line-209">        private Instant lastModified;</span>
-<span class="source-line-no">210</span><span id="line-210"></span>
-<span class="source-line-no">211</span><span id="line-211">        @SuppressWarnings("PMD.UseVarargs")</span>
-<span class="source-line-no">212</span><span id="line-212">        private WatchedInfo(Path path) {</span>
-<span class="source-line-no">213</span><span id="line-213">            this.path = path;</span>
-<span class="source-line-no">214</span><span id="line-214">            updateLastModified();</span>
-<span class="source-line-no">215</span><span id="line-215">        }</span>
-<span class="source-line-no">216</span><span id="line-216"></span>
-<span class="source-line-no">217</span><span id="line-217">        private void updateLastModified() {</span>
-<span class="source-line-no">218</span><span id="line-218">            try {</span>
-<span class="source-line-no">219</span><span id="line-219">                if (!Files.exists(path)) {</span>
-<span class="source-line-no">220</span><span id="line-220">                    lastModified = null;</span>
-<span class="source-line-no">221</span><span id="line-221">                    return;</span>
-<span class="source-line-no">222</span><span id="line-222">                }</span>
-<span class="source-line-no">223</span><span id="line-223">                lastModified = Files.getLastModifiedTime(path).toInstant();</span>
-<span class="source-line-no">224</span><span id="line-224">            } catch (NoSuchFileException e) {</span>
-<span class="source-line-no">225</span><span id="line-225">                // There's a race condition here.</span>
-<span class="source-line-no">226</span><span id="line-226">                lastModified = null;</span>
-<span class="source-line-no">227</span><span id="line-227">            } catch (IOException e) {</span>
-<span class="source-line-no">228</span><span id="line-228">                logger.log(Level.WARNING, e,</span>
-<span class="source-line-no">229</span><span id="line-229">                    () -&gt; "Cannot get modified time: " + e.getMessage());</span>
-<span class="source-line-no">230</span><span id="line-230">            }</span>
-<span class="source-line-no">231</span><span id="line-231">        }</span>
-<span class="source-line-no">232</span><span id="line-232">    }</span>
-<span class="source-line-no">233</span><span id="line-233">}</span>
+<span class="source-line-no">088</span><span id="line-88">     * @throws IOException if an I/O exception occurs</span>
+<span class="source-line-no">089</span><span id="line-89">     */</span>
+<span class="source-line-no">090</span><span id="line-90">    @Handler</span>
+<span class="source-line-no">091</span><span id="line-91">    public void onWatchFile(WatchFile event) throws IOException {</span>
+<span class="source-line-no">092</span><span id="line-92">        final Path path = event.path().toAbsolutePath();</span>
+<span class="source-line-no">093</span><span id="line-93">        @SuppressWarnings("PMD.CloseResource")</span>
+<span class="source-line-no">094</span><span id="line-94">        WatchServiceInfo serviceInfo = watchServices.get(path.getFileSystem());</span>
+<span class="source-line-no">095</span><span id="line-95">        if (serviceInfo == null) {</span>
+<span class="source-line-no">096</span><span id="line-96">            try {</span>
+<span class="source-line-no">097</span><span id="line-97">                serviceInfo = new WatchServiceInfo(path.getFileSystem());</span>
+<span class="source-line-no">098</span><span id="line-98">                watchServices.put(path.getFileSystem(), serviceInfo);</span>
+<span class="source-line-no">099</span><span id="line-99">            } catch (IOException e) {</span>
+<span class="source-line-no">100</span><span id="line-100">                logger.log(Level.WARNING, e,</span>
+<span class="source-line-no">101</span><span id="line-101">                    () -&gt; "Cannot get watch service: " + e.getMessage());</span>
+<span class="source-line-no">102</span><span id="line-102">                return;</span>
+<span class="source-line-no">103</span><span id="line-103">            }</span>
+<span class="source-line-no">104</span><span id="line-104">        }</span>
+<span class="source-line-no">105</span><span id="line-105">        Path toWatch = path.getParent().toFile().getCanonicalFile().toPath();</span>
+<span class="source-line-no">106</span><span id="line-106">        synchronized (watched) {</span>
+<span class="source-line-no">107</span><span id="line-107">            if (!watched.containsKey(toWatch)) {</span>
+<span class="source-line-no">108</span><span id="line-108">                try {</span>
+<span class="source-line-no">109</span><span id="line-109">                    watched.put(toWatch, new WatchInfo(</span>
+<span class="source-line-no">110</span><span id="line-110">                        toWatch.register(serviceInfo.watchService,</span>
+<span class="source-line-no">111</span><span id="line-111">                            ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY)));</span>
+<span class="source-line-no">112</span><span id="line-112">                } catch (IOException e) {</span>
+<span class="source-line-no">113</span><span id="line-113">                    logger.log(Level.WARNING, e,</span>
+<span class="source-line-no">114</span><span id="line-114">                        () -&gt; "Cannot watch: " + e.getMessage());</span>
+<span class="source-line-no">115</span><span id="line-115">                }</span>
+<span class="source-line-no">116</span><span id="line-116">            }</span>
+<span class="source-line-no">117</span><span id="line-117">        }</span>
+<span class="source-line-no">118</span><span id="line-118">        watched.get(toWatch).watched.add(new WatchedInfo(path));</span>
+<span class="source-line-no">119</span><span id="line-119">    }</span>
+<span class="source-line-no">120</span><span id="line-120"></span>
+<span class="source-line-no">121</span><span id="line-121">    private void handleWatchEvent(Path directory) {</span>
+<span class="source-line-no">122</span><span id="line-122">        Optional.ofNullable(watched.get(directory)).map(wi -&gt; wi.watched)</span>
+<span class="source-line-no">123</span><span id="line-123">            .orElse(Collections.emptyList()).forEach(wi -&gt; {</span>
+<span class="source-line-no">124</span><span id="line-124">                FileChanged.Kind change = checkForChange(wi);</span>
+<span class="source-line-no">125</span><span id="line-125">                if (change != null) {</span>
+<span class="source-line-no">126</span><span id="line-126">                    fire(new FileChanged(wi.path, change));</span>
+<span class="source-line-no">127</span><span id="line-127">                }</span>
+<span class="source-line-no">128</span><span id="line-128">            });</span>
+<span class="source-line-no">129</span><span id="line-129">    }</span>
+<span class="source-line-no">130</span><span id="line-130"></span>
+<span class="source-line-no">131</span><span id="line-131">    /**</span>
+<span class="source-line-no">132</span><span id="line-132">     * Watching file in directory.</span>
+<span class="source-line-no">133</span><span id="line-133">     * @param changes the changes</span>
+<span class="source-line-no">134</span><span id="line-134">     * @param path the path</span>
+<span class="source-line-no">135</span><span id="line-135">     * @param watched the wi</span>
+<span class="source-line-no">136</span><span id="line-136">     */</span>
+<span class="source-line-no">137</span><span id="line-137">    private FileChanged.Kind checkForChange(WatchedInfo watched) {</span>
+<span class="source-line-no">138</span><span id="line-138">        Instant prevModified = watched.lastModified;</span>
+<span class="source-line-no">139</span><span id="line-139">        watched.updateLastModified();</span>
+<span class="source-line-no">140</span><span id="line-140">        if (prevModified == null) {</span>
+<span class="source-line-no">141</span><span id="line-141">            // Check if created</span>
+<span class="source-line-no">142</span><span id="line-142">            if (watched.lastModified != null) {</span>
+<span class="source-line-no">143</span><span id="line-143">                return FileChanged.Kind.CREATED;</span>
+<span class="source-line-no">144</span><span id="line-144">            }</span>
+<span class="source-line-no">145</span><span id="line-145">            return null;</span>
+<span class="source-line-no">146</span><span id="line-146">        }</span>
+<span class="source-line-no">147</span><span id="line-147">        // File has existed</span>
+<span class="source-line-no">148</span><span id="line-148">        if (watched.lastModified == null) {</span>
+<span class="source-line-no">149</span><span id="line-149">            // Now deleted</span>
+<span class="source-line-no">150</span><span id="line-150">            return FileChanged.Kind.DELETED;</span>
+<span class="source-line-no">151</span><span id="line-151">        }</span>
+<span class="source-line-no">152</span><span id="line-152">        // Check if modified</span>
+<span class="source-line-no">153</span><span id="line-153">        if (!prevModified.equals(watched.lastModified)) {</span>
+<span class="source-line-no">154</span><span id="line-154">            return FileChanged.Kind.MODIFIED;</span>
+<span class="source-line-no">155</span><span id="line-155">        }</span>
+<span class="source-line-no">156</span><span id="line-156">        return null;</span>
+<span class="source-line-no">157</span><span id="line-157">    }</span>
+<span class="source-line-no">158</span><span id="line-158"></span>
+<span class="source-line-no">159</span><span id="line-159">    /**</span>
+<span class="source-line-no">160</span><span id="line-160">     * The Class WatchServiceInfo.</span>
+<span class="source-line-no">161</span><span id="line-161">     */</span>
+<span class="source-line-no">162</span><span id="line-162">    private class WatchServiceInfo {</span>
+<span class="source-line-no">163</span><span id="line-163">        private final WatchService watchService;</span>
+<span class="source-line-no">164</span><span id="line-164">        private final Thread watcher;</span>
+<span class="source-line-no">165</span><span id="line-165"></span>
+<span class="source-line-no">166</span><span id="line-166">        private WatchServiceInfo(FileSystem fileSystem) throws IOException {</span>
+<span class="source-line-no">167</span><span id="line-167">            watchService = fileSystem.newWatchService();</span>
+<span class="source-line-no">168</span><span id="line-168">            watcher = new Thread(() -&gt; {</span>
+<span class="source-line-no">169</span><span id="line-169">                while (true) {</span>
+<span class="source-line-no">170</span><span id="line-170">                    try {</span>
+<span class="source-line-no">171</span><span id="line-171">                        WatchKey key = watchService.take();</span>
+<span class="source-line-no">172</span><span id="line-172">                        if (!(key.watchable() instanceof Path)) {</span>
+<span class="source-line-no">173</span><span id="line-173">                            continue;</span>
+<span class="source-line-no">174</span><span id="line-174">                        }</span>
+<span class="source-line-no">175</span><span id="line-175">                        handleWatchEvent((Path) key.watchable());</span>
+<span class="source-line-no">176</span><span id="line-176">                        key.reset();</span>
+<span class="source-line-no">177</span><span id="line-177">                    } catch (InterruptedException e) {</span>
+<span class="source-line-no">178</span><span id="line-178">                        logger.log(Level.WARNING, e,</span>
+<span class="source-line-no">179</span><span id="line-179">                            () -&gt; "No WatchKey: " + e.getMessage());</span>
+<span class="source-line-no">180</span><span id="line-180">                    }</span>
+<span class="source-line-no">181</span><span id="line-181">                }</span>
+<span class="source-line-no">182</span><span id="line-182">            });</span>
+<span class="source-line-no">183</span><span id="line-183">            watcher.setDaemon(true);</span>
+<span class="source-line-no">184</span><span id="line-184">            watcher.setName(fileSystem.toString() + " watcher");</span>
+<span class="source-line-no">185</span><span id="line-185">            watcher.start();</span>
+<span class="source-line-no">186</span><span id="line-186">        }</span>
+<span class="source-line-no">187</span><span id="line-187"></span>
+<span class="source-line-no">188</span><span id="line-188">    }</span>
+<span class="source-line-no">189</span><span id="line-189"></span>
+<span class="source-line-no">190</span><span id="line-190">    /**</span>
+<span class="source-line-no">191</span><span id="line-191">     * The Class WatchInfo.</span>
+<span class="source-line-no">192</span><span id="line-192">     */</span>
+<span class="source-line-no">193</span><span id="line-193">    private static class WatchInfo {</span>
+<span class="source-line-no">194</span><span id="line-194">        @SuppressWarnings("unused")</span>
+<span class="source-line-no">195</span><span id="line-195">        private final WatchKey watchKey;</span>
+<span class="source-line-no">196</span><span id="line-196">        private final List&lt;WatchedInfo&gt; watched;</span>
+<span class="source-line-no">197</span><span id="line-197"></span>
+<span class="source-line-no">198</span><span id="line-198">        private WatchInfo(WatchKey watchKey) {</span>
+<span class="source-line-no">199</span><span id="line-199">            this.watchKey = watchKey;</span>
+<span class="source-line-no">200</span><span id="line-200">            watched = Collections.synchronizedList(new ArrayList&lt;&gt;());</span>
+<span class="source-line-no">201</span><span id="line-201">        }</span>
+<span class="source-line-no">202</span><span id="line-202"></span>
+<span class="source-line-no">203</span><span id="line-203">    }</span>
+<span class="source-line-no">204</span><span id="line-204"></span>
+<span class="source-line-no">205</span><span id="line-205">    /**</span>
+<span class="source-line-no">206</span><span id="line-206">     * The Class WatchedInfo.</span>
+<span class="source-line-no">207</span><span id="line-207">     */</span>
+<span class="source-line-no">208</span><span id="line-208">    private static class WatchedInfo {</span>
+<span class="source-line-no">209</span><span id="line-209">        private final Path path;</span>
+<span class="source-line-no">210</span><span id="line-210">        private Instant lastModified;</span>
+<span class="source-line-no">211</span><span id="line-211"></span>
+<span class="source-line-no">212</span><span id="line-212">        @SuppressWarnings("PMD.UseVarargs")</span>
+<span class="source-line-no">213</span><span id="line-213">        private WatchedInfo(Path path) {</span>
+<span class="source-line-no">214</span><span id="line-214">            this.path = path;</span>
+<span class="source-line-no">215</span><span id="line-215">            updateLastModified();</span>
+<span class="source-line-no">216</span><span id="line-216">        }</span>
+<span class="source-line-no">217</span><span id="line-217"></span>
+<span class="source-line-no">218</span><span id="line-218">        private void updateLastModified() {</span>
+<span class="source-line-no">219</span><span id="line-219">            try {</span>
+<span class="source-line-no">220</span><span id="line-220">                if (!Files.exists(path)) {</span>
+<span class="source-line-no">221</span><span id="line-221">                    lastModified = null;</span>
+<span class="source-line-no">222</span><span id="line-222">                    return;</span>
+<span class="source-line-no">223</span><span id="line-223">                }</span>
+<span class="source-line-no">224</span><span id="line-224">                lastModified = Files.getLastModifiedTime(path).toInstant();</span>
+<span class="source-line-no">225</span><span id="line-225">            } catch (NoSuchFileException e) {</span>
+<span class="source-line-no">226</span><span id="line-226">                // There's a race condition here.</span>
+<span class="source-line-no">227</span><span id="line-227">                lastModified = null;</span>
+<span class="source-line-no">228</span><span id="line-228">            } catch (IOException e) {</span>
+<span class="source-line-no">229</span><span id="line-229">                logger.log(Level.WARNING, e,</span>
+<span class="source-line-no">230</span><span id="line-230">                    () -&gt; "Cannot get modified time: " + e.getMessage());</span>
+<span class="source-line-no">231</span><span id="line-231">            }</span>
+<span class="source-line-no">232</span><span id="line-232">        }</span>
+<span class="source-line-no">233</span><span id="line-233">    }</span>
+<span class="source-line-no">234</span><span id="line-234">}</span>
 
 
 
