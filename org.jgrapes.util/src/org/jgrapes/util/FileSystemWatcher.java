@@ -85,9 +85,10 @@ public class FileSystemWatcher extends Component {
      * Register a path for being watched.
      *
      * @param event the event
+     * @throws IOException if an I/O exception occurs
      */
     @Handler
-    public void onWatchFile(WatchFile event) {
+    public void onWatchFile(WatchFile event) throws IOException {
         final Path path = event.path().toAbsolutePath();
         @SuppressWarnings("PMD.CloseResource")
         WatchServiceInfo serviceInfo = watchServices.get(path.getFileSystem());
@@ -101,7 +102,7 @@ public class FileSystemWatcher extends Component {
                 return;
             }
         }
-        Path toWatch = path.getParent();
+        Path toWatch = path.getParent().toFile().getCanonicalFile().toPath();
         synchronized (watched) {
             if (!watched.containsKey(toWatch)) {
                 try {

@@ -39,7 +39,7 @@ public class FileChanged extends Event<Void> {
     /**
      * Instantiates a new event.
      *
-     * @param path the path
+     * @param path the canonical path
      * @param change the change
      */
     public FileChanged(Path path, Kind change) {
