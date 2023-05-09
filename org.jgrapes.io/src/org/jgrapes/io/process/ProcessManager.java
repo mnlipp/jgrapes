@@ -258,16 +258,7 @@ public class ProcessManager extends Component {
                     return ByteBuffer.allocate(4096);
                 }, 4).setName(Components.objectName(this)
                     + ".upstream.byteBuffers"));
-
             running = true;
-            process.onExit().thenAccept(p -> {
-                running = false;
-                logger.fine(() -> "Process pid=" + p.toHandle().pid()
-                    + " has exited with: " + p.exitValue());
-                downPipeline()
-                    .fire(new ProcessExited(startEvent, p.exitValue()), this);
-                maybeUnregister();
-            });
 
             if (executorService == null) {
                 downPipeline = newEventPipeline();
@@ -306,6 +297,16 @@ public class ProcessManager extends Component {
                 new InputStreamPipeline(process.getErrorStream(), this,
                     downPipeline()).sendInputEvents().setEventAssociations(
                         Map.of(FileDescriptor.class, 2)));
+            process.onExit().thenAccept(p -> {
+                running = false;
+                logger
+                    .fine(() -> "Process pid=" + p.toHandle().pid()
+                        + " has exited with: " + p.exitValue());
+                downPipeline()
+                    .fire(new ProcessExited(startEvent,
+                        p.exitValue()), this);
+                maybeUnregister();
+            });
         }
 
         /**
