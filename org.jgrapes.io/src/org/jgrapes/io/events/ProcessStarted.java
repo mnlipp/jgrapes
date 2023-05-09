@@ -32,4 +32,12 @@ public class ProcessStarted extends Opened<StartProcess> {
         setResult(startEvent);
     }
 
+    /**
+     * Returns the event that started the process.
+     * 
+     * @return the event
+     */
+    public StartProcess startEvent() {
+        return currentResults().get(0);
+    }
 }

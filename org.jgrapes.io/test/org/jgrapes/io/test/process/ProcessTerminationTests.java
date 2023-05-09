@@ -34,6 +34,7 @@ public class ProcessTerminationTests {
 
         @Handler
         public void onProcessStarted(ProcessStarted event) {
+            assertEquals("cat", event.startEvent().command()[0]);
             isRunning = true;
         }
 
