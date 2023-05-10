@@ -45,19 +45,34 @@ public class ManagedBufferReader extends Reader {
 
     /**
      * Sets the charset to be used if {@link #feed(ManagedBuffer)}
-     * is invoked with `ManagedBuffer<Charset>`. Defaults to UTF-8. 
+     * is invoked with `ManagedBuffer<ByteBuffer>`. Defaults to UTF-8. 
      * Must be set before the first invocation of 
      * {@link #feed(ManagedBuffer)}.  
      *
      * @param charset the charset
      * @return the managed buffer reader
      */
-    public ManagedBufferReader setCharset(Charset charset) {
+    public ManagedBufferReader charset(Charset charset) {
         if (decoder != null) {
             throw new IllegalStateException("Charset cannot be changed.");
         }
         this.charset = charset;
         return this;
+    }
+
+    /**
+     * Sets the charset to be used if {@link #feed(ManagedBuffer)}
+     * is invoked with `ManagedBuffer<ByteBuffer>`. Defaults to UTF-8. 
+     * Must be set before the first invocation of 
+     * {@link #feed(ManagedBuffer)}.  
+     *
+     * @param charset the charset
+     * @return the managed buffer reader
+     * @deprecated Use {@link #charset(Charset)} instead
+     */
+    @Deprecated
+    public ManagedBufferReader setCharset(Charset charset) {
+        return charset(charset);
     }
 
     /**
