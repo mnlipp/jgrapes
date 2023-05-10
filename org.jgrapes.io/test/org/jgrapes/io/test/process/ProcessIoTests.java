@@ -17,6 +17,7 @@ import org.jgrapes.io.events.ProcessStarted;
 import org.jgrapes.io.events.StartProcess;
 import org.jgrapes.io.process.ProcessManager;
 import org.jgrapes.io.util.ByteBufferOutputStream;
+import org.jgrapes.io.util.LineCollector;
 import static org.junit.Assert.*;
 import org.junit.Test;
 
@@ -40,11 +41,11 @@ public class ProcessIoTests {
 
     public static class Consumer extends Component {
 
-        public StringBuilder collectedOut = new StringBuilder();
-        public StringBuilder collectedErr = new StringBuilder();
+        public LineCollector collectedOut
+            = new LineCollector().nativeCharset();
+        public LineCollector collectedErr
+            = new LineCollector().nativeCharset();
         public int exitValue = -1;
-        public boolean stdErrClosed;
-        public boolean stdOutClosed;
 
         public Consumer(Channel app) {
             super(app);
@@ -53,16 +54,13 @@ public class ProcessIoTests {
         @Handler
         public void onInput(Input<ByteBuffer> event)
                 throws UnsupportedEncodingException {
-            int length = event.data().limit();
-            byte[] bytes = new byte[length];
-            event.buffer().backingBuffer().get(bytes);
             switch (event.associated(FileDescriptor.class, Integer.class)
                 .orElse(-1)) {
             case 1:
-                collectedOut.append(new String(bytes));
+                collectedOut.feed(event);
                 break;
             case 2:
-                collectedErr.append(new String(bytes));
+                collectedErr.feed(event);
                 break;
             }
         }
@@ -72,10 +70,10 @@ public class ProcessIoTests {
             switch (event.associated(FileDescriptor.class, Integer.class)
                 .orElse(-1)) {
             case 1:
-                stdOutClosed = true;
+                collectedOut.feed((ByteBuffer) null);
                 break;
             case 2:
-                stdErrClosed = true;
+                collectedErr.feed((ByteBuffer) null);
                 break;
             }
 
@@ -99,9 +97,9 @@ public class ProcessIoTests {
         Components.awaitExhaustion();
         Components.checkAssertions();
         assertEquals(0, consumer.exitValue);
-        assertEquals("Hello World!\n", consumer.collectedOut.toString());
-        assertTrue(consumer.stdOutClosed);
-        assertTrue(consumer.stdErrClosed);
+        assertEquals("Hello World!", consumer.collectedOut.getLine());
+        assertTrue(consumer.collectedOut.eof());
+        assertTrue(consumer.collectedErr.eof());
     }
 
     @Test
@@ -115,8 +113,8 @@ public class ProcessIoTests {
         Components.awaitExhaustion();
         Components.checkAssertions();
         assertEquals(0, consumer.exitValue);
-        assertEquals("Hello World!\n", consumer.collectedErr.toString());
-        assertTrue(consumer.stdOutClosed);
-        assertTrue(consumer.stdErrClosed);
+        assertEquals("Hello World!", consumer.collectedErr.getLine());
+        assertTrue(consumer.collectedOut.eof());
+        assertTrue(consumer.collectedErr.eof());
     }
 }
