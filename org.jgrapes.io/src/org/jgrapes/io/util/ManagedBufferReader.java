@@ -76,6 +76,35 @@ public class ManagedBufferReader extends Reader {
     }
 
     /**
+     * Sets the charset to be used if {@link #feed(ManagedBuffer)}
+     * is invoked with `ManagedBuffer<ByteBuffer>` to the charset
+     * specified as system property `native.encoding`. If this
+     * property does not specify a valid charset, 
+     * {@link Charset#defaultCharset()} is used.
+     *  
+     * Must be invoked before the first invocation of 
+     * {@link #feed(ManagedBuffer)}.  
+     *
+     * @param charset the charset
+     * @return the managed buffer reader
+     */
+    @SuppressWarnings({ "PMD.AvoidCatchingGenericException",
+        "PMD.EmptyCatchBlock", "PMD.DataflowAnomalyAnalysis" })
+    public ManagedBufferReader nativeCharset() {
+        Charset toSet = Charset.defaultCharset();
+        var toCheck = System.getProperty("native.encoding");
+        if (toCheck != null) {
+            try {
+                toSet = Charset.forName(toCheck);
+            } catch (Exception e) {
+                // If this fails, simply use default
+            }
+        }
+        charset(toSet);
+        return this;
+    }
+
+    /**
      * Feed data to the reader. The call blocks while data from a previous
      * invocation has not been fully read. The buffer passed as argument
      * is locked (see {@link ManagedBuffer#lockBuffer()}) until all
