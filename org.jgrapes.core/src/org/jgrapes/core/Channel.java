@@ -90,6 +90,19 @@ public interface Channel extends Eligible {
     }
 
     /**
+     * By default, a channel is eligible for a broadcast and for
+     * its own default criterion (see {@link #defaultCriterion()}.
+     *
+     * @param criterion the criterion
+     * @return true, if is eligible for
+     */
+    @Override
+    default boolean isEligibleFor(Object criterion) {
+        return criterion.equals(BROADCAST.defaultCriterion())
+            || criterion.equals(defaultCriterion());
+    }
+
+    /**
      * A special channel instance that can be used to send events to
      * all components.
      */
