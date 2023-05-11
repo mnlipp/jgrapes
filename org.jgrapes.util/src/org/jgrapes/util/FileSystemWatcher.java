@@ -19,6 +19,7 @@
 package org.jgrapes.util;
 
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
@@ -44,7 +45,8 @@ import org.jgrapes.util.events.FileChanged;
 import org.jgrapes.util.events.WatchFile;
 
 /**
- * A component that watches paths in the file system for changes. 
+ * A component that watches paths in the file system for changes
+ * and sends events if such changes occur. 
  */
 @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 public class FileSystemWatcher extends Component {
@@ -82,13 +84,19 @@ public class FileSystemWatcher extends Component {
     }
 
     /**
-     * Register a path for being watched.
+     * Register a path for being watched. Subsequent {@link FileChanged} 
+     * events will be fire on the channel(s) on which the
+     * {@link WatchFile} event was fired.
+     * 
+     * The channel is stored using a weak reference, so no explicit
+     * "clear watch" is required.
      *
      * @param event the event
      * @throws IOException if an I/O exception occurs
      */
     @Handler
-    public void onWatchFile(WatchFile event) throws IOException {
+    public void onWatchFile(WatchFile event, Channel channel)
+            throws IOException {
         final Path path = event.path().toFile().getCanonicalFile().toPath();
         @SuppressWarnings("PMD.CloseResource")
         WatchServiceInfo serviceInfo = watchServices.get(path.getFileSystem());
@@ -102,6 +110,7 @@ public class FileSystemWatcher extends Component {
                 return;
             }
         }
+        // Is a parent of a canonical path canonical by definition?
         Path toWatch = path.getParent().toFile().getCanonicalFile().toPath();
         synchronized (watched) {
             if (!watched.containsKey(toWatch)) {
@@ -115,45 +124,27 @@ public class FileSystemWatcher extends Component {
                 }
             }
         }
-        watched.get(toWatch).watched.add(new WatchedInfo(path));
+        watched.get(toWatch).watched.add(new WatchedInfo(path, channel));
+    }
+
+    private void removeWatched(Path directory, WatchedInfo watchedInfo) {
+        synchronized (watched) {
+            var watchInfo = watched.get(directory);
+            if (watchInfo == null) {
+                // Shouldn't happen, but...
+                return;
+            }
+            watchInfo.watched.remove(watchedInfo);
+            if (watchInfo.watched.isEmpty()) {
+                watched.remove(directory);
+            }
+        }
     }
 
     private void handleWatchEvent(Path directory) {
         Optional.ofNullable(watched.get(directory)).map(wi -> wi.watched)
-            .orElse(Collections.emptyList()).forEach(wi -> {
-                FileChanged.Kind change = checkForChange(wi);
-                if (change != null) {
-                    fire(new FileChanged(wi.path, change));
-                }
-            });
-    }
-
-    /**
-     * Watching file in directory.
-     * @param changes the changes
-     * @param path the path
-     * @param watched the wi
-     */
-    private FileChanged.Kind checkForChange(WatchedInfo watched) {
-        Instant prevModified = watched.lastModified;
-        watched.updateLastModified();
-        if (prevModified == null) {
-            // Check if created
-            if (watched.lastModified != null) {
-                return FileChanged.Kind.CREATED;
-            }
-            return null;
-        }
-        // File has existed
-        if (watched.lastModified == null) {
-            // Now deleted
-            return FileChanged.Kind.DELETED;
-        }
-        // Check if modified
-        if (!prevModified.equals(watched.lastModified)) {
-            return FileChanged.Kind.MODIFIED;
-        }
-        return null;
+            .orElse(Collections.emptyList())
+            .forEach(wi -> wi.handleChange(directory));
     }
 
     /**
@@ -205,12 +196,14 @@ public class FileSystemWatcher extends Component {
     /**
      * The Class WatchedInfo.
      */
-    private static class WatchedInfo {
+    private class WatchedInfo {
+        private final WeakReference<Channel> notifyOn;
         private final Path path;
         private Instant lastModified;
 
         @SuppressWarnings("PMD.UseVarargs")
-        private WatchedInfo(Path path) {
+        private WatchedInfo(Path path, Channel notifyOn) {
+            this.notifyOn = new WeakReference<>(notifyOn);
             this.path = path;
             updateLastModified();
         }
@@ -228,6 +221,44 @@ public class FileSystemWatcher extends Component {
             } catch (IOException e) {
                 logger.log(Level.WARNING, e,
                     () -> "Cannot get modified time: " + e.getMessage());
+            }
+        }
+
+        /**
+         * Handle change.
+         *
+         * @param directory the directory. Passing it is redundant but
+         * more efficient than deriving it from path.
+         */
+        private void handleChange(Path directory) {
+            // Check if channel is still valid
+            Channel channel = notifyOn.get();
+            if (channel == null) {
+                removeWatched(directory, this);
+            }
+
+            // Evaluate change
+            Instant prevModified = lastModified;
+            updateLastModified();
+            if (prevModified == null) {
+                // Check if created
+                if (lastModified != null) {
+                    fire(new FileChanged(path, FileChanged.Kind.CREATED),
+                        channel);
+                }
+                return;
+            }
+
+            // File has existed (prevModified != null)
+            if (lastModified == null) {
+                // Now deleted
+                fire(new FileChanged(path, FileChanged.Kind.DELETED), channel);
+                return;
+            }
+
+            // Check if modified
+            if (!prevModified.equals(lastModified)) {
+                fire(new FileChanged(path, FileChanged.Kind.MODIFIED), channel);
             }
         }
     }
