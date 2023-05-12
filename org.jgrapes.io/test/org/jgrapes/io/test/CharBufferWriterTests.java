@@ -46,7 +46,7 @@ public class CharBufferWriterTests {
 
     @Test
     public void testDefaultFlushAndClose()
-            throws InterruptedException, IOException {
+            throws InterruptedException {
         Tracker tracker = new Tracker();
         Components.start(tracker);
         IOSubchannel channel = IOSubchannel.create(

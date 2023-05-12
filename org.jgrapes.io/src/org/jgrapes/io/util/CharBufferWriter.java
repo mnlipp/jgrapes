@@ -18,7 +18,6 @@
 
 package org.jgrapes.io.util;
 
-import java.io.IOException;
 import java.io.Writer;
 import java.nio.CharBuffer;
 import java.util.Map;
@@ -116,15 +115,11 @@ public class CharBufferWriter extends Writer {
         return this;
     }
 
-    private void ensureBufferAvailable() throws IOException {
+    private void ensureBufferAvailable() throws InterruptedException {
         if (buffer != null) {
             return;
         }
-        try {
-            buffer = channel.charBufferPool().acquire();
-        } catch (InterruptedException e) {
-            throw new IOException(e);
-        }
+        buffer = channel.charBufferPool().acquire();
     }
 
     /*
@@ -133,19 +128,25 @@ public class CharBufferWriter extends Writer {
      * @see java.io.Writer#write(char[], int, int)
      */
     @Override
-    public void write(char[] data, int offset, int length) throws IOException {
+    public void write(char[] data, int offset, int length) {
         while (true) {
-            ensureBufferAvailable();
-            if (buffer.remaining() > length) {
-                buffer.backingBuffer().put(data, offset, length);
+            try {
+                ensureBufferAvailable();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return;
+            }
+            var buf = buffer.backingBuffer();
+            if (buf.remaining() > length) {
+                buf.put(data, offset, length);
                 break;
             } else if (buffer.remaining() == length) {
-                buffer.backingBuffer().put(data, offset, length);
+                buf.put(data, offset, length);
                 flush(false);
                 break;
             } else {
                 int chunkSize = buffer.remaining();
-                buffer.backingBuffer().put(data, offset, chunkSize);
+                buf.put(data, offset, chunkSize);
                 flush(false);
                 length -= chunkSize;
                 offset += chunkSize;
@@ -153,17 +154,89 @@ public class CharBufferWriter extends Writer {
         }
     }
 
+    @Override
+    public void write(char[] cbuf) {
+        write(cbuf, 0, cbuf.length);
+    }
+
+    @Override
+    public void write(String str, int offset, int length) {
+        while (true) {
+            try {
+                ensureBufferAvailable();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return;
+            }
+            var buf = buffer.backingBuffer();
+            if (buf.remaining() >= length) {
+                str.getChars(offset, offset + length, buf.array(),
+                    buf.position());
+                buf.position(buf.position() + length);
+                if (buf.remaining() == 0) {
+                    flush(false);
+                }
+                break;
+            }
+            int chunkSize = buffer.remaining();
+            str.getChars(offset, offset + chunkSize, buf.array(),
+                buf.position());
+            buf.position(buf.position() + chunkSize);
+            flush(false);
+            length -= chunkSize;
+            offset += chunkSize;
+        }
+    }
+
+    @Override
+    public void write(String str) {
+        write(str, 0, str.length());
+    }
+
+    @Override
+    @SuppressWarnings("PMD.ShortVariable")
+    public void write(int ch) {
+        char[] buff = { (char) ch };
+        write(buff, 0, 1);
+    }
+
+    @Override
+    @SuppressWarnings("PMD.ShortVariable")
+    public Writer append(char ch) {
+        write(ch);
+        return this;
+    }
+
+    @Override
+    public Writer append(CharSequence csq) {
+        write(String.valueOf(csq));
+        return this;
+    }
+
+    @Override
+    public Writer append(CharSequence csq, int start, int end) {
+        if (csq == null) {
+            csq = "null";
+        }
+        return append(csq.subSequence(start, end));
+    }
+
     /**
      * Creates and fires an {@link Output} event with the buffer being filled. 
      * The end of record flag of the event is set according to the parameter.
      * Frees any allocated buffer.
      */
-    private void flush(boolean endOfRecord) throws IOException {
+    private void flush(boolean endOfRecord) {
         if (buffer == null) {
             if (!endOfRecord || eorSent) {
                 return;
             }
-            ensureBufferAvailable();
+            try {
+                ensureBufferAvailable();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return;
+            }
         }
         if (buffer.position() == 0 && (!endOfRecord || eorSent)) {
             // Nothing to flush
@@ -192,7 +265,7 @@ public class CharBufferWriter extends Writer {
      * be disabled with {@link #suppressEndOfRecord()}.
      */
     @Override
-    public void flush() throws IOException {
+    public void flush() {
         flush(sendEor);
     }
 
@@ -203,7 +276,7 @@ public class CharBufferWriter extends Writer {
      * has been called).
      */
     @Override
-    public void close() throws IOException {
+    public void close() {
         if (isClosed) {
             return;
         }

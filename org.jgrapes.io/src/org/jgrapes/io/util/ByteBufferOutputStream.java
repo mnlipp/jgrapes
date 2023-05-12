@@ -18,7 +18,6 @@
 
 package org.jgrapes.io.util;
 
-import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import org.jgrapes.core.EventPipeline;
@@ -31,7 +30,6 @@ import org.jgrapes.io.events.Output;
  * An {@link OutputStream} that is backed by {@link ByteBuffer}s obtained from a
  * queue. When a byte buffer is full, a {@link Output} event (default) is
  * generated and a new buffer is fetched from the queue.
- *
  */
 public class ByteBufferOutputStream extends OutputStream {
 
@@ -103,15 +101,11 @@ public class ByteBufferOutputStream extends OutputStream {
         return this;
     }
 
-    private void ensureBufferAvailable() throws IOException {
+    private void ensureBufferAvailable() throws InterruptedException {
         if (buffer != null) {
             return;
         }
-        try {
-            buffer = channel.byteBufferPool().acquire();
-        } catch (InterruptedException e) {
-            throw new IOException(e);
-        }
+        buffer = channel.byteBufferPool().acquire();
     }
 
     /*
@@ -120,8 +114,13 @@ public class ByteBufferOutputStream extends OutputStream {
      * @see java.io.OutputStream#write(int)
      */
     @Override
-    public void write(int data) throws IOException {
-        ensureBufferAvailable();
+    public void write(int data) {
+        try {
+            ensureBufferAvailable();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return;
+        }
         buffer.backingBuffer().put((byte) data);
         if (!buffer.hasRemaining()) {
             flush(false);
@@ -134,9 +133,14 @@ public class ByteBufferOutputStream extends OutputStream {
      * @see java.io.OutputStream#write(byte[], int, int)
      */
     @Override
-    public void write(byte[] data, int offset, int length) throws IOException {
+    public void write(byte[] data, int offset, int length) {
         while (true) {
-            ensureBufferAvailable();
+            try {
+                ensureBufferAvailable();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return;
+            }
             if (buffer.remaining() > length) {
                 buffer.backingBuffer().put(data, offset, length);
                 break;
@@ -154,17 +158,27 @@ public class ByteBufferOutputStream extends OutputStream {
         }
     }
 
+    @Override
+    public void write(byte[] data) {
+        write(data, 0, data.length);
+    }
+
     /**
      * Creates and fires an {@link Output} event with the buffer being filled. 
      * The end of record flag of the event is set according to the parameter.
      * Frees any allocated buffer.
      */
-    private void flush(boolean endOfRecord) throws IOException {
+    private void flush(boolean endOfRecord) {
         if (buffer == null) {
             if (!endOfRecord || eorSent) {
                 return;
             }
-            ensureBufferAvailable();
+            try {
+                ensureBufferAvailable();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return;
+            }
         }
         if (buffer.position() == 0 && (!endOfRecord || eorSent)) {
             // Nothing to flush
@@ -193,7 +207,7 @@ public class ByteBufferOutputStream extends OutputStream {
      * be disabled with {@link #suppressEndOfRecord()}.
      */
     @Override
-    public void flush() throws IOException {
+    public void flush() {
         flush(sendEor);
     }
 
@@ -204,7 +218,7 @@ public class ByteBufferOutputStream extends OutputStream {
      * has been called).
      */
     @Override
-    public void close() throws IOException {
+    public void close() {
         if (isClosed) {
             return;
         }
