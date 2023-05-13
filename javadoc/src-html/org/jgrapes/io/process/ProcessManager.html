@@ -240,7 +240,7 @@
 <span class="source-line-no">227</span><span id="line-227">        private final StartProcess startEvent;</span>
 <span class="source-line-no">228</span><span id="line-228">        private final Process process;</span>
 <span class="source-line-no">229</span><span id="line-229">        private final EventPipeline downPipeline;</span>
-<span class="source-line-no">230</span><span id="line-230">        private boolean running;</span>
+<span class="source-line-no">230</span><span id="line-230">        private boolean running = true;</span>
 <span class="source-line-no">231</span><span id="line-231">        private final AtomicBoolean closing = new AtomicBoolean();</span>
 <span class="source-line-no">232</span><span id="line-232">        private final AtomicBoolean terminating = new AtomicBoolean();</span>
 <span class="source-line-no">233</span><span id="line-233">        private boolean outOpen;</span>
@@ -271,134 +271,130 @@
 <span class="source-line-no">258</span><span id="line-258">                    return ByteBuffer.allocate(4096);</span>
 <span class="source-line-no">259</span><span id="line-259">                }, 4).setName(Components.objectName(this)</span>
 <span class="source-line-no">260</span><span id="line-260">                    + ".upstream.byteBuffers"));</span>
-<span class="source-line-no">261</span><span id="line-261">            running = true;</span>
-<span class="source-line-no">262</span><span id="line-262"></span>
-<span class="source-line-no">263</span><span id="line-263">            if (executorService == null) {</span>
-<span class="source-line-no">264</span><span id="line-264">                downPipeline = newEventPipeline();</span>
-<span class="source-line-no">265</span><span id="line-265">            } else {</span>
-<span class="source-line-no">266</span><span id="line-266">                downPipeline = newEventPipeline(executorService);</span>
-<span class="source-line-no">267</span><span id="line-267">            }</span>
-<span class="source-line-no">268</span><span id="line-268"></span>
-<span class="source-line-no">269</span><span id="line-269">            // (1) Opening, (2) ProcessStarted(Opened), (3) process I/O</span>
-<span class="source-line-no">270</span><span id="line-270">            downPipeline().fire(Event.onCompletion(new Opening&lt;Void&gt;(),</span>
-<span class="source-line-no">271</span><span id="line-271">                o -&gt; downPipeline().fire(Event.onCompletion(</span>
-<span class="source-line-no">272</span><span id="line-272">                    new ProcessStarted(startEvent), s -&gt; startIO()), this)),</span>
-<span class="source-line-no">273</span><span id="line-273">                this);</span>
-<span class="source-line-no">274</span><span id="line-274">        }</span>
-<span class="source-line-no">275</span><span id="line-275"></span>
-<span class="source-line-no">276</span><span id="line-276">        /**</span>
-<span class="source-line-no">277</span><span id="line-277">         * Write the given data to the process (to its stdin).</span>
-<span class="source-line-no">278</span><span id="line-278">         *</span>
-<span class="source-line-no">279</span><span id="line-279">         * @param event the event</span>
-<span class="source-line-no">280</span><span id="line-280">         * @throws IOException Signals that an I/O exception has occurred.</span>
-<span class="source-line-no">281</span><span id="line-281">         */</span>
-<span class="source-line-no">282</span><span id="line-282">        private void write(Output&lt;ByteBuffer&gt; event) throws IOException {</span>
-<span class="source-line-no">283</span><span id="line-283">            var source = event.buffer().backingBuffer();</span>
-<span class="source-line-no">284</span><span id="line-284">            process.getOutputStream().write(source.array(), source.position(),</span>
-<span class="source-line-no">285</span><span id="line-285">                source.remaining());</span>
-<span class="source-line-no">286</span><span id="line-286">        }</span>
-<span class="source-line-no">287</span><span id="line-287"></span>
-<span class="source-line-no">288</span><span id="line-288">        private void startIO() {</span>
-<span class="source-line-no">289</span><span id="line-289">            // Regrettably, the streams cannot be used with nio select.</span>
-<span class="source-line-no">290</span><span id="line-290">            outOpen = true;</span>
-<span class="source-line-no">291</span><span id="line-291">            executorService.submit(</span>
-<span class="source-line-no">292</span><span id="line-292">                new InputStreamPipeline(process.getInputStream(), this,</span>
-<span class="source-line-no">293</span><span id="line-293">                    downPipeline()).sendInputEvents().setEventAssociations(</span>
-<span class="source-line-no">294</span><span id="line-294">                        Map.of(FileDescriptor.class, 1)));</span>
-<span class="source-line-no">295</span><span id="line-295">            errOpen = true;</span>
-<span class="source-line-no">296</span><span id="line-296">            executorService.submit(</span>
-<span class="source-line-no">297</span><span id="line-297">                new InputStreamPipeline(process.getErrorStream(), this,</span>
-<span class="source-line-no">298</span><span id="line-298">                    downPipeline()).sendInputEvents().setEventAssociations(</span>
-<span class="source-line-no">299</span><span id="line-299">                        Map.of(FileDescriptor.class, 2)));</span>
-<span class="source-line-no">300</span><span id="line-300">            process.onExit().thenAccept(p -&gt; {</span>
-<span class="source-line-no">301</span><span id="line-301">                running = false;</span>
-<span class="source-line-no">302</span><span id="line-302">                logger</span>
-<span class="source-line-no">303</span><span id="line-303">                    .fine(() -&gt; "Process pid=" + p.toHandle().pid()</span>
-<span class="source-line-no">304</span><span id="line-304">                        + " has exited with: " + p.exitValue());</span>
-<span class="source-line-no">305</span><span id="line-305">                downPipeline()</span>
-<span class="source-line-no">306</span><span id="line-306">                    .fire(new ProcessExited(startEvent,</span>
-<span class="source-line-no">307</span><span id="line-307">                        p.exitValue()), this);</span>
-<span class="source-line-no">308</span><span id="line-308">                maybeUnregister();</span>
-<span class="source-line-no">309</span><span id="line-309">            });</span>
-<span class="source-line-no">310</span><span id="line-310">        }</span>
-<span class="source-line-no">311</span><span id="line-311"></span>
-<span class="source-line-no">312</span><span id="line-312">        /**</span>
-<span class="source-line-no">313</span><span id="line-313">         * Close the stream to the process (its stdin) and optionally</span>
-<span class="source-line-no">314</span><span id="line-314">         * terminates the process.</span>
-<span class="source-line-no">315</span><span id="line-315">         *</span>
-<span class="source-line-no">316</span><span id="line-316">         * @param event the event</span>
-<span class="source-line-no">317</span><span id="line-317">         * @throws IOException Signals that an I/O exception has occurred.</span>
-<span class="source-line-no">318</span><span id="line-318">         */</span>
-<span class="source-line-no">319</span><span id="line-319">        private void close(Close event) {</span>
-<span class="source-line-no">320</span><span id="line-320">            doClose(event.associated(Process.class, Object.class).isPresent());</span>
-<span class="source-line-no">321</span><span id="line-321">        }</span>
-<span class="source-line-no">322</span><span id="line-322"></span>
-<span class="source-line-no">323</span><span id="line-323">        private void doClose(boolean terminate) {</span>
-<span class="source-line-no">324</span><span id="line-324">            if (!closing.getAndSet(true)) {</span>
-<span class="source-line-no">325</span><span id="line-325">                try {</span>
-<span class="source-line-no">326</span><span id="line-326">                    process.getOutputStream().close();</span>
-<span class="source-line-no">327</span><span id="line-327">                } catch (IOException e) {</span>
-<span class="source-line-no">328</span><span id="line-328">                    // Just trying to be nice</span>
-<span class="source-line-no">329</span><span id="line-329">                    logger.log(Level.FINE, e,</span>
-<span class="source-line-no">330</span><span id="line-330">                        () -&gt; "Failed to close pipe to process (ignored): "</span>
-<span class="source-line-no">331</span><span id="line-331">                            + e.getMessage());</span>
-<span class="source-line-no">332</span><span id="line-332">                }</span>
-<span class="source-line-no">333</span><span id="line-333">            }</span>
-<span class="source-line-no">334</span><span id="line-334">            if (terminate &amp;&amp; !terminating.getAndSet(true)) {</span>
-<span class="source-line-no">335</span><span id="line-335">                process.toHandle().destroy();</span>
-<span class="source-line-no">336</span><span id="line-336">            }</span>
-<span class="source-line-no">337</span><span id="line-337">        }</span>
-<span class="source-line-no">338</span><span id="line-338"></span>
-<span class="source-line-no">339</span><span id="line-339">        /**</span>
-<span class="source-line-no">340</span><span id="line-340">         * Handles closed events from the process's output stream. </span>
-<span class="source-line-no">341</span><span id="line-341">         *</span>
-<span class="source-line-no">342</span><span id="line-342">         * @param event the event</span>
-<span class="source-line-no">343</span><span id="line-343">         */</span>
-<span class="source-line-no">344</span><span id="line-344">        private void closed(Closed&lt;?&gt; event) {</span>
-<span class="source-line-no">345</span><span id="line-345">            switch (event.associated(FileDescriptor.class, Integer.class)</span>
-<span class="source-line-no">346</span><span id="line-346">                .orElse(-1)) {</span>
-<span class="source-line-no">347</span><span id="line-347">            case 1:</span>
-<span class="source-line-no">348</span><span id="line-348">                outOpen = false;</span>
-<span class="source-line-no">349</span><span id="line-349">                break;</span>
-<span class="source-line-no">350</span><span id="line-350">            case 2:</span>
-<span class="source-line-no">351</span><span id="line-351">                errOpen = false;</span>
-<span class="source-line-no">352</span><span id="line-352">                break;</span>
-<span class="source-line-no">353</span><span id="line-353">            default:</span>
-<span class="source-line-no">354</span><span id="line-354">                return;</span>
-<span class="source-line-no">355</span><span id="line-355">            }</span>
-<span class="source-line-no">356</span><span id="line-356">            maybeUnregister();</span>
-<span class="source-line-no">357</span><span id="line-357">        }</span>
-<span class="source-line-no">358</span><span id="line-358"></span>
-<span class="source-line-no">359</span><span id="line-359">        private void maybeUnregister() {</span>
-<span class="source-line-no">360</span><span id="line-360">            if (!running &amp;&amp; !outOpen &amp;&amp; !errOpen) {</span>
-<span class="source-line-no">361</span><span id="line-361">                synchronized (channels) {</span>
-<span class="source-line-no">362</span><span id="line-362">                    channels.remove(this);</span>
-<span class="source-line-no">363</span><span id="line-363">                    if (channels.isEmpty()) {</span>
-<span class="source-line-no">364</span><span id="line-364">                        unregisterAsGenerator();</span>
-<span class="source-line-no">365</span><span id="line-365">                    }</span>
-<span class="source-line-no">366</span><span id="line-366">                }</span>
-<span class="source-line-no">367</span><span id="line-367">            }</span>
-<span class="source-line-no">368</span><span id="line-368">        }</span>
-<span class="source-line-no">369</span><span id="line-369"></span>
-<span class="source-line-no">370</span><span id="line-370">        /**</span>
-<span class="source-line-no">371</span><span id="line-371">         * Return the event that caused this channel to be created.</span>
-<span class="source-line-no">372</span><span id="line-372">         *</span>
-<span class="source-line-no">373</span><span id="line-373">         * @return the start event</span>
-<span class="source-line-no">374</span><span id="line-374">         */</span>
-<span class="source-line-no">375</span><span id="line-375">        public StartProcess startEvent() {</span>
-<span class="source-line-no">376</span><span id="line-376">            return startEvent;</span>
-<span class="source-line-no">377</span><span id="line-377">        }</span>
-<span class="source-line-no">378</span><span id="line-378"></span>
-<span class="source-line-no">379</span><span id="line-379">        /**</span>
-<span class="source-line-no">380</span><span id="line-380">         * Gets the down pipeline.</span>
-<span class="source-line-no">381</span><span id="line-381">         *</span>
-<span class="source-line-no">382</span><span id="line-382">         * @return the downPipeline</span>
-<span class="source-line-no">383</span><span id="line-383">         */</span>
-<span class="source-line-no">384</span><span id="line-384">        public EventPipeline downPipeline() {</span>
-<span class="source-line-no">385</span><span id="line-385">            return downPipeline;</span>
-<span class="source-line-no">386</span><span id="line-386">        }</span>
-<span class="source-line-no">387</span><span id="line-387">    }</span>
-<span class="source-line-no">388</span><span id="line-388">}</span>
+<span class="source-line-no">261</span><span id="line-261"></span>
+<span class="source-line-no">262</span><span id="line-262">            if (executorService == null) {</span>
+<span class="source-line-no">263</span><span id="line-263">                downPipeline = newEventPipeline();</span>
+<span class="source-line-no">264</span><span id="line-264">            } else {</span>
+<span class="source-line-no">265</span><span id="line-265">                downPipeline = newEventPipeline(executorService);</span>
+<span class="source-line-no">266</span><span id="line-266">            }</span>
+<span class="source-line-no">267</span><span id="line-267"></span>
+<span class="source-line-no">268</span><span id="line-268">            // (1) Opening, (2) ProcessStarted(Opened), (3) process I/O</span>
+<span class="source-line-no">269</span><span id="line-269">            downPipeline().fire(Event.onCompletion(new Opening&lt;Void&gt;(),</span>
+<span class="source-line-no">270</span><span id="line-270">                o -&gt; downPipeline().fire(Event.onCompletion(</span>
+<span class="source-line-no">271</span><span id="line-271">                    new ProcessStarted(startEvent), s -&gt; startIO()), this)),</span>
+<span class="source-line-no">272</span><span id="line-272">                this);</span>
+<span class="source-line-no">273</span><span id="line-273">        }</span>
+<span class="source-line-no">274</span><span id="line-274"></span>
+<span class="source-line-no">275</span><span id="line-275">        /**</span>
+<span class="source-line-no">276</span><span id="line-276">         * Write the given data to the process (to its stdin).</span>
+<span class="source-line-no">277</span><span id="line-277">         *</span>
+<span class="source-line-no">278</span><span id="line-278">         * @param event the event</span>
+<span class="source-line-no">279</span><span id="line-279">         * @throws IOException Signals that an I/O exception has occurred.</span>
+<span class="source-line-no">280</span><span id="line-280">         */</span>
+<span class="source-line-no">281</span><span id="line-281">        private void write(Output&lt;ByteBuffer&gt; event) throws IOException {</span>
+<span class="source-line-no">282</span><span id="line-282">            var source = event.buffer().backingBuffer();</span>
+<span class="source-line-no">283</span><span id="line-283">            process.getOutputStream().write(source.array(), source.position(),</span>
+<span class="source-line-no">284</span><span id="line-284">                source.remaining());</span>
+<span class="source-line-no">285</span><span id="line-285">        }</span>
+<span class="source-line-no">286</span><span id="line-286"></span>
+<span class="source-line-no">287</span><span id="line-287">        private void startIO() {</span>
+<span class="source-line-no">288</span><span id="line-288">            // Regrettably, the streams cannot be used with nio select.</span>
+<span class="source-line-no">289</span><span id="line-289">            outOpen = true;</span>
+<span class="source-line-no">290</span><span id="line-290">            executorService.submit(</span>
+<span class="source-line-no">291</span><span id="line-291">                new InputStreamPipeline(process.getInputStream(), this,</span>
+<span class="source-line-no">292</span><span id="line-292">                    downPipeline()).sendInputEvents().setEventAssociations(</span>
+<span class="source-line-no">293</span><span id="line-293">                        Map.of(FileDescriptor.class, 1)));</span>
+<span class="source-line-no">294</span><span id="line-294">            errOpen = true;</span>
+<span class="source-line-no">295</span><span id="line-295">            executorService.submit(</span>
+<span class="source-line-no">296</span><span id="line-296">                new InputStreamPipeline(process.getErrorStream(), this,</span>
+<span class="source-line-no">297</span><span id="line-297">                    downPipeline()).sendInputEvents().setEventAssociations(</span>
+<span class="source-line-no">298</span><span id="line-298">                        Map.of(FileDescriptor.class, 2)));</span>
+<span class="source-line-no">299</span><span id="line-299">            process.onExit().thenAccept(p -&gt; {</span>
+<span class="source-line-no">300</span><span id="line-300">                logger.fine(() -&gt; "Process pid=" + p.toHandle().pid()</span>
+<span class="source-line-no">301</span><span id="line-301">                    + " has exited with: " + p.exitValue());</span>
+<span class="source-line-no">302</span><span id="line-302">                downPipeline()</span>
+<span class="source-line-no">303</span><span id="line-303">                    .fire(new ProcessExited(startEvent, p.exitValue()), this);</span>
+<span class="source-line-no">304</span><span id="line-304">                running = false;</span>
+<span class="source-line-no">305</span><span id="line-305">                maybeUnregister();</span>
+<span class="source-line-no">306</span><span id="line-306">            });</span>
+<span class="source-line-no">307</span><span id="line-307">        }</span>
+<span class="source-line-no">308</span><span id="line-308"></span>
+<span class="source-line-no">309</span><span id="line-309">        /**</span>
+<span class="source-line-no">310</span><span id="line-310">         * Close the stream to the process (its stdin) and optionally</span>
+<span class="source-line-no">311</span><span id="line-311">         * terminates the process.</span>
+<span class="source-line-no">312</span><span id="line-312">         *</span>
+<span class="source-line-no">313</span><span id="line-313">         * @param event the event</span>
+<span class="source-line-no">314</span><span id="line-314">         * @throws IOException Signals that an I/O exception has occurred.</span>
+<span class="source-line-no">315</span><span id="line-315">         */</span>
+<span class="source-line-no">316</span><span id="line-316">        private void close(Close event) {</span>
+<span class="source-line-no">317</span><span id="line-317">            doClose(event.associated(Process.class, Object.class).isPresent());</span>
+<span class="source-line-no">318</span><span id="line-318">        }</span>
+<span class="source-line-no">319</span><span id="line-319"></span>
+<span class="source-line-no">320</span><span id="line-320">        private void doClose(boolean terminate) {</span>
+<span class="source-line-no">321</span><span id="line-321">            if (!closing.getAndSet(true)) {</span>
+<span class="source-line-no">322</span><span id="line-322">                try {</span>
+<span class="source-line-no">323</span><span id="line-323">                    process.getOutputStream().close();</span>
+<span class="source-line-no">324</span><span id="line-324">                } catch (IOException e) {</span>
+<span class="source-line-no">325</span><span id="line-325">                    // Just trying to be nice</span>
+<span class="source-line-no">326</span><span id="line-326">                    logger.log(Level.FINE, e, () -&gt; "Failed to close pipe"</span>
+<span class="source-line-no">327</span><span id="line-327">                        + " to process (ignored): " + e.getMessage());</span>
+<span class="source-line-no">328</span><span id="line-328">                }</span>
+<span class="source-line-no">329</span><span id="line-329">            }</span>
+<span class="source-line-no">330</span><span id="line-330">            if (terminate &amp;&amp; !terminating.getAndSet(true)) {</span>
+<span class="source-line-no">331</span><span id="line-331">                process.toHandle().destroy();</span>
+<span class="source-line-no">332</span><span id="line-332">            }</span>
+<span class="source-line-no">333</span><span id="line-333">        }</span>
+<span class="source-line-no">334</span><span id="line-334"></span>
+<span class="source-line-no">335</span><span id="line-335">        /**</span>
+<span class="source-line-no">336</span><span id="line-336">         * Handles closed events from the process's output stream. </span>
+<span class="source-line-no">337</span><span id="line-337">         *</span>
+<span class="source-line-no">338</span><span id="line-338">         * @param event the event</span>
+<span class="source-line-no">339</span><span id="line-339">         */</span>
+<span class="source-line-no">340</span><span id="line-340">        private void closed(Closed&lt;?&gt; event) {</span>
+<span class="source-line-no">341</span><span id="line-341">            switch (event.associated(FileDescriptor.class, Integer.class)</span>
+<span class="source-line-no">342</span><span id="line-342">                .orElse(-1)) {</span>
+<span class="source-line-no">343</span><span id="line-343">            case 1:</span>
+<span class="source-line-no">344</span><span id="line-344">                outOpen = false;</span>
+<span class="source-line-no">345</span><span id="line-345">                break;</span>
+<span class="source-line-no">346</span><span id="line-346">            case 2:</span>
+<span class="source-line-no">347</span><span id="line-347">                errOpen = false;</span>
+<span class="source-line-no">348</span><span id="line-348">                break;</span>
+<span class="source-line-no">349</span><span id="line-349">            default:</span>
+<span class="source-line-no">350</span><span id="line-350">                return;</span>
+<span class="source-line-no">351</span><span id="line-351">            }</span>
+<span class="source-line-no">352</span><span id="line-352">            maybeUnregister();</span>
+<span class="source-line-no">353</span><span id="line-353">        }</span>
+<span class="source-line-no">354</span><span id="line-354"></span>
+<span class="source-line-no">355</span><span id="line-355">        private void maybeUnregister() {</span>
+<span class="source-line-no">356</span><span id="line-356">            if (!running &amp;&amp; !outOpen &amp;&amp; !errOpen) {</span>
+<span class="source-line-no">357</span><span id="line-357">                synchronized (channels) {</span>
+<span class="source-line-no">358</span><span id="line-358">                    channels.remove(this);</span>
+<span class="source-line-no">359</span><span id="line-359">                    if (channels.isEmpty()) {</span>
+<span class="source-line-no">360</span><span id="line-360">                        unregisterAsGenerator();</span>
+<span class="source-line-no">361</span><span id="line-361">                    }</span>
+<span class="source-line-no">362</span><span id="line-362">                }</span>
+<span class="source-line-no">363</span><span id="line-363">            }</span>
+<span class="source-line-no">364</span><span id="line-364">        }</span>
+<span class="source-line-no">365</span><span id="line-365"></span>
+<span class="source-line-no">366</span><span id="line-366">        /**</span>
+<span class="source-line-no">367</span><span id="line-367">         * Return the event that caused this channel to be created.</span>
+<span class="source-line-no">368</span><span id="line-368">         *</span>
+<span class="source-line-no">369</span><span id="line-369">         * @return the start event</span>
+<span class="source-line-no">370</span><span id="line-370">         */</span>
+<span class="source-line-no">371</span><span id="line-371">        public StartProcess startEvent() {</span>
+<span class="source-line-no">372</span><span id="line-372">            return startEvent;</span>
+<span class="source-line-no">373</span><span id="line-373">        }</span>
+<span class="source-line-no">374</span><span id="line-374"></span>
+<span class="source-line-no">375</span><span id="line-375">        /**</span>
+<span class="source-line-no">376</span><span id="line-376">         * Gets the down pipeline.</span>
+<span class="source-line-no">377</span><span id="line-377">         *</span>
+<span class="source-line-no">378</span><span id="line-378">         * @return the downPipeline</span>
+<span class="source-line-no">379</span><span id="line-379">         */</span>
+<span class="source-line-no">380</span><span id="line-380">        public EventPipeline downPipeline() {</span>
+<span class="source-line-no">381</span><span id="line-381">            return downPipeline;</span>
+<span class="source-line-no">382</span><span id="line-382">        }</span>
+<span class="source-line-no">383</span><span id="line-383">    }</span>
+<span class="source-line-no">384</span><span id="line-384">}</span>
 
 
 
