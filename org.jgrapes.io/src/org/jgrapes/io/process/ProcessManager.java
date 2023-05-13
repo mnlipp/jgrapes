@@ -227,7 +227,7 @@ public class ProcessManager extends Component {
         private final StartProcess startEvent;
         private final Process process;
         private final EventPipeline downPipeline;
-        private boolean running;
+        private boolean running = true;
         private final AtomicBoolean closing = new AtomicBoolean();
         private final AtomicBoolean terminating = new AtomicBoolean();
         private boolean outOpen;
@@ -258,7 +258,6 @@ public class ProcessManager extends Component {
                     return ByteBuffer.allocate(4096);
                 }, 4).setName(Components.objectName(this)
                     + ".upstream.byteBuffers"));
-            running = true;
 
             if (executorService == null) {
                 downPipeline = newEventPipeline();
@@ -298,13 +297,11 @@ public class ProcessManager extends Component {
                     downPipeline()).sendInputEvents().setEventAssociations(
                         Map.of(FileDescriptor.class, 2)));
             process.onExit().thenAccept(p -> {
-                running = false;
-                logger
-                    .fine(() -> "Process pid=" + p.toHandle().pid()
-                        + " has exited with: " + p.exitValue());
+                logger.fine(() -> "Process pid=" + p.toHandle().pid()
+                    + " has exited with: " + p.exitValue());
                 downPipeline()
-                    .fire(new ProcessExited(startEvent,
-                        p.exitValue()), this);
+                    .fire(new ProcessExited(startEvent, p.exitValue()), this);
+                running = false;
                 maybeUnregister();
             });
         }
@@ -326,9 +323,8 @@ public class ProcessManager extends Component {
                     process.getOutputStream().close();
                 } catch (IOException e) {
                     // Just trying to be nice
-                    logger.log(Level.FINE, e,
-                        () -> "Failed to close pipe to process (ignored): "
-                            + e.getMessage());
+                    logger.log(Level.FINE, e, () -> "Failed to close pipe"
+                        + " to process (ignored): " + e.getMessage());
                 }
             }
             if (terminate && !terminating.getAndSet(true)) {
