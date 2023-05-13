@@ -286,8 +286,6 @@ public class ClientTest {
                     out.write('.');
                 }
                 out.write("Full Stop!");
-            } catch (IOException e) {
-                throw new RuntimeException(e);
             }
         });
         done.get();
