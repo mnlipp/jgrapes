@@ -202,19 +202,19 @@ public class CharBufferWriter extends Writer {
 
     @Override
     @SuppressWarnings("PMD.ShortVariable")
-    public Writer append(char ch) {
+    public CharBufferWriter append(char ch) {
         write(ch);
         return this;
     }
 
     @Override
-    public Writer append(CharSequence csq) {
+    public CharBufferWriter append(CharSequence csq) {
         write(String.valueOf(csq));
         return this;
     }
 
     @Override
-    public Writer append(CharSequence csq, int start, int end) {
+    public CharBufferWriter append(CharSequence csq, int start, int end) {
         if (csq == null) {
             csq = "null";
         }
