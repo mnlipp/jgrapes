@@ -112,11 +112,11 @@
 <span class="source-line-no">099</span><span id="line-99"></span>
 <span class="source-line-no">100</span><span id="line-100">    /**</span>
 <span class="source-line-no">101</span><span id="line-101">     * Sets the charset to be used for converting the written data</span>
-<span class="source-line-no">102</span><span id="line-102">     * to bytes. Defaults to UTF-8. Must be set before the first </span>
+<span class="source-line-no">102</span><span id="line-102">     * to bytes which defaults to UTF-8. Must be set before the first </span>
 <span class="source-line-no">103</span><span id="line-103">     * invocation of any write method.  </span>
 <span class="source-line-no">104</span><span id="line-104">     *</span>
 <span class="source-line-no">105</span><span id="line-105">     * @param charset the charset</span>
-<span class="source-line-no">106</span><span id="line-106">     * @return the managed buffer reader</span>
+<span class="source-line-no">106</span><span id="line-106">     * @return the writer</span>
 <span class="source-line-no">107</span><span id="line-107">     */</span>
 <span class="source-line-no">108</span><span id="line-108">    public ByteBufferWriter charset(Charset charset) {</span>
 <span class="source-line-no">109</span><span id="line-109">        if (encoder != null) {</span>
@@ -132,157 +132,155 @@
 <span class="source-line-no">119</span><span id="line-119">     * `native.encoding`. If this property does not specify a valid </span>
 <span class="source-line-no">120</span><span id="line-120">     * charset, {@link Charset#defaultCharset()} is used.</span>
 <span class="source-line-no">121</span><span id="line-121">     *  </span>
-<span class="source-line-no">122</span><span id="line-122">     * Must be invoked before the first invocation of </span>
-<span class="source-line-no">123</span><span id="line-123">     * {@link #feed(ManagedBuffer)}.  </span>
-<span class="source-line-no">124</span><span id="line-124">     *</span>
-<span class="source-line-no">125</span><span id="line-125">     * @param charset the charset</span>
-<span class="source-line-no">126</span><span id="line-126">     * @return the managed buffer reader</span>
-<span class="source-line-no">127</span><span id="line-127">     */</span>
-<span class="source-line-no">128</span><span id="line-128">    @SuppressWarnings({ "PMD.AvoidCatchingGenericException",</span>
-<span class="source-line-no">129</span><span id="line-129">        "PMD.EmptyCatchBlock", "PMD.DataflowAnomalyAnalysis" })</span>
-<span class="source-line-no">130</span><span id="line-130">    public ByteBufferWriter nativeCharset() {</span>
-<span class="source-line-no">131</span><span id="line-131">        Charset toSet = Charset.defaultCharset();</span>
-<span class="source-line-no">132</span><span id="line-132">        var toCheck = System.getProperty("native.encoding");</span>
-<span class="source-line-no">133</span><span id="line-133">        if (toCheck != null) {</span>
-<span class="source-line-no">134</span><span id="line-134">            try {</span>
-<span class="source-line-no">135</span><span id="line-135">                toSet = Charset.forName(toCheck);</span>
-<span class="source-line-no">136</span><span id="line-136">            } catch (Exception e) {</span>
-<span class="source-line-no">137</span><span id="line-137">                // If this fails, simply use default</span>
-<span class="source-line-no">138</span><span id="line-138">            }</span>
-<span class="source-line-no">139</span><span id="line-139">        }</span>
-<span class="source-line-no">140</span><span id="line-140">        charset(toSet);</span>
-<span class="source-line-no">141</span><span id="line-141">        return this;</span>
-<span class="source-line-no">142</span><span id="line-142">    }</span>
-<span class="source-line-no">143</span><span id="line-143"></span>
-<span class="source-line-no">144</span><span id="line-144">    @Override</span>
-<span class="source-line-no">145</span><span id="line-145">    protected void ensureBufferAvailable() throws InterruptedException {</span>
-<span class="source-line-no">146</span><span id="line-146">        if (buffer != null) {</span>
-<span class="source-line-no">147</span><span id="line-147">            return;</span>
-<span class="source-line-no">148</span><span id="line-148">        }</span>
-<span class="source-line-no">149</span><span id="line-149">        buffer = channel.byteBufferPool().acquire();</span>
-<span class="source-line-no">150</span><span id="line-150">    }</span>
-<span class="source-line-no">151</span><span id="line-151"></span>
-<span class="source-line-no">152</span><span id="line-152">    private void ensureWrittenAvailable() throws InterruptedException {</span>
-<span class="source-line-no">153</span><span id="line-153">        if (written == null) {</span>
-<span class="source-line-no">154</span><span id="line-154">            ensureBufferAvailable();</span>
-<span class="source-line-no">155</span><span id="line-155">            written = CharBuffer.allocate(buffer.capacity());</span>
-<span class="source-line-no">156</span><span id="line-156">            encoder = charset.newEncoder();</span>
-<span class="source-line-no">157</span><span id="line-157">        }</span>
-<span class="source-line-no">158</span><span id="line-158">    }</span>
-<span class="source-line-no">159</span><span id="line-159"></span>
-<span class="source-line-no">160</span><span id="line-160">    private void encode() throws InterruptedException {</span>
-<span class="source-line-no">161</span><span id="line-161">        written.flip();</span>
-<span class="source-line-no">162</span><span id="line-162">        while (true) {</span>
-<span class="source-line-no">163</span><span id="line-163">            ensureBufferAvailable();</span>
-<span class="source-line-no">164</span><span id="line-164">            var res = encoder.encode(written, buffer.backingBuffer(), false);</span>
-<span class="source-line-no">165</span><span id="line-165">            if (res.isUnderflow()) {</span>
-<span class="source-line-no">166</span><span id="line-166">                // This should not be possible (incomplete character?).</span>
-<span class="source-line-no">167</span><span id="line-167">                var carryOver = CharBuffer.allocate(written.capacity());</span>
-<span class="source-line-no">168</span><span id="line-168">                carryOver.put(written);</span>
-<span class="source-line-no">169</span><span id="line-169">                written = carryOver;</span>
-<span class="source-line-no">170</span><span id="line-170">                return;</span>
-<span class="source-line-no">171</span><span id="line-171">            }</span>
-<span class="source-line-no">172</span><span id="line-172">            if (!res.isOverflow()) {</span>
-<span class="source-line-no">173</span><span id="line-173">                break;</span>
-<span class="source-line-no">174</span><span id="line-174">            }</span>
-<span class="source-line-no">175</span><span id="line-175">            flush(false);</span>
-<span class="source-line-no">176</span><span id="line-176">        }</span>
-<span class="source-line-no">177</span><span id="line-177">        // written processed</span>
-<span class="source-line-no">178</span><span id="line-178">        written.clear();</span>
-<span class="source-line-no">179</span><span id="line-179">    }</span>
-<span class="source-line-no">180</span><span id="line-180"></span>
-<span class="source-line-no">181</span><span id="line-181">    /*</span>
-<span class="source-line-no">182</span><span id="line-182">     * (non-Javadoc)</span>
-<span class="source-line-no">183</span><span id="line-183">     * </span>
-<span class="source-line-no">184</span><span id="line-184">     * @see java.io.Writer#write(char[], int, int)</span>
-<span class="source-line-no">185</span><span id="line-185">     */</span>
-<span class="source-line-no">186</span><span id="line-186">    @Override</span>
-<span class="source-line-no">187</span><span id="line-187">    public void write(char[] data, int offset, int length) {</span>
-<span class="source-line-no">188</span><span id="line-188">        while (true) {</span>
-<span class="source-line-no">189</span><span id="line-189">            try {</span>
-<span class="source-line-no">190</span><span id="line-190">                ensureWrittenAvailable();</span>
-<span class="source-line-no">191</span><span id="line-191">                if (written.remaining() &gt;= length) {</span>
-<span class="source-line-no">192</span><span id="line-192">                    written.put(data, offset, length);</span>
-<span class="source-line-no">193</span><span id="line-193">                    encode();</span>
-<span class="source-line-no">194</span><span id="line-194">                    break;</span>
-<span class="source-line-no">195</span><span id="line-195">                }</span>
-<span class="source-line-no">196</span><span id="line-196">                int chunkSize = written.remaining();</span>
-<span class="source-line-no">197</span><span id="line-197">                written.put(data, offset, chunkSize);</span>
-<span class="source-line-no">198</span><span id="line-198">                length -= chunkSize;</span>
-<span class="source-line-no">199</span><span id="line-199">                offset += chunkSize;</span>
-<span class="source-line-no">200</span><span id="line-200">                encode();</span>
-<span class="source-line-no">201</span><span id="line-201">            } catch (InterruptedException e) {</span>
-<span class="source-line-no">202</span><span id="line-202">                Thread.currentThread().interrupt();</span>
-<span class="source-line-no">203</span><span id="line-203">                return;</span>
-<span class="source-line-no">204</span><span id="line-204">            }</span>
-<span class="source-line-no">205</span><span id="line-205">        }</span>
-<span class="source-line-no">206</span><span id="line-206">    }</span>
-<span class="source-line-no">207</span><span id="line-207"></span>
-<span class="source-line-no">208</span><span id="line-208">    @Override</span>
-<span class="source-line-no">209</span><span id="line-209">    public void write(char[] cbuf) {</span>
-<span class="source-line-no">210</span><span id="line-210">        write(cbuf, 0, cbuf.length);</span>
-<span class="source-line-no">211</span><span id="line-211">    }</span>
-<span class="source-line-no">212</span><span id="line-212"></span>
-<span class="source-line-no">213</span><span id="line-213">    @Override</span>
-<span class="source-line-no">214</span><span id="line-214">    public void write(String str, int offset, int length) {</span>
-<span class="source-line-no">215</span><span id="line-215">        while (true) {</span>
-<span class="source-line-no">216</span><span id="line-216">            try {</span>
-<span class="source-line-no">217</span><span id="line-217">                ensureWrittenAvailable();</span>
-<span class="source-line-no">218</span><span id="line-218">                if (written.remaining() &gt;= length) {</span>
-<span class="source-line-no">219</span><span id="line-219">                    str.getChars(offset, offset + length, written.array(),</span>
-<span class="source-line-no">220</span><span id="line-220">                        written.position());</span>
-<span class="source-line-no">221</span><span id="line-221">                    written.position(written.position() + length);</span>
-<span class="source-line-no">222</span><span id="line-222">                    encode();</span>
-<span class="source-line-no">223</span><span id="line-223">                    break;</span>
-<span class="source-line-no">224</span><span id="line-224">                }</span>
-<span class="source-line-no">225</span><span id="line-225">                int chunkSize = buffer.remaining();</span>
-<span class="source-line-no">226</span><span id="line-226">                str.getChars(offset, offset + chunkSize, written.array(),</span>
-<span class="source-line-no">227</span><span id="line-227">                    written.position());</span>
-<span class="source-line-no">228</span><span id="line-228">                written.position(written.position() + chunkSize);</span>
-<span class="source-line-no">229</span><span id="line-229">                length -= chunkSize;</span>
-<span class="source-line-no">230</span><span id="line-230">                offset += chunkSize;</span>
-<span class="source-line-no">231</span><span id="line-231">                encode();</span>
-<span class="source-line-no">232</span><span id="line-232">            } catch (InterruptedException e) {</span>
-<span class="source-line-no">233</span><span id="line-233">                Thread.currentThread().interrupt();</span>
-<span class="source-line-no">234</span><span id="line-234">                return;</span>
-<span class="source-line-no">235</span><span id="line-235">            }</span>
-<span class="source-line-no">236</span><span id="line-236">        }</span>
-<span class="source-line-no">237</span><span id="line-237">    }</span>
-<span class="source-line-no">238</span><span id="line-238"></span>
-<span class="source-line-no">239</span><span id="line-239">    @Override</span>
-<span class="source-line-no">240</span><span id="line-240">    public void write(String str) {</span>
-<span class="source-line-no">241</span><span id="line-241">        write(str, 0, str.length());</span>
-<span class="source-line-no">242</span><span id="line-242">    }</span>
-<span class="source-line-no">243</span><span id="line-243"></span>
-<span class="source-line-no">244</span><span id="line-244">    @Override</span>
-<span class="source-line-no">245</span><span id="line-245">    @SuppressWarnings("PMD.ShortVariable")</span>
-<span class="source-line-no">246</span><span id="line-246">    public void write(int ch) {</span>
-<span class="source-line-no">247</span><span id="line-247">        char[] buff = { (char) ch };</span>
-<span class="source-line-no">248</span><span id="line-248">        write(buff, 0, 1);</span>
-<span class="source-line-no">249</span><span id="line-249">    }</span>
-<span class="source-line-no">250</span><span id="line-250"></span>
-<span class="source-line-no">251</span><span id="line-251">    @Override</span>
-<span class="source-line-no">252</span><span id="line-252">    @SuppressWarnings("PMD.ShortVariable")</span>
-<span class="source-line-no">253</span><span id="line-253">    public ByteBufferWriter append(char ch) {</span>
-<span class="source-line-no">254</span><span id="line-254">        write(ch);</span>
-<span class="source-line-no">255</span><span id="line-255">        return this;</span>
-<span class="source-line-no">256</span><span id="line-256">    }</span>
-<span class="source-line-no">257</span><span id="line-257"></span>
-<span class="source-line-no">258</span><span id="line-258">    @Override</span>
-<span class="source-line-no">259</span><span id="line-259">    public ByteBufferWriter append(CharSequence csq) {</span>
-<span class="source-line-no">260</span><span id="line-260">        write(String.valueOf(csq));</span>
-<span class="source-line-no">261</span><span id="line-261">        return this;</span>
-<span class="source-line-no">262</span><span id="line-262">    }</span>
-<span class="source-line-no">263</span><span id="line-263"></span>
-<span class="source-line-no">264</span><span id="line-264">    @Override</span>
-<span class="source-line-no">265</span><span id="line-265">    public ByteBufferWriter append(CharSequence csq, int start, int end) {</span>
-<span class="source-line-no">266</span><span id="line-266">        if (csq == null) {</span>
-<span class="source-line-no">267</span><span id="line-267">            csq = "null";</span>
-<span class="source-line-no">268</span><span id="line-268">        }</span>
-<span class="source-line-no">269</span><span id="line-269">        return append(csq.subSequence(start, end));</span>
-<span class="source-line-no">270</span><span id="line-270">    }</span>
-<span class="source-line-no">271</span><span id="line-271"></span>
-<span class="source-line-no">272</span><span id="line-272">}</span>
+<span class="source-line-no">122</span><span id="line-122">     * Must be invoked before the first write (or append) operation.  </span>
+<span class="source-line-no">123</span><span id="line-123">     *</span>
+<span class="source-line-no">124</span><span id="line-124">     * @return the writer</span>
+<span class="source-line-no">125</span><span id="line-125">     */</span>
+<span class="source-line-no">126</span><span id="line-126">    @SuppressWarnings({ "PMD.AvoidCatchingGenericException",</span>
+<span class="source-line-no">127</span><span id="line-127">        "PMD.EmptyCatchBlock", "PMD.DataflowAnomalyAnalysis" })</span>
+<span class="source-line-no">128</span><span id="line-128">    public ByteBufferWriter nativeCharset() {</span>
+<span class="source-line-no">129</span><span id="line-129">        Charset toSet = Charset.defaultCharset();</span>
+<span class="source-line-no">130</span><span id="line-130">        var toCheck = System.getProperty("native.encoding");</span>
+<span class="source-line-no">131</span><span id="line-131">        if (toCheck != null) {</span>
+<span class="source-line-no">132</span><span id="line-132">            try {</span>
+<span class="source-line-no">133</span><span id="line-133">                toSet = Charset.forName(toCheck);</span>
+<span class="source-line-no">134</span><span id="line-134">            } catch (Exception e) {</span>
+<span class="source-line-no">135</span><span id="line-135">                // If this fails, simply use default</span>
+<span class="source-line-no">136</span><span id="line-136">            }</span>
+<span class="source-line-no">137</span><span id="line-137">        }</span>
+<span class="source-line-no">138</span><span id="line-138">        charset(toSet);</span>
+<span class="source-line-no">139</span><span id="line-139">        return this;</span>
+<span class="source-line-no">140</span><span id="line-140">    }</span>
+<span class="source-line-no">141</span><span id="line-141"></span>
+<span class="source-line-no">142</span><span id="line-142">    @Override</span>
+<span class="source-line-no">143</span><span id="line-143">    protected void ensureBufferAvailable() throws InterruptedException {</span>
+<span class="source-line-no">144</span><span id="line-144">        if (buffer != null) {</span>
+<span class="source-line-no">145</span><span id="line-145">            return;</span>
+<span class="source-line-no">146</span><span id="line-146">        }</span>
+<span class="source-line-no">147</span><span id="line-147">        buffer = channel.byteBufferPool().acquire();</span>
+<span class="source-line-no">148</span><span id="line-148">    }</span>
+<span class="source-line-no">149</span><span id="line-149"></span>
+<span class="source-line-no">150</span><span id="line-150">    private void ensureWrittenAvailable() throws InterruptedException {</span>
+<span class="source-line-no">151</span><span id="line-151">        if (written == null) {</span>
+<span class="source-line-no">152</span><span id="line-152">            ensureBufferAvailable();</span>
+<span class="source-line-no">153</span><span id="line-153">            written = CharBuffer.allocate(buffer.capacity());</span>
+<span class="source-line-no">154</span><span id="line-154">            encoder = charset.newEncoder();</span>
+<span class="source-line-no">155</span><span id="line-155">        }</span>
+<span class="source-line-no">156</span><span id="line-156">    }</span>
+<span class="source-line-no">157</span><span id="line-157"></span>
+<span class="source-line-no">158</span><span id="line-158">    private void encode() throws InterruptedException {</span>
+<span class="source-line-no">159</span><span id="line-159">        written.flip();</span>
+<span class="source-line-no">160</span><span id="line-160">        while (true) {</span>
+<span class="source-line-no">161</span><span id="line-161">            ensureBufferAvailable();</span>
+<span class="source-line-no">162</span><span id="line-162">            var res = encoder.encode(written, buffer.backingBuffer(), false);</span>
+<span class="source-line-no">163</span><span id="line-163">            if (res.isUnderflow()) {</span>
+<span class="source-line-no">164</span><span id="line-164">                // This should not be possible (incomplete character?).</span>
+<span class="source-line-no">165</span><span id="line-165">                var carryOver = CharBuffer.allocate(written.capacity());</span>
+<span class="source-line-no">166</span><span id="line-166">                carryOver.put(written);</span>
+<span class="source-line-no">167</span><span id="line-167">                written = carryOver;</span>
+<span class="source-line-no">168</span><span id="line-168">                return;</span>
+<span class="source-line-no">169</span><span id="line-169">            }</span>
+<span class="source-line-no">170</span><span id="line-170">            if (!res.isOverflow()) {</span>
+<span class="source-line-no">171</span><span id="line-171">                break;</span>
+<span class="source-line-no">172</span><span id="line-172">            }</span>
+<span class="source-line-no">173</span><span id="line-173">            flush(false);</span>
+<span class="source-line-no">174</span><span id="line-174">        }</span>
+<span class="source-line-no">175</span><span id="line-175">        // written processed</span>
+<span class="source-line-no">176</span><span id="line-176">        written.clear();</span>
+<span class="source-line-no">177</span><span id="line-177">    }</span>
+<span class="source-line-no">178</span><span id="line-178"></span>
+<span class="source-line-no">179</span><span id="line-179">    /*</span>
+<span class="source-line-no">180</span><span id="line-180">     * (non-Javadoc)</span>
+<span class="source-line-no">181</span><span id="line-181">     * </span>
+<span class="source-line-no">182</span><span id="line-182">     * @see java.io.Writer#write(char[], int, int)</span>
+<span class="source-line-no">183</span><span id="line-183">     */</span>
+<span class="source-line-no">184</span><span id="line-184">    @Override</span>
+<span class="source-line-no">185</span><span id="line-185">    public void write(char[] data, int offset, int length) {</span>
+<span class="source-line-no">186</span><span id="line-186">        while (true) {</span>
+<span class="source-line-no">187</span><span id="line-187">            try {</span>
+<span class="source-line-no">188</span><span id="line-188">                ensureWrittenAvailable();</span>
+<span class="source-line-no">189</span><span id="line-189">                if (written.remaining() &gt;= length) {</span>
+<span class="source-line-no">190</span><span id="line-190">                    written.put(data, offset, length);</span>
+<span class="source-line-no">191</span><span id="line-191">                    encode();</span>
+<span class="source-line-no">192</span><span id="line-192">                    break;</span>
+<span class="source-line-no">193</span><span id="line-193">                }</span>
+<span class="source-line-no">194</span><span id="line-194">                int chunkSize = written.remaining();</span>
+<span class="source-line-no">195</span><span id="line-195">                written.put(data, offset, chunkSize);</span>
+<span class="source-line-no">196</span><span id="line-196">                length -= chunkSize;</span>
+<span class="source-line-no">197</span><span id="line-197">                offset += chunkSize;</span>
+<span class="source-line-no">198</span><span id="line-198">                encode();</span>
+<span class="source-line-no">199</span><span id="line-199">            } catch (InterruptedException e) {</span>
+<span class="source-line-no">200</span><span id="line-200">                Thread.currentThread().interrupt();</span>
+<span class="source-line-no">201</span><span id="line-201">                return;</span>
+<span class="source-line-no">202</span><span id="line-202">            }</span>
+<span class="source-line-no">203</span><span id="line-203">        }</span>
+<span class="source-line-no">204</span><span id="line-204">    }</span>
+<span class="source-line-no">205</span><span id="line-205"></span>
+<span class="source-line-no">206</span><span id="line-206">    @Override</span>
+<span class="source-line-no">207</span><span id="line-207">    public void write(char[] cbuf) {</span>
+<span class="source-line-no">208</span><span id="line-208">        write(cbuf, 0, cbuf.length);</span>
+<span class="source-line-no">209</span><span id="line-209">    }</span>
+<span class="source-line-no">210</span><span id="line-210"></span>
+<span class="source-line-no">211</span><span id="line-211">    @Override</span>
+<span class="source-line-no">212</span><span id="line-212">    public void write(String str, int offset, int length) {</span>
+<span class="source-line-no">213</span><span id="line-213">        while (true) {</span>
+<span class="source-line-no">214</span><span id="line-214">            try {</span>
+<span class="source-line-no">215</span><span id="line-215">                ensureWrittenAvailable();</span>
+<span class="source-line-no">216</span><span id="line-216">                if (written.remaining() &gt;= length) {</span>
+<span class="source-line-no">217</span><span id="line-217">                    str.getChars(offset, offset + length, written.array(),</span>
+<span class="source-line-no">218</span><span id="line-218">                        written.position());</span>
+<span class="source-line-no">219</span><span id="line-219">                    written.position(written.position() + length);</span>
+<span class="source-line-no">220</span><span id="line-220">                    encode();</span>
+<span class="source-line-no">221</span><span id="line-221">                    break;</span>
+<span class="source-line-no">222</span><span id="line-222">                }</span>
+<span class="source-line-no">223</span><span id="line-223">                int chunkSize = buffer.remaining();</span>
+<span class="source-line-no">224</span><span id="line-224">                str.getChars(offset, offset + chunkSize, written.array(),</span>
+<span class="source-line-no">225</span><span id="line-225">                    written.position());</span>
+<span class="source-line-no">226</span><span id="line-226">                written.position(written.position() + chunkSize);</span>
+<span class="source-line-no">227</span><span id="line-227">                length -= chunkSize;</span>
+<span class="source-line-no">228</span><span id="line-228">                offset += chunkSize;</span>
+<span class="source-line-no">229</span><span id="line-229">                encode();</span>
+<span class="source-line-no">230</span><span id="line-230">            } catch (InterruptedException e) {</span>
+<span class="source-line-no">231</span><span id="line-231">                Thread.currentThread().interrupt();</span>
+<span class="source-line-no">232</span><span id="line-232">                return;</span>
+<span class="source-line-no">233</span><span id="line-233">            }</span>
+<span class="source-line-no">234</span><span id="line-234">        }</span>
+<span class="source-line-no">235</span><span id="line-235">    }</span>
+<span class="source-line-no">236</span><span id="line-236"></span>
+<span class="source-line-no">237</span><span id="line-237">    @Override</span>
+<span class="source-line-no">238</span><span id="line-238">    public void write(String str) {</span>
+<span class="source-line-no">239</span><span id="line-239">        write(str, 0, str.length());</span>
+<span class="source-line-no">240</span><span id="line-240">    }</span>
+<span class="source-line-no">241</span><span id="line-241"></span>
+<span class="source-line-no">242</span><span id="line-242">    @Override</span>
+<span class="source-line-no">243</span><span id="line-243">    @SuppressWarnings("PMD.ShortVariable")</span>
+<span class="source-line-no">244</span><span id="line-244">    public void write(int ch) {</span>
+<span class="source-line-no">245</span><span id="line-245">        char[] buff = { (char) ch };</span>
+<span class="source-line-no">246</span><span id="line-246">        write(buff, 0, 1);</span>
+<span class="source-line-no">247</span><span id="line-247">    }</span>
+<span class="source-line-no">248</span><span id="line-248"></span>
+<span class="source-line-no">249</span><span id="line-249">    @Override</span>
+<span class="source-line-no">250</span><span id="line-250">    @SuppressWarnings("PMD.ShortVariable")</span>
+<span class="source-line-no">251</span><span id="line-251">    public ByteBufferWriter append(char ch) {</span>
+<span class="source-line-no">252</span><span id="line-252">        write(ch);</span>
+<span class="source-line-no">253</span><span id="line-253">        return this;</span>
+<span class="source-line-no">254</span><span id="line-254">    }</span>
+<span class="source-line-no">255</span><span id="line-255"></span>
+<span class="source-line-no">256</span><span id="line-256">    @Override</span>
+<span class="source-line-no">257</span><span id="line-257">    public ByteBufferWriter append(CharSequence csq) {</span>
+<span class="source-line-no">258</span><span id="line-258">        write(String.valueOf(csq));</span>
+<span class="source-line-no">259</span><span id="line-259">        return this;</span>
+<span class="source-line-no">260</span><span id="line-260">    }</span>
+<span class="source-line-no">261</span><span id="line-261"></span>
+<span class="source-line-no">262</span><span id="line-262">    @Override</span>
+<span class="source-line-no">263</span><span id="line-263">    public ByteBufferWriter append(CharSequence csq, int start, int end) {</span>
+<span class="source-line-no">264</span><span id="line-264">        if (csq == null) {</span>
+<span class="source-line-no">265</span><span id="line-265">            csq = "null";</span>
+<span class="source-line-no">266</span><span id="line-266">        }</span>
+<span class="source-line-no">267</span><span id="line-267">        return append(csq.subSequence(start, end));</span>
+<span class="source-line-no">268</span><span id="line-268">    }</span>
+<span class="source-line-no">269</span><span id="line-269"></span>
+<span class="source-line-no">270</span><span id="line-270">}</span>
 
 
 
