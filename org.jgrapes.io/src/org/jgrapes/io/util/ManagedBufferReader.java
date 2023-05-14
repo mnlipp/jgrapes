@@ -85,7 +85,6 @@ public class ManagedBufferReader extends Reader {
      * Must be invoked before the first invocation of 
      * {@link #feed(ManagedBuffer)}.  
      *
-     * @param charset the charset
      * @return the managed buffer reader
      */
     @SuppressWarnings({ "PMD.AvoidCatchingGenericException",

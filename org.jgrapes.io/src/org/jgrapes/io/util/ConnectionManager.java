@@ -72,14 +72,13 @@ public abstract class ConnectionManager<
     }
 
     /**
-     * Creates a new component base like {@link #Component(Channel)}
-     * but with channel mappings for {@link Handler} annotations.
+     * Creates a new component base like 
+     * {@link Component#Component(Channel)} but with channel mappings 
+     * for {@link Handler} annotations.
      *
      * @param componentChannel the channel that the component's
      * handlers listen on by default and that 
      * {@link Manager#fire(Event, Channel...)} sends the event to
-     * @param channelReplacements the channel replacements to apply
-     * to the `channels` elements of the {@link Handler} annotations
      */
     public ConnectionManager(Channel componentChannel) {
         super(componentChannel);

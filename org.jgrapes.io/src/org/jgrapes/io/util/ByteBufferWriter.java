@@ -99,11 +99,11 @@ public class ByteBufferWriter extends AbstractBufferWriter<ByteBuffer> {
 
     /**
      * Sets the charset to be used for converting the written data
-     * to bytes. Defaults to UTF-8. Must be set before the first 
+     * to bytes which defaults to UTF-8. Must be set before the first 
      * invocation of any write method.  
      *
      * @param charset the charset
-     * @return the managed buffer reader
+     * @return the writer
      */
     public ByteBufferWriter charset(Charset charset) {
         if (encoder != null) {
@@ -119,11 +119,9 @@ public class ByteBufferWriter extends AbstractBufferWriter<ByteBuffer> {
      * `native.encoding`. If this property does not specify a valid 
      * charset, {@link Charset#defaultCharset()} is used.
      *  
-     * Must be invoked before the first invocation of 
-     * {@link #feed(ManagedBuffer)}.  
+     * Must be invoked before the first write (or append) operation.  
      *
-     * @param charset the charset
-     * @return the managed buffer reader
+     * @return the writer
      */
     @SuppressWarnings({ "PMD.AvoidCatchingGenericException",
         "PMD.EmptyCatchBlock", "PMD.DataflowAnomalyAnalysis" })
