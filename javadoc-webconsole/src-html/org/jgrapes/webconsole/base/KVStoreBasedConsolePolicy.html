@@ -247,14 +247,15 @@
 <span class="source-line-no">234</span><span id="line-234">            persisted.put("xtraInfo", event.xtraInfo());</span>
 <span class="source-line-no">235</span><span id="line-235"></span>
 <span class="source-line-no">236</span><span id="line-236">            // Now store.</span>
-<span class="source-line-no">237</span><span id="line-237">            JsonBeanEncoder encoder = JsonBeanEncoder.create();</span>
-<span class="source-line-no">238</span><span id="line-238">            encoder.writeObject(persisted);</span>
-<span class="source-line-no">239</span><span id="line-239">            fire(new KeyValueStoreUpdate()</span>
-<span class="source-line-no">240</span><span id="line-240">                .update(storagePath, encoder.toJson()), channel);</span>
-<span class="source-line-no">241</span><span id="line-241">        }</span>
-<span class="source-line-no">242</span><span id="line-242"></span>
-<span class="source-line-no">243</span><span id="line-243">    }</span>
-<span class="source-line-no">244</span><span id="line-244">}</span>
+<span class="source-line-no">237</span><span id="line-237">            @SuppressWarnings("PMD.CloseResource")</span>
+<span class="source-line-no">238</span><span id="line-238">            JsonBeanEncoder encoder = JsonBeanEncoder.create();</span>
+<span class="source-line-no">239</span><span id="line-239">            encoder.writeObject(persisted);</span>
+<span class="source-line-no">240</span><span id="line-240">            fire(new KeyValueStoreUpdate()</span>
+<span class="source-line-no">241</span><span id="line-241">                .update(storagePath, encoder.toJson()), channel);</span>
+<span class="source-line-no">242</span><span id="line-242">        }</span>
+<span class="source-line-no">243</span><span id="line-243"></span>
+<span class="source-line-no">244</span><span id="line-244">    }</span>
+<span class="source-line-no">245</span><span id="line-245">}</span>
 
 
 
