@@ -140,12 +140,12 @@ public class CharBufferWriter extends Writer {
             if (buf.remaining() > length) {
                 buf.put(data, offset, length);
                 break;
-            } else if (buffer.remaining() == length) {
+            } else if (buf.remaining() == length) {
                 buf.put(data, offset, length);
                 flush(false);
                 break;
             } else {
-                int chunkSize = buffer.remaining();
+                int chunkSize = buf.remaining();
                 buf.put(data, offset, chunkSize);
                 flush(false);
                 length -= chunkSize;
@@ -178,7 +178,7 @@ public class CharBufferWriter extends Writer {
                 }
                 break;
             }
-            int chunkSize = buffer.remaining();
+            int chunkSize = buf.remaining();
             str.getChars(offset, offset + chunkSize, buf.array(),
                 buf.position());
             buf.position(buf.position() + chunkSize);
