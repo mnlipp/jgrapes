@@ -27,7 +27,6 @@ import freemarker.template.TemplateMethodModelEx;
 import freemarker.template.TemplateModel;
 import freemarker.template.TemplateModelException;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.URI;
 import java.text.ParseException;
@@ -59,7 +58,7 @@ import org.jgrapes.http.events.Response;
 import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.io.events.Close;
 import org.jgrapes.io.events.Output;
-import org.jgrapes.io.util.ByteBufferOutputStream;
+import org.jgrapes.io.util.ByteBufferWriter;
 
 /**
  * A base class for components that generate responses to
@@ -253,10 +252,8 @@ public class FreeMarkerRequestHandler extends Component {
         channel.respond(new Response(response));
 
         // Send content
-        try (ByteBufferOutputStream bbos = new ByteBufferOutputStream(
-            channel, channel.responsePipeline());
-                Writer out = new OutputStreamWriter(
-                    bbos.suppressClose(), "utf-8")) {
+        try (@SuppressWarnings("resource")
+        Writer out = new ByteBufferWriter(channel).suppressClose()) {
             Map<String, Object> model
                 = fmSessionModel(event.associatedGet(Session.class));
             tpl.setLocale((Locale) model.get("locale"));

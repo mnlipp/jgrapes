@@ -2,7 +2,6 @@ package org.jgrapes.io.test.process;
 
 import java.io.FileDescriptor;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import org.jgrapes.core.Channel;
@@ -16,7 +15,7 @@ import org.jgrapes.io.events.ProcessExited;
 import org.jgrapes.io.events.ProcessStarted;
 import org.jgrapes.io.events.StartProcess;
 import org.jgrapes.io.process.ProcessManager;
-import org.jgrapes.io.util.ByteBufferOutputStream;
+import org.jgrapes.io.util.ByteBufferWriter;
 import org.jgrapes.io.util.LineCollector;
 import static org.junit.Assert.*;
 import org.junit.Test;
@@ -32,8 +31,7 @@ public class ProcessIoTests {
         @Handler
         public void onProcessStarted(ProcessStarted event, IOSubchannel channel)
                 throws IOException {
-            try (var out
-                = new OutputStreamWriter(new ByteBufferOutputStream(channel))) {
+            try (var out = new ByteBufferWriter(channel)) {
                 out.write("Hello World!\n");
             }
         }
