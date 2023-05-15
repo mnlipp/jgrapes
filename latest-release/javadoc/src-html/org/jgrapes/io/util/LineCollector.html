@@ -171,114 +171,127 @@
 <span class="source-line-no">158</span><span id="line-158">    }</span>
 <span class="source-line-no">159</span><span id="line-159"></span>
 <span class="source-line-no">160</span><span id="line-160">    private &lt;W extends Buffer&gt; void copyToPending(W buffer) {</span>
-<span class="source-line-no">161</span><span id="line-161">        if (pending == null) {</span>
-<span class="source-line-no">162</span><span id="line-162">            pending = CharBuffer.allocate(buffer.capacity());</span>
-<span class="source-line-no">163</span><span id="line-163">        }</span>
-<span class="source-line-no">164</span><span id="line-164">        if (buffer instanceof CharBuffer charBuf) {</span>
-<span class="source-line-no">165</span><span id="line-165">            pending.put(charBuf);</span>
-<span class="source-line-no">166</span><span id="line-166">        } else {</span>
-<span class="source-line-no">167</span><span id="line-167">            if (decoder == null) {</span>
-<span class="source-line-no">168</span><span id="line-168">                decoder = charset.newDecoder();</span>
-<span class="source-line-no">169</span><span id="line-169">            }</span>
-<span class="source-line-no">170</span><span id="line-170">            while (true) {</span>
-<span class="source-line-no">171</span><span id="line-171">                var result</span>
-<span class="source-line-no">172</span><span id="line-172">                    = decoder.decode((ByteBuffer) buffer, pending, isEof);</span>
-<span class="source-line-no">173</span><span id="line-173">                if (!result.isOverflow()) {</span>
-<span class="source-line-no">174</span><span id="line-174">                    break;</span>
-<span class="source-line-no">175</span><span id="line-175">                }</span>
-<span class="source-line-no">176</span><span id="line-176">                // Need larger buffer</span>
-<span class="source-line-no">177</span><span id="line-177">                var old = pending;</span>
-<span class="source-line-no">178</span><span id="line-178">                pending</span>
-<span class="source-line-no">179</span><span id="line-179">                    = CharBuffer.allocate(old.capacity() + buffer.capacity());</span>
-<span class="source-line-no">180</span><span id="line-180">            }</span>
-<span class="source-line-no">181</span><span id="line-181">        }</span>
-<span class="source-line-no">182</span><span id="line-182">    }</span>
-<span class="source-line-no">183</span><span id="line-183"></span>
-<span class="source-line-no">184</span><span id="line-184">    @SuppressWarnings({ "PMD.CognitiveComplexity", "PMD.NcssCount",</span>
-<span class="source-line-no">185</span><span id="line-185">        "PMD.NPathComplexity", "PMD.AvoidLiteralsInIfCondition",</span>
-<span class="source-line-no">186</span><span id="line-186">        "PMD.AvoidReassigningLoopVariables",</span>
-<span class="source-line-no">187</span><span id="line-187">        "PMD.AvoidBranchingStatementAsLastInLoop", "PMD.CyclomaticComplexity",</span>
-<span class="source-line-no">188</span><span id="line-188">        "PMD.AvoidInstantiatingObjectsInLoops" })</span>
-<span class="source-line-no">189</span><span id="line-189">    private void extractLines() {</span>
-<span class="source-line-no">190</span><span id="line-190">        pending.flip();</span>
-<span class="source-line-no">191</span><span id="line-191">        if (!pending.hasRemaining()) {</span>
-<span class="source-line-no">192</span><span id="line-192">            pending.clear();</span>
-<span class="source-line-no">193</span><span id="line-193">            return;</span>
-<span class="source-line-no">194</span><span id="line-194">        }</span>
-<span class="source-line-no">195</span><span id="line-195">        if (endedWithLF &amp;&amp; pending.get(pending.position()) == '\r') {</span>
-<span class="source-line-no">196</span><span id="line-196">            pending.get();</span>
-<span class="source-line-no">197</span><span id="line-197">        }</span>
-<span class="source-line-no">198</span><span id="line-198">        int end = pending.limit();</span>
-<span class="source-line-no">199</span><span id="line-199">        endedWithLF = false;</span>
-<span class="source-line-no">200</span><span id="line-200">        while (pending.hasRemaining()) {</span>
-<span class="source-line-no">201</span><span id="line-201">            int start = pending.position();</span>
-<span class="source-line-no">202</span><span id="line-202">            for (int pos = start; pos &lt; end;) {</span>
-<span class="source-line-no">203</span><span id="line-203">                if (pending.get(pos) != '\n') {</span>
-<span class="source-line-no">204</span><span id="line-204">                    pos += 1;</span>
-<span class="source-line-no">205</span><span id="line-205">                    continue;</span>
-<span class="source-line-no">206</span><span id="line-206">                }</span>
-<span class="source-line-no">207</span><span id="line-207">                consumer</span>
-<span class="source-line-no">208</span><span id="line-208">                    .accept(new String(pending.array(), start, pos - start));</span>
-<span class="source-line-no">209</span><span id="line-209">                pos += 1;</span>
-<span class="source-line-no">210</span><span id="line-210">                endedWithLF = pos &gt;= end;</span>
-<span class="source-line-no">211</span><span id="line-211">                if (pos &lt; end &amp;&amp; pending.get(pos) == '\r') {</span>
-<span class="source-line-no">212</span><span id="line-212">                    pos += 1;</span>
-<span class="source-line-no">213</span><span id="line-213">                }</span>
-<span class="source-line-no">214</span><span id="line-214">                pending.position(pos);</span>
-<span class="source-line-no">215</span><span id="line-215">                break;</span>
-<span class="source-line-no">216</span><span id="line-216">            }</span>
-<span class="source-line-no">217</span><span id="line-217">            if (pending.position() == start) {</span>
-<span class="source-line-no">218</span><span id="line-218">                // No LF found</span>
-<span class="source-line-no">219</span><span id="line-219">                break;</span>
-<span class="source-line-no">220</span><span id="line-220">            }</span>
-<span class="source-line-no">221</span><span id="line-221">        }</span>
-<span class="source-line-no">222</span><span id="line-222">        if (!pending.hasRemaining()) {</span>
-<span class="source-line-no">223</span><span id="line-223">            // Last input was or ended with complete line</span>
-<span class="source-line-no">224</span><span id="line-224">            pending.clear();</span>
-<span class="source-line-no">225</span><span id="line-225">            return;</span>
-<span class="source-line-no">226</span><span id="line-226">        }</span>
-<span class="source-line-no">227</span><span id="line-227">        // Incomplete line</span>
-<span class="source-line-no">228</span><span id="line-228">        if (isEof) {</span>
-<span class="source-line-no">229</span><span id="line-229">            consumer.accept(new String(pending.array(), pending.position(),</span>
-<span class="source-line-no">230</span><span id="line-230">                pending.remaining()));</span>
-<span class="source-line-no">231</span><span id="line-231">            return;</span>
-<span class="source-line-no">232</span><span id="line-232">        }</span>
-<span class="source-line-no">233</span><span id="line-233">        if (pending.position() == 0) {</span>
-<span class="source-line-no">234</span><span id="line-234">            // Nothing consumed, continue to write into pending</span>
-<span class="source-line-no">235</span><span id="line-235">            var limit = pending.limit();</span>
-<span class="source-line-no">236</span><span id="line-236">            pending.clear();</span>
-<span class="source-line-no">237</span><span id="line-237">            pending.position(limit);</span>
+<span class="source-line-no">161</span><span id="line-161">        try {</span>
+<span class="source-line-no">162</span><span id="line-162">            buffer.mark();</span>
+<span class="source-line-no">163</span><span id="line-163">            if (pending == null) {</span>
+<span class="source-line-no">164</span><span id="line-164">                pending = CharBuffer.allocate(buffer.capacity());</span>
+<span class="source-line-no">165</span><span id="line-165">            }</span>
+<span class="source-line-no">166</span><span id="line-166">            if (buffer instanceof CharBuffer charBuf) {</span>
+<span class="source-line-no">167</span><span id="line-167">                if (pending.remaining() &lt; charBuf.remaining()) {</span>
+<span class="source-line-no">168</span><span id="line-168">                    resizePending(charBuf);</span>
+<span class="source-line-no">169</span><span id="line-169">                }</span>
+<span class="source-line-no">170</span><span id="line-170">                pending.put(charBuf);</span>
+<span class="source-line-no">171</span><span id="line-171">                return;</span>
+<span class="source-line-no">172</span><span id="line-172">            }</span>
+<span class="source-line-no">173</span><span id="line-173">            if (decoder == null) {</span>
+<span class="source-line-no">174</span><span id="line-174">                decoder = charset.newDecoder();</span>
+<span class="source-line-no">175</span><span id="line-175">            }</span>
+<span class="source-line-no">176</span><span id="line-176">            while (true) {</span>
+<span class="source-line-no">177</span><span id="line-177">                var result</span>
+<span class="source-line-no">178</span><span id="line-178">                    = decoder.decode((ByteBuffer) buffer, pending, isEof);</span>
+<span class="source-line-no">179</span><span id="line-179">                if (!result.isOverflow()) {</span>
+<span class="source-line-no">180</span><span id="line-180">                    break;</span>
+<span class="source-line-no">181</span><span id="line-181">                }</span>
+<span class="source-line-no">182</span><span id="line-182">                // Need larger buffer</span>
+<span class="source-line-no">183</span><span id="line-183">                resizePending(buffer);</span>
+<span class="source-line-no">184</span><span id="line-184">            }</span>
+<span class="source-line-no">185</span><span id="line-185">        } finally {</span>
+<span class="source-line-no">186</span><span id="line-186">            buffer.reset();</span>
+<span class="source-line-no">187</span><span id="line-187">        }</span>
+<span class="source-line-no">188</span><span id="line-188">    }</span>
+<span class="source-line-no">189</span><span id="line-189"></span>
+<span class="source-line-no">190</span><span id="line-190">    private void resizePending(Buffer toAppend) {</span>
+<span class="source-line-no">191</span><span id="line-191">        var old = pending;</span>
+<span class="source-line-no">192</span><span id="line-192">        pending = CharBuffer.allocate(old.capacity() + toAppend.capacity());</span>
+<span class="source-line-no">193</span><span id="line-193">        old.flip();</span>
+<span class="source-line-no">194</span><span id="line-194">        pending.put(old);</span>
+<span class="source-line-no">195</span><span id="line-195">    }</span>
+<span class="source-line-no">196</span><span id="line-196"></span>
+<span class="source-line-no">197</span><span id="line-197">    @SuppressWarnings({ "PMD.CognitiveComplexity", "PMD.NcssCount",</span>
+<span class="source-line-no">198</span><span id="line-198">        "PMD.NPathComplexity", "PMD.AvoidLiteralsInIfCondition",</span>
+<span class="source-line-no">199</span><span id="line-199">        "PMD.AvoidReassigningLoopVariables",</span>
+<span class="source-line-no">200</span><span id="line-200">        "PMD.AvoidBranchingStatementAsLastInLoop", "PMD.CyclomaticComplexity",</span>
+<span class="source-line-no">201</span><span id="line-201">        "PMD.AvoidInstantiatingObjectsInLoops" })</span>
+<span class="source-line-no">202</span><span id="line-202">    private void extractLines() {</span>
+<span class="source-line-no">203</span><span id="line-203">        pending.flip();</span>
+<span class="source-line-no">204</span><span id="line-204">        if (!pending.hasRemaining()) {</span>
+<span class="source-line-no">205</span><span id="line-205">            pending.clear();</span>
+<span class="source-line-no">206</span><span id="line-206">            return;</span>
+<span class="source-line-no">207</span><span id="line-207">        }</span>
+<span class="source-line-no">208</span><span id="line-208">        if (endedWithLF &amp;&amp; pending.get(pending.position()) == '\r') {</span>
+<span class="source-line-no">209</span><span id="line-209">            pending.get();</span>
+<span class="source-line-no">210</span><span id="line-210">        }</span>
+<span class="source-line-no">211</span><span id="line-211">        int end = pending.limit();</span>
+<span class="source-line-no">212</span><span id="line-212">        endedWithLF = false;</span>
+<span class="source-line-no">213</span><span id="line-213">        while (pending.hasRemaining()) {</span>
+<span class="source-line-no">214</span><span id="line-214">            int start = pending.position();</span>
+<span class="source-line-no">215</span><span id="line-215">            for (int pos = start; pos &lt; end;) {</span>
+<span class="source-line-no">216</span><span id="line-216">                if (pending.get(pos) != '\n') {</span>
+<span class="source-line-no">217</span><span id="line-217">                    pos += 1;</span>
+<span class="source-line-no">218</span><span id="line-218">                    continue;</span>
+<span class="source-line-no">219</span><span id="line-219">                }</span>
+<span class="source-line-no">220</span><span id="line-220">                consumer</span>
+<span class="source-line-no">221</span><span id="line-221">                    .accept(new String(pending.array(), start, pos - start));</span>
+<span class="source-line-no">222</span><span id="line-222">                pos += 1;</span>
+<span class="source-line-no">223</span><span id="line-223">                endedWithLF = pos &gt;= end;</span>
+<span class="source-line-no">224</span><span id="line-224">                if (pos &lt; end &amp;&amp; pending.get(pos) == '\r') {</span>
+<span class="source-line-no">225</span><span id="line-225">                    pos += 1;</span>
+<span class="source-line-no">226</span><span id="line-226">                }</span>
+<span class="source-line-no">227</span><span id="line-227">                pending.position(pos);</span>
+<span class="source-line-no">228</span><span id="line-228">                break;</span>
+<span class="source-line-no">229</span><span id="line-229">            }</span>
+<span class="source-line-no">230</span><span id="line-230">            if (pending.position() == start) {</span>
+<span class="source-line-no">231</span><span id="line-231">                // No LF found</span>
+<span class="source-line-no">232</span><span id="line-232">                break;</span>
+<span class="source-line-no">233</span><span id="line-233">            }</span>
+<span class="source-line-no">234</span><span id="line-234">        }</span>
+<span class="source-line-no">235</span><span id="line-235">        if (!pending.hasRemaining()) {</span>
+<span class="source-line-no">236</span><span id="line-236">            // Last input was or ended with complete line</span>
+<span class="source-line-no">237</span><span id="line-237">            pending.clear();</span>
 <span class="source-line-no">238</span><span id="line-238">            return;</span>
 <span class="source-line-no">239</span><span id="line-239">        }</span>
-<span class="source-line-no">240</span><span id="line-240">        // Transfer remaining to beginning of pending</span>
-<span class="source-line-no">241</span><span id="line-241">        if (rest == null || rest.capacity() &lt; pending.remaining()) {</span>
-<span class="source-line-no">242</span><span id="line-242">            rest = CharBuffer.allocate(pending.capacity());</span>
-<span class="source-line-no">243</span><span id="line-243">        }</span>
-<span class="source-line-no">244</span><span id="line-244">        rest.put(pending);</span>
-<span class="source-line-no">245</span><span id="line-245">        rest.flip();</span>
-<span class="source-line-no">246</span><span id="line-246">        pending.clear();</span>
-<span class="source-line-no">247</span><span id="line-247">        pending.put(rest);</span>
-<span class="source-line-no">248</span><span id="line-248">        rest.clear();</span>
-<span class="source-line-no">249</span><span id="line-249">    }</span>
-<span class="source-line-no">250</span><span id="line-250"></span>
-<span class="source-line-no">251</span><span id="line-251">    /**</span>
-<span class="source-line-no">252</span><span id="line-252">     * Checks if more input may become available.</span>
-<span class="source-line-no">253</span><span id="line-253">     *</span>
-<span class="source-line-no">254</span><span id="line-254">     * @return true, if successful</span>
-<span class="source-line-no">255</span><span id="line-255">     */</span>
-<span class="source-line-no">256</span><span id="line-256">    public boolean eof() {</span>
-<span class="source-line-no">257</span><span id="line-257">        return isEof;</span>
-<span class="source-line-no">258</span><span id="line-258">    }</span>
-<span class="source-line-no">259</span><span id="line-259"></span>
-<span class="source-line-no">260</span><span id="line-260">    /**</span>
-<span class="source-line-no">261</span><span id="line-261">     * Gets the next line.</span>
-<span class="source-line-no">262</span><span id="line-262">     *</span>
-<span class="source-line-no">263</span><span id="line-263">     * @return the line</span>
-<span class="source-line-no">264</span><span id="line-264">     */</span>
-<span class="source-line-no">265</span><span id="line-265">    public String getLine() {</span>
-<span class="source-line-no">266</span><span id="line-266">        return lines.poll();</span>
-<span class="source-line-no">267</span><span id="line-267">    }</span>
-<span class="source-line-no">268</span><span id="line-268">}</span>
+<span class="source-line-no">240</span><span id="line-240">        // Incomplete line</span>
+<span class="source-line-no">241</span><span id="line-241">        if (isEof) {</span>
+<span class="source-line-no">242</span><span id="line-242">            consumer.accept(new String(pending.array(), pending.position(),</span>
+<span class="source-line-no">243</span><span id="line-243">                pending.remaining()));</span>
+<span class="source-line-no">244</span><span id="line-244">            return;</span>
+<span class="source-line-no">245</span><span id="line-245">        }</span>
+<span class="source-line-no">246</span><span id="line-246">        if (pending.position() == 0) {</span>
+<span class="source-line-no">247</span><span id="line-247">            // Nothing consumed, continue to write into pending</span>
+<span class="source-line-no">248</span><span id="line-248">            var limit = pending.limit();</span>
+<span class="source-line-no">249</span><span id="line-249">            pending.clear();</span>
+<span class="source-line-no">250</span><span id="line-250">            pending.position(limit);</span>
+<span class="source-line-no">251</span><span id="line-251">            return;</span>
+<span class="source-line-no">252</span><span id="line-252">        }</span>
+<span class="source-line-no">253</span><span id="line-253">        // Transfer remaining to beginning of pending</span>
+<span class="source-line-no">254</span><span id="line-254">        if (rest == null || rest.capacity() &lt; pending.remaining()) {</span>
+<span class="source-line-no">255</span><span id="line-255">            rest = CharBuffer.allocate(pending.capacity());</span>
+<span class="source-line-no">256</span><span id="line-256">        }</span>
+<span class="source-line-no">257</span><span id="line-257">        rest.put(pending);</span>
+<span class="source-line-no">258</span><span id="line-258">        rest.flip();</span>
+<span class="source-line-no">259</span><span id="line-259">        pending.clear();</span>
+<span class="source-line-no">260</span><span id="line-260">        pending.put(rest);</span>
+<span class="source-line-no">261</span><span id="line-261">        rest.clear();</span>
+<span class="source-line-no">262</span><span id="line-262">    }</span>
+<span class="source-line-no">263</span><span id="line-263"></span>
+<span class="source-line-no">264</span><span id="line-264">    /**</span>
+<span class="source-line-no">265</span><span id="line-265">     * Checks if more input may become available.</span>
+<span class="source-line-no">266</span><span id="line-266">     *</span>
+<span class="source-line-no">267</span><span id="line-267">     * @return true, if successful</span>
+<span class="source-line-no">268</span><span id="line-268">     */</span>
+<span class="source-line-no">269</span><span id="line-269">    public boolean eof() {</span>
+<span class="source-line-no">270</span><span id="line-270">        return isEof;</span>
+<span class="source-line-no">271</span><span id="line-271">    }</span>
+<span class="source-line-no">272</span><span id="line-272"></span>
+<span class="source-line-no">273</span><span id="line-273">    /**</span>
+<span class="source-line-no">274</span><span id="line-274">     * Gets the next line.</span>
+<span class="source-line-no">275</span><span id="line-275">     *</span>
+<span class="source-line-no">276</span><span id="line-276">     * @return the line</span>
+<span class="source-line-no">277</span><span id="line-277">     */</span>
+<span class="source-line-no">278</span><span id="line-278">    public String getLine() {</span>
+<span class="source-line-no">279</span><span id="line-279">        return lines.poll();</span>
+<span class="source-line-no">280</span><span id="line-280">    }</span>
+<span class="source-line-no">281</span><span id="line-281">}</span>
 
 
 
