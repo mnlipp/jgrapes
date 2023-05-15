@@ -158,12 +158,18 @@ public class LineCollector {
     }
 
     private <W extends Buffer> void copyToPending(W buffer) {
-        if (pending == null) {
-            pending = CharBuffer.allocate(buffer.capacity());
-        }
-        if (buffer instanceof CharBuffer charBuf) {
-            pending.put(charBuf);
-        } else {
+        try {
+            buffer.mark();
+            if (pending == null) {
+                pending = CharBuffer.allocate(buffer.capacity());
+            }
+            if (buffer instanceof CharBuffer charBuf) {
+                if (pending.remaining() < charBuf.remaining()) {
+                    resizePending(charBuf);
+                }
+                pending.put(charBuf);
+                return;
+            }
             if (decoder == null) {
                 decoder = charset.newDecoder();
             }
@@ -174,11 +180,18 @@ public class LineCollector {
                     break;
                 }
                 // Need larger buffer
-                var old = pending;
-                pending
-                    = CharBuffer.allocate(old.capacity() + buffer.capacity());
+                resizePending(buffer);
             }
+        } finally {
+            buffer.reset();
         }
+    }
+
+    private void resizePending(Buffer toAppend) {
+        var old = pending;
+        pending = CharBuffer.allocate(old.capacity() + toAppend.capacity());
+        old.flip();
+        pending.put(old);
     }
 
     @SuppressWarnings({ "PMD.CognitiveComplexity", "PMD.NcssCount",

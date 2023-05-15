@@ -66,4 +66,58 @@ public class LineCollectorTests {
         assertEquals("Special chars: äöüÄÖÜß.", collector.getLine());
     }
 
+    @Test
+    public void testOverflowChar() throws InterruptedException, IOException {
+        LineCollector collector = new LineCollector();
+        var charBufferPool = new ManagedBufferPool<>(ManagedBuffer::new,
+            () -> CharBuffer.allocate(8), 2).setName("Test");
+
+        // First feed
+        var data = charBufferPool.acquire();
+        data.backingBuffer().append("Hello");
+        data.backingBuffer().flip();
+        collector.feed(data);
+        data.unlockBuffer();
+
+        // Second feed (causes overflow for LineCollector.pending)
+        data = charBufferPool.acquire();
+        data.backingBuffer().append(" World!\n");
+        data.backingBuffer().flip();
+        collector.feed(data);
+        data.unlockBuffer();
+
+        // End of feed
+        collector.feed((CharBuffer) null);
+        assertTrue(collector.eof());
+        assertEquals("Hello World!", collector.getLine());
+    }
+
+    @Test
+    public void testOverflowByte() throws InterruptedException, IOException {
+        LineCollector collector = new LineCollector();
+        var byteBufferPool = new ManagedBufferPool<>(ManagedBuffer::new,
+            () -> ByteBuffer.allocate(32), 2).setName("Test");
+
+        // First feed
+        var data = byteBufferPool.acquire();
+        String in = "Special chars: äöü";
+        data.backingBuffer().put(in.getBytes(StandardCharsets.UTF_8));
+        data.backingBuffer().flip();
+        collector.feed(data);
+        data.unlockBuffer();
+
+        // Second feed
+        data = byteBufferPool.acquire();
+        in = "ÄÖÜß (and some more).\n";
+        data.backingBuffer().put(in.getBytes(StandardCharsets.UTF_8));
+        data.backingBuffer().flip();
+        collector.feed(data);
+        data.unlockBuffer();
+
+        // End of feed
+        collector.feed((ByteBuffer) null);
+        assertTrue(collector.eof());
+        assertEquals("Special chars: äöüÄÖÜß (and some more).",
+            collector.getLine());
+    }
 }
