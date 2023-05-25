@@ -160,7 +160,10 @@ public class FileSystemWatcher extends Component {
                 while (true) {
                     try {
                         WatchKey key = watchService.take();
+                        // Events have to be consumed
+                        key.pollEvents();
                         if (!(key.watchable() instanceof Path)) {
+                            key.reset();
                             continue;
                         }
                         handleWatchEvent((Path) key.watchable());
