@@ -22,6 +22,8 @@ import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.file.FileConfig;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -177,9 +179,25 @@ public abstract class NightConfigStore extends ConfigurationStore {
                 result.put(entry.getKey(), toValueMap(entry.getValue()));
                 continue;
             }
+            if (entry.getValue() instanceof List<?> values) {
+                result.put(entry.getKey(), convertList(values));
+                continue;
+            }
             result.put(entry.getKey(), entry.getValue());
         }
         return result;
+    }
+
+    private List<Object> convertList(List<?> values) {
+        List<Object> copy = new ArrayList<>();
+        for (var element : values) {
+            if (element instanceof Config cfg) {
+                copy.add(toValueMap(cfg));
+                continue;
+            }
+            copy.add(element);
+        }
+        return copy;
     }
 
     /**
@@ -329,13 +347,13 @@ public abstract class NightConfigStore extends ConfigurationStore {
                     itr.remove();
                 }
             }
-            addFromMap(config, structure(curValues));
+            addToConfig(config, structure(curValues));
         }
         return changed;
     }
 
     @SuppressWarnings("unchecked")
-    private void addFromMap(Config config, Map<String, Object> map) {
+    private void addToConfig(Config config, Map<String, Object> map) {
         for (var e : map.entrySet()) {
             var selector = List.of(e.getKey());
             if (e.getValue() instanceof Map) {
@@ -344,10 +362,31 @@ public abstract class NightConfigStore extends ConfigurationStore {
                     subConfig = config.createSubConfig();
                     config.set(selector, subConfig);
                 }
-                addFromMap(subConfig, (Map<String, Object>) e.getValue());
+                addToConfig(subConfig, (Map<String, Object>) e.getValue());
+            } else if (e.getValue() instanceof Collection) {
+                config.set(selector,
+                    checkCollection((Collection<?>) e.getValue()));
             } else {
                 config.set(selector, e.getValue());
             }
         }
     }
+
+    @SuppressWarnings("unchecked")
+    private Collection<Object> checkCollection(Collection<?> items) {
+        var checked = new ArrayList<>();
+        for (var item : items) {
+            if (item instanceof Map) {
+                Config subConfig = config.createSubConfig();
+                addToConfig(subConfig, (Map<String, Object>) item);
+                checked.add(subConfig);
+            } else if (item instanceof Collection) {
+                checked.add(checkCollection((Collection<?>) item));
+            } else {
+                checked.add(item);
+            }
+        }
+        return checked;
+    }
+
 }

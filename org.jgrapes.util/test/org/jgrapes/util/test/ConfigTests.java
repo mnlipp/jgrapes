@@ -129,6 +129,12 @@ public class ConfigTests {
             prefsBase.node("sub/tree").put("map.more.0", "2");
             prefsBase.node("sub/tree").put("map.more.1", "3");
             prefsBase.node("sub/tree").put("at", "2022-09-29T12:34:00Z");
+            prefsBase.node("sub/tree").put("objs.0.name", "obj0");
+            prefsBase.node("sub/tree").put("objs.0.value", "0");
+            prefsBase.node("sub/tree").put("objs.1.name", "obj1");
+            prefsBase.node("sub/tree").put("objs.1.value", "1");
+            prefsBase.node("sub/tree").put("objs.2.name", "obj2");
+            prefsBase.node("sub/tree").put("objs.2.value", "2");
             prefsBase.flush();
             conf = new PreferencesStore(app, getClass());
             break;
@@ -168,6 +174,12 @@ public class ConfigTests {
             asNumber(((List<Object>) map.get("more")).get(1)).get().intValue());
         assertEquals(Instant.parse("2022-09-29T12:34:00Z"),
             asInstant(conf.structured("/sub/tree").get().get("at")).get());
+        var objs = (List<Map<String, Object>>) conf.structured("/sub/tree")
+            .get().get("objs");
+        assertEquals(3, objs.size());
+        assertEquals("obj0", objs.get(0).get("name"));
+        assertEquals("obj1", objs.get(1).get("name"));
+        assertEquals("obj2", objs.get(2).get("name"));
         app.attach(conf);
 
         Components.start(app);
@@ -254,14 +266,19 @@ public class ConfigTests {
         Map<String, String> initial = Map.of("json",
             "{\"answer\":42, \"/sub\":{\"/tree\":{\"value\":24,"
                 + "\"list\":[1,2,3],\"map\":{\"one\":1,\"more\":[2,3]},"
-                + "\"at\":\"2022-09-29T12:34:00Z\"}}}",
+                + "\"at\":\"2022-09-29T12:34:00Z\","
+                + "\"objs\":[{\"name\":\"obj0\",\"value\":0},"
+                + "{\"name\":\"obj1\",\"value\":1},"
+                + "{\"name\":\"obj2\",\"value\":2}]}}}",
             "toml", "answer = 42\n"
                 + "[_sub.\"/tree\"]\n"
                 + "value = 24\n"
                 + "list = [1, 2, 3]\n"
                 + "map.one = 1\n"
                 + "map.more = [2, 3]\n"
-                + "at = 2022-09-29T12:34:00Z",
+                + "at = 2022-09-29T12:34:00Z\n"
+                + "objs = [{name=\"obj0\",value=0},"
+                + "{name=\"obj1\",value=1},{name=\"obj2\",value=2}]",
             "yaml", "answer: 42\n"
                 + "_sub:\n"
                 + "  _tree:\n"
@@ -273,7 +290,14 @@ public class ConfigTests {
                 + "    map:\n"
                 + "      one: 1\n"
                 + "      more: [2,3]\n"
-                + "    at: \"2022-09-29T12:34:00Z\"");
+                + "    at: \"2022-09-29T12:34:00Z\"\n"
+                + "    objs:\n"
+                + "    - name: obj0\n"
+                + "      value: 0\n"
+                + "    - name: obj1\n"
+                + "      value: 1\n"
+                + "    - name: obj2\n"
+                + "      value: 2\n");
         try (Writer out
             = new OutputStreamWriter(new FileOutputStream(file), "utf-8")) {
             out.write(initial.get(format));

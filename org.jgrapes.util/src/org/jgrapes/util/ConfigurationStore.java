@@ -195,24 +195,9 @@ public abstract class ConfigurationStore extends Component {
         Map<Object, Object> result = new HashMap<>();
         for (var entry : flatProperties.entrySet()) {
             @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
-            Map<Object, Object> target = result;
             // Original key (optionally) consists of dot separated parts
             StringTokenizer parts = new StringTokenizer(entry.getKey(), ".");
-            while (true) {
-                var part = parts.nextToken();
-                Object key = NUMBER.matcher(part).find()
-                    ? Integer.parseInt(part)
-                    : part;
-                if (!parts.hasMoreTokens()) {
-                    // Last part (of key), store value
-                    target.put(key, entry.getValue());
-                    break;
-                }
-                @SuppressWarnings("unchecked")
-                var newTarget = (Map<Object, Object>) target
-                    .computeIfAbsent(part, k -> new TreeMap<Object, Object>());
-                target = newTarget;
-            }
+            handleNextPart(result, parts, entry.getValue());
         }
 
         // Now convert all maps that have only Integer keys to lists
@@ -224,6 +209,23 @@ public abstract class ConfigurationStore extends Component {
         @SuppressWarnings({ "unchecked", "rawtypes" })
         Map<String, Object> res = (Map<String, Object>) (Map) result;
         return res;
+    }
+
+    private static void handleNextPart(Map<Object, Object> target,
+            StringTokenizer parts, Object value) {
+        var part = parts.nextToken();
+        Object key = NUMBER.matcher(part).find()
+            ? Integer.parseInt(part)
+            : part;
+        if (!parts.hasMoreTokens()) {
+            // Last part (of key), store value
+            target.put(key, value);
+            return;
+        }
+        @SuppressWarnings("unchecked")
+        var newTarget = (Map<Object, Object>) target
+            .computeIfAbsent(key, k -> new TreeMap<Object, Object>());
+        handleNextPart(newTarget, parts, value);
     }
 
     @SuppressWarnings({ "unchecked", "PMD.ConfusingTernary" })
