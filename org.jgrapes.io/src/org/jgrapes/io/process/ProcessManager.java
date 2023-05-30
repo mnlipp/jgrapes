@@ -373,6 +373,15 @@ public class ProcessManager extends Component {
         }
 
         /**
+         * Return the {@link Process} associated with this channel.
+         *
+         * @return the process
+         */
+        public Process process() {
+            return process;
+        }
+
+        /**
          * Gets the down pipeline.
          *
          * @return the downPipeline
