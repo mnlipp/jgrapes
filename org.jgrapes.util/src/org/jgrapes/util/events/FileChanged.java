@@ -19,6 +19,8 @@
 package org.jgrapes.util.events;
 
 import java.nio.file.Path;
+import org.jgrapes.core.Channel;
+import org.jgrapes.core.Components;
 import org.jgrapes.core.Event;
 
 /**
@@ -63,5 +65,18 @@ public class FileChanged extends Event<Void> {
      */
     public Kind change() {
         return change;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append(Components.objectName(this))
+            .append(" [").append(change).append(": ").append(path);
+        if (channels() != null) {
+            builder.append(", channels=");
+            builder.append(Channel.toString(channels()));
+        }
+        builder.append(']');
+        return builder.toString();
     }
 }
