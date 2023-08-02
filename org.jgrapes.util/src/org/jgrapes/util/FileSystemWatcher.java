@@ -55,9 +55,9 @@ public class FileSystemWatcher extends Component {
     protected static final Logger logger
         = Logger.getLogger(FileSystemWatcher.class.getName());
 
-    private final Map<FileSystem, WatchServiceInfo> watchServices
+    private final WatcherRegistry watcherRegistry = new WatcherRegistry();
+    private final Map<Path, DirectorySubscription> subscriptions
         = new ConcurrentHashMap<>();
-    private final Map<Path, WatchInfo> watched = new ConcurrentHashMap<>();
 
     /**
      * Creates a new component base with its channel set to
@@ -84,7 +84,7 @@ public class FileSystemWatcher extends Component {
     }
 
     /**
-     * Register a path for being watched. Subsequent {@link FileChanged} 
+     * Register a path to wath. Subsequent {@link FileChanged} 
      * events will be fire on the channel(s) on which the
      * {@link WatchFile} event was fired.
      * 
@@ -92,71 +92,104 @@ public class FileSystemWatcher extends Component {
      * "clear watch" is required.
      *
      * @param event the event
+     * @param channel the channel
      * @throws IOException if an I/O exception occurs
      */
     @Handler
     public void onWatchFile(WatchFile event, Channel channel)
             throws IOException {
-        final Path path = event.path().toFile().getCanonicalFile().toPath();
-        @SuppressWarnings("PMD.CloseResource")
-        WatchServiceInfo serviceInfo = watchServices.get(path.getFileSystem());
-        if (serviceInfo == null) {
-            try {
-                serviceInfo = new WatchServiceInfo(path.getFileSystem());
-                watchServices.put(path.getFileSystem(), serviceInfo);
-            } catch (IOException e) {
-                logger.log(Level.WARNING, e,
-                    () -> "Cannot get watch service: " + e.getMessage());
-                return;
-            }
+        final Path path = event.path().toAbsolutePath();
+        synchronized (subscriptions) {
+            addSubscription(path, channel);
         }
-        // Is a parent of a canonical path canonical by definition?
-        Path toWatch = path.getParent().toFile().getCanonicalFile().toPath();
-        synchronized (watched) {
-            if (!watched.containsKey(toWatch)) {
-                try {
-                    watched.put(toWatch, new WatchInfo(
-                        toWatch.register(serviceInfo.watchService,
-                            ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY)));
-                } catch (IOException e) {
-                    logger.log(Level.WARNING, e,
-                        () -> "Cannot watch: " + e.getMessage());
-                }
-            }
-        }
-        watched.get(toWatch).watched.add(new WatchedInfo(path, channel));
     }
 
-    private void removeWatched(Path directory, WatchedInfo watchedInfo) {
-        synchronized (watched) {
-            var watchInfo = watched.get(directory);
-            if (watchInfo == null) {
-                // Shouldn't happen, but...
-                return;
+    private Subscription addSubscription(Path watched, Channel channel) {
+        var subs = new Subscription(watched, channel);
+        try {
+            // Using computeIfAbsent causes recursive update
+            var watcher = subscriptions.get(watched.getParent());
+            if (watcher == null) {
+                watcher = watcherRegistry.register(watched.getParent());
             }
-            watchInfo.watched.remove(watchedInfo);
-            if (watchInfo.watched.isEmpty()) {
-                watched.remove(directory);
+            watcher.add(subs);
+            if (Files.exists(watched)) {
+                Path real = watched.toRealPath();
+                if (!real.equals(watched)) {
+                    addSubscription(real, channel).linkedFrom(subs);
+                }
             }
+        } catch (IOException e) {
+            logger.log(Level.WARNING, e,
+                () -> "Cannot watch: " + e.getMessage());
         }
+        return subs;
     }
 
     private void handleWatchEvent(Path directory) {
-        Optional.ofNullable(watched.get(directory)).map(wi -> wi.watched)
-            .orElse(Collections.emptyList())
-            .forEach(wi -> wi.handleChange(directory));
+        Optional.ofNullable(subscriptions.get(directory))
+            .ifPresent(DirectorySubscription::directoryChanged);
     }
 
     /**
-     * The Class WatchServiceInfo.
+     * The Class WatcherRegistry.
      */
-    private class WatchServiceInfo {
-        private final WatchService watchService;
-        private final Thread watcher;
+    private class WatcherRegistry {
+        private final Map<FileSystem, Watcher> watchers
+            = new ConcurrentHashMap<>();
 
-        private WatchServiceInfo(FileSystem fileSystem) throws IOException {
+        private Watcher watcher(Path path) {
+            @SuppressWarnings("PMD.CloseResource")
+            Watcher watcher = watchers.get(path.getFileSystem());
+            if (watcher == null) {
+                try {
+                    watcher = new Watcher(path.getFileSystem());
+                    watchers.put(path.getFileSystem(), watcher);
+                } catch (IOException e) {
+                    logger.log(Level.WARNING, e,
+                        () -> "Cannot get watch service: " + e.getMessage());
+                    return null;
+                }
+            }
+            return watcher;
+        }
+
+        /**
+         * Register.
+         *
+         * @param toWatch the to watch
+         * @return the directory subscription
+         */
+        public DirectorySubscription register(Path toWatch) {
+            Watcher watcher = watcher(toWatch);
+            if (watcher == null) {
+                return null;
+            }
+            try {
+                var watcherRef = new DirectorySubscription(
+                    toWatch.register(watcher.watchService,
+                        ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY));
+                subscriptions.put(toWatch, watcherRef);
+                return watcherRef;
+            } catch (IOException e) {
+                logger.log(Level.WARNING, e,
+                    () -> "Cannot watch: " + e.getMessage());
+            }
+            return null;
+        }
+
+    }
+
+    /**
+     * The Class Watcher.
+     */
+    private class Watcher {
+        private final WatchService watchService;
+        private final Thread thread;
+
+        private Watcher(FileSystem fileSystem) throws IOException {
             watchService = fileSystem.newWatchService();
-            watcher = new Thread(() -> {
+            thread = new Thread(() -> {
                 while (true) {
                     try {
                         WatchKey key = watchService.take();
@@ -174,41 +207,123 @@ public class FileSystemWatcher extends Component {
                     }
                 }
             });
-            watcher.setDaemon(true);
-            watcher.setName(fileSystem.toString() + " watcher");
-            watcher.start();
+            thread.setDaemon(true);
+            thread.setName(fileSystem.toString() + " watcher");
+            thread.start();
         }
 
     }
 
     /**
-     * The Class WatchInfo.
+     * The Class DirectorySubscription.
      */
-    private static class WatchInfo {
-        @SuppressWarnings("unused")
+    private class DirectorySubscription {
         private final WatchKey watchKey;
-        private final List<WatchedInfo> watched;
+        private final List<Subscription> watched;
 
-        private WatchInfo(WatchKey watchKey) {
+        /**
+         * Instantiates a new directory watcher.
+         *
+         * @param watchKey the watch key
+         */
+        public DirectorySubscription(WatchKey watchKey) {
             this.watchKey = watchKey;
             watched = Collections.synchronizedList(new ArrayList<>());
         }
 
+        /**
+         * Adds the subscription.
+         *
+         * @param subs the subs
+         */
+        public void add(Subscription subs) {
+            watched.add(subs);
+        }
+
+        /**
+         * Removes the subscription.
+         *
+         * @param subs the subs
+         */
+        public void remove(Subscription subs) {
+            watched.remove(subs);
+            if (watched.isEmpty()) {
+                subscriptions.remove(subs.directory());
+                watchKey.cancel();
+            }
+
+        }
+
+        /**
+         * Directory changed.
+         */
+        public void directoryChanged() {
+            // Prevent concurrent modification exception
+            List.copyOf(watched).forEach(Subscription::handleChange);
+        }
     }
 
     /**
-     * The Class WatchedInfo.
+     * The Class Registree.
      */
-    private class WatchedInfo {
-        private final WeakReference<Channel> notifyOn;
+    private class Subscription {
+        private WeakReference<Channel> notifyOn;
         private final Path path;
+        private Subscription linkedFrom;
+        private Subscription linksTo;
         private Instant lastModified;
 
+        /**
+         * Instantiates a new subscription.
+         *
+         * @param path the path
+         * @param notifyOn the notify on
+         */
         @SuppressWarnings("PMD.UseVarargs")
-        private WatchedInfo(Path path, Channel notifyOn) {
+        public Subscription(Path path, Channel notifyOn) {
             this.notifyOn = new WeakReference<>(notifyOn);
             this.path = path;
             updateLastModified();
+        }
+
+        /**
+         * Return the directoy of this subscription's path.
+         *
+         * @return the path
+         */
+        public Path directory() {
+            return path.getParent();
+        }
+
+        /**
+         * Linked from.
+         *
+         * @param symLinkSubs the sym link subs
+         * @return the subscription
+         */
+        public Subscription linkedFrom(Subscription symLinkSubs) {
+            linkedFrom = symLinkSubs;
+            symLinkSubs.linksTo = this;
+            notifyOn = null;
+            return this;
+        }
+
+        /**
+         * Removes the subscription.
+         */
+        public void remove() {
+            synchronized (subscriptions) {
+                if (linksTo != null) {
+                    linksTo.remove();
+                }
+                var directory = path.getParent();
+                var watchInfo = subscriptions.get(directory);
+                if (watchInfo == null) {
+                    // Shouldn't happen, but...
+                    return;
+                }
+                watchInfo.remove(this);
+            }
         }
 
         private void updateLastModified() {
@@ -229,39 +344,68 @@ public class FileSystemWatcher extends Component {
 
         /**
          * Handle change.
-         *
-         * @param directory the directory. Passing it is redundant but
-         * more efficient than deriving it from path.
          */
-        private void handleChange(Path directory) {
+        private void handleChange() {
+            Subscription watched = Optional.ofNullable(linkedFrom).orElse(this);
+
             // Check if channel is still valid
-            Channel channel = notifyOn.get();
+            Channel channel = watched.notifyOn.get();
             if (channel == null) {
-                removeWatched(directory, this);
+                watched.remove();
+                return;
             }
 
-            // Evaluate change
-            Instant prevModified = lastModified;
-            updateLastModified();
+            // Evaluate change from the perspective of "watched"
+            Instant prevModified = watched.lastModified;
+            watched.updateLastModified();
             if (prevModified == null) {
                 // Check if created
-                if (lastModified != null) {
-                    fire(new FileChanged(path, FileChanged.Kind.CREATED),
-                        channel);
+                if (watched.lastModified != null) {
+                    // Yes, created.
+                    fire(new FileChanged(watched.path,
+                        FileChanged.Kind.CREATED), channel);
+                    checkLink(watched, channel);
                 }
                 return;
             }
 
             // File has existed (prevModified != null)
-            if (lastModified == null) {
-                // Now deleted
-                fire(new FileChanged(path, FileChanged.Kind.DELETED), channel);
+            if (watched.lastModified == null) {
+                // ... but is now deleted
+                if (watched.linksTo != null) {
+                    watched.linksTo.remove();
+                }
+                fire(new FileChanged(watched.path, FileChanged.Kind.DELETED),
+                    channel);
                 return;
             }
 
             // Check if modified
-            if (!prevModified.equals(lastModified)) {
-                fire(new FileChanged(path, FileChanged.Kind.MODIFIED), channel);
+            if (!prevModified.equals(watched.lastModified)) {
+                fire(new FileChanged(watched.path, FileChanged.Kind.MODIFIED),
+                    channel);
+                checkLink(watched, channel);
+            }
+        }
+
+        private void checkLink(Subscription watched, Channel channel) {
+            try {
+                Path curTarget = watched.path.toRealPath();
+                if (!curTarget.equals(watched.path)) {
+                    // watched is symbolic link
+                    if (watched.linksTo == null) {
+                        addSubscription(curTarget, channel).linkedFrom(watched);
+                        return;
+                    }
+                    if (!watched.linksTo.path.equals(curTarget)) {
+                        // Link target has changed
+                        watched.linksTo.remove();
+                        addSubscription(curTarget, channel).linkedFrom(watched);
+                    }
+
+                }
+            } catch (IOException e) { // NOPMD
+                // Race condition, target deleted?
             }
         }
     }

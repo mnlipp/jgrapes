@@ -18,9 +18,11 @@
 
 package org.jgrapes.util.test;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Comparator;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
@@ -50,7 +52,7 @@ public class FileWatchTests {
     }
 
     @Test
-    public void testAll() throws InterruptedException, IOException {
+    public void testNormal() throws InterruptedException, IOException {
         var app = new FileSystemWatcher();
         var tracker = new Tracker(app);
         app.attach(tracker);
@@ -83,6 +85,89 @@ public class FileWatchTests {
         assertEquals(FileChanged.Kind.DELETED, tracker.change);
 
         // Finish
+        Components.awaitExhaustion();
+        Components.checkAssertions();
+    }
+
+    @Test
+    public void testExistingLink() throws InterruptedException, IOException {
+        var app = new FileSystemWatcher();
+        var tracker = new Tracker(app);
+        app.attach(tracker);
+        Components.start(app);
+
+        // Setup
+        Path realDir = Files.createTempDirectory("jgrapes");
+        Path realFile = Files.createFile(realDir.resolve("test"));
+        Path watched = Files.createTempFile("jgrapes-lnk", null);
+        Files.delete(watched);
+        Files.createSymbolicLink(watched, realFile);
+
+        // Watch
+        app.fire(new WatchFile(watched)).get();
+
+        // Make sure that timestamp differs
+        Thread.sleep(100);
+        try (var out = Files.newOutputStream(watched)) {
+            out.write("Hello World!\n".getBytes());
+            out.flush();
+        }
+        Thread.sleep(100);
+        assertEquals(watched, tracker.path);
+        assertEquals(FileChanged.Kind.MODIFIED, tracker.change);
+
+        // Delete
+        Files.delete(watched);
+        // There's no sync and the watch service has a small delay
+        Thread.sleep(100);
+        assertEquals(watched, tracker.path);
+        assertEquals(FileChanged.Kind.DELETED, tracker.change);
+
+        // Finish
+        Files.walk(realDir).sorted(Comparator.reverseOrder()).map(Path::toFile)
+            .forEach(File::delete);
+        Components.awaitExhaustion();
+        Components.checkAssertions();
+    }
+
+    @Test
+    public void testNewLink() throws InterruptedException, IOException {
+        var app = new FileSystemWatcher();
+        var tracker = new Tracker(app);
+        app.attach(tracker);
+        Components.start(app);
+        Path realFile = Files.createTempFile("jgrapes", null);
+        Files.delete(realFile);
+        Path watched = Files.createTempFile("jgrapes-lnk", null);
+        Files.delete(watched);
+        app.fire(new WatchFile(watched)).get();
+
+        // Create
+        Files.createFile(realFile);
+        Files.createSymbolicLink(watched, realFile);
+        Thread.sleep(100);
+        assertEquals(watched, tracker.path);
+        assertEquals(FileChanged.Kind.CREATED, tracker.change);
+
+        // Make sure that timestamp differs
+        Thread.sleep(100);
+        try (var out = Files.newOutputStream(watched)) {
+            out.write("Hello World!\n".getBytes());
+            out.flush();
+        }
+        Thread.sleep(100);
+        assertEquals(watched, tracker.path);
+        assertEquals(FileChanged.Kind.MODIFIED, tracker.change);
+
+        // Delete
+        Files.delete(watched);
+        // There's no sync and the watch service has a small delay
+        Thread.sleep(100);
+        assertEquals(watched, tracker.path);
+        assertEquals(FileChanged.Kind.DELETED, tracker.change);
+
+        // Finish
+        Files.delete(realFile);
         Components.awaitExhaustion();
         Components.checkAssertions();
     }
