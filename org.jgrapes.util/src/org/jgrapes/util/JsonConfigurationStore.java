@@ -118,7 +118,7 @@ public class JsonConfigurationStore extends NightConfigStore {
     public JsonConfigurationStore(Channel componentChannel, File file,
             boolean update, boolean watch) throws IOException {
         super(componentChannel, file, update, watch);
-        config = FileConfig.builder(file.getCanonicalPath()).sync().concurrent()
+        config = FileConfig.builder(file.getAbsolutePath()).sync().concurrent()
             .build();
         config.load();
     }
