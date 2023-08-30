@@ -1,20 +1,14 @@
 dependencies {
 	api project(':org.jgrapes.core')
 	
-    compileOnly 'com.electronwill.night-config:json:3.6.6'
-    compileOnly 'com.electronwill.night-config:toml:3.6.6'
-    compileOnly 'com.electronwill.night-config:yaml:3.6.6'
+    implementation 'com.electronwill.night-config:json:[3.6.7,3.7]'
+    implementation 'com.electronwill.night-config:toml:[3.6.7,3.7]'
+    implementation 'com.electronwill.night-config:yaml:[3.6.7,3.7]'
     // https://security.snyk.io/package/maven/org.yaml:snakeyaml
-    compileOnly 'org.yaml:snakeyaml:1.33'
+    implementation 'org.yaml:snakeyaml:[1.33,2]'
 
     testImplementation 'org.jdrupes.json:json:[2.0.0,2.1.0)'
 	testRuntimeOnly project.files('test-resources')
-	
-	// bnd includes required files in the jar, but gradle runs
-	// the test using the classes...
-    testRuntimeOnly 'com.electronwill.night-config:json:3.6.6'
-    testRuntimeOnly 'com.electronwill.night-config:toml:3.6.6'
-    testRuntimeOnly 'com.electronwill.night-config:yaml:3.6.6'
 }
 	
 jar {

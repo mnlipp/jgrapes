@@ -9,15 +9,6 @@ Export-Package: \
 	org.jgrapes.util;version="${api_version}",\
 	org.jgrapes.util.events;version="${api_version}"
 
--privatepackage: \
-	com.electronwill.nightconfig.core,\
-	com.electronwill.nightconfig.core.conversion,\
-	com.electronwill.nightconfig.core.file,\
-	com.electronwill.nightconfig.core.io,\
-	com.electronwill.nightconfig.core.utils,\
-	com.electronwill.nightconfig.json,\
-	com.electronwill.nightconfig.toml
-    
 -sources: true
 
 -dsannotations: 
