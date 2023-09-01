@@ -247,7 +247,7 @@
 <span class="source-line-no">234</span><span id="line-234">    private void addPrefs(ConfigurationUpdate updEvt, String path,</span>
 <span class="source-line-no">235</span><span id="line-235">            Config config) {</span>
 <span class="source-line-no">236</span><span id="line-236">        @SuppressWarnings("PMD.UseConcurrentHashMap")</span>
-<span class="source-line-no">237</span><span id="line-237">        Map&lt;String, Object&gt; toFlatten = new HashMap&lt;&gt;();</span>
+<span class="source-line-no">237</span><span id="line-237">        Map&lt;String, Object&gt; atPath = new HashMap&lt;&gt;();</span>
 <span class="source-line-no">238</span><span id="line-238">        for (var e : config.entrySet()) {</span>
 <span class="source-line-no">239</span><span id="line-239">            if (isNode(e.getKey()) &amp;&amp; e.getValue() instanceof Config) {</span>
 <span class="source-line-no">240</span><span id="line-240">                addPrefs(updEvt, ("/".equals(path) ? "" : path)</span>
@@ -255,13 +255,13 @@
 <span class="source-line-no">242</span><span id="line-242">                continue;</span>
 <span class="source-line-no">243</span><span id="line-243">            }</span>
 <span class="source-line-no">244</span><span id="line-244">            if (e.getValue() instanceof Config) {</span>
-<span class="source-line-no">245</span><span id="line-245">                toFlatten.put(e.getKey(), toValueMap(e.getValue()));</span>
+<span class="source-line-no">245</span><span id="line-245">                updEvt.set(path, toValueMap(e.getValue()));</span>
 <span class="source-line-no">246</span><span id="line-246">            } else {</span>
-<span class="source-line-no">247</span><span id="line-247">                toFlatten.put(e.getKey(), e.getValue());</span>
+<span class="source-line-no">247</span><span id="line-247">                atPath.put(e.getKey(), e.getValue());</span>
 <span class="source-line-no">248</span><span id="line-248">            }</span>
 <span class="source-line-no">249</span><span id="line-249">        }</span>
-<span class="source-line-no">250</span><span id="line-250">        for (var e : flatten(toFlatten).entrySet()) {</span>
-<span class="source-line-no">251</span><span id="line-251">            updEvt.add(path, e.getKey(), e.getValue());</span>
+<span class="source-line-no">250</span><span id="line-250">        if (!atPath.isEmpty()) {</span>
+<span class="source-line-no">251</span><span id="line-251">            updEvt.set(path, atPath);</span>
 <span class="source-line-no">252</span><span id="line-252">        }</span>
 <span class="source-line-no">253</span><span id="line-253">    }</span>
 <span class="source-line-no">254</span><span id="line-254"></span>
