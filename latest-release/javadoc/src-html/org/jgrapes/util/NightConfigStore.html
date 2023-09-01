@@ -255,7 +255,7 @@
 <span class="source-line-no">242</span><span id="line-242">                continue;</span>
 <span class="source-line-no">243</span><span id="line-243">            }</span>
 <span class="source-line-no">244</span><span id="line-244">            if (e.getValue() instanceof Config) {</span>
-<span class="source-line-no">245</span><span id="line-245">                updEvt.set(path, toValueMap(e.getValue()));</span>
+<span class="source-line-no">245</span><span id="line-245">                atPath.put(e.getKey(), toValueMap(e.getValue()));</span>
 <span class="source-line-no">246</span><span id="line-246">            } else {</span>
 <span class="source-line-no">247</span><span id="line-247">                atPath.put(e.getKey(), e.getValue());</span>
 <span class="source-line-no">248</span><span id="line-248">            }</span>
