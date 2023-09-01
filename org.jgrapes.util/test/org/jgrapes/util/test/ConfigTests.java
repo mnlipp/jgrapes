@@ -66,9 +66,14 @@ public class ConfigTests {
         public void onConfigurationUpdate(ConfigurationUpdate event) {
             if (event instanceof InitialConfiguration) {
                 assertEquals("42", event.value("/", "answer").get());
-                assertEquals("24", event.value("/sub/tree", "value").get());
+                assertEquals("24",
+                    event.value("/sub/tree", "some.value").get());
                 assertEquals("1", event.value("/sub/tree", "list.0").get());
                 assertEquals("1", event.value("/sub/tree", "map.one").get());
+
+                // Structured
+                assertEquals(24, asNumber(event.structured("/sub/tree").get()
+                    .get("some.value")).get().intValue());
                 var list = (List<Number>) event.structured("/sub/tree").get()
                     .get("list");
                 assertEquals(3, list.size());
@@ -121,7 +126,7 @@ public class ConfigTests {
             prefsBase = Preferences.userNodeForPackage(getClass())
                 .node("PreferencesStore");
             prefsBase.put("answer", "42");
-            prefsBase.node("sub/tree").put("value", "24");
+            prefsBase.node("sub/tree").put("\"some.value\"", "24");
             prefsBase.node("sub/tree").put("list.0", "1");
             prefsBase.node("sub/tree").put("list.1", "2");
             prefsBase.node("sub/tree").put("list.2", "3");
@@ -156,9 +161,11 @@ public class ConfigTests {
 
         // Check direct access to store
         assertEquals("42", conf.values("/").get().get("answer"));
-        assertEquals("24", conf.values("/sub/tree").get().get("value"));
+        assertEquals("24", conf.values("/sub/tree").get().get("some.value"));
         assertEquals("1", conf.values("/sub/tree").get().get("list.0"));
         assertEquals("1", conf.values("/sub/tree").get().get("map.one"));
+
+        // Structured
         var list
             = (List<Number>) conf.structured("/sub/tree").get().get("list");
         assertEquals(3, list.size());
@@ -264,7 +271,7 @@ public class ConfigTests {
             UnsupportedEncodingException, FileNotFoundException {
         File file = new File("testConfig." + format);
         Map<String, String> initial = Map.of("json",
-            "{\"answer\":42, \"/sub\":{\"/tree\":{\"value\":24,"
+            "{\"answer\":42, \"/sub\":{\"/tree\":{\"some.value\":24,"
                 + "\"list\":[1,2,3],\"map\":{\"one\":1,\"more\":[2,3]},"
                 + "\"at\":\"2022-09-29T12:34:00Z\","
                 + "\"objs\":[{\"name\":\"obj0\",\"value\":0},"
@@ -272,7 +279,7 @@ public class ConfigTests {
                 + "{\"name\":\"obj2\",\"value\":2}]}}}",
             "toml", "answer = 42\n"
                 + "[_sub.\"/tree\"]\n"
-                + "value = 24\n"
+                + "\"some.value\" = 24\n"
                 + "list = [1, 2, 3]\n"
                 + "map.one = 1\n"
                 + "map.more = [2, 3]\n"
@@ -282,7 +289,7 @@ public class ConfigTests {
             "yaml", "answer: 42\n"
                 + "_sub:\n"
                 + "  _tree:\n"
-                + "    value: 24\n"
+                + "    some.value: 24\n"
                 + "    list: \n"
                 + "    - 1\n"
                 + "    - 2\n"

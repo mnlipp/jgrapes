@@ -24,6 +24,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.Manager;
@@ -46,12 +47,11 @@ import org.jgrapes.util.ConfigurationStore;
 @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 public class ConfigurationUpdate extends Event<Void> {
 
-    @SuppressWarnings({ "PMD.UseConcurrentHashMap",
-        "PMD.AvoidDuplicateLiterals" })
-    private final Map<String, Map<String, Object>> flatValues = new HashMap<>();
     @SuppressWarnings("PMD.UseConcurrentHashMap")
-    private final Map<String, Map<String, ?>> structuredValues
+    private final Map<String, Map<String, Object>> structuredValues
         = new HashMap<>();
+    private final Map<String, Map<String, Object>> flattenedCache
+        = new ConcurrentHashMap<>();
 
     /**
      * Return all paths affected by this event.
@@ -60,11 +60,14 @@ public class ConfigurationUpdate extends Event<Void> {
      */
     @SuppressWarnings("PMD.ConfusingTernary")
     public Set<String> paths() {
-        synchronized (this) {
-            Set<String> result = new HashSet<>(flatValues.keySet());
-            result.addAll(structuredValues.keySet());
-            return result;
+        synchronized (structuredValues) {
+            return new HashSet<>(structuredValues.keySet());
         }
+    }
+
+    private Optional<Map<String, Object>> flattened(String path) {
+        return Optional.ofNullable(flattenedCache.computeIfAbsent(path,
+            p -> ConfigurationStore.flatten(structuredValues.get(path))));
     }
 
     /**
@@ -79,24 +82,14 @@ public class ConfigurationUpdate extends Event<Void> {
      * removed (implies the removal of all values for that path).
      */
     public Optional<Map<String, String>> values(String path) {
-        synchronized (this) {
-            Map<String, Object> result;
-            if (!flatValues.containsKey(path)
-                && structuredValues.containsKey(path)) {
-                // Synchronize to flatValues and return
-                result = ConfigurationStore.flatten(structuredValues.get(path));
-                flatValues.put(path, result);
-            } else {
-                result = flatValues.get(path);
-            }
-            if (result == null) {
-                return Optional.empty();
-            }
-            return Optional.of(result).map(o -> o.entrySet().stream()
-                .collect(
-                    Collectors.toMap(Map.Entry::getKey, e -> ConfigurationStore
-                        .as(e.getValue(), String.class).orElse(null))));
+        if (structuredValues.get(path) == null) {
+            return Optional.empty();
         }
+        Map<String, Object> result = flattened(path).get();
+        return Optional.of(result).map(o -> o.entrySet().stream()
+            .collect(
+                Collectors.toMap(Map.Entry::getKey, e -> ConfigurationStore
+                    .as(e.getValue(), String.class).orElse(null))));
     }
 
     /**
@@ -111,12 +104,7 @@ public class ConfigurationUpdate extends Event<Void> {
      */
     @SuppressWarnings("PMD.ShortVariable")
     public <T> Optional<T> value(String path, String key, Class<T> as) {
-        if (!flatValues.containsKey(path)
-            && structuredValues.containsKey(path)) {
-            flatValues.put(path,
-                ConfigurationStore.flatten(structuredValues.get(path)));
-        }
-        return Optional.ofNullable(flatValues.get(path))
+        return flattened(path)
             .flatMap(map -> ConfigurationStore.as(map.get(key), as));
     }
 
@@ -146,21 +134,11 @@ public class ConfigurationUpdate extends Event<Void> {
      * removed (implies the removal of all values for that path).
      */
     public Optional<Map<String, Object>> structured(String path) {
-        synchronized (this) {
-            Map<String, ?> result;
-            if (!structuredValues.containsKey(path)
-                && flatValues.containsKey(path)) {
-                // Synchronize to structured and return
-                result = ConfigurationStore.structure(flatValues.get(path));
-                structuredValues.put(path, result);
-            } else {
-                result = structuredValues.get(path);
-            }
-            if (result == null) {
-                return Optional.empty();
-            }
-            return Optional.of(Collections.unmodifiableMap(result));
+        if (structuredValues.get(path) == null) {
+            return Optional.empty();
         }
+        return Optional
+            .of(Collections.unmodifiableMap(structuredValues.get(path)));
     }
 
     /**
@@ -172,14 +150,12 @@ public class ConfigurationUpdate extends Event<Void> {
      * @param path the value's path
      * @return the event for easy chaining
      */
+    @SuppressWarnings("unchecked")
     public ConfigurationUpdate set(String path, Map<String, ?> values) {
         if (path == null || !path.startsWith("/")) {
             throw new IllegalArgumentException("Path must start with \"/\".");
         }
-        synchronized (this) {
-            flatValues.remove(path);
-            structuredValues.put(path, values);
-        }
+        structuredValues.put(path, (Map<String, Object>) values);
         return this;
     }
 
@@ -188,26 +164,20 @@ public class ConfigurationUpdate extends Event<Void> {
      * and key.
      * 
      * @param path the value's path
-     * @param key the key of the value
+     * @param selector the key or the path within the structured value
      * @param value the value
      * @return the event for easy chaining
      */
-    public ConfigurationUpdate add(String path, String key, Object value) {
+    public ConfigurationUpdate add(String path, String selector, Object value) {
         if (path == null || !path.startsWith("/")) {
             throw new IllegalArgumentException("Path must start with \"/\".");
         }
-        synchronized (this) {
-            if (!flatValues.containsKey(path)
-                && structuredValues.containsKey(path)) {
-                // Flattened version becomes current, invalidate structured
-                flatValues.put(path,
-                    ConfigurationStore.flatten(structuredValues.get(path)));
-            }
-            structuredValues.remove(path);
+        synchronized (structuredValues) {
             @SuppressWarnings("PMD.UseConcurrentHashMap")
-            Map<String, Object> scoped = flatValues
+            Map<String, Object> scoped = structuredValues
                 .computeIfAbsent(path, newKey -> new HashMap<String, Object>());
-            scoped.put(key, value);
+            ConfigurationStore.mergeValue(scoped, selector, value);
+            flattenedCache.remove(path);
         }
         return this;
     }
@@ -223,10 +193,7 @@ public class ConfigurationUpdate extends Event<Void> {
         if (path == null || !path.startsWith("/")) {
             throw new IllegalArgumentException("Path must start with \"/\".");
         }
-        synchronized (this) {
-            flatValues.put(path, null);
-            structuredValues.remove(path);
-        }
+        structuredValues.put(path, null);
         return this;
     }
 

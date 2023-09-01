@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
+import java.util.stream.Collectors;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.annotation.Handler;
@@ -127,9 +128,11 @@ public class PreferencesStore extends ConfigurationStore {
         String nodePath = node.absolutePath();
         String relPath = "/" + nodePath.substring(Math.min(
             rootPath.length() + 1, nodePath.length()));
+        var props = new HashMap<String, String>();
         for (String key : node.keys()) {
-            updEvt.add(relPath, key, node.get(key, null));
+            props.put(key, node.get(key, null));
         }
+        updEvt.set(relPath, ConfigurationStore.structure(props));
         for (String child : node.childrenNames()) {
             addPrefs(updEvt, rootPath, node.node(child));
         }
@@ -164,6 +167,17 @@ public class PreferencesStore extends ConfigurationStore {
 
     @Override
     public Optional<Map<String, String>> values(String path) {
+        return nodeValues(path).map(m -> m.entrySet().stream()).map(
+            s -> s.collect(Collectors.toMap(e -> e.getKey().replace("\"", ""),
+                Map.Entry::getValue)));
+    }
+
+    @Override
+    public Optional<Map<String, Object>> structured(String path) {
+        return nodeValues(path).map(ConfigurationStore::structure);
+    }
+
+    private Optional<Map<String, String>> nodeValues(String path) {
         if (!path.startsWith("/")) {
             throw new IllegalArgumentException("Path must start with \"/\".");
         }
@@ -182,4 +196,5 @@ public class PreferencesStore extends ConfigurationStore {
             throw new IllegalStateException(e);
         }
     }
+
 }

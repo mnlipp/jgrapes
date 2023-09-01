@@ -25,10 +25,11 @@ import java.time.temporal.TemporalAccessor;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.StringTokenizer;
+import java.util.Queue;
 import java.util.TreeMap;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -46,7 +47,7 @@ import org.jgrapes.util.events.InitialConfiguration;
  * {@link #values(String)} as the default implementations of either
  * calls the other. 
  */
-@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
+@SuppressWarnings({ "PMD.DataflowAnomalyAnalysis", "PMD.GodClass" })
 public abstract class ConfigurationStore extends Component {
 
     public static final Pattern NUMBER = Pattern.compile("^\\d+$");
@@ -99,7 +100,7 @@ public abstract class ConfigurationStore extends Component {
      * is a list of values. "key.a", "key.b", "key.c" can be used 
      * to associate "key" with a map from "a", "b", "c" to some values.
      * 
-     * This methods looks at all values in the mapped passed as
+     * This methods looks at all values in the map passed as
      * argument. If the value is a collection or map, the entry is
      * converted to several entries following the pattern outlined
      * above.
@@ -192,12 +193,12 @@ public abstract class ConfigurationStore extends Component {
             return null;
         }
         @SuppressWarnings("PMD.UseConcurrentHashMap")
-        Map<Object, Object> result = new HashMap<>();
+        Map<String, Object> result = new HashMap<>();
         for (var entry : flatProperties.entrySet()) {
-            @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
             // Original key (optionally) consists of dot separated parts
-            StringTokenizer parts = new StringTokenizer(entry.getKey(), ".");
-            handleNextPart(result, parts, entry.getValue());
+            var parts = new LinkedList<>(List.of(entry.getKey()
+                .split("\\.(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)", -1)));
+            mergeValue(result, parts, entry.getValue());
         }
 
         // Now convert all maps that have only Integer keys to lists
@@ -206,26 +207,61 @@ public abstract class ConfigurationStore extends Component {
         }
 
         // Return result
-        @SuppressWarnings({ "unchecked", "rawtypes" })
-        Map<String, Object> res = (Map<String, Object>) (Map) result;
-        return res;
+        return result;
     }
 
-    private static void handleNextPart(Map<Object, Object> target,
-            StringTokenizer parts, Object value) {
-        var part = parts.nextToken();
+    /**
+     * Similar to {@link ConfigurationStore#structure(Map)} but merges
+     * only a single value into an existing map.
+     *
+     * @param target the target
+     * @param selector the path selector
+     * @param value the value
+     * @return the map
+     */
+    @SuppressWarnings("unchecked")
+    public static Map<String, Object> mergeValue(Map<?, ?> target,
+            String selector, Object value) {
+        // Original key (optionally) consists of dot separated parts
+        var parts = new LinkedList<>(List.of(selector
+            .split("\\.(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)", -1)));
+        mergeValue(target, parts, value);
+
+        // Now convert all maps that have only Integer keys to lists
+        for (var entry : ((Map<String, Object>) target).entrySet()) {
+            entry.setValue(maybeConvert(entry.getValue(), false));
+        }
+        return (Map<String, Object>) target;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void mergeValue(Map<?, ?> target, Queue<String> parts,
+            Object value) {
+        var part = parts.poll();
+        if (part.startsWith("\"") && part.endsWith("\"")) {
+            part = part.substring(1, part.length() - 1);
+        }
         Object key = NUMBER.matcher(part).find()
             ? Integer.parseInt(part)
             : part;
-        if (!parts.hasMoreTokens()) {
+        if (parts.isEmpty()) {
             // Last part (of key), store value
-            target.put(key, value);
+            ((Map<Object, Object>) target).put(key, value);
             return;
         }
-        @SuppressWarnings("unchecked")
-        var newTarget = (Map<Object, Object>) target
+        var newTarget = ((Map<Object, Object>) target)
             .computeIfAbsent(key, k -> new TreeMap<Object, Object>());
-        handleNextPart(newTarget, parts, value);
+
+        // Convert list to map
+        if (newTarget instanceof List list) {
+            var asMap = new TreeMap<>();
+            for (var item : list) {
+                asMap.put(asMap.size(), item);
+            }
+            newTarget = asMap;
+            ((Map<Object, Object>) target).put(key, newTarget);
+        }
+        mergeValue((Map<Object, Object>) newTarget, parts, value);
     }
 
     @SuppressWarnings({ "unchecked", "PMD.ConfusingTernary" })
@@ -252,7 +288,7 @@ public abstract class ConfigurationStore extends Component {
     }
 
     /**
-     * Return the values for a given path if they exists. This
+     * Return the values for a given path if they exist. This
      * method should only be used in cases where configuration values
      * are needed before the {@link InitialConfiguration} event is
      * fired, e.g. while creating the component tree. 

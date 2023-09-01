@@ -234,7 +234,7 @@ public abstract class NightConfigStore extends ConfigurationStore {
     private void addPrefs(ConfigurationUpdate updEvt, String path,
             Config config) {
         @SuppressWarnings("PMD.UseConcurrentHashMap")
-        Map<String, Object> toFlatten = new HashMap<>();
+        Map<String, Object> atPath = new HashMap<>();
         for (var e : config.entrySet()) {
             if (isNode(e.getKey()) && e.getValue() instanceof Config) {
                 addPrefs(updEvt, ("/".equals(path) ? "" : path)
@@ -242,13 +242,13 @@ public abstract class NightConfigStore extends ConfigurationStore {
                 continue;
             }
             if (e.getValue() instanceof Config) {
-                toFlatten.put(e.getKey(), toValueMap(e.getValue()));
+                updEvt.set(path, toValueMap(e.getValue()));
             } else {
-                toFlatten.put(e.getKey(), e.getValue());
+                atPath.put(e.getKey(), e.getValue());
             }
         }
-        for (var e : flatten(toFlatten).entrySet()) {
-            updEvt.add(path, e.getKey(), e.getValue());
+        if (!atPath.isEmpty()) {
+            updEvt.set(path, atPath);
         }
     }
 
