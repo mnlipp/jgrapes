@@ -242,7 +242,7 @@ public abstract class NightConfigStore extends ConfigurationStore {
                 continue;
             }
             if (e.getValue() instanceof Config) {
-                updEvt.set(path, toValueMap(e.getValue()));
+                atPath.put(e.getKey(), toValueMap(e.getValue()));
             } else {
                 atPath.put(e.getKey(), e.getValue());
             }
