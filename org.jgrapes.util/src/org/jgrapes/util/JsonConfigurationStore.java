@@ -118,6 +118,8 @@ public class JsonConfigurationStore extends NightConfigStore {
     public JsonConfigurationStore(Channel componentChannel, File file,
             boolean update, boolean watch) throws IOException {
         super(componentChannel, file, update, watch);
+        // Force load of JsonFormat and its registration. Required for OSGi.
+        com.electronwill.nightconfig.json.JsonFormat.minimalInstance();
         config = FileConfig.builder(file.getAbsolutePath()).sync().concurrent()
             .build();
         config.load();

@@ -114,6 +114,8 @@ public class TomlConfigurationStore extends NightConfigStore {
     public TomlConfigurationStore(Channel componentChannel, File file,
             boolean update, boolean watch) throws IOException {
         super(componentChannel, file, update, watch);
+        // Force load of TomlFormat and its registration. Required for OSGi.
+        com.electronwill.nightconfig.toml.TomlFormat.instance();
         config = CommentedFileConfig.builder(file.getAbsolutePath()).sync()
             .concurrent().build();
         config.load();

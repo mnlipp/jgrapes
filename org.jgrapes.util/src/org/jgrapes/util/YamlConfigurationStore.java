@@ -118,6 +118,8 @@ public class YamlConfigurationStore extends NightConfigStore {
     public YamlConfigurationStore(Channel componentChannel, File file,
             boolean update, boolean watch) throws IOException {
         super(componentChannel, file, update, watch);
+        // Force load of YamlFormat and its registration. Required for OSGi.
+        com.electronwill.nightconfig.yaml.YamlFormat.defaultInstance();
         config = FileConfig.builder(file.getAbsolutePath()).sync().concurrent()
             .build();
         config.load();

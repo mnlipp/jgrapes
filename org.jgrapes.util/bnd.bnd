@@ -9,12 +9,6 @@ Export-Package: \
 	org.jgrapes.util;version="${api_version}",\
 	org.jgrapes.util.events;version="${api_version}"
 
-# Not directly referenced and not derived from gradle configuration
-Import-Package: com.electronwill.nightconfig.json,\
-    com.electronwill.nightconfig.toml,\
-    com.electronwill.nightconfig.yaml,\
-    *
-
 -sources: true
 
 -dsannotations: 
