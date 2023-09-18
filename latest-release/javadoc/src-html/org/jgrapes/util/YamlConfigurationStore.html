@@ -131,12 +131,14 @@
 <span class="source-line-no">118</span><span id="line-118">    public YamlConfigurationStore(Channel componentChannel, File file,</span>
 <span class="source-line-no">119</span><span id="line-119">            boolean update, boolean watch) throws IOException {</span>
 <span class="source-line-no">120</span><span id="line-120">        super(componentChannel, file, update, watch);</span>
-<span class="source-line-no">121</span><span id="line-121">        config = FileConfig.builder(file.getAbsolutePath()).sync().concurrent()</span>
-<span class="source-line-no">122</span><span id="line-122">            .build();</span>
-<span class="source-line-no">123</span><span id="line-123">        config.load();</span>
-<span class="source-line-no">124</span><span id="line-124">    }</span>
-<span class="source-line-no">125</span><span id="line-125"></span>
-<span class="source-line-no">126</span><span id="line-126">}</span>
+<span class="source-line-no">121</span><span id="line-121">        // Force load of YamlFormat and its registration. Required for OSGi.</span>
+<span class="source-line-no">122</span><span id="line-122">        com.electronwill.nightconfig.yaml.YamlFormat.defaultInstance();</span>
+<span class="source-line-no">123</span><span id="line-123">        config = FileConfig.builder(file.getAbsolutePath()).sync().concurrent()</span>
+<span class="source-line-no">124</span><span id="line-124">            .build();</span>
+<span class="source-line-no">125</span><span id="line-125">        config.load();</span>
+<span class="source-line-no">126</span><span id="line-126">    }</span>
+<span class="source-line-no">127</span><span id="line-127"></span>
+<span class="source-line-no">128</span><span id="line-128">}</span>
 
 
 

@@ -127,12 +127,14 @@
 <span class="source-line-no">114</span><span id="line-114">    public TomlConfigurationStore(Channel componentChannel, File file,</span>
 <span class="source-line-no">115</span><span id="line-115">            boolean update, boolean watch) throws IOException {</span>
 <span class="source-line-no">116</span><span id="line-116">        super(componentChannel, file, update, watch);</span>
-<span class="source-line-no">117</span><span id="line-117">        config = CommentedFileConfig.builder(file.getAbsolutePath()).sync()</span>
-<span class="source-line-no">118</span><span id="line-118">            .concurrent().build();</span>
-<span class="source-line-no">119</span><span id="line-119">        config.load();</span>
-<span class="source-line-no">120</span><span id="line-120">    }</span>
-<span class="source-line-no">121</span><span id="line-121"></span>
-<span class="source-line-no">122</span><span id="line-122">}</span>
+<span class="source-line-no">117</span><span id="line-117">        // Force load of TomlFormat and its registration. Required for OSGi.</span>
+<span class="source-line-no">118</span><span id="line-118">        com.electronwill.nightconfig.toml.TomlFormat.instance();</span>
+<span class="source-line-no">119</span><span id="line-119">        config = CommentedFileConfig.builder(file.getAbsolutePath()).sync()</span>
+<span class="source-line-no">120</span><span id="line-120">            .concurrent().build();</span>
+<span class="source-line-no">121</span><span id="line-121">        config.load();</span>
+<span class="source-line-no">122</span><span id="line-122">    }</span>
+<span class="source-line-no">123</span><span id="line-123"></span>
+<span class="source-line-no">124</span><span id="line-124">}</span>
 
 
 
