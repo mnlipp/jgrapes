@@ -11,7 +11,7 @@ different purposes.
 
 <img src="WebConsole-pic1.png" width="75%" alt="Web Console Demo">
 
-(A live demo configuration of the portal is available at 
+(A live demo configuration of a console is available at 
 [demo.jgrapes.org](https://demo.jgrapes.org/).)
 
 A JGrapes Web Console consists &mdash;from the user's point of view&mdash; 
