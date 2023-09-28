@@ -103,7 +103,7 @@ import { Ref, isRef, onMounted, onBeforeUnmount } from 'vue'
  * @param dom the element from the DOM tree
  * @param api the API to make available
  */
-function provideApi (dom: Ref&lt;HTMLElement | null> | HTMLElement, 
+function provideApi (dom: Ref&lt;null> | Ref&lt;HTMLElement> | HTMLElement, 
         api: Object): void {
     onMounted (() => {
         if (isRef(dom)) {
