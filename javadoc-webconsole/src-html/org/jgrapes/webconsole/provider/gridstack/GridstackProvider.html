@@ -51,7 +51,7 @@
 <span class="source-line-no">038</span><span id="line-38">/**</span>
 <span class="source-line-no">039</span><span id="line-39"> * Provider for the [Gridstack.js](http://gridstackjs.com/) library.</span>
 <span class="source-line-no">040</span><span id="line-40"> */</span>
-<span class="source-line-no">041</span><span id="line-41">@SuppressWarnings("PMD.GuardLogStatement")</span>
+<span class="source-line-no">041</span><span id="line-41">@SuppressWarnings({ "PMD.GuardLogStatement", "PMD.DataflowAnomalyAnalysis" })</span>
 <span class="source-line-no">042</span><span id="line-42">public class GridstackProvider extends PageResourceProvider {</span>
 <span class="source-line-no">043</span><span id="line-43"></span>
 <span class="source-line-no">044</span><span id="line-44">    @SuppressWarnings({ "PMD.FieldNamingConventions",</span>
@@ -132,44 +132,12 @@
 <span class="source-line-no">119</span><span id="line-119">        AddPageResources addRequest = new AddPageResources()</span>
 <span class="source-line-no">120</span><span id="line-120">            .addCss(event.renderSupport().pageResource(</span>
 <span class="source-line-no">121</span><span id="line-121">                "gridstack/gridstack" + minExt + ".css"));</span>
-<span class="source-line-no">122</span><span id="line-122">        switch (configuration) {</span>
-<span class="source-line-no">123</span><span id="line-123">        case CoreOnly:</span>
-<span class="source-line-no">124</span><span id="line-124">            addRequest</span>
-<span class="source-line-no">125</span><span id="line-125">                .addScriptResource(new ScriptResource()</span>
-<span class="source-line-no">126</span><span id="line-126">                    .setRequires(requireTouchPunch</span>
-<span class="source-line-no">127</span><span id="line-127">                        ? "jquery-ui.touch-punch"</span>
-<span class="source-line-no">128</span><span id="line-128">                        : "jquery")</span>
-<span class="source-line-no">129</span><span id="line-129">                    .setProvides("gridstack")</span>
-<span class="source-line-no">130</span><span id="line-130">                    .setScriptUri(event.renderSupport().pageResource(</span>
-<span class="source-line-no">131</span><span id="line-131">                        "gridstack/gridstack" + minExt + ".js")));</span>
-<span class="source-line-no">132</span><span id="line-132">            break;</span>
-<span class="source-line-no">133</span><span id="line-133">        case CoreWithJQUiPlugin:</span>
-<span class="source-line-no">134</span><span id="line-134">            addRequest.addScriptResource(new ScriptResource()</span>
-<span class="source-line-no">135</span><span id="line-135">                .setRequires(requireTouchPunch</span>
-<span class="source-line-no">136</span><span id="line-136">                    ? "jquery-ui.touch-punch"</span>
-<span class="source-line-no">137</span><span id="line-137">                    : "jquery")</span>
-<span class="source-line-no">138</span><span id="line-138">                .setProvides("gridstack")</span>
-<span class="source-line-no">139</span><span id="line-139">                .setScriptUri(event.renderSupport().pageResource(</span>
-<span class="source-line-no">140</span><span id="line-140">                    "gridstack/gridstack" + minExt + ".js")));</span>
-<span class="source-line-no">141</span><span id="line-141">            addRequest.addScriptResource(new ScriptResource()</span>
-<span class="source-line-no">142</span><span id="line-142">                .setRequires("gridstack")</span>
-<span class="source-line-no">143</span><span id="line-143">                .setProvides("gridstack.jQueryUI")</span>
-<span class="source-line-no">144</span><span id="line-144">                .setScriptUri(event.renderSupport().pageResource(</span>
-<span class="source-line-no">145</span><span id="line-145">                    "gridstack/gridstack.jQueryUI" + minExt + ".js")));</span>
-<span class="source-line-no">146</span><span id="line-146">            break;</span>
-<span class="source-line-no">147</span><span id="line-147">        case All:</span>
-<span class="source-line-no">148</span><span id="line-148">            addRequest.addScriptResource(new ScriptResource()</span>
-<span class="source-line-no">149</span><span id="line-149">                .setProvides("jquery", "jquery-ui",</span>
-<span class="source-line-no">150</span><span id="line-150">                    "gridstack", "gridstack.all")</span>
-<span class="source-line-no">151</span><span id="line-151">                .setScriptUri(event.renderSupport().pageResource(</span>
-<span class="source-line-no">152</span><span id="line-152">                    "gridstack/gridstack.all.js")));</span>
-<span class="source-line-no">153</span><span id="line-153">            break;</span>
-<span class="source-line-no">154</span><span id="line-154">        default:</span>
-<span class="source-line-no">155</span><span id="line-155">            break;</span>
-<span class="source-line-no">156</span><span id="line-156">        }</span>
-<span class="source-line-no">157</span><span id="line-157">        connection.respond(addRequest);</span>
-<span class="source-line-no">158</span><span id="line-158">    }</span>
-<span class="source-line-no">159</span><span id="line-159">}</span>
+<span class="source-line-no">122</span><span id="line-122">        connection.respond(new AddPageResources()</span>
+<span class="source-line-no">123</span><span id="line-123">            .addScriptResource(new ScriptResource()</span>
+<span class="source-line-no">124</span><span id="line-124">                .setProvides(new String[] { "gridstack" })));</span>
+<span class="source-line-no">125</span><span id="line-125">        connection.respond(addRequest);</span>
+<span class="source-line-no">126</span><span id="line-126">    }</span>
+<span class="source-line-no">127</span><span id="line-127">}</span>
 
 
 
