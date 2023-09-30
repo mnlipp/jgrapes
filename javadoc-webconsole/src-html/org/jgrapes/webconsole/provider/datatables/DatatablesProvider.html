@@ -118,24 +118,25 @@
 <span class="source-line-no">105</span><span id="line-105">                .pageResource(baseDir + "/" + styling + "/datatables"</span>
 <span class="source-line-no">106</span><span id="line-106">                    + minExt + ".css"))</span>
 <span class="source-line-no">107</span><span id="line-107">            .addScriptResource(new ScriptResource()</span>
-<span class="source-line-no">108</span><span id="line-108">                .setProvides(new String[] { "datatables.net" })</span>
-<span class="source-line-no">109</span><span id="line-109">                .setScriptUri(event.renderSupport().pageResource(</span>
-<span class="source-line-no">110</span><span id="line-110">                    baseDir + "/" + styling + "/datatables" + minExt + ".js")))</span>
-<span class="source-line-no">111</span><span id="line-111">            .addScriptResource(new ScriptResource()</span>
-<span class="source-line-no">112</span><span id="line-112">                .setRequires(new String[] { "datatables.net" })</span>
-<span class="source-line-no">113</span><span id="line-113">                .setScriptUri(event.renderSupport().pageResource(</span>
-<span class="source-line-no">114</span><span id="line-114">                    baseDir + "/processing().js")))</span>
-<span class="source-line-no">115</span><span id="line-115">            .addScriptResource(new ScriptResource()</span>
-<span class="source-line-no">116</span><span id="line-116">                .setRequires(new String[] { "datatables.net" })</span>
-<span class="source-line-no">117</span><span id="line-117">                .setScriptSource(script));</span>
-<span class="source-line-no">118</span><span id="line-118">        if ("jqueryui".equals(styling)) {</span>
-<span class="source-line-no">119</span><span id="line-119">            addRequest.addCss(event.renderSupport().pageResource(</span>
-<span class="source-line-no">120</span><span id="line-120">                "jqueryui-overrides-1.0.0.css"));</span>
-<span class="source-line-no">121</span><span id="line-121">        }</span>
-<span class="source-line-no">122</span><span id="line-122">        connection.respond(addRequest);</span>
-<span class="source-line-no">123</span><span id="line-123">    }</span>
-<span class="source-line-no">124</span><span id="line-124"></span>
-<span class="source-line-no">125</span><span id="line-125">}</span>
+<span class="source-line-no">108</span><span id="line-108">                .setRequires("jquery")</span>
+<span class="source-line-no">109</span><span id="line-109">                .setProvides(new String[] { "datatables.net" })</span>
+<span class="source-line-no">110</span><span id="line-110">                .setScriptUri(event.renderSupport().pageResource(</span>
+<span class="source-line-no">111</span><span id="line-111">                    baseDir + "/" + styling + "/datatables" + minExt + ".js")))</span>
+<span class="source-line-no">112</span><span id="line-112">            .addScriptResource(new ScriptResource()</span>
+<span class="source-line-no">113</span><span id="line-113">                .setRequires(new String[] { "datatables.net" })</span>
+<span class="source-line-no">114</span><span id="line-114">                .setScriptUri(event.renderSupport().pageResource(</span>
+<span class="source-line-no">115</span><span id="line-115">                    baseDir + "/processing().js")))</span>
+<span class="source-line-no">116</span><span id="line-116">            .addScriptResource(new ScriptResource()</span>
+<span class="source-line-no">117</span><span id="line-117">                .setRequires(new String[] { "datatables.net" })</span>
+<span class="source-line-no">118</span><span id="line-118">                .setScriptSource(script));</span>
+<span class="source-line-no">119</span><span id="line-119">        if ("jqueryui".equals(styling)) {</span>
+<span class="source-line-no">120</span><span id="line-120">            addRequest.addCss(event.renderSupport().pageResource(</span>
+<span class="source-line-no">121</span><span id="line-121">                "jqueryui-overrides-1.0.0.css"));</span>
+<span class="source-line-no">122</span><span id="line-122">        }</span>
+<span class="source-line-no">123</span><span id="line-123">        connection.respond(addRequest);</span>
+<span class="source-line-no">124</span><span id="line-124">    }</span>
+<span class="source-line-no">125</span><span id="line-125"></span>
+<span class="source-line-no">126</span><span id="line-126">}</span>
 
 
 
