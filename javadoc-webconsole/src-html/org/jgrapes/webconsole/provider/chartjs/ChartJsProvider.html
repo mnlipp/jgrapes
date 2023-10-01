@@ -35,61 +35,75 @@
 <span class="source-line-no">022</span><span id="line-22">import freemarker.template.MalformedTemplateNameException;</span>
 <span class="source-line-no">023</span><span id="line-23">import freemarker.template.TemplateNotFoundException;</span>
 <span class="source-line-no">024</span><span id="line-24">import java.io.IOException;</span>
-<span class="source-line-no">025</span><span id="line-25">import org.jgrapes.core.Channel;</span>
-<span class="source-line-no">026</span><span id="line-26">import org.jgrapes.core.Event;</span>
-<span class="source-line-no">027</span><span id="line-27">import org.jgrapes.core.Manager;</span>
-<span class="source-line-no">028</span><span id="line-28">import org.jgrapes.core.annotation.Handler;</span>
-<span class="source-line-no">029</span><span id="line-29">import org.jgrapes.webconsole.base.ConsoleConnection;</span>
-<span class="source-line-no">030</span><span id="line-30">import org.jgrapes.webconsole.base.PageResourceProvider;</span>
-<span class="source-line-no">031</span><span id="line-31">import org.jgrapes.webconsole.base.events.AddPageResources;</span>
-<span class="source-line-no">032</span><span id="line-32">import org.jgrapes.webconsole.base.events.AddPageResources.ScriptResource;</span>
-<span class="source-line-no">033</span><span id="line-33">import org.jgrapes.webconsole.base.events.ConsoleReady;</span>
-<span class="source-line-no">034</span><span id="line-34"></span>
-<span class="source-line-no">035</span><span id="line-35">/**</span>
-<span class="source-line-no">036</span><span id="line-36"> * Provider for the [Chart.js](http://www.chartjs.org/) library.</span>
-<span class="source-line-no">037</span><span id="line-37"> * </span>
-<span class="source-line-no">038</span><span id="line-38"> * Chart.js is automatically configured to use luxon for time</span>
-<span class="source-line-no">039</span><span id="line-39"> * handling.</span>
-<span class="source-line-no">040</span><span id="line-40"> */</span>
-<span class="source-line-no">041</span><span id="line-41">public class ChartJsProvider extends PageResourceProvider {</span>
-<span class="source-line-no">042</span><span id="line-42"></span>
-<span class="source-line-no">043</span><span id="line-43">    /**</span>
-<span class="source-line-no">044</span><span id="line-44">     * Creates a new component with its channel set to the given </span>
-<span class="source-line-no">045</span><span id="line-45">     * channel.</span>
-<span class="source-line-no">046</span><span id="line-46">     * </span>
-<span class="source-line-no">047</span><span id="line-47">     * @param componentChannel the channel that the component's </span>
-<span class="source-line-no">048</span><span id="line-48">     * handlers listen on by default and that </span>
-<span class="source-line-no">049</span><span id="line-49">     * {@link Manager#fire(Event, Channel...)} sends the event to </span>
-<span class="source-line-no">050</span><span id="line-50">     */</span>
-<span class="source-line-no">051</span><span id="line-51">    public ChartJsProvider(Channel componentChannel) {</span>
-<span class="source-line-no">052</span><span id="line-52">        super(componentChannel);</span>
-<span class="source-line-no">053</span><span id="line-53">    }</span>
-<span class="source-line-no">054</span><span id="line-54"></span>
-<span class="source-line-no">055</span><span id="line-55">    /**</span>
-<span class="source-line-no">056</span><span id="line-56">     * On {@link ConsoleReady}, fire the appropriate {@link AddPageResources}.</span>
-<span class="source-line-no">057</span><span id="line-57">     *</span>
-<span class="source-line-no">058</span><span id="line-58">     * @param event the event</span>
-<span class="source-line-no">059</span><span id="line-59">     * @param connection the web console connection</span>
-<span class="source-line-no">060</span><span id="line-60">     * @throws TemplateNotFoundException the template not found exception</span>
-<span class="source-line-no">061</span><span id="line-61">     * @throws MalformedTemplateNameException the malformed template name exception</span>
-<span class="source-line-no">062</span><span id="line-62">     * @throws ParseException the parse exception</span>
-<span class="source-line-no">063</span><span id="line-63">     * @throws IOException Signals that an I/O exception has occurred.</span>
-<span class="source-line-no">064</span><span id="line-64">     */</span>
-<span class="source-line-no">065</span><span id="line-65">    @Handler(priority = 100)</span>
-<span class="source-line-no">066</span><span id="line-66">    public void onConsoleReady(ConsoleReady event, ConsoleConnection connection)</span>
-<span class="source-line-no">067</span><span id="line-67">            throws TemplateNotFoundException, MalformedTemplateNameException,</span>
-<span class="source-line-no">068</span><span id="line-68">            ParseException, IOException {</span>
-<span class="source-line-no">069</span><span id="line-69">        connection.respond(new AddPageResources()</span>
-<span class="source-line-no">070</span><span id="line-70">            .addScriptResource(new ScriptResource()</span>
-<span class="source-line-no">071</span><span id="line-71">                .setScriptType("module").setProvides("chart.js")</span>
-<span class="source-line-no">072</span><span id="line-72">                .setScriptUri(event.renderSupport().pageResource(</span>
-<span class="source-line-no">073</span><span id="line-73">                    "chart.js/auto/auto.esm.js")))</span>
-<span class="source-line-no">074</span><span id="line-74">            .addScriptResource(new ScriptResource()</span>
-<span class="source-line-no">075</span><span id="line-75">                .setScriptType("module")</span>
-<span class="source-line-no">076</span><span id="line-76">                .setScriptUri(event.renderSupport().pageResource(</span>
-<span class="source-line-no">077</span><span id="line-77">                    "chart.js/adapters/chartjs-adapter-simple.js"))));</span>
-<span class="source-line-no">078</span><span id="line-78">    }</span>
-<span class="source-line-no">079</span><span id="line-79">}</span>
+<span class="source-line-no">025</span><span id="line-25">import java.util.Collections;</span>
+<span class="source-line-no">026</span><span id="line-26">import java.util.Map;</span>
+<span class="source-line-no">027</span><span id="line-27">import org.jgrapes.core.Channel;</span>
+<span class="source-line-no">028</span><span id="line-28">import org.jgrapes.core.Event;</span>
+<span class="source-line-no">029</span><span id="line-29">import org.jgrapes.core.Manager;</span>
+<span class="source-line-no">030</span><span id="line-30">import org.jgrapes.core.annotation.Handler;</span>
+<span class="source-line-no">031</span><span id="line-31">import org.jgrapes.webconsole.base.ConsoleConnection;</span>
+<span class="source-line-no">032</span><span id="line-32">import org.jgrapes.webconsole.base.PageResourceProvider;</span>
+<span class="source-line-no">033</span><span id="line-33">import org.jgrapes.webconsole.base.events.AddPageResources;</span>
+<span class="source-line-no">034</span><span id="line-34">import org.jgrapes.webconsole.base.events.AddPageResources.ScriptResource;</span>
+<span class="source-line-no">035</span><span id="line-35">import org.jgrapes.webconsole.base.events.ConsoleReady;</span>
+<span class="source-line-no">036</span><span id="line-36"></span>
+<span class="source-line-no">037</span><span id="line-37">/**</span>
+<span class="source-line-no">038</span><span id="line-38"> * Provider for the [Chart.js](http://www.chartjs.org/) library.</span>
+<span class="source-line-no">039</span><span id="line-39"> * </span>
+<span class="source-line-no">040</span><span id="line-40"> * The package cannot be used as distributed in node_modules</span>
+<span class="source-line-no">041</span><span id="line-41"> * because of imports that aren't browser compliant. It is made</span>
+<span class="source-line-no">042</span><span id="line-42"> * available for import as page resource "chart.js/auto.js".</span>
+<span class="source-line-no">043</span><span id="line-43"> */</span>
+<span class="source-line-no">044</span><span id="line-44">public class ChartJsProvider extends PageResourceProvider {</span>
+<span class="source-line-no">045</span><span id="line-45"></span>
+<span class="source-line-no">046</span><span id="line-46">    /**</span>
+<span class="source-line-no">047</span><span id="line-47">     * Creates a new component with its channel set to the given </span>
+<span class="source-line-no">048</span><span id="line-48">     * channel.</span>
+<span class="source-line-no">049</span><span id="line-49">     * </span>
+<span class="source-line-no">050</span><span id="line-50">     * @param componentChannel the channel that the component's </span>
+<span class="source-line-no">051</span><span id="line-51">     * handlers listen on by default and that </span>
+<span class="source-line-no">052</span><span id="line-52">     * {@link Manager#fire(Event, Channel...)} sends the event to </span>
+<span class="source-line-no">053</span><span id="line-53">     */</span>
+<span class="source-line-no">054</span><span id="line-54">    public ChartJsProvider(Channel componentChannel) {</span>
+<span class="source-line-no">055</span><span id="line-55">        this(componentChannel, Collections.emptyMap());</span>
+<span class="source-line-no">056</span><span id="line-56">    }</span>
+<span class="source-line-no">057</span><span id="line-57"></span>
+<span class="source-line-no">058</span><span id="line-58">    /**</span>
+<span class="source-line-no">059</span><span id="line-59">     * Creates a new component with its channel set to the given </span>
+<span class="source-line-no">060</span><span id="line-60">     * channel.</span>
+<span class="source-line-no">061</span><span id="line-61">     * </span>
+<span class="source-line-no">062</span><span id="line-62">     * @param componentChannel the channel that the component's </span>
+<span class="source-line-no">063</span><span id="line-63">     * handlers listen on by default and that </span>
+<span class="source-line-no">064</span><span id="line-64">     * {@link Manager#fire(Event, Channel...)} sends the event to </span>
+<span class="source-line-no">065</span><span id="line-65">     * @param properties the properties used to configure the component</span>
+<span class="source-line-no">066</span><span id="line-66">     */</span>
+<span class="source-line-no">067</span><span id="line-67">    @SuppressWarnings("PMD.UnusedFormalParameter")</span>
+<span class="source-line-no">068</span><span id="line-68">    public ChartJsProvider(Channel componentChannel, Map&lt;?, ?&gt; properties) {</span>
+<span class="source-line-no">069</span><span id="line-69">        super(componentChannel);</span>
+<span class="source-line-no">070</span><span id="line-70">    }</span>
+<span class="source-line-no">071</span><span id="line-71"></span>
+<span class="source-line-no">072</span><span id="line-72">    /**</span>
+<span class="source-line-no">073</span><span id="line-73">     * On {@link ConsoleReady}, fire the appropriate {@link AddPageResources}.</span>
+<span class="source-line-no">074</span><span id="line-74">     *</span>
+<span class="source-line-no">075</span><span id="line-75">     * @param event the event</span>
+<span class="source-line-no">076</span><span id="line-76">     * @param connection the web console connection</span>
+<span class="source-line-no">077</span><span id="line-77">     * @throws TemplateNotFoundException the template not found exception</span>
+<span class="source-line-no">078</span><span id="line-78">     * @throws MalformedTemplateNameException the malformed template name exception</span>
+<span class="source-line-no">079</span><span id="line-79">     * @throws ParseException the parse exception</span>
+<span class="source-line-no">080</span><span id="line-80">     * @throws IOException Signals that an I/O exception has occurred.</span>
+<span class="source-line-no">081</span><span id="line-81">     */</span>
+<span class="source-line-no">082</span><span id="line-82">    @Handler(priority = 100)</span>
+<span class="source-line-no">083</span><span id="line-83">    public void onConsoleReady(ConsoleReady event, ConsoleConnection connection)</span>
+<span class="source-line-no">084</span><span id="line-84">            throws TemplateNotFoundException, MalformedTemplateNameException,</span>
+<span class="source-line-no">085</span><span id="line-85">            ParseException, IOException {</span>
+<span class="source-line-no">086</span><span id="line-86">        var pageResources = new AddPageResources()</span>
+<span class="source-line-no">087</span><span id="line-87">            .addScriptResource(new ScriptResource().setProvides("chart.js"))</span>
+<span class="source-line-no">088</span><span id="line-88">            .addScriptResource(new ScriptResource().setScriptType("module")</span>
+<span class="source-line-no">089</span><span id="line-89">                .setScriptUri(event.renderSupport().pageResource(</span>
+<span class="source-line-no">090</span><span id="line-90">                    "chart.js/adapters/chartjs-adapter-simple.js")));</span>
+<span class="source-line-no">091</span><span id="line-91">        connection.respond(pageResources);</span>
+<span class="source-line-no">092</span><span id="line-92">    }</span>
+<span class="source-line-no">093</span><span id="line-93">}</span>
 
 
 
