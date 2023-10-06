@@ -3,6 +3,7 @@ org.jgrapes.webconlet.examples.helloworld
 org.jgrapes.webconlet.examples.styletest
 org.jgrapes.webconlet.jmxbrowser
 org.jgrapes.webconlet.locallogin
+org.jgrapes.webconlet.logviewer
 org.jgrapes.webconlet.markdowndisplay
 org.jgrapes.webconlet.messagebox
 org.jgrapes.webconlet.sysinfo
