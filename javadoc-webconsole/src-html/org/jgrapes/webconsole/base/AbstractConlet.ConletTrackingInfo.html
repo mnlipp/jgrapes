@@ -132,7 +132,7 @@
 <span class="source-line-no">119</span><span id="line-119"> * instance of a given type should be added to the page. The</span>
 <span class="source-line-no">120</span><span id="line-120"> * {@link AbstractConlet} checks the type requested, and if</span>
 <span class="source-line-no">121</span><span id="line-121"> * it matches, invokes {@link #generateInstanceId generateInstanceId}</span>
-<span class="source-line-no">122</span><span id="line-122"> * and{@link #createNewState createNewState}.</span>
+<span class="source-line-no">122</span><span id="line-122"> * and {@link #createNewState createNewState}.</span>
 <span class="source-line-no">123</span><span id="line-123"> * If the conlet has associated state, the information is saved with</span>
 <span class="source-line-no">124</span><span id="line-124"> * {@link #putInSession putInSession}. Then </span>
 <span class="source-line-no">125</span><span id="line-125"> * {@link #doRenderConlet doRenderConlet} is invoked, which must </span>
@@ -166,16 +166,16 @@
 <span class="source-line-no">153</span><span id="line-153"> * a backing store.</span>
 <span class="source-line-no">154</span><span id="line-154"> * </span>
 <span class="source-line-no">155</span><span id="line-155"> * Once state information has been obtained, the method </span>
-<span class="source-line-no">156</span><span id="line-156"> * invokes as when adding a new conlet by invoking</span>
+<span class="source-line-no">156</span><span id="line-156"> * continues as when adding a new conlet by invoking</span>
 <span class="source-line-no">157</span><span id="line-157"> * {@link #doRenderConlet doRenderConlet}.</span>
 <span class="source-line-no">158</span><span id="line-158"> * </span>
 <span class="source-line-no">159</span><span id="line-159"> * ## ConletDeleted</span>
 <span class="source-line-no">160</span><span id="line-160"> * </span>
 <span class="source-line-no">161</span><span id="line-161"> * ![Web console component deleted handling](ConletDeletedHandling.svg)</span>
 <span class="source-line-no">162</span><span id="line-162"> * </span>
-<span class="source-line-no">163</span><span id="line-163"> * When the {@link AbstractConlet} receives a {@link ConletDeleted},</span>
-<span class="source-line-no">164</span><span id="line-164"> * it updates the information about the shown conlet views. If the</span>
-<span class="source-line-no">165</span><span id="line-165"> * conlet is no longer used in the browser (no views remain),</span>
+<span class="source-line-no">163</span><span id="line-163"> * When the {@link AbstractConlet} receives a {@link ConletDeleted}</span>
+<span class="source-line-no">164</span><span id="line-164"> * event, it updates the information about the shown conlet views. If</span>
+<span class="source-line-no">165</span><span id="line-165"> * the conlet is no longer used in the browser (no views remain),</span>
 <span class="source-line-no">166</span><span id="line-166"> * it deletes the state information from the session. In any case, it</span>
 <span class="source-line-no">167</span><span id="line-167"> * invokes {@link #doConletDeleted doConletDeleted} with the </span>
 <span class="source-line-no">168</span><span id="line-168"> * state information.</span>
@@ -187,11 +187,11 @@
 <span class="source-line-no">174</span><span id="line-174"> * If the web console component views include input elements, actions </span>
 <span class="source-line-no">175</span><span id="line-175"> * on these elements may result in {@link NotifyConletModel} events from</span>
 <span class="source-line-no">176</span><span id="line-176"> * the web console page to the web console. When the {@link AbstractConlet}</span>
-<span class="source-line-no">177</span><span id="line-177"> * receives such events, it retrieves any existing state information. </span>
-<span class="source-line-no">178</span><span id="line-178"> * It then invokes {@link #doUpdateConletState doUpdateConletState} with the</span>
-<span class="source-line-no">179</span><span id="line-179"> * retrieved information. The web console component usually responds with</span>
-<span class="source-line-no">180</span><span id="line-180"> * a {@link NotifyConletView} event. However, it can also</span>
-<span class="source-line-no">181</span><span id="line-181"> * re-render the complete conlet view.</span>
+<span class="source-line-no">177</span><span id="line-177"> * receives such events, it retrieves any existing state information.</span>
+<span class="source-line-no">178</span><span id="line-178"> * It then invokes {@link #doUpdateConletState doUpdateConletState}</span>
+<span class="source-line-no">179</span><span id="line-179"> * with the retrieved information. The web console component usually</span>
+<span class="source-line-no">180</span><span id="line-180"> * responds with a {@link NotifyConletView} event. However, it can</span>
+<span class="source-line-no">181</span><span id="line-181"> * also re-render the complete conlet view.</span>
 <span class="source-line-no">182</span><span id="line-182"> * </span>
 <span class="source-line-no">183</span><span id="line-183"> * Support for unsolicited updates</span>
 <span class="source-line-no">184</span><span id="line-184"> * -------------------------------</span>
@@ -199,9 +199,9 @@
 <span class="source-line-no">186</span><span id="line-186"> * The class tracks the relationship between the known</span>
 <span class="source-line-no">187</span><span id="line-187"> * {@link ConsoleConnection}s and the web console components displayed </span>
 <span class="source-line-no">188</span><span id="line-188"> * in the console pages. The information is available from</span>
-<span class="source-line-no">189</span><span id="line-189"> * {@link #conletInfosByConsoleConnection}. It can e.g. be used to send</span>
-<span class="source-line-no">190</span><span id="line-190"> * events to the web console(s) in response to an event on the server</span>
-<span class="source-line-no">191</span><span id="line-191"> * side.</span>
+<span class="source-line-no">189</span><span id="line-189"> * {@link #conletInfosByConsoleConnection conletInfosByConsoleConnection}.</span>
+<span class="source-line-no">190</span><span id="line-190"> * It can e.g. be used to send events to the web console(s) in response </span>
+<span class="source-line-no">191</span><span id="line-191"> * to an event on the server side.</span>
 <span class="source-line-no">192</span><span id="line-192"> *</span>
 <span class="source-line-no">193</span><span id="line-193"> * @param &lt;S&gt; the type of the conlet's state information</span>
 <span class="source-line-no">194</span><span id="line-194"> * </span>
@@ -649,13 +649,13 @@
 <span class="source-line-no">636</span><span id="line-636">    }</span>
 <span class="source-line-no">637</span><span id="line-637"></span>
 <span class="source-line-no">638</span><span id="line-638">    /**</span>
-<span class="source-line-no">639</span><span id="line-639">     * Called by {@link #onRenderConletRequest} when a previously </span>
-<span class="source-line-no">640</span><span id="line-640">     * created conlet (with associated state) is rendered in a new </span>
-<span class="source-line-no">641</span><span id="line-641">     * browser session for the first time. The default implementation </span>
-<span class="source-line-no">642</span><span id="line-642">     * simply invokes {@link #createStateRepresentation} and returns </span>
-<span class="source-line-no">643</span><span id="line-643">     * its result. Conlets with long-term state should retrieve </span>
-<span class="source-line-no">644</span><span id="line-644">     * their state from some storage. If state is returned, it is</span>
-<span class="source-line-no">645</span><span id="line-645">     * put in the browser session by the invoker.</span>
+<span class="source-line-no">639</span><span id="line-639">     * Called when a previously created conlet (with associated state)</span>
+<span class="source-line-no">640</span><span id="line-640">     * is rendered in a new browser session for the first time. The </span>
+<span class="source-line-no">641</span><span id="line-641">     * default implementation simply invokes </span>
+<span class="source-line-no">642</span><span id="line-642">     * {@link #createStateRepresentation createStateRepresentation}</span>
+<span class="source-line-no">643</span><span id="line-643">     * and returns its result. Conlets with long-term state should</span>
+<span class="source-line-no">644</span><span id="line-644">     * retrieve their state from some storage. If state is returned,</span>
+<span class="source-line-no">645</span><span id="line-645">     * it is put in the browser session by the invoker.</span>
 <span class="source-line-no">646</span><span id="line-646">     *</span>
 <span class="source-line-no">647</span><span id="line-647">     * @param event the event </span>
 <span class="source-line-no">648</span><span id="line-648">     * @param connection the console connection</span>
