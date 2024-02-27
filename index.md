@@ -15,7 +15,7 @@ written for Python.
 
 Built on the core, the JGrapes framework also includes some complex 
 components such as an HTTP server and a web console provided as component
-libraries. The framework makes full use of the Java 11 SE environment. 
+libraries. The framework makes full use of the Java 17 SE environment. 
 The core has no dependencies on additional libraries. The component 
 libraries extending the core have as few dependencies on additional 
 libraries as possible.
