@@ -46,191 +46,190 @@
 <span class="source-line-no">033</span><span id="line-33">import java.util.Arrays;</span>
 <span class="source-line-no">034</span><span id="line-34">import java.util.Collections;</span>
 <span class="source-line-no">035</span><span id="line-35">import java.util.logging.Level;</span>
-<span class="source-line-no">036</span><span id="line-36"></span>
-<span class="source-line-no">037</span><span id="line-37">import javax.net.ssl.KeyManagerFactory;</span>
-<span class="source-line-no">038</span><span id="line-38">import javax.net.ssl.SSLContext;</span>
-<span class="source-line-no">039</span><span id="line-39">import org.jgrapes.core.Channel;</span>
-<span class="source-line-no">040</span><span id="line-40">import org.jgrapes.core.ClassChannel;</span>
-<span class="source-line-no">041</span><span id="line-41">import org.jgrapes.core.Component;</span>
-<span class="source-line-no">042</span><span id="line-42">import org.jgrapes.core.Components;</span>
-<span class="source-line-no">043</span><span id="line-43">import org.jgrapes.core.NamedChannel;</span>
-<span class="source-line-no">044</span><span id="line-44">import org.jgrapes.core.annotation.Handler;</span>
-<span class="source-line-no">045</span><span id="line-45">import org.jgrapes.core.events.HandlingError;</span>
-<span class="source-line-no">046</span><span id="line-46">import org.jgrapes.core.events.Stop;</span>
-<span class="source-line-no">047</span><span id="line-47">import org.jgrapes.http.HttpServer;</span>
-<span class="source-line-no">048</span><span id="line-48">import org.jgrapes.http.InMemorySessionManager;</span>
-<span class="source-line-no">049</span><span id="line-49">import org.jgrapes.http.LanguageSelector;</span>
-<span class="source-line-no">050</span><span id="line-50">import org.jgrapes.http.events.Request;</span>
-<span class="source-line-no">051</span><span id="line-51">import org.jgrapes.io.NioDispatcher;</span>
-<span class="source-line-no">052</span><span id="line-52">import org.jgrapes.io.util.PermitsPool;</span>
-<span class="source-line-no">053</span><span id="line-53">import org.jgrapes.net.SocketServer;</span>
-<span class="source-line-no">054</span><span id="line-54">import org.jgrapes.net.SslCodec;</span>
-<span class="source-line-no">055</span><span id="line-55">import org.jgrapes.util.ComponentCollector;</span>
-<span class="source-line-no">056</span><span id="line-56">import org.jgrapes.util.PreferencesStore;</span>
-<span class="source-line-no">057</span><span id="line-57">import org.jgrapes.webconsole.base.BrowserLocalBackedKVStore;</span>
-<span class="source-line-no">058</span><span id="line-58">import org.jgrapes.webconsole.base.ConletComponentFactory;</span>
-<span class="source-line-no">059</span><span id="line-59">import org.jgrapes.webconsole.base.ConsoleWeblet;</span>
-<span class="source-line-no">060</span><span id="line-60">import org.jgrapes.webconsole.base.KVStoreBasedConsolePolicy;</span>
-<span class="source-line-no">061</span><span id="line-61">import org.jgrapes.webconsole.base.PageResourceProviderFactory;</span>
-<span class="source-line-no">062</span><span id="line-62">import org.jgrapes.webconsole.base.WebConsole;</span>
-<span class="source-line-no">063</span><span id="line-63">import org.jgrapes.webconsole.vuejs.VueJsConsoleWeblet;</span>
-<span class="source-line-no">064</span><span id="line-64"></span>
-<span class="source-line-no">065</span><span id="line-65">/**</span>
-<span class="source-line-no">066</span><span id="line-66"> *</span>
-<span class="source-line-no">067</span><span id="line-67"> */</span>
-<span class="source-line-no">068</span><span id="line-68">public class ConsoleApp extends Component {</span>
-<span class="source-line-no">069</span><span id="line-69"></span>
-<span class="source-line-no">070</span><span id="line-70">    private ConsoleApp app;</span>
-<span class="source-line-no">071</span><span id="line-71"></span>
-<span class="source-line-no">072</span><span id="line-72">    /**</span>
-<span class="source-line-no">073</span><span id="line-73">     * Instantiates a new http(s) web console demo.</span>
-<span class="source-line-no">074</span><span id="line-74">     */</span>
-<span class="source-line-no">075</span><span id="line-75">    public ConsoleApp() {</span>
-<span class="source-line-no">076</span><span id="line-76">        super(new ClassChannel() {</span>
-<span class="source-line-no">077</span><span id="line-77">        });</span>
-<span class="source-line-no">078</span><span id="line-78">    }</span>
-<span class="source-line-no">079</span><span id="line-79"></span>
-<span class="source-line-no">080</span><span id="line-80">    /**</span>
-<span class="source-line-no">081</span><span id="line-81">     * Log the exception when a handling error is reported.</span>
-<span class="source-line-no">082</span><span id="line-82">     *</span>
-<span class="source-line-no">083</span><span id="line-83">     * @param event the event</span>
-<span class="source-line-no">084</span><span id="line-84">     */</span>
-<span class="source-line-no">085</span><span id="line-85">    @Handler(channels = Channel.class, priority = -10_000)</span>
-<span class="source-line-no">086</span><span id="line-86">    @SuppressWarnings("PMD.GuardLogStatement")</span>
-<span class="source-line-no">087</span><span id="line-87">    public void onHandlingError(HandlingError event) {</span>
-<span class="source-line-no">088</span><span id="line-88">        logger.log(Level.WARNING, event.throwable(),</span>
-<span class="source-line-no">089</span><span id="line-89">            () -&gt; "Problem invoking handler with " + event.event() + ": "</span>
-<span class="source-line-no">090</span><span id="line-90">                + event.message());</span>
-<span class="source-line-no">091</span><span id="line-91">        event.stop();</span>
-<span class="source-line-no">092</span><span id="line-92">    }</span>
-<span class="source-line-no">093</span><span id="line-93"></span>
-<span class="source-line-no">094</span><span id="line-94">    /**</span>
-<span class="source-line-no">095</span><span id="line-95">     * Start the application.</span>
-<span class="source-line-no">096</span><span id="line-96">     *</span>
-<span class="source-line-no">097</span><span id="line-97">     * @throws Exception the exception</span>
-<span class="source-line-no">098</span><span id="line-98">     */</span>
-<span class="source-line-no">099</span><span id="line-99">    @SuppressWarnings("PMD.SignatureDeclareThrowsException")</span>
-<span class="source-line-no">100</span><span id="line-100">    public void start() throws Exception {</span>
-<span class="source-line-no">101</span><span id="line-101">        // This class represents the application and its instance is</span>
-<span class="source-line-no">102</span><span id="line-102">        // therefore the root of the component tree.</span>
-<span class="source-line-no">103</span><span id="line-103">        app = new ConsoleApp();</span>
-<span class="source-line-no">104</span><span id="line-104">        // Attach a general nio dispatcher</span>
-<span class="source-line-no">105</span><span id="line-105">        app.attach(new NioDispatcher());</span>
-<span class="source-line-no">106</span><span id="line-106"></span>
-<span class="source-line-no">107</span><span id="line-107">        // Create a channel for the network level I/O.</span>
-<span class="source-line-no">108</span><span id="line-108">        Channel httpTransport = new NamedChannel("httpTransport");</span>
-<span class="source-line-no">109</span><span id="line-109"></span>
-<span class="source-line-no">110</span><span id="line-110">        // Create a TCP server listening on port 8888 that</span>
-<span class="source-line-no">111</span><span id="line-111">        // uses (i.e. receives events from and sends events to)</span>
-<span class="source-line-no">112</span><span id="line-112">        // the network channel.</span>
-<span class="source-line-no">113</span><span id="line-113">        app.attach(new SocketServer(httpTransport)</span>
-<span class="source-line-no">114</span><span id="line-114">            .setServerAddress(new InetSocketAddress(8888)));</span>
-<span class="source-line-no">115</span><span id="line-115"></span>
-<span class="source-line-no">116</span><span id="line-116">        // The third component that uses (i.e. receives events from</span>
-<span class="source-line-no">117</span><span id="line-117">        // and sends events to) the httpTransport channel is</span>
-<span class="source-line-no">118</span><span id="line-118">        // an SslCodec. This actually uses two channels. The second</span>
-<span class="source-line-no">119</span><span id="line-119">        // channel is used for the encrypted I/O which is exchanged</span>
-<span class="source-line-no">120</span><span id="line-120">        // with another SocketServer.</span>
-<span class="source-line-no">121</span><span id="line-121">        SSLContext sslContext = createSslContext();</span>
-<span class="source-line-no">122</span><span id="line-122">        Channel securedNetwork = app.attach(</span>
-<span class="source-line-no">123</span><span id="line-123">            new SocketServer().setServerAddress(new InetSocketAddress(8443))</span>
-<span class="source-line-no">124</span><span id="line-124">                .setBacklog(3000).setConnectionLimiter(new PermitsPool(50)));</span>
-<span class="source-line-no">125</span><span id="line-125">        app.attach(new SslCodec(httpTransport, securedNetwork, sslContext));</span>
-<span class="source-line-no">126</span><span id="line-126"></span>
-<span class="source-line-no">127</span><span id="line-127">        // Create an HTTP server as converter between transport and</span>
-<span class="source-line-no">128</span><span id="line-128">        // application layer. It connects to the httpTransport channel</span>
-<span class="source-line-no">129</span><span id="line-129">        // and the application channel which is provided by the</span>
-<span class="source-line-no">130</span><span id="line-130">        // ConsoleApp instance. The HTTP related events are send on/</span>
-<span class="source-line-no">131</span><span id="line-131">        // received from the http channel.</span>
-<span class="source-line-no">132</span><span id="line-132">        Channel httpApplication = new NamedChannel("http");</span>
-<span class="source-line-no">133</span><span id="line-133">        var httpServer = app.attach(new HttpServer(httpApplication,</span>
-<span class="source-line-no">134</span><span id="line-134">            httpTransport, Request.In.Get.class, Request.In.Post.class));</span>
-<span class="source-line-no">135</span><span id="line-135"></span>
-<span class="source-line-no">136</span><span id="line-136">        // Build application layer. The application layer events are</span>
-<span class="source-line-no">137</span><span id="line-137">        // exchanged over the application channel.</span>
-<span class="source-line-no">138</span><span id="line-138">        httpServer.attach(</span>
-<span class="source-line-no">139</span><span id="line-139">            new PreferencesStore(httpApplication, this.getClass()));</span>
-<span class="source-line-no">140</span><span id="line-140">        httpServer.attach(new InMemorySessionManager(httpApplication));</span>
-<span class="source-line-no">141</span><span id="line-141">        httpServer.attach(new LanguageSelector(httpApplication));</span>
-<span class="source-line-no">142</span><span id="line-142"></span>
-<span class="source-line-no">143</span><span id="line-143">        // Assemble console components</span>
-<span class="source-line-no">144</span><span id="line-144">        createVueJsConsole(httpServer);</span>
-<span class="source-line-no">145</span><span id="line-145">        Components.start(app);</span>
-<span class="source-line-no">146</span><span id="line-146">    }</span>
-<span class="source-line-no">147</span><span id="line-147"></span>
-<span class="source-line-no">148</span><span id="line-148">    private SSLContext createSslContext() throws KeyStoreException, IOException,</span>
-<span class="source-line-no">149</span><span id="line-149">            NoSuchAlgorithmException, CertificateException,</span>
-<span class="source-line-no">150</span><span id="line-150">            UnrecoverableKeyException, KeyManagementException {</span>
-<span class="source-line-no">151</span><span id="line-151">        KeyStore serverStore = KeyStore.getInstance("JKS");</span>
-<span class="source-line-no">152</span><span id="line-152">        try (InputStream keyFile</span>
-<span class="source-line-no">153</span><span id="line-153">            = ConsoleApp.class.getResourceAsStream("localhost.jks")) {</span>
-<span class="source-line-no">154</span><span id="line-154">            serverStore.load(keyFile, "nopass".toCharArray());</span>
-<span class="source-line-no">155</span><span id="line-155">        }</span>
-<span class="source-line-no">156</span><span id="line-156">        KeyManagerFactory kmf = KeyManagerFactory.getInstance(</span>
-<span class="source-line-no">157</span><span id="line-157">            KeyManagerFactory.getDefaultAlgorithm());</span>
-<span class="source-line-no">158</span><span id="line-158">        kmf.init(serverStore, "nopass".toCharArray());</span>
-<span class="source-line-no">159</span><span id="line-159">        SSLContext sslContext = SSLContext.getInstance("TLS");</span>
-<span class="source-line-no">160</span><span id="line-160">        sslContext.init(kmf.getKeyManagers(), null, new SecureRandom());</span>
-<span class="source-line-no">161</span><span id="line-161">        return sslContext;</span>
-<span class="source-line-no">162</span><span id="line-162">    }</span>
-<span class="source-line-no">163</span><span id="line-163"></span>
-<span class="source-line-no">164</span><span id="line-164">    @SuppressWarnings("PMD.TooFewBranchesForASwitchStatement")</span>
-<span class="source-line-no">165</span><span id="line-165">    private void createVueJsConsole(HttpServer httpServer)</span>
-<span class="source-line-no">166</span><span id="line-166">            throws URISyntaxException {</span>
-<span class="source-line-no">167</span><span id="line-167">        ConsoleWeblet consoleWeblet</span>
-<span class="source-line-no">168</span><span id="line-168">            = httpServer.attach(new VueJsConsoleWeblet(httpServer.channel(),</span>
-<span class="source-line-no">169</span><span id="line-169">                Channel.SELF, new URI("/")))</span>
-<span class="source-line-no">170</span><span id="line-170">                .prependClassTemplateLoader(this.getClass())</span>
-<span class="source-line-no">171</span><span id="line-171">                .prependResourceBundleProvider(ConsoleApp.class)</span>
-<span class="source-line-no">172</span><span id="line-172">                .prependConsoleResourceProvider(ConsoleApp.class);</span>
-<span class="source-line-no">173</span><span id="line-173">        WebConsole console = consoleWeblet.console();</span>
-<span class="source-line-no">174</span><span id="line-174">        // consoleWeblet.setConnectionInactivityTimeout(300_000);</span>
-<span class="source-line-no">175</span><span id="line-175">        console.attach(new BrowserLocalBackedKVStore(</span>
-<span class="source-line-no">176</span><span id="line-176">            console.channel(), consoleWeblet.prefix().getPath()));</span>
-<span class="source-line-no">177</span><span id="line-177">        console.attach(new KVStoreBasedConsolePolicy(console.channel()));</span>
-<span class="source-line-no">178</span><span id="line-178">        // Add all available page resource providers</span>
-<span class="source-line-no">179</span><span id="line-179">        console.attach(new ComponentCollector&lt;&gt;(</span>
-<span class="source-line-no">180</span><span id="line-180">            PageResourceProviderFactory.class, console.channel()));</span>
-<span class="source-line-no">181</span><span id="line-181">        // Add all available conlets</span>
-<span class="source-line-no">182</span><span id="line-182">        console.attach(new ComponentCollector&lt;&gt;(</span>
-<span class="source-line-no">183</span><span id="line-183">            ConletComponentFactory.class, console.channel(), type -&gt; {</span>
-<span class="source-line-no">184</span><span id="line-184">                switch (type) {</span>
-<span class="source-line-no">185</span><span id="line-185">                case "org.jgrapes.webconlet.examples.login.LoginConlet":</span>
-<span class="source-line-no">186</span><span id="line-186">                    return Collections.emptyList();</span>
-<span class="source-line-no">187</span><span id="line-187">                default:</span>
-<span class="source-line-no">188</span><span id="line-188">                    return Arrays.asList(Collections.emptyMap());</span>
-<span class="source-line-no">189</span><span id="line-189">                }</span>
-<span class="source-line-no">190</span><span id="line-190">            }));</span>
-<span class="source-line-no">191</span><span id="line-191">    }</span>
-<span class="source-line-no">192</span><span id="line-192"></span>
-<span class="source-line-no">193</span><span id="line-193">    /**</span>
-<span class="source-line-no">194</span><span id="line-194">     * Stop the application.</span>
-<span class="source-line-no">195</span><span id="line-195">     * @throws Exception </span>
-<span class="source-line-no">196</span><span id="line-196">     *</span>
-<span class="source-line-no">197</span><span id="line-197">     * @throws Exception the exception</span>
-<span class="source-line-no">198</span><span id="line-198">     */</span>
-<span class="source-line-no">199</span><span id="line-199">    @SuppressWarnings("PMD.SignatureDeclareThrowsException")</span>
-<span class="source-line-no">200</span><span id="line-200">    public void stop() throws Exception {</span>
-<span class="source-line-no">201</span><span id="line-201">        app.fire(new Stop(), Channel.BROADCAST);</span>
-<span class="source-line-no">202</span><span id="line-202">        Components.awaitExhaustion();</span>
-<span class="source-line-no">203</span><span id="line-203">    }</span>
-<span class="source-line-no">204</span><span id="line-204"></span>
-<span class="source-line-no">205</span><span id="line-205">    /**</span>
-<span class="source-line-no">206</span><span id="line-206">     * @param args</span>
-<span class="source-line-no">207</span><span id="line-207">     * @throws IOException</span>
-<span class="source-line-no">208</span><span id="line-208">     * @throws InterruptedException</span>
-<span class="source-line-no">209</span><span id="line-209">     * @throws NoSuchAlgorithmException</span>
-<span class="source-line-no">210</span><span id="line-210">     * @throws KeyStoreException</span>
-<span class="source-line-no">211</span><span id="line-211">     * @throws UnrecoverableKeyException</span>
-<span class="source-line-no">212</span><span id="line-212">     * @throws CertificateException</span>
-<span class="source-line-no">213</span><span id="line-213">     * @throws KeyManagementException</span>
-<span class="source-line-no">214</span><span id="line-214">     */</span>
-<span class="source-line-no">215</span><span id="line-215">    @SuppressWarnings("PMD.SignatureDeclareThrowsException")</span>
-<span class="source-line-no">216</span><span id="line-216">    public static void main(String[] args) throws Exception {</span>
-<span class="source-line-no">217</span><span id="line-217">        new ConsoleApp().start();</span>
-<span class="source-line-no">218</span><span id="line-218">    }</span>
-<span class="source-line-no">219</span><span id="line-219"></span>
-<span class="source-line-no">220</span><span id="line-220">}</span>
+<span class="source-line-no">036</span><span id="line-36">import javax.net.ssl.KeyManagerFactory;</span>
+<span class="source-line-no">037</span><span id="line-37">import javax.net.ssl.SSLContext;</span>
+<span class="source-line-no">038</span><span id="line-38">import org.jgrapes.core.Channel;</span>
+<span class="source-line-no">039</span><span id="line-39">import org.jgrapes.core.ClassChannel;</span>
+<span class="source-line-no">040</span><span id="line-40">import org.jgrapes.core.Component;</span>
+<span class="source-line-no">041</span><span id="line-41">import org.jgrapes.core.Components;</span>
+<span class="source-line-no">042</span><span id="line-42">import org.jgrapes.core.NamedChannel;</span>
+<span class="source-line-no">043</span><span id="line-43">import org.jgrapes.core.annotation.Handler;</span>
+<span class="source-line-no">044</span><span id="line-44">import org.jgrapes.core.events.HandlingError;</span>
+<span class="source-line-no">045</span><span id="line-45">import org.jgrapes.core.events.Stop;</span>
+<span class="source-line-no">046</span><span id="line-46">import org.jgrapes.http.HttpServer;</span>
+<span class="source-line-no">047</span><span id="line-47">import org.jgrapes.http.InMemorySessionManager;</span>
+<span class="source-line-no">048</span><span id="line-48">import org.jgrapes.http.LanguageSelector;</span>
+<span class="source-line-no">049</span><span id="line-49">import org.jgrapes.http.events.Request;</span>
+<span class="source-line-no">050</span><span id="line-50">import org.jgrapes.io.NioDispatcher;</span>
+<span class="source-line-no">051</span><span id="line-51">import org.jgrapes.io.util.PermitsPool;</span>
+<span class="source-line-no">052</span><span id="line-52">import org.jgrapes.net.SocketServer;</span>
+<span class="source-line-no">053</span><span id="line-53">import org.jgrapes.net.SslCodec;</span>
+<span class="source-line-no">054</span><span id="line-54">import org.jgrapes.util.ComponentCollector;</span>
+<span class="source-line-no">055</span><span id="line-55">import org.jgrapes.util.PreferencesStore;</span>
+<span class="source-line-no">056</span><span id="line-56">import org.jgrapes.webconsole.base.BrowserLocalBackedKVStore;</span>
+<span class="source-line-no">057</span><span id="line-57">import org.jgrapes.webconsole.base.ConletComponentFactory;</span>
+<span class="source-line-no">058</span><span id="line-58">import org.jgrapes.webconsole.base.ConsoleWeblet;</span>
+<span class="source-line-no">059</span><span id="line-59">import org.jgrapes.webconsole.base.KVStoreBasedConsolePolicy;</span>
+<span class="source-line-no">060</span><span id="line-60">import org.jgrapes.webconsole.base.PageResourceProviderFactory;</span>
+<span class="source-line-no">061</span><span id="line-61">import org.jgrapes.webconsole.base.WebConsole;</span>
+<span class="source-line-no">062</span><span id="line-62">import org.jgrapes.webconsole.vuejs.VueJsConsoleWeblet;</span>
+<span class="source-line-no">063</span><span id="line-63"></span>
+<span class="source-line-no">064</span><span id="line-64">/**</span>
+<span class="source-line-no">065</span><span id="line-65"> *</span>
+<span class="source-line-no">066</span><span id="line-66"> */</span>
+<span class="source-line-no">067</span><span id="line-67">public class ConsoleApp extends Component {</span>
+<span class="source-line-no">068</span><span id="line-68"></span>
+<span class="source-line-no">069</span><span id="line-69">    private ConsoleApp app;</span>
+<span class="source-line-no">070</span><span id="line-70"></span>
+<span class="source-line-no">071</span><span id="line-71">    /**</span>
+<span class="source-line-no">072</span><span id="line-72">     * Instantiates a new http(s) web console demo.</span>
+<span class="source-line-no">073</span><span id="line-73">     */</span>
+<span class="source-line-no">074</span><span id="line-74">    public ConsoleApp() {</span>
+<span class="source-line-no">075</span><span id="line-75">        super(new ClassChannel() {</span>
+<span class="source-line-no">076</span><span id="line-76">        });</span>
+<span class="source-line-no">077</span><span id="line-77">    }</span>
+<span class="source-line-no">078</span><span id="line-78"></span>
+<span class="source-line-no">079</span><span id="line-79">    /**</span>
+<span class="source-line-no">080</span><span id="line-80">     * Log the exception when a handling error is reported.</span>
+<span class="source-line-no">081</span><span id="line-81">     *</span>
+<span class="source-line-no">082</span><span id="line-82">     * @param event the event</span>
+<span class="source-line-no">083</span><span id="line-83">     */</span>
+<span class="source-line-no">084</span><span id="line-84">    @Handler(channels = Channel.class, priority = -10_000)</span>
+<span class="source-line-no">085</span><span id="line-85">    @SuppressWarnings("PMD.GuardLogStatement")</span>
+<span class="source-line-no">086</span><span id="line-86">    public void onHandlingError(HandlingError event) {</span>
+<span class="source-line-no">087</span><span id="line-87">        logger.log(Level.WARNING, event.throwable(),</span>
+<span class="source-line-no">088</span><span id="line-88">            () -&gt; "Problem invoking handler with " + event.event() + ": "</span>
+<span class="source-line-no">089</span><span id="line-89">                + event.message());</span>
+<span class="source-line-no">090</span><span id="line-90">        event.stop();</span>
+<span class="source-line-no">091</span><span id="line-91">    }</span>
+<span class="source-line-no">092</span><span id="line-92"></span>
+<span class="source-line-no">093</span><span id="line-93">    /**</span>
+<span class="source-line-no">094</span><span id="line-94">     * Start the application.</span>
+<span class="source-line-no">095</span><span id="line-95">     *</span>
+<span class="source-line-no">096</span><span id="line-96">     * @throws Exception the exception</span>
+<span class="source-line-no">097</span><span id="line-97">     */</span>
+<span class="source-line-no">098</span><span id="line-98">    @SuppressWarnings("PMD.SignatureDeclareThrowsException")</span>
+<span class="source-line-no">099</span><span id="line-99">    public void start() throws Exception {</span>
+<span class="source-line-no">100</span><span id="line-100">        // This class represents the application and its instance is</span>
+<span class="source-line-no">101</span><span id="line-101">        // therefore the root of the component tree.</span>
+<span class="source-line-no">102</span><span id="line-102">        app = new ConsoleApp();</span>
+<span class="source-line-no">103</span><span id="line-103">        // Attach a general nio dispatcher</span>
+<span class="source-line-no">104</span><span id="line-104">        app.attach(new NioDispatcher());</span>
+<span class="source-line-no">105</span><span id="line-105"></span>
+<span class="source-line-no">106</span><span id="line-106">        // Create a channel for the network level I/O.</span>
+<span class="source-line-no">107</span><span id="line-107">        Channel httpTransport = new NamedChannel("httpTransport");</span>
+<span class="source-line-no">108</span><span id="line-108"></span>
+<span class="source-line-no">109</span><span id="line-109">        // Create a TCP server listening on port 8888 that</span>
+<span class="source-line-no">110</span><span id="line-110">        // uses (i.e. receives events from and sends events to)</span>
+<span class="source-line-no">111</span><span id="line-111">        // the network channel.</span>
+<span class="source-line-no">112</span><span id="line-112">        app.attach(new SocketServer(httpTransport)</span>
+<span class="source-line-no">113</span><span id="line-113">            .setServerAddress(new InetSocketAddress(8888)));</span>
+<span class="source-line-no">114</span><span id="line-114"></span>
+<span class="source-line-no">115</span><span id="line-115">        // The third component that uses (i.e. receives events from</span>
+<span class="source-line-no">116</span><span id="line-116">        // and sends events to) the httpTransport channel is</span>
+<span class="source-line-no">117</span><span id="line-117">        // an SslCodec. This actually uses two channels. The second</span>
+<span class="source-line-no">118</span><span id="line-118">        // channel is used for the encrypted I/O which is exchanged</span>
+<span class="source-line-no">119</span><span id="line-119">        // with another SocketServer.</span>
+<span class="source-line-no">120</span><span id="line-120">        SSLContext sslContext = createSslContext();</span>
+<span class="source-line-no">121</span><span id="line-121">        Channel securedNetwork = app.attach(</span>
+<span class="source-line-no">122</span><span id="line-122">            new SocketServer().setServerAddress(new InetSocketAddress(8443))</span>
+<span class="source-line-no">123</span><span id="line-123">                .setBacklog(3000).setConnectionLimiter(new PermitsPool(50)));</span>
+<span class="source-line-no">124</span><span id="line-124">        app.attach(new SslCodec(httpTransport, securedNetwork, sslContext));</span>
+<span class="source-line-no">125</span><span id="line-125"></span>
+<span class="source-line-no">126</span><span id="line-126">        // Create an HTTP server as converter between transport and</span>
+<span class="source-line-no">127</span><span id="line-127">        // application layer. It connects to the httpTransport channel</span>
+<span class="source-line-no">128</span><span id="line-128">        // and the application channel which is provided by the</span>
+<span class="source-line-no">129</span><span id="line-129">        // ConsoleApp instance. The HTTP related events are send on/</span>
+<span class="source-line-no">130</span><span id="line-130">        // received from the http channel.</span>
+<span class="source-line-no">131</span><span id="line-131">        Channel httpApplication = new NamedChannel("http");</span>
+<span class="source-line-no">132</span><span id="line-132">        var httpServer = app.attach(new HttpServer(httpApplication,</span>
+<span class="source-line-no">133</span><span id="line-133">            httpTransport, Request.In.Get.class, Request.In.Post.class));</span>
+<span class="source-line-no">134</span><span id="line-134"></span>
+<span class="source-line-no">135</span><span id="line-135">        // Build application layer. The application layer events are</span>
+<span class="source-line-no">136</span><span id="line-136">        // exchanged over the application channel.</span>
+<span class="source-line-no">137</span><span id="line-137">        httpServer.attach(</span>
+<span class="source-line-no">138</span><span id="line-138">            new PreferencesStore(httpApplication, this.getClass()));</span>
+<span class="source-line-no">139</span><span id="line-139">        httpServer.attach(new InMemorySessionManager(httpApplication));</span>
+<span class="source-line-no">140</span><span id="line-140">        httpServer.attach(new LanguageSelector(httpApplication));</span>
+<span class="source-line-no">141</span><span id="line-141"></span>
+<span class="source-line-no">142</span><span id="line-142">        // Assemble console components</span>
+<span class="source-line-no">143</span><span id="line-143">        createVueJsConsole(httpServer);</span>
+<span class="source-line-no">144</span><span id="line-144">        Components.start(app);</span>
+<span class="source-line-no">145</span><span id="line-145">    }</span>
+<span class="source-line-no">146</span><span id="line-146"></span>
+<span class="source-line-no">147</span><span id="line-147">    private SSLContext createSslContext() throws KeyStoreException, IOException,</span>
+<span class="source-line-no">148</span><span id="line-148">            NoSuchAlgorithmException, CertificateException,</span>
+<span class="source-line-no">149</span><span id="line-149">            UnrecoverableKeyException, KeyManagementException {</span>
+<span class="source-line-no">150</span><span id="line-150">        KeyStore serverStore = KeyStore.getInstance("JKS");</span>
+<span class="source-line-no">151</span><span id="line-151">        try (InputStream keyFile</span>
+<span class="source-line-no">152</span><span id="line-152">            = ConsoleApp.class.getResourceAsStream("localhost.jks")) {</span>
+<span class="source-line-no">153</span><span id="line-153">            serverStore.load(keyFile, "nopass".toCharArray());</span>
+<span class="source-line-no">154</span><span id="line-154">        }</span>
+<span class="source-line-no">155</span><span id="line-155">        KeyManagerFactory kmf = KeyManagerFactory.getInstance(</span>
+<span class="source-line-no">156</span><span id="line-156">            KeyManagerFactory.getDefaultAlgorithm());</span>
+<span class="source-line-no">157</span><span id="line-157">        kmf.init(serverStore, "nopass".toCharArray());</span>
+<span class="source-line-no">158</span><span id="line-158">        SSLContext sslContext = SSLContext.getInstance("TLSv1.3");</span>
+<span class="source-line-no">159</span><span id="line-159">        sslContext.init(kmf.getKeyManagers(), null, new SecureRandom());</span>
+<span class="source-line-no">160</span><span id="line-160">        return sslContext;</span>
+<span class="source-line-no">161</span><span id="line-161">    }</span>
+<span class="source-line-no">162</span><span id="line-162"></span>
+<span class="source-line-no">163</span><span id="line-163">    @SuppressWarnings("PMD.TooFewBranchesForASwitchStatement")</span>
+<span class="source-line-no">164</span><span id="line-164">    private void createVueJsConsole(HttpServer httpServer)</span>
+<span class="source-line-no">165</span><span id="line-165">            throws URISyntaxException {</span>
+<span class="source-line-no">166</span><span id="line-166">        ConsoleWeblet consoleWeblet</span>
+<span class="source-line-no">167</span><span id="line-167">            = httpServer.attach(new VueJsConsoleWeblet(httpServer.channel(),</span>
+<span class="source-line-no">168</span><span id="line-168">                Channel.SELF, new URI("/")))</span>
+<span class="source-line-no">169</span><span id="line-169">                .prependClassTemplateLoader(this.getClass())</span>
+<span class="source-line-no">170</span><span id="line-170">                .prependResourceBundleProvider(ConsoleApp.class)</span>
+<span class="source-line-no">171</span><span id="line-171">                .prependConsoleResourceProvider(ConsoleApp.class);</span>
+<span class="source-line-no">172</span><span id="line-172">        WebConsole console = consoleWeblet.console();</span>
+<span class="source-line-no">173</span><span id="line-173">        // consoleWeblet.setConnectionInactivityTimeout(300_000);</span>
+<span class="source-line-no">174</span><span id="line-174">        console.attach(new BrowserLocalBackedKVStore(</span>
+<span class="source-line-no">175</span><span id="line-175">            console.channel(), consoleWeblet.prefix().getPath()));</span>
+<span class="source-line-no">176</span><span id="line-176">        console.attach(new KVStoreBasedConsolePolicy(console.channel()));</span>
+<span class="source-line-no">177</span><span id="line-177">        // Add all available page resource providers</span>
+<span class="source-line-no">178</span><span id="line-178">        console.attach(new ComponentCollector&lt;&gt;(</span>
+<span class="source-line-no">179</span><span id="line-179">            PageResourceProviderFactory.class, console.channel()));</span>
+<span class="source-line-no">180</span><span id="line-180">        // Add all available conlets</span>
+<span class="source-line-no">181</span><span id="line-181">        console.attach(new ComponentCollector&lt;&gt;(</span>
+<span class="source-line-no">182</span><span id="line-182">            ConletComponentFactory.class, console.channel(), type -&gt; {</span>
+<span class="source-line-no">183</span><span id="line-183">                switch (type) {</span>
+<span class="source-line-no">184</span><span id="line-184">                case "org.jgrapes.webconlet.examples.login.LoginConlet":</span>
+<span class="source-line-no">185</span><span id="line-185">                    return Collections.emptyList();</span>
+<span class="source-line-no">186</span><span id="line-186">                default:</span>
+<span class="source-line-no">187</span><span id="line-187">                    return Arrays.asList(Collections.emptyMap());</span>
+<span class="source-line-no">188</span><span id="line-188">                }</span>
+<span class="source-line-no">189</span><span id="line-189">            }));</span>
+<span class="source-line-no">190</span><span id="line-190">    }</span>
+<span class="source-line-no">191</span><span id="line-191"></span>
+<span class="source-line-no">192</span><span id="line-192">    /**</span>
+<span class="source-line-no">193</span><span id="line-193">     * Stop the application.</span>
+<span class="source-line-no">194</span><span id="line-194">     * @throws Exception </span>
+<span class="source-line-no">195</span><span id="line-195">     *</span>
+<span class="source-line-no">196</span><span id="line-196">     * @throws Exception the exception</span>
+<span class="source-line-no">197</span><span id="line-197">     */</span>
+<span class="source-line-no">198</span><span id="line-198">    @SuppressWarnings("PMD.SignatureDeclareThrowsException")</span>
+<span class="source-line-no">199</span><span id="line-199">    public void stop() throws Exception {</span>
+<span class="source-line-no">200</span><span id="line-200">        app.fire(new Stop(), Channel.BROADCAST);</span>
+<span class="source-line-no">201</span><span id="line-201">        Components.awaitExhaustion();</span>
+<span class="source-line-no">202</span><span id="line-202">    }</span>
+<span class="source-line-no">203</span><span id="line-203"></span>
+<span class="source-line-no">204</span><span id="line-204">    /**</span>
+<span class="source-line-no">205</span><span id="line-205">     * @param args</span>
+<span class="source-line-no">206</span><span id="line-206">     * @throws IOException</span>
+<span class="source-line-no">207</span><span id="line-207">     * @throws InterruptedException</span>
+<span class="source-line-no">208</span><span id="line-208">     * @throws NoSuchAlgorithmException</span>
+<span class="source-line-no">209</span><span id="line-209">     * @throws KeyStoreException</span>
+<span class="source-line-no">210</span><span id="line-210">     * @throws UnrecoverableKeyException</span>
+<span class="source-line-no">211</span><span id="line-211">     * @throws CertificateException</span>
+<span class="source-line-no">212</span><span id="line-212">     * @throws KeyManagementException</span>
+<span class="source-line-no">213</span><span id="line-213">     */</span>
+<span class="source-line-no">214</span><span id="line-214">    @SuppressWarnings("PMD.SignatureDeclareThrowsException")</span>
+<span class="source-line-no">215</span><span id="line-215">    public static void main(String[] args) throws Exception {</span>
+<span class="source-line-no">216</span><span id="line-216">        new ConsoleApp().start();</span>
+<span class="source-line-no">217</span><span id="line-217">    }</span>
+<span class="source-line-no">218</span><span id="line-218"></span>
+<span class="source-line-no">219</span><span id="line-219">}</span>
 
 
 
