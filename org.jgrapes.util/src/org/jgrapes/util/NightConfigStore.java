@@ -243,6 +243,8 @@ public abstract class NightConfigStore extends ConfigurationStore {
             }
             if (e.getValue() instanceof Config) {
                 atPath.put(e.getKey(), toValueMap(e.getValue()));
+            } else if (e.getValue() instanceof List<?> values) {
+                atPath.put(e.getKey(), convertList(values));
             } else {
                 atPath.put(e.getKey(), e.getValue());
             }
