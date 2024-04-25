@@ -51,6 +51,7 @@ public abstract class NightConfigStore extends ConfigurationStore {
         = Logger.getLogger(NightConfigStore.class.getName());
 
     protected FileConfig config;
+    protected Channel[] initialChannels;
 
     /**
      * Creates a new component with its channel set to the given 
@@ -128,18 +129,21 @@ public abstract class NightConfigStore extends ConfigurationStore {
     /**
      * If watching the configuration file is enabled, fire
      * a {@link ConfigurationUpdate} event with the complete
-     * configuration when the file changes.
+     * configuration when the file changes. The event is fired
+     * on the same channel(s) as the {@link InitialConfiguration}
+     * event.
      *
      * @param event the event
      */
     @Handler(dynamic = true)
     public void onFileChanged(FileChanged event) {
         if (config.getNioPath().equals(event.path())
-            && event.change() == FileChanged.Kind.MODIFIED) {
+            && event.change() == FileChanged.Kind.MODIFIED
+            && initialChannels != null) {
             config.load();
             ConfigurationUpdate updEvt = new ConfigurationUpdate();
             addPrefs(updEvt, "/", config);
-            fire(updEvt);
+            fire(updEvt, initialChannels);
         }
     }
 
@@ -228,7 +232,8 @@ public abstract class NightConfigStore extends ConfigurationStore {
             throws BackingStoreException, InterruptedException {
         ConfigurationUpdate updEvt = new InitialConfiguration();
         addPrefs(updEvt, "/", config);
-        newEventPipeline().fire(updEvt, event.channels()).get();
+        initialChannels = event.channels();
+        newEventPipeline().fire(updEvt, initialChannels).get();
     }
 
     private void addPrefs(ConfigurationUpdate updEvt, String path,
