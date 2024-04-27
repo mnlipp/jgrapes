@@ -333,9 +333,9 @@ public class HttpConnector extends Component {
             var uri = request.requestUri();
             var port = uri.getPort();
             if (port == -1) {
-                if (uri.getScheme().equalsIgnoreCase("https")) {
+                if ("https".equalsIgnoreCase(uri.getScheme())) {
                     port = 443;
-                } else if (uri.getScheme().equalsIgnoreCase("http")) {
+                } else if ("http".equalsIgnoreCase(uri.getScheme())) {
                     port = 80;
                 }
             }
