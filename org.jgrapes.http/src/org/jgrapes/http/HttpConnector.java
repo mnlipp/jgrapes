@@ -104,7 +104,7 @@ public class HttpConnector extends Component {
     public HttpConnector(Channel appChannel, Channel networkChannel,
             Channel secureChannel) {
         super(appChannel, ChannelReplacements.create()
-            .add(NetworkChannel.class, networkChannel));
+            .add(NetworkChannel.class, networkChannel, secureChannel));
         this.netMainChannel = networkChannel;
         this.netSecureChannel = secureChannel;
     }
@@ -119,7 +119,10 @@ public class HttpConnector extends Component {
      *            the channel for network level I/O
      */
     public HttpConnector(Channel appChannel, Channel networkChannel) {
-        this(appChannel, networkChannel, null);
+        super(appChannel, ChannelReplacements.create()
+            .add(NetworkChannel.class, networkChannel));
+        this.netMainChannel = networkChannel;
+        this.netSecureChannel = null;
     }
 
     /**
