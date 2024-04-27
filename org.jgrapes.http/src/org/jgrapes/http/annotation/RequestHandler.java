@@ -228,7 +228,7 @@ public @interface RequestHandler {
                 "PMD.AvoidInstantiatingObjectsInLoops" })
             public Scope(ComponentType component,
                     Method method, RequestHandler annotation,
-                    Map<Class<? extends Channel>, Object> channelReplacements,
+                    Map<Class<? extends Channel>, Object[]> channelReplacements,
                     String pattern) {
                 if (!HandlerDefinition.Evaluator.checkMethodSignature(method)) {
                     throw new IllegalArgumentException("Method "
@@ -266,9 +266,13 @@ public @interface RequestHandler {
                         } else if (c == Channel.Default.class) {
                             addDefaultChannel = true;
                         } else {
-                            handledChannels.add(channelReplacements == null
-                                ? c
-                                : channelReplacements.getOrDefault(c, c));
+                            if (channelReplacements != null
+                                && channelReplacements.containsKey(c)) {
+                                handledChannels.addAll(
+                                    Arrays.asList(channelReplacements.get(c)));
+                            } else {
+                                handledChannels.add(c);
+                            }
                         }
                     }
                 }
