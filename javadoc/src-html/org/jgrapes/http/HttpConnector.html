@@ -346,9 +346,9 @@
 <span class="source-line-no">333</span><span id="line-333">            var uri = request.requestUri();</span>
 <span class="source-line-no">334</span><span id="line-334">            var port = uri.getPort();</span>
 <span class="source-line-no">335</span><span id="line-335">            if (port == -1) {</span>
-<span class="source-line-no">336</span><span id="line-336">                if (uri.getScheme().equalsIgnoreCase("https")) {</span>
+<span class="source-line-no">336</span><span id="line-336">                if ("https".equalsIgnoreCase(uri.getScheme())) {</span>
 <span class="source-line-no">337</span><span id="line-337">                    port = 443;</span>
-<span class="source-line-no">338</span><span id="line-338">                } else if (uri.getScheme().equalsIgnoreCase("http")) {</span>
+<span class="source-line-no">338</span><span id="line-338">                } else if ("http".equalsIgnoreCase(uri.getScheme())) {</span>
 <span class="source-line-no">339</span><span id="line-339">                    port = 80;</span>
 <span class="source-line-no">340</span><span id="line-340">                }</span>
 <span class="source-line-no">341</span><span id="line-341">            }</span>

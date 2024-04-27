@@ -429,7 +429,7 @@
 <span class="source-line-no">416</span><span id="line-416">                "PMD.CognitiveComplexity" })</span>
 <span class="source-line-no">417</span><span id="line-417">            public Scope(ComponentType component, Method method,</span>
 <span class="source-line-no">418</span><span id="line-418">                    Handler annotation,</span>
-<span class="source-line-no">419</span><span id="line-419">                    Map&lt;Class&lt;? extends Channel&gt;, Object&gt; channelReplacements,</span>
+<span class="source-line-no">419</span><span id="line-419">                    Map&lt;Class&lt;? extends Channel&gt;, Object[]&gt; channelReplacements,</span>
 <span class="source-line-no">420</span><span id="line-420">                    Object[] eventValues, Object[] channelValues) {</span>
 <span class="source-line-no">421</span><span id="line-421">                if (!HandlerDefinition.Evaluator.checkMethodSignature(method)) {</span>
 <span class="source-line-no">422</span><span id="line-422">                    throw new IllegalArgumentException("Method \""</span>
@@ -484,81 +484,86 @@
 <span class="source-line-no">471</span><span id="line-471">                            } else if (c == Channel.Default.class) {</span>
 <span class="source-line-no">472</span><span id="line-472">                                addDefaultChannel = true;</span>
 <span class="source-line-no">473</span><span id="line-473">                            } else {</span>
-<span class="source-line-no">474</span><span id="line-474">                                channelCriteria.add(channelReplacements == null</span>
-<span class="source-line-no">475</span><span id="line-475">                                    ? c</span>
-<span class="source-line-no">476</span><span id="line-476">                                    : channelReplacements.getOrDefault(c, c));</span>
-<span class="source-line-no">477</span><span id="line-477">                            }</span>
-<span class="source-line-no">478</span><span id="line-478">                        }</span>
-<span class="source-line-no">479</span><span id="line-479">                    }</span>
-<span class="source-line-no">480</span><span id="line-480">                    // Get named channels from annotation and add to channel</span>
-<span class="source-line-no">481</span><span id="line-481">                    // keys.</span>
-<span class="source-line-no">482</span><span id="line-482">                    if (!annotation.namedChannels()[0].isEmpty()) {</span>
-<span class="source-line-no">483</span><span id="line-483">                        channelCriteria.addAll(</span>
-<span class="source-line-no">484</span><span id="line-484">                            Arrays.asList(annotation.namedChannels()));</span>
-<span class="source-line-no">485</span><span id="line-485">                    }</span>
-<span class="source-line-no">486</span><span id="line-486">                    if (channelCriteria.isEmpty() || addDefaultChannel) {</span>
-<span class="source-line-no">487</span><span id="line-487">                        channelCriteria.add(Components.manager(component)</span>
-<span class="source-line-no">488</span><span id="line-488">                            .channel().defaultCriterion());</span>
-<span class="source-line-no">489</span><span id="line-489">                    }</span>
-<span class="source-line-no">490</span><span id="line-490">                }</span>
-<span class="source-line-no">491</span><span id="line-491">                // Finally, a component always handles events</span>
-<span class="source-line-no">492</span><span id="line-492">                // directed at it directly.</span>
-<span class="source-line-no">493</span><span id="line-493">                if (component instanceof Channel) {</span>
-<span class="source-line-no">494</span><span id="line-494">                    channelCriteria.add(</span>
-<span class="source-line-no">495</span><span id="line-495">                        ((Channel) component).defaultCriterion());</span>
-<span class="source-line-no">496</span><span id="line-496">                }</span>
-<span class="source-line-no">497</span><span id="line-497"></span>
-<span class="source-line-no">498</span><span id="line-498">            }</span>
-<span class="source-line-no">499</span><span id="line-499"></span>
-<span class="source-line-no">500</span><span id="line-500">            @Override</span>
-<span class="source-line-no">501</span><span id="line-501">            @SuppressWarnings("PMD.CognitiveComplexity")</span>
-<span class="source-line-no">502</span><span id="line-502">            public boolean includes(Eligible event, Eligible[] channels) {</span>
-<span class="source-line-no">503</span><span id="line-503">                for (Object eventValue : eventCriteria) {</span>
-<span class="source-line-no">504</span><span id="line-504">                    if (event.isEligibleFor(eventValue)) {</span>
-<span class="source-line-no">505</span><span id="line-505">                        // Found match regarding event, now try channels</span>
-<span class="source-line-no">506</span><span id="line-506">                        for (Eligible channel : channels) {</span>
-<span class="source-line-no">507</span><span id="line-507">                            for (Object channelValue : channelCriteria) {</span>
-<span class="source-line-no">508</span><span id="line-508">                                if (channel.isEligibleFor(channelValue)) {</span>
-<span class="source-line-no">509</span><span id="line-509">                                    return true;</span>
-<span class="source-line-no">510</span><span id="line-510">                                }</span>
-<span class="source-line-no">511</span><span id="line-511">                            }</span>
-<span class="source-line-no">512</span><span id="line-512">                        }</span>
-<span class="source-line-no">513</span><span id="line-513">                        return false;</span>
-<span class="source-line-no">514</span><span id="line-514">                    }</span>
-<span class="source-line-no">515</span><span id="line-515">                }</span>
-<span class="source-line-no">516</span><span id="line-516">                return false;</span>
-<span class="source-line-no">517</span><span id="line-517">            }</span>
-<span class="source-line-no">518</span><span id="line-518"></span>
-<span class="source-line-no">519</span><span id="line-519">            /*</span>
-<span class="source-line-no">520</span><span id="line-520">             * (non-Javadoc)</span>
-<span class="source-line-no">521</span><span id="line-521">             * </span>
-<span class="source-line-no">522</span><span id="line-522">             * @see java.lang.Object#toString()</span>
-<span class="source-line-no">523</span><span id="line-523">             */</span>
-<span class="source-line-no">524</span><span id="line-524">            @Override</span>
-<span class="source-line-no">525</span><span id="line-525">            public String toString() {</span>
-<span class="source-line-no">526</span><span id="line-526">                StringBuilder builder = new StringBuilder();</span>
-<span class="source-line-no">527</span><span id="line-527">                builder.append("Scope [");</span>
-<span class="source-line-no">528</span><span id="line-528">                if (eventCriteria != null) {</span>
-<span class="source-line-no">529</span><span id="line-529">                    builder.append("handledEvents=")</span>
-<span class="source-line-no">530</span><span id="line-530">                        .append(eventCriteria.stream().map(crit -&gt; {</span>
-<span class="source-line-no">531</span><span id="line-531">                            if (crit instanceof Class) {</span>
-<span class="source-line-no">532</span><span id="line-532">                                return Components.className((Class&lt;?&gt;) crit);</span>
-<span class="source-line-no">533</span><span id="line-533">                            }</span>
-<span class="source-line-no">534</span><span id="line-534">                            return crit.toString();</span>
-<span class="source-line-no">535</span><span id="line-535">                        }).collect(Collectors.toSet()));</span>
-<span class="source-line-no">536</span><span id="line-536">                    builder.append(", ");</span>
-<span class="source-line-no">537</span><span id="line-537">                }</span>
-<span class="source-line-no">538</span><span id="line-538">                if (channelCriteria != null) {</span>
-<span class="source-line-no">539</span><span id="line-539">                    builder.append("handledChannels=");</span>
-<span class="source-line-no">540</span><span id="line-540">                    builder.append(channelCriteria);</span>
-<span class="source-line-no">541</span><span id="line-541">                }</span>
-<span class="source-line-no">542</span><span id="line-542">                builder.append(']');</span>
-<span class="source-line-no">543</span><span id="line-543">                return builder.toString();</span>
-<span class="source-line-no">544</span><span id="line-544">            }</span>
-<span class="source-line-no">545</span><span id="line-545"></span>
-<span class="source-line-no">546</span><span id="line-546">        }</span>
-<span class="source-line-no">547</span><span id="line-547">    }</span>
-<span class="source-line-no">548</span><span id="line-548">}</span>
+<span class="source-line-no">474</span><span id="line-474">                                if (channelReplacements != null</span>
+<span class="source-line-no">475</span><span id="line-475">                                    &amp;&amp; channelReplacements.containsKey(c)) {</span>
+<span class="source-line-no">476</span><span id="line-476">                                    channelCriteria.addAll(</span>
+<span class="source-line-no">477</span><span id="line-477">                                        Arrays.asList(channelReplacements</span>
+<span class="source-line-no">478</span><span id="line-478">                                            .get(c)));</span>
+<span class="source-line-no">479</span><span id="line-479">                                } else {</span>
+<span class="source-line-no">480</span><span id="line-480">                                    channelCriteria.add(c);</span>
+<span class="source-line-no">481</span><span id="line-481">                                }</span>
+<span class="source-line-no">482</span><span id="line-482">                            }</span>
+<span class="source-line-no">483</span><span id="line-483">                        }</span>
+<span class="source-line-no">484</span><span id="line-484">                    }</span>
+<span class="source-line-no">485</span><span id="line-485">                    // Get named channels from annotation and add to channel</span>
+<span class="source-line-no">486</span><span id="line-486">                    // keys.</span>
+<span class="source-line-no">487</span><span id="line-487">                    if (!annotation.namedChannels()[0].isEmpty()) {</span>
+<span class="source-line-no">488</span><span id="line-488">                        channelCriteria.addAll(</span>
+<span class="source-line-no">489</span><span id="line-489">                            Arrays.asList(annotation.namedChannels()));</span>
+<span class="source-line-no">490</span><span id="line-490">                    }</span>
+<span class="source-line-no">491</span><span id="line-491">                    if (channelCriteria.isEmpty() || addDefaultChannel) {</span>
+<span class="source-line-no">492</span><span id="line-492">                        channelCriteria.add(Components.manager(component)</span>
+<span class="source-line-no">493</span><span id="line-493">                            .channel().defaultCriterion());</span>
+<span class="source-line-no">494</span><span id="line-494">                    }</span>
+<span class="source-line-no">495</span><span id="line-495">                }</span>
+<span class="source-line-no">496</span><span id="line-496">                // Finally, a component always handles events</span>
+<span class="source-line-no">497</span><span id="line-497">                // directed at it directly.</span>
+<span class="source-line-no">498</span><span id="line-498">                if (component instanceof Channel) {</span>
+<span class="source-line-no">499</span><span id="line-499">                    channelCriteria.add(</span>
+<span class="source-line-no">500</span><span id="line-500">                        ((Channel) component).defaultCriterion());</span>
+<span class="source-line-no">501</span><span id="line-501">                }</span>
+<span class="source-line-no">502</span><span id="line-502"></span>
+<span class="source-line-no">503</span><span id="line-503">            }</span>
+<span class="source-line-no">504</span><span id="line-504"></span>
+<span class="source-line-no">505</span><span id="line-505">            @Override</span>
+<span class="source-line-no">506</span><span id="line-506">            @SuppressWarnings("PMD.CognitiveComplexity")</span>
+<span class="source-line-no">507</span><span id="line-507">            public boolean includes(Eligible event, Eligible[] channels) {</span>
+<span class="source-line-no">508</span><span id="line-508">                for (Object eventValue : eventCriteria) {</span>
+<span class="source-line-no">509</span><span id="line-509">                    if (event.isEligibleFor(eventValue)) {</span>
+<span class="source-line-no">510</span><span id="line-510">                        // Found match regarding event, now try channels</span>
+<span class="source-line-no">511</span><span id="line-511">                        for (Eligible channel : channels) {</span>
+<span class="source-line-no">512</span><span id="line-512">                            for (Object channelValue : channelCriteria) {</span>
+<span class="source-line-no">513</span><span id="line-513">                                if (channel.isEligibleFor(channelValue)) {</span>
+<span class="source-line-no">514</span><span id="line-514">                                    return true;</span>
+<span class="source-line-no">515</span><span id="line-515">                                }</span>
+<span class="source-line-no">516</span><span id="line-516">                            }</span>
+<span class="source-line-no">517</span><span id="line-517">                        }</span>
+<span class="source-line-no">518</span><span id="line-518">                        return false;</span>
+<span class="source-line-no">519</span><span id="line-519">                    }</span>
+<span class="source-line-no">520</span><span id="line-520">                }</span>
+<span class="source-line-no">521</span><span id="line-521">                return false;</span>
+<span class="source-line-no">522</span><span id="line-522">            }</span>
+<span class="source-line-no">523</span><span id="line-523"></span>
+<span class="source-line-no">524</span><span id="line-524">            /*</span>
+<span class="source-line-no">525</span><span id="line-525">             * (non-Javadoc)</span>
+<span class="source-line-no">526</span><span id="line-526">             * </span>
+<span class="source-line-no">527</span><span id="line-527">             * @see java.lang.Object#toString()</span>
+<span class="source-line-no">528</span><span id="line-528">             */</span>
+<span class="source-line-no">529</span><span id="line-529">            @Override</span>
+<span class="source-line-no">530</span><span id="line-530">            public String toString() {</span>
+<span class="source-line-no">531</span><span id="line-531">                StringBuilder builder = new StringBuilder();</span>
+<span class="source-line-no">532</span><span id="line-532">                builder.append("Scope [");</span>
+<span class="source-line-no">533</span><span id="line-533">                if (eventCriteria != null) {</span>
+<span class="source-line-no">534</span><span id="line-534">                    builder.append("handledEvents=")</span>
+<span class="source-line-no">535</span><span id="line-535">                        .append(eventCriteria.stream().map(crit -&gt; {</span>
+<span class="source-line-no">536</span><span id="line-536">                            if (crit instanceof Class) {</span>
+<span class="source-line-no">537</span><span id="line-537">                                return Components.className((Class&lt;?&gt;) crit);</span>
+<span class="source-line-no">538</span><span id="line-538">                            }</span>
+<span class="source-line-no">539</span><span id="line-539">                            return crit.toString();</span>
+<span class="source-line-no">540</span><span id="line-540">                        }).collect(Collectors.toSet()));</span>
+<span class="source-line-no">541</span><span id="line-541">                    builder.append(", ");</span>
+<span class="source-line-no">542</span><span id="line-542">                }</span>
+<span class="source-line-no">543</span><span id="line-543">                if (channelCriteria != null) {</span>
+<span class="source-line-no">544</span><span id="line-544">                    builder.append("handledChannels=");</span>
+<span class="source-line-no">545</span><span id="line-545">                    builder.append(channelCriteria);</span>
+<span class="source-line-no">546</span><span id="line-546">                }</span>
+<span class="source-line-no">547</span><span id="line-547">                builder.append(']');</span>
+<span class="source-line-no">548</span><span id="line-548">                return builder.toString();</span>
+<span class="source-line-no">549</span><span id="line-549">            }</span>
+<span class="source-line-no">550</span><span id="line-550"></span>
+<span class="source-line-no">551</span><span id="line-551">        }</span>
+<span class="source-line-no">552</span><span id="line-552">    }</span>
+<span class="source-line-no">553</span><span id="line-553">}</span>
 
 
 
