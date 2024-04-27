@@ -1,6 +1,6 @@
 /*
  * JGrapes Event Driven Framework
- * Copyright (C) 2016-2018 Michael N. Lipp
+ * Copyright (C) 2016-2024 Michael N. Lipp
  * 
  * This program is free software; you can redistribute it and/or modify it 
  * under the terms of the GNU Affero General Public License as published by 
@@ -77,6 +77,7 @@ public class HttpConnector extends Component {
 
     private int applicationBufferSize = -1;
     private final Channel netMainChannel;
+    private final Channel netSecureChannel;
     @SuppressWarnings("PMD.UseConcurrentHashMap")
     private final Map<SocketAddress, Set<WebAppMsgChannel>> connecting
         = new HashMap<>();
@@ -97,11 +98,28 @@ public class HttpConnector extends Component {
      *            this component's channel
      * @param networkChannel
      *            the channel for network level I/O
+     * @param secureChannel
+     *            the channel for secure network level I/O
      */
-    public HttpConnector(Channel appChannel, Channel networkChannel) {
+    public HttpConnector(Channel appChannel, Channel networkChannel,
+            Channel secureChannel) {
         super(appChannel, ChannelReplacements.create()
             .add(NetworkChannel.class, networkChannel));
         this.netMainChannel = networkChannel;
+        this.netSecureChannel = secureChannel;
+    }
+
+    /**
+     * Create a new connector that uses the {@code networkChannel} for network
+     * level I/O.
+     * 
+     * @param appChannel
+     *            this component's channel
+     * @param networkChannel
+     *            the channel for network level I/O
+     */
+    public HttpConnector(Channel appChannel, Channel networkChannel) {
+        this(appChannel, networkChannel, null);
     }
 
     /**
@@ -312,30 +330,39 @@ public class HttpConnector extends Component {
 
             // Extract request data and check host
             request = event;
-            serverAddress = new InetSocketAddress(
-                event.requestUri().getHost(), event.requestUri().getPort());
+            var uri = request.requestUri();
+            var port = uri.getPort();
+            if (port == -1) {
+                if (uri.getScheme().equalsIgnoreCase("https")) {
+                    port = 443;
+                } else if (uri.getScheme().equalsIgnoreCase("http")) {
+                    port = 80;
+                }
+            }
+            serverAddress = new InetSocketAddress(uri.getHost(), port);
             if (serverAddress.isUnresolved()) {
-                downPipeline.fire(
-                    new HostUnresolved(event, "Host cannot be resolved."),
-                    this);
+                downPipeline.fire(new HostUnresolved(event,
+                    "Host cannot be resolved."), this);
                 return;
             }
 
-            // Re-use TCP connection, if possible
+            // Re-use network connection, if possible
             SocketIOChannel recycled = pooled.poll(serverAddress);
             if (recycled != null) {
                 connected(recycled);
                 return;
             }
             synchronized (connecting) {
-                connecting
-                    .computeIfAbsent(serverAddress, key -> new HashSet<>())
-                    .add(this);
+                connecting.computeIfAbsent(serverAddress,
+                    key -> new HashSet<>()).add(this);
             }
 
-            // Fire on main network channel (targeting the tcp connector)
+            // Fire on network channel (targeting the network connector)
             // as a follow up event (using the current pipeline).
-            fire(new OpenSocketConnection(serverAddress), netMainChannel);
+            var useSecure = uri.getScheme().equalsIgnoreCase("https")
+                && netSecureChannel != null;
+            fire(new OpenSocketConnection(serverAddress),
+                useSecure ? netSecureChannel : netMainChannel);
         }
 
         /**
