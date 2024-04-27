@@ -176,8 +176,11 @@ public class SslCodec extends Component {
      *            the accepted event
      */
     @Handler(channels = EncryptedChannel.class)
-    public void onConnected(Connected<?> event, IOSubchannel encryptedChannel) {
-        new PlainChannel(event, encryptedChannel);
+    public void onConnected(ClientConnected event,
+            IOSubchannel encryptedChannel) {
+        if (event.openEvent().associated(SslCodec.class).isPresent()) {
+            new PlainChannel(event, encryptedChannel);
+        }
     }
 
     /**
