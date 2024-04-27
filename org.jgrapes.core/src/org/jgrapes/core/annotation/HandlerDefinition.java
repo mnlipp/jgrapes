@@ -25,6 +25,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.HashMap;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.ComponentType;
@@ -113,7 +114,7 @@ public @interface HandlerDefinition {
      */
     @SuppressWarnings("serial")
     class ChannelReplacements // NOPMD (for missing serialVersionUID)
-            extends HashMap<Class<? extends Channel>, Object> {
+            extends HashMap<Class<? extends Channel>, Object[]> {
 
         /**
          * Create a new replacements specification object.
@@ -128,13 +129,15 @@ public @interface HandlerDefinition {
          * Adds a replacements to the replacements.
          *
          * @param annotationCriterion the criterion used in the annotation
-         * @param replacement the replacement
+         * @param replacements the replacements
          * @return the channel replacements for easy chaining
          */
         public ChannelReplacements add(
                 Class<? extends Channel> annotationCriterion,
-                Channel replacement) {
-            put(annotationCriterion, replacement.defaultCriterion());
+                Channel... replacements) {
+            var criteria = Arrays.stream(replacements)
+                .map(Channel::defaultCriterion).toArray(Object[]::new);
+            put(annotationCriterion, criteria);
             return this;
         }
     }

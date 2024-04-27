@@ -416,7 +416,7 @@ public @interface Handler {
                 "PMD.CognitiveComplexity" })
             public Scope(ComponentType component, Method method,
                     Handler annotation,
-                    Map<Class<? extends Channel>, Object> channelReplacements,
+                    Map<Class<? extends Channel>, Object[]> channelReplacements,
                     Object[] eventValues, Object[] channelValues) {
                 if (!HandlerDefinition.Evaluator.checkMethodSignature(method)) {
                     throw new IllegalArgumentException("Method \""
@@ -471,9 +471,14 @@ public @interface Handler {
                             } else if (c == Channel.Default.class) {
                                 addDefaultChannel = true;
                             } else {
-                                channelCriteria.add(channelReplacements == null
-                                    ? c
-                                    : channelReplacements.getOrDefault(c, c));
+                                if (channelReplacements != null
+                                    && channelReplacements.containsKey(c)) {
+                                    channelCriteria.addAll(
+                                        Arrays.asList(channelReplacements
+                                            .get(c)));
+                                } else {
+                                    channelCriteria.add(c);
+                                }
                             }
                         }
                     }
