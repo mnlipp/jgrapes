@@ -35,8 +35,7 @@ public class UnsupportedProtocolTests {
     private static BasicTestServer server;
 
     @BeforeClass
-    public static void startServer() throws IOException, InterruptedException,
-            ExecutionException {
+    public static void startServer() throws Exception {
         server = new BasicTestServer();
         Components.start(server);
     }

@@ -36,8 +36,7 @@ public class NotFoundTests {
 
     public static class TestServer extends BasicTestServer {
 
-        public TestServer()
-                throws IOException, InterruptedException, ExecutionException {
+        public TestServer() throws Exception {
             super(Request.In.Get.class);
         }
 
@@ -46,8 +45,7 @@ public class NotFoundTests {
     private static TestServer server;
 
     @BeforeClass
-    public static void startServer() throws IOException, InterruptedException,
-            ExecutionException {
+    public static void startServer() throws Exception {
         server = new TestServer();
         Components.start(server);
     }

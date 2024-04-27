@@ -18,15 +18,28 @@
 
 package org.jgrapes.http.test;
 
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.security.KeyManagementException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.util.concurrent.ExecutionException;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
+import org.jgrapes.core.NamedChannel;
 import org.jgrapes.http.HttpServer;
 import org.jgrapes.http.events.Request;
 import org.jgrapes.io.NioDispatcher;
+import org.jgrapes.io.util.PermitsPool;
 import org.jgrapes.net.SocketServer;
+import org.jgrapes.net.SslCodec;
 import org.jgrapes.net.events.Ready;
 import static org.junit.Assert.fail;
 
@@ -34,40 +47,86 @@ import static org.junit.Assert.fail;
  *
  */
 public class BasicTestServer extends Component {
-    private InetSocketAddress addr;
-    private WaitForTests<Ready> readyMonitor;
+    private InetSocketAddress unsecureAddr;
+    private InetSocketAddress secureAddr;
+    private WaitForTests<Ready> unsecureMonitor;
+    private WaitForTests<Ready> secureMonitor;
 
     @SafeVarargs
     public BasicTestServer(Class<? extends Request.In>... fallbacks)
-            throws IOException, InterruptedException, ExecutionException {
+            throws IOException, InterruptedException, ExecutionException,
+            KeyStoreException, NoSuchAlgorithmException, CertificateException,
+            UnrecoverableKeyException, KeyManagementException {
         attach(new NioDispatcher());
-        SocketServer networkServer = attach(new SocketServer());
-        attach(new HttpServer(channel(), networkServer.channel(),
-            fallbacks));
-        readyMonitor = new WaitForTests<>(
-            this, Ready.class, networkServer.channel().defaultCriterion());
+
+        // Network level unencrypted channel.
+        Channel httpTransport = new NamedChannel("serverTransport");
+
+        // Create a TCP server
+        SocketServer unsecureNetwork = attach(new SocketServer(httpTransport));
+        unsecureMonitor = new WaitForTests<>(this, Ready.class,
+            unsecureNetwork.channel().defaultCriterion());
+
+        // Create TLS "converter"
+        KeyStore serverStore = KeyStore.getInstance("JKS");
+        try (FileInputStream kf
+            = new FileInputStream("test-resources/localhost.jks")) {
+            serverStore.load(kf, "nopass".toCharArray());
+        }
+        KeyManagerFactory kmf = KeyManagerFactory.getInstance(
+            KeyManagerFactory.getDefaultAlgorithm());
+        kmf.init(serverStore, "nopass".toCharArray());
+        SSLContext sslContext = SSLContext.getInstance("TLS");
+        sslContext.init(kmf.getKeyManagers(), null, new SecureRandom());
+
+        // Create a TCP server for SSL
+        SocketServer securedNetwork = attach(new SocketServer()
+            .setBacklog(3000)
+            .setConnectionLimiter(new PermitsPool(50)));
+        attach(new SslCodec(httpTransport, securedNetwork, sslContext));
+
+        // Create an HTTP server as converter between transport and
+        // application layer.
+        attach(new HttpServer(channel(),
+            httpTransport, fallbacks).setAcceptNoSni(true));
+
+        secureMonitor = new WaitForTests<>(this, Ready.class,
+            securedNetwork.channel().defaultCriterion());
     }
 
-    public InetSocketAddress getSocketAddress()
+    public InetSocketAddress getUnsecureAddress()
             throws InterruptedException, ExecutionException {
-        if (addr == null) {
-            Ready readyEvent = (Ready) readyMonitor.get();
+        if (unsecureAddr == null) {
+            Ready readyEvent = (Ready) unsecureMonitor.get();
             if (!(readyEvent.listenAddress() instanceof InetSocketAddress)) {
                 fail();
             }
-            addr = ((InetSocketAddress) readyEvent.listenAddress());
+            unsecureAddr = ((InetSocketAddress) readyEvent.listenAddress());
         }
-        return addr;
+        return unsecureAddr;
 
     }
 
-    public InetAddress getAddress()
+    public InetSocketAddress getSecureAddress()
             throws InterruptedException, ExecutionException {
-        return getSocketAddress().getAddress();
+        if (secureAddr == null) {
+            Ready readyEvent = (Ready) secureMonitor.get();
+            if (!(readyEvent.listenAddress() instanceof InetSocketAddress)) {
+                fail();
+            }
+            secureAddr = ((InetSocketAddress) readyEvent.listenAddress());
+        }
+        return secureAddr;
+
     }
 
     public int getPort()
             throws InterruptedException, ExecutionException {
-        return getSocketAddress().getPort();
+        return getUnsecureAddress().getPort();
+    }
+
+    public int getTlsPort()
+            throws InterruptedException, ExecutionException {
+        return getSecureAddress().getPort();
     }
 }

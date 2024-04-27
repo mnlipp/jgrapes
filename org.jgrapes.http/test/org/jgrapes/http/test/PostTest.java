@@ -39,8 +39,7 @@ public class PostTest {
 
     public static class TestServer extends BasicTestServer {
 
-        public TestServer()
-                throws IOException, InterruptedException, ExecutionException {
+        public TestServer() throws Exception {
             super(Request.In.Get.class);
         }
 
@@ -50,8 +49,7 @@ public class PostTest {
     static ReflectProvider contentProvider;
 
     @BeforeClass
-    public static void startServer() throws IOException, InterruptedException,
-            ExecutionException {
+    public static void startServer() throws Exception {
         server = new TestServer();
         server.attach(new ReflectProvider(server.channel()));
         Components.start(server);

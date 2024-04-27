@@ -65,8 +65,7 @@ public class ClientTest {
 
     public static class TestServer extends BasicTestServer {
 
-        public TestServer()
-                throws IOException, InterruptedException, ExecutionException {
+        public TestServer() throws Exception {
             super(Request.In.Get.class);
         }
 
@@ -205,8 +204,7 @@ public class ClientTest {
     private static TestClient clntApp;
 
     @BeforeClass
-    public static void startApps() throws IOException, InterruptedException,
-            ExecutionException {
+    public static void startApps() throws Exception {
         srvApp = new TestServer();
         srvApp.attach(new InMemorySessionManager(srvApp.channel()));
         srvApp.attach(new TopProvider(srvApp.channel()));
