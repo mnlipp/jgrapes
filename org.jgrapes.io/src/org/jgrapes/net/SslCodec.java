@@ -152,7 +152,7 @@ public class SslCodec extends Component {
      * @param event
      *            the accepted event
      */
-    @Handler(channels = EncryptedChannel.class)
+    @Handler(channels = EncryptedChannel.class, excludeSelf = true)
     public void onAccepted(Accepted event, IOSubchannel encryptedChannel) {
         new PlainChannel(event, encryptedChannel);
     }
@@ -175,10 +175,11 @@ public class SslCodec extends Component {
      * @param event
      *            the accepted event
      */
-    @Handler(channels = EncryptedChannel.class)
+    @Handler(channels = EncryptedChannel.class, excludeSelf = true)
     public void onConnected(ClientConnected event,
             IOSubchannel encryptedChannel) {
-        if (event.openEvent().associated(SslCodec.class).isPresent()) {
+        if (event.openEvent()
+            .associated(SslCodec.class, Object.class).isPresent()) {
             new PlainChannel(event, encryptedChannel);
         }
     }
@@ -195,9 +196,8 @@ public class SslCodec extends Component {
      * @throws SSLException 
      * @throws ExecutionException 
      */
-    @Handler(channels = EncryptedChannel.class)
-    public void onInput(
-            Input<ByteBuffer> event, IOSubchannel encryptedChannel)
+    @Handler(channels = EncryptedChannel.class, excludeSelf = true)
+    public void onInput(Input<ByteBuffer> event, IOSubchannel encryptedChannel)
             throws InterruptedException, SSLException, ExecutionException {
         @SuppressWarnings({ "unchecked", "PMD.AvoidDuplicateLiterals" })
         final Optional<PlainChannel> plainChannel
@@ -216,7 +216,7 @@ public class SslCodec extends Component {
      * @throws InterruptedException 
      * @throws SSLException 
      */
-    @Handler(channels = EncryptedChannel.class)
+    @Handler(channels = EncryptedChannel.class, excludeSelf = true)
     public void onHalfClosed(HalfClosed event, IOSubchannel encryptedChannel)
             throws SSLException, InterruptedException {
         @SuppressWarnings("unchecked")
@@ -236,7 +236,7 @@ public class SslCodec extends Component {
      * @throws InterruptedException 
      * @throws SSLException 
      */
-    @Handler(channels = EncryptedChannel.class)
+    @Handler(channels = EncryptedChannel.class, excludeSelf = true)
     public void onClosed(Closed<Void> event, IOSubchannel encryptedChannel)
             throws SSLException, InterruptedException {
         @SuppressWarnings("unchecked")
@@ -254,7 +254,7 @@ public class SslCodec extends Component {
      * @param event the event
      * @param encryptedChannel the encrypted channel
      */
-    @Handler(channels = EncryptedChannel.class)
+    @Handler(channels = EncryptedChannel.class, excludeSelf = true)
     public void onPurge(Purge event, IOSubchannel encryptedChannel) {
         @SuppressWarnings("unchecked")
         final Optional<PlainChannel> plainChannel
@@ -274,7 +274,7 @@ public class SslCodec extends Component {
      * @throws InterruptedException 
      * @throws SSLException 
      */
-    @Handler(channels = EncryptedChannel.class)
+    @Handler(channels = EncryptedChannel.class, excludeSelf = true)
     public void onIOError(IOError event, IOSubchannel encryptedChannel)
             throws SSLException, InterruptedException {
         @SuppressWarnings("unchecked")
@@ -294,8 +294,7 @@ public class SslCodec extends Component {
      * @throws ExecutionException 
      */
     @Handler
-    public void onOutput(Output<ByteBuffer> event,
-            PlainChannel plainChannel)
+    public void onOutput(Output<ByteBuffer> event, PlainChannel plainChannel)
             throws InterruptedException, SSLException, ExecutionException {
         if (plainChannel.hub() != this) {
             return;
@@ -324,7 +323,8 @@ public class SslCodec extends Component {
      * Represents the plain channel.
      */
     @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
-    private class PlainChannel extends LinkedIOSubchannel {
+    private class PlainChannel extends LinkedIOSubchannel
+            implements SocketIOChannel {
         public SocketAddress localAddress;
         public SocketAddress remoteAddress;
         public SSLEngine sslEngine;
@@ -731,5 +731,26 @@ public class SslCodec extends Component {
         public void purge() {
             downPipeline.fire(new Purge(), this);
         }
+
+        @Override
+        public SocketAddress localAddress() {
+            return localAddress;
+        }
+
+        @Override
+        public SocketAddress remoteAddress() {
+            return remoteAddress;
+        }
+
+        @Override
+        public boolean isPurgeable() {
+            return false;
+        }
+
+        @Override
+        public long purgeableSince() {
+            return 0;
+        }
+
     }
 }
