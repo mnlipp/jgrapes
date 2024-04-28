@@ -26,7 +26,6 @@ import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -66,7 +65,7 @@ import org.jgrapes.io.events.Output;
 import org.jgrapes.io.util.ManagedBuffer;
 import org.jgrapes.io.util.ManagedBufferPool;
 import org.jgrapes.net.SocketIOChannel;
-import org.jgrapes.net.events.Connected;
+import org.jgrapes.net.events.ClientConnected;
 
 /**
  * A converter component that receives and sends web application
@@ -189,20 +188,13 @@ public class HttpConnector extends Component {
      */
     @Handler(channels = NetworkChannel.class)
     @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
-    public void onConnected(Connected<?> event, SocketIOChannel netConnChannel)
+    public void onConnected(ClientConnected event,
+            SocketIOChannel netConnChannel)
             throws InterruptedException, IOException {
-        // Check if an app channel has been waiting for such a connection
-        WebAppMsgChannel[] appChannel = { null };
-        synchronized (connecting) {
-            connecting.computeIfPresent(event.remoteAddress(), (key, set) -> {
-                Iterator<WebAppMsgChannel> iter = set.iterator();
-                appChannel[0] = iter.next();
-                iter.remove();
-                return set.isEmpty() ? null : set;
-            });
-        }
-        if (appChannel[0] != null) {
-            appChannel[0].connected(netConnChannel);
+        // Check if this is a response to our request
+        var appChannel = event.openEvent().associated(WebAppMsgChannel.class);
+        if (appChannel.isPresent()) {
+            appChannel.get().connected(netConnChannel);
         }
     }
 
@@ -364,7 +356,8 @@ public class HttpConnector extends Component {
             // as a follow up event (using the current pipeline).
             var useSecure = uri.getScheme().equalsIgnoreCase("https")
                 && netSecureChannel != null;
-            fire(new OpenSocketConnection(serverAddress),
+            fire(new OpenSocketConnection(serverAddress)
+                .setAssociated(WebAppMsgChannel.class, this),
                 useSecure ? netSecureChannel : netMainChannel);
         }
 
