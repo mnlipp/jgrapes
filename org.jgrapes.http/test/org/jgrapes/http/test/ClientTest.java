@@ -274,7 +274,7 @@ public class ClientTest {
         assertEquals(ConnectError.class, doneEvent.get().getClass());
     }
 
-    @Test // (timeout = 1500)
+    @Test(timeout = 1500)
     public void testGetMatchTop()
             throws IOException, InterruptedException, ExecutionException {
         URL url = new URL(protocol, "localhost", srvPort(), "/top");
