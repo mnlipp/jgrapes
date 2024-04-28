@@ -118,7 +118,7 @@ import org.jgrapes.core.annotation.HandlerDefinition.ChannelReplacements;
  * derived class, the annotation is overwritten as well. The
  * annotated method of the base class is no longer invoked as
  * handler and the method of the derived class is only invoked
- * as hanler if it defines its own handler annotation.
+ * as handler if it defines its own handler annotation.
  * 
  * @see Component#channel()
  */
