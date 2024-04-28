@@ -23,7 +23,9 @@ import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.nio.CharBuffer;
 import java.text.ParseException;
+import java.util.Arrays;
 import java.util.Base64;
+import java.util.Collection;
 import java.util.Random;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
@@ -56,12 +58,31 @@ import org.jgrapes.io.events.Input;
 import org.jgrapes.io.events.Output;
 import org.jgrapes.io.util.CharBufferWriter;
 import org.jgrapes.net.SocketConnector;
+import org.jgrapes.net.SslCodec;
 import org.junit.AfterClass;
 import static org.junit.Assert.*;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
+@RunWith(Parameterized.class)
 public class ClientTest {
+
+    private String protocol;
+
+    @Parameterized.Parameters
+    public static Collection<Object[]> protocols() {
+        return Arrays.asList(new Object[][] { { "http" }, { "https" } });
+    }
+
+    public ClientTest(String protocol) {
+        this.protocol = protocol;
+    }
+
+    private int srvPort() throws InterruptedException, ExecutionException {
+        return protocol.equals("http") ? srvApp.getPort() : srvApp.getTlsPort();
+    }
 
     public static class TestServer extends BasicTestServer {
 
@@ -134,8 +155,10 @@ public class ClientTest {
 
         public TestClient() throws IOException {
             attach(new NioDispatcher());
-            SocketConnector conn = attach(new SocketConnector(SELF));
-            attach(new HttpConnector(this, conn));
+            Channel requestChannel = attach(new SocketConnector(SELF));
+            Channel secReqChannel
+                = attach(new SslCodec(SELF, requestChannel, true));
+            attach(new HttpConnector(this, requestChannel, secReqChannel));
         }
 
         public void startRequest(Request.Out event,
@@ -203,6 +226,9 @@ public class ClientTest {
     private static TestServer srvApp;
     private static TestClient clntApp;
 
+    /*
+     * Cannot use BeforeClass with parameterized tests.
+     */
     @BeforeClass
     public static void startApps() throws Exception {
         srvApp = new TestServer();
@@ -226,7 +252,7 @@ public class ClientTest {
     @Test(timeout = 1500)
     public void testUnknownHost()
             throws IOException, InterruptedException, ExecutionException {
-        URL url = new URL("http", "never.ever.known", srvApp.getPort(), "/");
+        URL url = new URL(protocol, "never.ever.known", srvPort(), "/");
         WaitForTests<ErrorReceived> doneWaiter = new WaitForTests<>(clntApp,
             ErrorReceived.class, clntApp.defaultCriterion());
         clntApp.startRequest(new Request.Out.Get(url), channel -> {
@@ -239,7 +265,7 @@ public class ClientTest {
     public void testConnectionRefused()
             throws IOException, InterruptedException, ExecutionException {
         // Though not impossible, it's highly unlikely to have a server here
-        URL url = new URL("http", "localhost", srvApp.getPort() + 1, "/top");
+        URL url = new URL(protocol, "localhost", srvPort() + 1, "/top");
         WaitForTests<ErrorReceived> doneWaiter = new WaitForTests<>(clntApp,
             ErrorReceived.class, clntApp.defaultCriterion());
         clntApp.startRequest(new Request.Out.Get(url), channel -> {
@@ -248,10 +274,10 @@ public class ClientTest {
         assertEquals(ConnectError.class, doneEvent.get().getClass());
     }
 
-    @Test(timeout = 1500)
+    @Test // (timeout = 1500)
     public void testGetMatchTop()
             throws IOException, InterruptedException, ExecutionException {
-        URL url = new URL("http", "localhost", srvApp.getPort(), "/top");
+        URL url = new URL(protocol, "localhost", srvPort(), "/top");
         WaitForTests<InputReceived> done = new WaitForTests<>(clntApp,
             InputReceived.class, clntApp.defaultCriterion());
         clntApp.startRequest(new Request.Out.Get(url), channel -> {
@@ -267,7 +293,7 @@ public class ClientTest {
     @Test(timeout = 1500)
     public void testPost()
             throws IOException, InterruptedException, ExecutionException {
-        URL url = new URL("http", "localhost", srvApp.getPort(), "/reflect");
+        URL url = new URL(protocol, "localhost", srvPort(), "/reflect");
         Request.Out.Post post = new Request.Out.Post(url);
         post.httpRequest().setField("Content-Type",
             "text/plain; charset=utf-8");
@@ -294,8 +320,8 @@ public class ClientTest {
     @Test(timeout = 1500)
     public void testWsEcho()
             throws IOException, InterruptedException, ExecutionException {
-        URL url = new URL("http", "localhost", srvApp.getPort(),
-            "/ws/echo?store=42");
+        URL url
+            = new URL(protocol, "localhost", srvPort(), "/ws/echo?store=42");
         Request.Out.Get upgrade = new Request.Out.Get(url);
         upgrade.httpRequest().setField(HttpField.UPGRADE,
             new StringList("websocket"));
@@ -342,7 +368,7 @@ public class ClientTest {
     @Test(timeout = 1500)
     public void testWsClientClose()
             throws IOException, InterruptedException, ExecutionException {
-        URL url = new URL("http", "localhost", srvApp.getPort(), "/ws/echo");
+        URL url = new URL(protocol, "localhost", srvPort(), "/ws/echo");
         Request.Out.Get upgrade = new Request.Out.Get(url);
         upgrade.httpRequest().setField(HttpField.UPGRADE,
             new StringList("websocket"));

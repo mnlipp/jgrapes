@@ -60,10 +60,10 @@ public class BasicTestServer extends Component {
         attach(new NioDispatcher());
 
         // Network level unencrypted channel.
-        Channel httpTransport = new NamedChannel("serverTransport");
+        Channel plainChannel = new NamedChannel("plainTransport");
 
         // Create a TCP server
-        SocketServer unsecureNetwork = attach(new SocketServer(httpTransport));
+        SocketServer unsecureNetwork = attach(new SocketServer(plainChannel));
         unsecureMonitor = new WaitForTests<>(this, Ready.class,
             unsecureNetwork.channel().defaultCriterion());
 
@@ -80,15 +80,16 @@ public class BasicTestServer extends Component {
         sslContext.init(kmf.getKeyManagers(), null, new SecureRandom());
 
         // Create a TCP server for SSL
-        SocketServer securedNetwork = attach(new SocketServer()
-            .setBacklog(3000)
-            .setConnectionLimiter(new PermitsPool(50)));
-        attach(new SslCodec(httpTransport, securedNetwork, sslContext));
+        SocketServer securedNetwork
+            = attach(new SocketServer(new NamedChannel("tlsTransport"))
+                .setBacklog(3000).setConnectionLimiter(new PermitsPool(50)));
+        attach(new SslCodec(unsecureNetwork.channel(), securedNetwork.channel(),
+            sslContext));
 
         // Create an HTTP server as converter between transport and
         // application layer.
         attach(new HttpServer(channel(),
-            httpTransport, fallbacks).setAcceptNoSni(true));
+            plainChannel, fallbacks).setAcceptNoSni(true));
 
         secureMonitor = new WaitForTests<>(this, Ready.class,
             securedNetwork.channel().defaultCriterion());
