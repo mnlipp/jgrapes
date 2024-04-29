@@ -489,8 +489,8 @@
 <span class="source-line-no">476</span><span id="line-476">    }</span>
 <span class="source-line-no">477</span><span id="line-477"></span>
 <span class="source-line-no">478</span><span id="line-478">    @Override</span>
-<span class="source-line-no">479</span><span id="line-479">    @SuppressWarnings("PMD.ShortVariable")</span>
-<span class="source-line-no">480</span><span id="line-480">    public Event&lt;T&gt; setAssociated(Object by, Object with) {</span>
+<span class="source-line-no">479</span><span id="line-479">    @SuppressWarnings({ "PMD.ShortVariable", "unchecked" })</span>
+<span class="source-line-no">480</span><span id="line-480">    public &lt;A extends Associator&gt; A setAssociated(Object by, Object with) {</span>
 <span class="source-line-no">481</span><span id="line-481">        if (contextData == null) {</span>
 <span class="source-line-no">482</span><span id="line-482">            contextData = new ConcurrentHashMap&lt;&gt;();</span>
 <span class="source-line-no">483</span><span id="line-483">        }</span>
@@ -499,7 +499,7 @@
 <span class="source-line-no">486</span><span id="line-486">        } else {</span>
 <span class="source-line-no">487</span><span id="line-487">            contextData.put(by, with);</span>
 <span class="source-line-no">488</span><span id="line-488">        }</span>
-<span class="source-line-no">489</span><span id="line-489">        return this;</span>
+<span class="source-line-no">489</span><span id="line-489">        return (A) this;</span>
 <span class="source-line-no">490</span><span id="line-490">    }</span>
 <span class="source-line-no">491</span><span id="line-491"></span>
 <span class="source-line-no">492</span><span id="line-492">    @Override</span>

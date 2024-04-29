@@ -131,7 +131,7 @@
 <span class="source-line-no">118</span><span id="line-118">         * @param by the "name"</span>
 <span class="source-line-no">119</span><span id="line-119">         * @param with the object to be associated</span>
 <span class="source-line-no">120</span><span id="line-120">         */</span>
-<span class="source-line-no">121</span><span id="line-121">        @SuppressWarnings("PMD.ShortVariable")</span>
+<span class="source-line-no">121</span><span id="line-121">        @SuppressWarnings({ "PMD.ShortVariable", "unchecked" })</span>
 <span class="source-line-no">122</span><span id="line-122">        public DefaultSubchannel setAssociated(Object by, Object with) {</span>
 <span class="source-line-no">123</span><span id="line-123">            if (contextData == null) {</span>
 <span class="source-line-no">124</span><span id="line-124">                contextData = new ConcurrentHashMap&lt;&gt;();</span>
