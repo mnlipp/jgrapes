@@ -34,7 +34,7 @@ import org.jgrapes.io.events.Input;
  */
 public class ManagedBufferStreamer {
 
-    private ManagedBufferReader reader = new ManagedBufferReader();
+    private final ManagedBufferReader reader = new ManagedBufferReader();
 
     public ManagedBufferStreamer(Consumer<Reader> processor) {
         Thread thread = new Thread(() -> {

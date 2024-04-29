@@ -45,6 +45,10 @@ public class ThreadCleaner {
     private static ReferenceQueue<Object> abandoned
         = new ReferenceQueue<>();
 
+    private ThreadCleaner() {
+        // Utility class
+    }
+
     /**
      * Weak references to an object that interrupts the associated
      * thread if the object has been garbage collected.
@@ -84,6 +88,13 @@ public class ThreadCleaner {
         watchdog.start();
     }
 
+    /**
+     * Watch the referent and terminate the thread if it is
+     * garbage collected.
+     *
+     * @param referent the referent
+     * @param thread the thread
+     */
     public static void watch(Object referent, Thread thread) {
         watched.add(new RefWithThread(referent, thread));
     }
