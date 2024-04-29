@@ -476,8 +476,8 @@ public class Event<T> extends EventBase<T> {
     }
 
     @Override
-    @SuppressWarnings("PMD.ShortVariable")
-    public Event<T> setAssociated(Object by, Object with) {
+    @SuppressWarnings({ "PMD.ShortVariable", "unchecked" })
+    public <A extends Associator> A setAssociated(Object by, Object with) {
         if (contextData == null) {
             contextData = new ConcurrentHashMap<>();
         }
@@ -486,7 +486,7 @@ public class Event<T> extends EventBase<T> {
         } else {
             contextData.put(by, with);
         }
-        return this;
+        return (A) this;
     }
 
     @Override

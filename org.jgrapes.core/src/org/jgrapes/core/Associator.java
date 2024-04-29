@@ -33,13 +33,14 @@ public interface Associator {
      * parameter `name`, it does not necessarily have to be a string.
      * 
      * Passing `null` as parameter `with` clears the association.
-     * 
+     *
+     * @param <A> the associator's type
      * @param by the "name"
      * @param with the object to be associated
      * @return the sub channel for easy chaining
      */
     @SuppressWarnings({ "PMD.ShortVariable", "PMD.AvoidDuplicateLiterals" })
-    Associator setAssociated(Object by, Object with);
+    <A extends Associator> A setAssociated(Object by, Object with);
 
     /**
      * Retrieves the associated object following the association 
