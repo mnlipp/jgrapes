@@ -24,11 +24,7 @@ import java.net.SocketAddress;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.Callable;
 import org.jdrupes.httpcodec.ClientEngine;
 import org.jdrupes.httpcodec.Codec;
@@ -77,9 +73,6 @@ public class HttpConnector extends Component {
     private int applicationBufferSize = -1;
     private final Channel netMainChannel;
     private final Channel netSecureChannel;
-    @SuppressWarnings("PMD.UseConcurrentHashMap")
-    private final Map<SocketAddress, Set<WebAppMsgChannel>> connecting
-        = new HashMap<>();
     private final PoolingIndex<SocketAddress, SocketIOChannel> pooled
         = new PoolingIndex<>();
 
@@ -207,9 +200,8 @@ public class HttpConnector extends Component {
     @Handler(channels = NetworkChannel.class)
     public void onIoError(IOError event) throws IOException {
         for (Channel channel : event.channels()) {
-            if (channel instanceof SocketIOChannel) {
+            if (channel instanceof SocketIOChannel netConnChannel) {
                 // Error while using established network connection
-                SocketIOChannel netConnChannel = (SocketIOChannel) channel;
                 Optional<WebAppMsgChannel> appChannel
                     = netConnChannel.associated(WebAppMsgChannel.class);
                 if (appChannel.isPresent()) {
@@ -221,20 +213,11 @@ public class HttpConnector extends Component {
                 pooled.remove(netConnChannel.remoteAddress(), netConnChannel);
                 continue;
             }
+
             // Error while trying to establish the network connection
-            if (event.event() instanceof OpenSocketConnection) {
-                OpenSocketConnection connEvent
-                    = (OpenSocketConnection) event.event();
-                Optional<Set<WebAppMsgChannel>> erroneous;
-                synchronized (connecting) {
-                    erroneous = Optional
-                        .ofNullable(connecting.get(connEvent.address()));
-                    connecting.remove(connEvent.address());
-                }
-                erroneous.ifPresent(set -> {
-                    for (WebAppMsgChannel chann : set) {
-                        chann.openError(event);
-                    }
+            if (event.event() instanceof OpenSocketConnection connEvent) {
+                connEvent.associated(WebAppMsgChannel.class).ifPresent(c -> {
+                    c.openError(event);
                 });
             }
         }
@@ -285,10 +268,7 @@ public class HttpConnector extends Component {
     }
 
     /**
-     * An application layer channel. When an object is created, it is first
-     * inserted into the {@link HttpConnector#connecting} map. Once a network
-     * channel has been assigned to it, it is primarily referenced by that 
-     * network channel. 
+     * An application layer channel.
      */
     private class WebAppMsgChannel extends DefaultIOSubchannel {
         // Starts as ClientEngine<HttpRequest,HttpResponse> but may change
@@ -346,10 +326,6 @@ public class HttpConnector extends Component {
             if (recycled != null) {
                 connected(recycled);
                 return;
-            }
-            synchronized (connecting) {
-                connecting.computeIfAbsent(serverAddress,
-                    key -> new HashSet<>()).add(this);
             }
 
             // Fire on network channel (targeting the network connector)

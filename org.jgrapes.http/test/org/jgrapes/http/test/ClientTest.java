@@ -163,8 +163,7 @@ public class ClientTest {
 
         public void startRequest(Request.Out event,
                 Consumer<IOSubchannel> continuation) {
-            event.setAssociated(this, continuation);
-            fire(event);
+            fire(event.setAssociated(this, continuation));
         }
 
         @Handler

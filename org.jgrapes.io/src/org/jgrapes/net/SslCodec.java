@@ -50,6 +50,7 @@ import org.jgrapes.core.annotation.HandlerDefinition.ChannelReplacements;
 import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.io.events.Close;
 import org.jgrapes.io.events.Closed;
+import org.jgrapes.io.events.ConnectError;
 import org.jgrapes.io.events.HalfClosed;
 import org.jgrapes.io.events.IOError;
 import org.jgrapes.io.events.Input;
@@ -275,13 +276,25 @@ public class SslCodec extends Component {
      * @throws SSLException 
      */
     @Handler(channels = EncryptedChannel.class, excludeSelf = true)
-    public void onIOError(IOError event, IOSubchannel encryptedChannel)
+    public void onIOError(IOError event)
             throws SSLException, InterruptedException {
-        @SuppressWarnings("unchecked")
-        final Optional<PlainChannel> plainChannel
-            = (Optional<PlainChannel>) LinkedIOSubchannel
-                .downstreamChannel(this, encryptedChannel);
-        plainChannel.ifPresent(channel -> fire(new IOError(event), channel));
+        for (Channel channel : event.channels()) {
+            if (channel instanceof SocketIOChannel netConnChannel) {
+                @SuppressWarnings("unchecked")
+                final Optional<PlainChannel> plainChannel
+                    = (Optional<PlainChannel>) LinkedIOSubchannel
+                        .downstreamChannel(this, netConnChannel);
+                plainChannel.ifPresent(c -> fire(IOError.duplicate(event), c));
+                continue;
+            }
+
+            // Error while trying to establish the network connection
+            if (event.event() instanceof OpenSocketConnection openEvent) {
+                openEvent.associated(SslCodec.class, OpenSocketConnection.class)
+                    .ifPresent(
+                        e -> fire(new ConnectError(e, event.message()), this));
+            }
+        }
     }
 
     /**
