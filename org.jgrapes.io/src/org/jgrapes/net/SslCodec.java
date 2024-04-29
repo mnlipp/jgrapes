@@ -269,11 +269,10 @@ public class SslCodec extends Component {
     /**
      * Handles an {@link IOError} event from the encrypted channel (client)
      * by sending it downstream.
-     * 
+     *
      * @param event the event
-     * @param encryptedChannel the channel for exchanging the encrypted data
-     * @throws InterruptedException 
-     * @throws SSLException 
+     * @throws SSLException the SSL exception
+     * @throws InterruptedException the interrupted exception
      */
     @Handler(channels = EncryptedChannel.class, excludeSelf = true)
     public void onIOError(IOError event)

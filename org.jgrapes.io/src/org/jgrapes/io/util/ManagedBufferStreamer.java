@@ -23,8 +23,14 @@ import java.io.Reader;
 import java.nio.Buffer;
 import java.nio.charset.Charset;
 import java.util.function.Consumer;
+import org.jgrapes.io.events.Input;
 
 /**
+ * Starts a thread with a synchronous consumer of input provided by a
+ * {@link Reader} which is fed with data from {@link ManagedBuffer}s
+ * (usually obtained from {@link Input} events).
+ *  
+ * @since 2.8.0
  */
 public class ManagedBufferStreamer {
 
@@ -53,15 +59,9 @@ public class ManagedBufferStreamer {
     }
 
     /**
-     * Feed data to the reader. The call blocks while data from a previous
-     * invocation has not been fully read. The buffer passed as argument
-     * is locked (see {@link ManagedBuffer#lockBuffer()}) until all
-     * data has been read.
+     * Feed data to underlying the reader
+     * (see {@link ManagedBufferReader#feed). 
      * 
-     * Calling this method with `null` as argument closes the feed.
-     * After consuming any data still available from a previous
-     * invocation, further calls to {@link #read} therefore return -1.
-     *
      * @param buffer the buffer
      * @throws IOException Signals that an I/O exception has occurred.
      */

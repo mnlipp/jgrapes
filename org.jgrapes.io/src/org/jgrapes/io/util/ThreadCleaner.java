@@ -36,6 +36,8 @@ import java.util.Set;
  * this class allows the thread to be associated with the lifetime of an
  * arbitrary object. When the object is garbage collected, the thread is
  * terminated automatically.
+ * 
+ * @since 2.8.0
  */
 public class ThreadCleaner {
 
