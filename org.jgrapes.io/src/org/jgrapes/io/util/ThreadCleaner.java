@@ -39,7 +39,7 @@ import java.util.Set;
  * 
  * @since 2.8.0
  */
-public class ThreadCleaner {
+public final class ThreadCleaner {
 
     private static Set<RefWithThread> watched = new HashSet<>();
     private static ReferenceQueue<Object> abandoned
@@ -56,7 +56,7 @@ public class ThreadCleaner {
      * @param <T> the generic type
      */
     private static class RefWithThread extends WeakReference<Object> {
-        public Thread watched;
+        public final Thread watched;
 
         /**
          * Creates a new instance.
@@ -79,7 +79,7 @@ public class ThreadCleaner {
                         = (ThreadCleaner.RefWithThread) abandoned.remove();
                     ref.watched.interrupt();
                     watched.remove(ref);
-                } catch (InterruptedException e) {
+                } catch (InterruptedException e) { // NOPMD
                     // Nothing to do
                 }
             }

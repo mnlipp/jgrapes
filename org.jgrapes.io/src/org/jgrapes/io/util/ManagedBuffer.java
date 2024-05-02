@@ -203,17 +203,14 @@ public class ManagedBuffer<T extends Buffer> {
      */
     @Override
     public String toString() {
-        StringBuilder builder = new StringBuilder();
+        StringBuilder builder = new StringBuilder(50);
         builder.append(getClass().getSimpleName())
             .append(" [");
         if (backing != null) {
-            builder.append("buffer=");
-            builder.append(backing);
-            builder.append(", ");
+            builder.append("buffer=").append(backing).append(", ");
         }
         if (lockCount != null) {
-            builder.append("lockCount=");
-            builder.append(lockCount);
+            builder.append("lockCount=").append(lockCount);
         }
         builder.append(']');
         return builder.toString();
@@ -388,7 +385,7 @@ public class ManagedBuffer<T extends Buffer> {
      * (backing buffer) and a reference to the managed buffer.
      * Can be used if several consumers need the same content.
      */
-    public class ByteBufferView {
+    public final class ByteBufferView {
         private final ByteBuffer bufferView;
 
         private ByteBufferView() {
@@ -434,7 +431,7 @@ public class ManagedBuffer<T extends Buffer> {
      * (backing buffer) and a reference to the managed buffer.
      * Can be used if several consumers need the same content.
      */
-    public class CharBufferView {
+    public final class CharBufferView {
         private final CharBuffer bufferView;
 
         private CharBufferView() {

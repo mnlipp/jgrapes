@@ -47,7 +47,7 @@ public class LineCollector {
     private CharBuffer rest;
     private boolean endedWithLF;
     private final Queue<String> lines = new ConcurrentLinkedQueue<>();
-    private Consumer<String> consumer = s -> lines.add(s);
+    private Consumer<String> consumer = lines::add;
 
     /**
      * Sets the charset to be used if {@link #feed(ManagedBuffer)}

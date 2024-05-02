@@ -113,18 +113,15 @@ class VerboseHandlerReference extends HandlerReference {
             return 0;
         }
         long invocation = 0;
-        StringBuilder builder = new StringBuilder();
+        StringBuilder builder = new StringBuilder(50);
         if (handlerTracking.isLoggable(Level.FINEST)) {
             invocation = invocationCounter.getAndIncrement();
-            builder.append('[');
-            builder.append(Long.toString(invocation));
-            builder.append("] ");
+            builder.append('[').append(Long.toString(invocation)).append("] ");
         }
         builder.append('P')
             .append(Components
                 .objectId(ComponentTree.currentPipeline()))
-            .append(": ")
-            .append(event);
+            .append(": ").append(event);
         if (component == ComponentTree.DUMMY_HANDLER) {
             builder.append(" (unhandled)");
         } else {

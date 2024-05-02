@@ -77,6 +77,7 @@ public @interface HandlerDefinition {
          * @return the scope or {@code null} if a handler for the method
          * should not be created
          */
+        @SuppressWarnings("PMD.LooseCoupling")
         HandlerScope scope(ComponentType component, Method method,
                 ChannelReplacements channelReplacements);
 
@@ -94,6 +95,7 @@ public @interface HandlerDefinition {
          * @param method the method
          * @return the result
          */
+        @SuppressWarnings("PMD.UselessParentheses")
         static boolean checkMethodSignature(Method method) {
             return method.getParameterTypes().length == 0
                 || method.getParameterTypes().length == 1
@@ -121,6 +123,7 @@ public @interface HandlerDefinition {
          *
          * @return the channel replacements
          */
+        @SuppressWarnings("PMD.LooseCoupling")
         public static ChannelReplacements create() {
             return new ChannelReplacements();
         }
@@ -132,6 +135,7 @@ public @interface HandlerDefinition {
          * @param replacements the replacements
          * @return the channel replacements for easy chaining
          */
+        @SuppressWarnings("PMD.LooseCoupling")
         public ChannelReplacements add(
                 Class<? extends Channel> annotationCriterion,
                 Channel... replacements) {

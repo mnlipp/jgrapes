@@ -24,7 +24,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.Spliterator;
 import java.util.Spliterators.AbstractSpliterator;
 import java.util.StringTokenizer;
 import java.util.function.Consumer;
@@ -213,7 +212,7 @@ public class ResourcePattern {
         "PMD.CollapsibleIfStatements", "PMD.DataflowAnomalyAnalysis",
         "PMD.CognitiveComplexity" })
     public int matches(URI resource, int pathSegs) {
-        if (protocol != null && !protocol.equals("*")) {
+        if (protocol != null && !"*".equals(protocol)) {
             if (resource.getScheme() == null) {
                 return -1;
             }
@@ -222,13 +221,13 @@ public class ResourcePattern {
                 return -1;
             }
         }
-        if (host != null && !host.equals("*")) {
+        if (host != null && !"*".equals(host)) {
             if (resource.getHost() == null
                 || !resource.getHost().equals(host)) {
                 return -1;
             }
         }
-        if (port != null && !port.equals("*")) {
+        if (port != null && !"*".equals(port)) {
             if (Integer.parseInt(port) != resource.getPort()) {
                 return -1;
             }
@@ -272,7 +271,7 @@ public class ResourcePattern {
      */
     public static boolean matches(String pattern, URI resource)
             throws ParseException {
-        return (new ResourcePattern(pattern)).matches(resource) >= 0;
+        return new ResourcePattern(pattern).matches(resource) >= 0;
     }
 
     /**
@@ -288,7 +287,7 @@ public class ResourcePattern {
     public static boolean matches(String pattern, URI resource,
             int pathSegments)
             throws ParseException {
-        return (new ResourcePattern(pattern)).matches(resource,
+        return new ResourcePattern(pattern).matches(resource,
             pathSegments) >= 0;
     }
 
@@ -299,7 +298,8 @@ public class ResourcePattern {
     }
 
     @SuppressWarnings({ "PMD.UseVarargs", "PMD.DataflowAnomalyAnalysis",
-        "PMD.PositionLiteralsFirstInComparisons" })
+        "PMD.PositionLiteralsFirstInComparisons",
+        "PMD.AvoidLiteralsInIfCondition" })
     private boolean matchPath(String[] patternElements, String[] reqElements,
             int maxSegs) {
         int pathIdx = 0;
@@ -528,8 +528,7 @@ public class ResourcePattern {
          * @param delimiters the delimiters
          */
         public PathSpliterator(String path, String delimiters) {
-            super(Long.MAX_VALUE, Spliterator.ORDERED
-                | Spliterator.IMMUTABLE);
+            super(Long.MAX_VALUE, ORDERED | IMMUTABLE);
             tokenizer = new StringTokenizer(path, delimiters);
             pendingLeadingEmpty = path.startsWith("/");
             pendingTrailingEmpty = path.endsWith("/");

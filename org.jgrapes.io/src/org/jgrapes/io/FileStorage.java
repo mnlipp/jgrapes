@@ -57,7 +57,7 @@ import org.jgrapes.io.util.ManagedBufferPool;
 /**
  * A component that reads from or writes to a file.
  */
-@SuppressWarnings("PMD.ExcessiveImports")
+@SuppressWarnings({ "PMD.ExcessiveImports", "PMD.CouplingBetweenObjects" })
 public class FileStorage extends Component {
 
     private int bufferSize;
@@ -124,10 +124,11 @@ public class FileStorage extends Component {
     /**
      * A file streamer.
      */
-    private class FileStreamer {
+    private final class FileStreamer {
 
         private final IOSubchannel channel;
         private final Path path;
+        @SuppressWarnings("PMD.ImmutableField")
         private AsynchronousFileChannel ioChannel;
         private ManagedBufferPool<ManagedBuffer<ByteBuffer>,
                 ByteBuffer> ioBuffers;
@@ -175,10 +176,8 @@ public class FileStorage extends Component {
         /**
          * The read completion handler.
          */
-        private class ReadCompletionHandler
-                implements
+        private final class ReadCompletionHandler implements
                 CompletionHandler<Integer, ManagedBuffer<ByteBuffer>> {
-
             @Override
             @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",
                 "PMD.EmptyCatchBlock", "PMD.AvoidDuplicateLiterals" })
@@ -287,9 +286,7 @@ public class FileStorage extends Component {
                 builder.append(", ");
             }
             if (path != null) {
-                builder.append("path=");
-                builder.append(path);
-                builder.append(", ");
+                builder.append("path=").append(path).append(", ");
             }
             builder.append("offset=")
                 .append(offset)
@@ -441,8 +438,8 @@ public class FileStorage extends Component {
          * may successfully be written in one asynchronous write invocation.
          */
         private class WriteContext {
-            public ManagedBuffer<ByteBuffer>.ByteBufferView reader;
-            public long pos;
+            public final ManagedBuffer<ByteBuffer>.ByteBufferView reader;
+            public final long pos;
 
             /**
              * Instantiates a new write context.
@@ -494,7 +491,6 @@ public class FileStorage extends Component {
                 ioChannel = AsynchronousFileChannel.open(path, options);
             } catch (IOException e) {
                 channel.respond(new IOError(event, e));
-                return;
             }
         }
 
@@ -526,7 +522,7 @@ public class FileStorage extends Component {
         /**
          * A write completion handler.
          */
-        private class WriteCompletionHandler
+        private final class WriteCompletionHandler
                 implements CompletionHandler<Integer, WriteContext> {
 
             @Override

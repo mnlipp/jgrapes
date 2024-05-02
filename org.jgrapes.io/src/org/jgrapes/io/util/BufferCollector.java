@@ -31,7 +31,7 @@ public interface BufferCollector<B extends ManagedBuffer<?>> {
      * effectively make it an unmanaged buffer.
      */
     BufferCollector<? extends ManagedBuffer<?>> NOOP_COLLECTOR
-        = new BufferCollector<ManagedBuffer<?>>() {
+        = new BufferCollector<>() {
             @Override
             public void recollect(ManagedBuffer<?> buffer) {
                 // Does nothing.

@@ -45,6 +45,7 @@ public class JsonReader extends ManagedBufferStreamer {
      * @param channel the channel to use for sending the 
      * {@link DataInput} event
      */
+    @SuppressWarnings("PMD.AvoidCatchingGenericException")
     public <R> JsonReader(ObjectMapper mapper, Class<R> resultType,
             EventPipeline pipeline, Channel channel) {
         super(r -> {

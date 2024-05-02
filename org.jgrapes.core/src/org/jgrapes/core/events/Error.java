@@ -145,7 +145,7 @@ public class Error extends Event<Void> {
      */
     @Override
     public String toString() {
-        StringBuilder builder = new StringBuilder();
+        StringBuilder builder = new StringBuilder(50);
         builder.append(Components.objectName(this))
             .append(" [");
         if (channels().length > 0) {
@@ -153,13 +153,10 @@ public class Error extends Event<Void> {
             builder.append(Channel.toString(channels()));
         }
         if (message != null) {
-            builder.append(", message=\"");
-            builder.append(message);
-            builder.append('"');
+            builder.append(", message=\"").append(message).append('"');
         }
         if (event != null) {
-            builder.append(", caused by: ");
-            builder.append(event.toString());
+            builder.append(", caused by: ").append(event.toString());
         }
         builder.append(']');
         return builder.toString();

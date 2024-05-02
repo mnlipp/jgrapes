@@ -149,7 +149,7 @@ public abstract class NightConfigStore extends ConfigurationStore {
 
     @Override
     @SuppressWarnings({ "PMD.AvoidLiteralsInIfCondition",
-        "PMD.AvoidBranchingStatementAsLastInLoop" })
+        "PMD.AvoidBranchingStatementAsLastInLoop", "PMD.CloseResource" })
     public Optional<Map<String, Object>> structured(String path) {
         if (!path.startsWith("/")) {
             throw new IllegalArgumentException("Path must start with \"/\".");

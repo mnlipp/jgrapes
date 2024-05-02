@@ -500,7 +500,7 @@ public class Event<T> extends EventBase<T> {
         }
         return Optional.ofNullable(contextData.get(by))
             .filter(found -> type.isAssignableFrom(found.getClass()))
-            .map(match -> type.cast(match));
+            .map(type::cast);
     }
 
     /*

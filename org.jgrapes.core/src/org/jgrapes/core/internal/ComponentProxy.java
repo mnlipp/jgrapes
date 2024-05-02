@@ -37,7 +37,7 @@ public final class ComponentProxy extends ComponentVertex {
     /** The reference to the actual component. */
     private final ComponentType component;
     /** The referenced component's channel. */
-    private Channel componentChannel;
+    private final Channel componentChannel;
 
     private static Field getManagerField(Class<?> clazz) {
         try {
@@ -56,8 +56,8 @@ public final class ComponentProxy extends ComponentVertex {
                 }
             }
         } catch (SecurityException e) {
-            throw (RuntimeException) (new IllegalArgumentException(
-                "Cannot access component's manager attribute")).initCause(e);
+            throw (RuntimeException) new IllegalArgumentException(
+                "Cannot access component's manager attribute").initCause(e);
         }
     }
 
@@ -104,8 +104,8 @@ public final class ComponentProxy extends ComponentVertex {
             this.componentChannel = componentChannel;
             initComponentsHandlers(null);
         } catch (SecurityException | IllegalAccessException e) {
-            throw (RuntimeException) (new IllegalArgumentException(
-                "Cannot access component's manager attribute")).initCause(e);
+            throw (RuntimeException) new IllegalArgumentException(
+                "Cannot access component's manager attribute").initCause(e);
         }
     }
 
@@ -142,8 +142,8 @@ public final class ComponentProxy extends ComponentVertex {
                 }
             }
         } catch (SecurityException | IllegalAccessException e) {
-            throw (RuntimeException) (new IllegalArgumentException(
-                "Cannot access component's manager attribute")).initCause(e);
+            throw (RuntimeException) new IllegalArgumentException(
+                "Cannot access component's manager attribute").initCause(e);
         }
         return componentProxy;
     }
@@ -177,6 +177,7 @@ public final class ComponentProxy extends ComponentVertex {
      * @see Channel#isEligibleFor(Object)
      */
     @Override
+    @SuppressWarnings("PMD.CompareObjectsWithEquals")
     public boolean isEligibleFor(Object value) {
         return value.equals(Channel.class)
             || value == defaultCriterion();

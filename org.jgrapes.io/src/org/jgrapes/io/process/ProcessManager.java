@@ -222,7 +222,7 @@ public class ProcessManager extends Component {
     /**
      * The Class ProcessChannel.
      */
-    public class ProcessChannel extends DefaultIOSubchannel {
+    public final class ProcessChannel extends DefaultIOSubchannel {
 
         private final StartProcess startEvent;
         private final Process process;

@@ -125,6 +125,7 @@ public class Request<R> extends MessageReceived<R> {
                     + matchPath);
         }
 
+        @SuppressWarnings("PMD.AvoidLiteralsInIfCondition")
         private List<String> pathToSegs(URI requestUri)
                 throws URISyntaxException {
             Iterator<String> origSegs = PathSpliterator.stream(
@@ -135,6 +136,8 @@ public class Request<R> extends MessageReceived<R> {
                     requestUri().getPath(), "Must be absolute");
             }
             // Remove dot segments and check for "...//..."
+            @SuppressWarnings({ "PMD.LooseCoupling",
+                "PMD.ReplaceVectorWithList" })
             Stack<String> segs = new Stack<>();
             while (origSegs.hasNext()) {
                 if (!segs.isEmpty() && segs.peek().isEmpty()) {
@@ -294,7 +297,7 @@ public class Request<R> extends MessageReceived<R> {
         @Override
         @SuppressWarnings("PMD.AvoidLiteralsInIfCondition")
         public String toString() {
-            StringBuilder builder = new StringBuilder();
+            StringBuilder builder = new StringBuilder(50);
             builder.append(Components.objectName(this))
                 .append(" [\"");
             String path = Optional.ofNullable(request.requestUri().getPath())
@@ -447,6 +450,7 @@ public class Request<R> extends MessageReceived<R> {
              * @throws URISyntaxException the URI syntax exception
              * @see "[RFC 7230, Section 5.5](https://datatracker.ietf.org/doc/html/rfc7230#section-5.5)"
              */
+            @Override
             protected URI effectiveRequestUri(String protocol,
                     HttpRequest request) throws URISyntaxException {
                 URI req = request.requestUri();
@@ -636,7 +640,7 @@ public class Request<R> extends MessageReceived<R> {
     @SuppressWarnings("PMD.ShortClassName")
     public static class Out extends Request<Void> {
 
-        private HttpRequest request;
+        private final HttpRequest request;
         private BiConsumer<Request.Out, SocketIOChannel> connectedCallback;
 
         /**

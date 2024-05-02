@@ -85,7 +85,8 @@ import org.jgrapes.io.IOSubchannel;
  * @see "[OWASP Session Management Cheat Sheet](https://www.owasp.org/index.php/Session_Management_Cheat_Sheet)"
  */
 @SuppressWarnings({ "PMD.DataClass", "PMD.AvoidPrintStackTrace",
-    "PMD.DataflowAnomalyAnalysis", "PMD.TooManyMethods" })
+    "PMD.DataflowAnomalyAnalysis", "PMD.TooManyMethods",
+    "PMD.CouplingBetweenObjects" })
 public abstract class SessionManager extends Component {
 
     private static SecureRandom secureRandom = new SecureRandom();
@@ -159,7 +160,8 @@ public abstract class SessionManager extends Component {
      * @param path the path
      * @return the pattern
      */
-    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
+    @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",
+        "PMD.AvoidLiteralsInIfCondition" })
     protected static String derivePattern(String path) {
         String pattern;
         if ("/".equals(path)) {
@@ -217,7 +219,8 @@ public abstract class SessionManager extends Component {
         }
     }
 
-    @SuppressWarnings("PMD.UnusedFormalParameter")
+    @SuppressWarnings({ "PMD.UnusedFormalParameter",
+        "PMD.UnusedPrivateMethod" })
     private void purgeAction(Timer timer) {
         nextPurge = startDiscarding(absoluteTimeout, idleTimeout)
             .map(nextAt -> Components.schedule(this::purgeAction, nextAt))
@@ -615,7 +618,7 @@ public abstract class SessionManager extends Component {
 
         @Override
         public int getMaxSessions() {
-            return manager().map(mgr -> mgr.maxSessions()).orElse(0);
+            return manager().map(SessionManager::maxSessions).orElse(0);
         }
 
         @Override
@@ -632,7 +635,7 @@ public abstract class SessionManager extends Component {
 
         @Override
         public int getSessionCount() {
-            return manager().map(mgr -> mgr.sessionCount()).orElse(0);
+            return manager().map(SessionManager::sessionCount).orElse(0);
         }
     }
 
@@ -657,7 +660,8 @@ public abstract class SessionManager extends Component {
     /**
      * The MBean view.
      */
-    private static class MBeanView implements SessionManagerSummaryMXBean {
+    private static final class MBeanView
+            implements SessionManagerSummaryMXBean {
         private static Set<SessionManagerInfo> managerInfos = new HashSet<>();
 
         /**

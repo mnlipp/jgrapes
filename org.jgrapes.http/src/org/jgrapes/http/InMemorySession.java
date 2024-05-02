@@ -127,6 +127,7 @@ public class InMemorySession
         if (getClass() != obj.getClass()) {
             return false;
         }
+        @SuppressWarnings("PMD.LooseCoupling")
         InMemorySession other = (InMemorySession) obj;
         if (id == null) {
             if (other.id != null) {
@@ -148,18 +149,13 @@ public class InMemorySession
         StringBuilder builder = new StringBuilder(50);
         builder.append("InMemorySession [");
         if (id != null) {
-            builder.append("id=");
-            builder.append(id);
-            builder.append(", ");
+            builder.append("id=").append(id).append(", ");
         }
         if (createdAt != null) {
-            builder.append("createdAt=");
-            builder.append(createdAt);
-            builder.append(", ");
+            builder.append("createdAt=").append(createdAt).append(", ");
         }
         if (lastUsedAt != null) {
-            builder.append("lastUsedAt=");
-            builder.append(lastUsedAt);
+            builder.append("lastUsedAt=").append(lastUsedAt);
         }
         builder.append(']');
         return builder.toString();

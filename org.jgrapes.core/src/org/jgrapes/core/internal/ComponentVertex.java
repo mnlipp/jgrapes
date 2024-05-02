@@ -51,7 +51,8 @@ import org.jgrapes.core.events.Start;
  * used. 
  */
 @SuppressWarnings({ "PMD.TooManyMethods", "PMD.DataflowAnomalyAnalysis",
-    "PMD.AvoidDuplicateLiterals", "PMD.GodClass" })
+    "PMD.AvoidDuplicateLiterals", "PMD.GodClass",
+    "PMD.CouplingBetweenObjects" })
 public abstract class ComponentVertex implements Manager, Channel {
 
     /** The component's (optional) name. */
@@ -255,7 +256,8 @@ public abstract class ComponentVertex implements Manager, Channel {
      */
     @Override
     @SuppressWarnings({ "PMD.CyclomaticComplexity", "PMD.NcssCount",
-        "PMD.NPathComplexity", "PMD.CognitiveComplexity" })
+        "PMD.NPathComplexity", "PMD.CognitiveComplexity",
+        "PMD.ConfusingArgumentToVarargsMethod" })
     public <T extends ComponentType> T attach(T child) {
         synchronized (this) {
             ComponentVertex childNode = componentVertex(child, null);
@@ -395,6 +397,7 @@ public abstract class ComponentVertex implements Manager, Channel {
      */
     private static class TreeIterator implements Iterator<ComponentVertex> {
 
+        @SuppressWarnings({ "PMD.LooseCoupling", "PMD.ReplaceVectorWithList" })
         private final Stack<CurPos> stack = new Stack<>();
         private final ComponentTree tree;
 
@@ -402,8 +405,8 @@ public abstract class ComponentVertex implements Manager, Channel {
          * The current position.
          */
         private class CurPos {
-            public ComponentVertex current;
-            public Iterator<ComponentVertex> childIter;
+            public final ComponentVertex current;
+            public final Iterator<ComponentVertex> childIter;
 
             /**
              * Instantiates a new current position

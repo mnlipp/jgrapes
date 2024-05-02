@@ -102,6 +102,7 @@ public abstract class ActionEvent<T> extends Event<T> {
         }
 
         @SuppressWarnings("PMD.SignatureDeclareThrowsException")
+        @Override
         /* default */ void execute() throws Exception {
             setResult(action.call());
         }
@@ -125,6 +126,7 @@ public abstract class ActionEvent<T> extends Event<T> {
         }
 
         @SuppressWarnings("PMD.SignatureDeclareThrowsException")
+        @Override
         /* default */ void execute() throws Exception {
             action.run();
         }

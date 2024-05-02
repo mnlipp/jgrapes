@@ -115,7 +115,7 @@ public class MailSender
     protected void configureComponent(Map<String, String> values) {
         Optional.ofNullable(values.get("maxIdleTime"))
             .map(Integer::parseInt).map(Duration::ofSeconds)
-            .ifPresent(d -> setMaxIdleTime(d));
+            .ifPresent(this::setMaxIdleTime);
     }
 
     /**

@@ -71,7 +71,7 @@ public final class TypedIdKey<V> implements Serializable {
     @SuppressWarnings({ "unchecked" })
     public static <V> V put(Map<? super TypedIdKey<V>, ? super V> map,
             Serializable id, V value) {
-        map.put(new TypedIdKey<V>((Class<V>) value.getClass(), id), value);
+        map.put(new TypedIdKey<>((Class<V>) value.getClass(), id), value);
         return value;
     }
 

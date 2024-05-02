@@ -149,7 +149,7 @@ public interface Subchannel extends Channel, Associator {
             }
             return Optional.ofNullable(contextData.get(by))
                 .filter(found -> type.isAssignableFrom(found.getClass()))
-                .map(match -> type.cast(match));
+                .map(type::cast);
         }
 
         /*

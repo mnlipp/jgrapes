@@ -250,7 +250,7 @@ public abstract class ConfigurationStore extends Component {
             return;
         }
         var newTarget = ((Map<Object, Object>) target)
-            .computeIfAbsent(key, k -> new TreeMap<Object, Object>());
+            .computeIfAbsent(key, k -> new TreeMap<>());
 
         // Convert list to map
         if (newTarget instanceof List list) {

@@ -84,10 +84,11 @@ public class GeneratorRegistry {
             if (running == 1) { // NOPMD, no, not using a constant for this.
                 keepAlive = new Thread("GeneratorRegistry") {
                     @Override
+                    @SuppressWarnings("PMD.EmptyCatchBlock")
                     public void run() {
                         try {
                             while (true) {
-                                Thread.sleep(Long.MAX_VALUE);
+                                sleep(Long.MAX_VALUE);
                             }
                         } catch (InterruptedException e) {
                             // Okay, then stop

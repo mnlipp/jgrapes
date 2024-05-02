@@ -50,10 +50,13 @@ import org.jgrapes.util.events.ConfigurationUpdate;
 @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 public class InputStreamMonitor extends Component implements Runnable {
 
+    @SuppressWarnings("PMD.SingularField")
     private Channel dataChannel;
+    @SuppressWarnings("PMD.SingularField")
     private InputStream input;
     private boolean registered;
     private Thread runner;
+    @SuppressWarnings("PMD.SingularField")
     private ManagedBufferPool<ManagedBuffer<ByteBuffer>, ByteBuffer> buffers;
     private int bufferSize = 2048;
 
@@ -192,7 +195,7 @@ public class InputStreamMonitor extends Component implements Runnable {
                     break;
                 }
             }
-        } catch (InterruptedException e) {
+        } catch (InterruptedException e) { // NOPMD
             // Some called stop(), so what?
         } catch (IOException e) {
             fire(new IOError(null, e), channel());

@@ -29,6 +29,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.PriorityQueue;
+import java.util.Queue;
 import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.ExecutorService;
@@ -48,13 +49,15 @@ import org.jgrapes.core.internal.GeneratorRegistry;
  */
 @SuppressWarnings({ "PMD.TooManyMethods", "PMD.ClassNamingConventions",
     "PMD.ExcessivePublicCount", "PMD.ExcessiveClassLength",
-    "PMD.ClassWithOnlyPrivateConstructorsShouldBeFinal" })
+    "PMD.ClassWithOnlyPrivateConstructorsShouldBeFinal",
+    "PMD.CouplingBetweenObjects" })
 public class Components {
 
     private static ExecutorService defaultExecutorService
         = Executors.newCachedThreadPool(
             new ThreadFactory() {
-                @SuppressWarnings("PMD.CommentRequired")
+                @SuppressWarnings({ "PMD.CommentRequired",
+                    "PMD.MissingOverride" })
                 public Thread newThread(Runnable runnable) {
                     Thread thread
                         = Executors.defaultThreadFactory().newThread(runnable);
@@ -246,7 +249,7 @@ public class Components {
             return "<null>";
         }
         StringBuilder builder = new StringBuilder();
-        builder.append(Components.className(object.getClass()))
+        builder.append(className(object.getClass()))
             .append('#')
             .append(objectId(object));
         return builder.toString();
@@ -452,13 +455,13 @@ public class Components {
      */
     private static class Scheduler extends Thread {
 
-        private final PriorityQueue<Timer> timers
-            = new PriorityQueue<>(10,
-                Comparator.comparing(Timer::scheduledFor));
+        private final Queue<Timer> timers = new PriorityQueue<>(10,
+            Comparator.comparing(Timer::scheduledFor));
 
         /**
          * Instantiates a new scheduler.
          */
+        @SuppressWarnings("PMD.ConstructorCallsOverridableMethod")
         public Scheduler() {
             setName("Components.Scheduler");
             setDaemon(true);
@@ -520,7 +523,7 @@ public class Components {
                 }
                 try {
                     synchronized (timers) {
-                        if (timers.size() == 0) {
+                        if (timers.isEmpty()) {
                             timers.wait();
                         } else {
                             timers

@@ -100,11 +100,11 @@ public class Password {
      * @param value the value to compare to
      * @return true, if successful
      */
+    @SuppressWarnings("PMD.SimplifyBooleanReturns")
     public boolean compareTo(String value) {
         if (value == null) {
             return false;
         }
-
         return Arrays.equals(value.toCharArray(), password);
     }
 
@@ -114,7 +114,7 @@ public class Password {
      * @param value the value to compare to
      * @return true, if successful
      */
-    @SuppressWarnings("PMD.UseVarargs")
+    @SuppressWarnings({ "PMD.UseVarargs", "PMD.SimplifyBooleanReturns" })
     public boolean compareTo(char[] value) {
         if (value == null) {
             return false;
@@ -123,6 +123,7 @@ public class Password {
     }
 
     @Override
+    @SuppressWarnings("PMD.SimplifyBooleanReturns")
     public boolean equals(Object other) {
         if (!(other instanceof Password)) {
             return false;

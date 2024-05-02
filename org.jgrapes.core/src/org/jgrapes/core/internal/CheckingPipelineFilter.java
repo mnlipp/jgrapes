@@ -99,7 +99,7 @@ class CheckingPipelineFilter
             allowNext.set(null);
             if (!allowed // i.e. if not allowed anyway...
                 && (allowedSourceRef.get() == null
-                    || (allowedSourceRef.get())
+                    || allowedSourceRef.get()
                         .wrapped() != componentTree.dispatchingPipeline())) {
                 CoreUtils.fireRestrictionLogger.log(Level.SEVERE,
                     Components.objectName(componentTree.dispatchingPipeline())

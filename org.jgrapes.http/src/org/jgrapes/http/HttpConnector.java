@@ -67,7 +67,7 @@ import org.jgrapes.net.events.ClientConnected;
  * A converter component that receives and sends web application
  * layer messages and byte buffers on associated network channels.
  */
-@SuppressWarnings("PMD.ExcessiveImports")
+@SuppressWarnings({ "PMD.ExcessiveImports", "PMD.CouplingBetweenObjects" })
 public class HttpConnector extends Component {
 
     private int applicationBufferSize = -1;
@@ -79,7 +79,7 @@ public class HttpConnector extends Component {
     /**
      * Denotes the network channel in handler annotations.
      */
-    private static class NetworkChannel extends ClassChannel {
+    private static final class NetworkChannel extends ClassChannel {
     }
 
     /**
@@ -421,6 +421,7 @@ public class HttpConnector extends Component {
             responsePipeline().submit("SynchronizedResponse",
                 new Callable<Void>() {
 
+                    @Override
                     @SuppressWarnings({ "PMD.CommentRequired",
                         "PMD.AvoidBranchingStatementAsLastInLoop",
                         "PMD.AvoidDuplicateLiterals",

@@ -134,7 +134,7 @@ public class FileSystemWatcher extends Component {
     /**
      * The Class WatcherRegistry.
      */
-    private class WatcherRegistry {
+    private final class WatcherRegistry {
         private final Map<FileSystem, Watcher> watchers
             = new ConcurrentHashMap<>();
 
@@ -183,7 +183,7 @@ public class FileSystemWatcher extends Component {
     /**
      * The Class Watcher.
      */
-    private class Watcher {
+    private final class Watcher {
         private final WatchService watchService;
         private final Thread thread;
 

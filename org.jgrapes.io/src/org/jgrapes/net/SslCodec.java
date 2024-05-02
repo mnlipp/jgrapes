@@ -74,7 +74,7 @@ import org.jgrapes.net.events.Connected;
  * encrypted data and are decoded to {@link Output} events on
  * the plain channel ("downstream") and vice versa.
  */
-@SuppressWarnings({ "PMD.ExcessiveImports" })
+@SuppressWarnings({ "PMD.ExcessiveImports", "PMD.CouplingBetweenObjects" })
 public class SslCodec extends Component {
 
     private final Channel encryptedChannel;
@@ -83,7 +83,7 @@ public class SslCodec extends Component {
     /**
      * Represents the encrypted channel in annotations.
      */
-    private class EncryptedChannel extends ClassChannel {
+    private final class EncryptedChannel extends ClassChannel {
     }
 
     /**
@@ -123,14 +123,17 @@ public class SslCodec extends Component {
                 // chains
                 final TrustManager[] trustAllCerts = {
                     new X509TrustManager() {
+                        @Override
                         public X509Certificate[] getAcceptedIssuers() {
                             return new X509Certificate[0];
                         }
 
+                        @Override
                         public void checkClientTrusted(
                                 X509Certificate[] certs, String authType) {
                         }
 
+                        @Override
                         public void checkServerTrusted(
                                 X509Certificate[] certs, String authType) {
                         }
@@ -275,6 +278,7 @@ public class SslCodec extends Component {
      * @throws InterruptedException the interrupted exception
      */
     @Handler(channels = EncryptedChannel.class, excludeSelf = true)
+    @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
     public void onIOError(IOError event)
             throws SSLException, InterruptedException {
         for (Channel channel : event.channels()) {
@@ -337,14 +341,14 @@ public class SslCodec extends Component {
     @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
     private class PlainChannel extends LinkedIOSubchannel
             implements SocketIOChannel {
-        public SocketAddress localAddress;
-        public SocketAddress remoteAddress;
+        public final SocketAddress localAddress;
+        public final SocketAddress remoteAddress;
         public SSLEngine sslEngine;
         private EventPipeline downPipeline;
         private ManagedBufferPool<ManagedBuffer<ByteBuffer>,
                 ByteBuffer> downstreamPool;
         private ByteBuffer carryOver;
-        private boolean[] inputProcessed = { false };
+        private final boolean[] inputProcessed = { false };
 
         /**
          * Instantiates a new plain channel from an accepted connection.

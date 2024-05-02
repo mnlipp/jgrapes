@@ -124,8 +124,8 @@ public abstract class ResponseCreationSupport {
      * the default calculator is used.
      * @return `true` if a response was sent
      */
-    @SuppressWarnings({ "PMD.NcssCount",
-        "PMD.UseStringBufferForStringAppends" })
+    @SuppressWarnings({ "PMD.NcssCount", "PMD.UseStringBufferForStringAppends",
+        "PMD.ExceptionAsFlowControl" })
     public static boolean sendStaticContent(
             HttpRequest request, IOSubchannel channel,
             Function<String, URL> resolver, MaxAgeCalculator maxAgeCalculator) {
@@ -139,7 +139,7 @@ public abstract class ResponseCreationSupport {
             if (resourceUrl == null) {
                 throw new IOException();
             }
-            info = ResponseCreationSupport.resourceInfo(resourceUrl);
+            info = resourceInfo(resourceUrl);
             if (Boolean.TRUE.equals(info.isDirectory())) {
                 throw new IOException();
             }
@@ -155,7 +155,7 @@ public abstract class ResponseCreationSupport {
                 if (resourceUrl == null) {
                     return false;
                 }
-                info = ResponseCreationSupport.resourceInfo(resourceUrl);
+                info = resourceInfo(resourceUrl);
                 resConn = resourceUrl.openConnection();
                 resIn = resConn.getInputStream();
             } catch (IOException e2) {
@@ -165,11 +165,10 @@ public abstract class ResponseCreationSupport {
         HttpResponse response = request.response().get();
         response.setField(HttpField.LAST_MODIFIED,
             Optional.ofNullable(info.getLastModifiedAt())
-                .orElseGet(() -> Instant.now()));
+                .orElseGet(Instant::now));
 
         // Get content type and derive max age
-        MediaType mediaType = HttpResponse.contentType(
-            ResponseCreationSupport.uriFromUrl(resourceUrl));
+        MediaType mediaType = HttpResponse.contentType(uriFromUrl(resourceUrl));
         setMaxAge(response,
             (maxAgeCalculator == null ? DEFAULT_MAX_AGE_CALCULATOR
                 : maxAgeCalculator).maxAge(request, mediaType));
@@ -186,7 +185,7 @@ public abstract class ResponseCreationSupport {
             response.setStatus(HttpStatus.OK);
             channel.respond(new Response(response));
             // Start sending content (Output events as resonses)
-            (new InputStreamPipeline(resIn, channel).suppressClosed()).run();
+            new InputStreamPipeline(resIn, channel).suppressClosed().run();
         }
         return true;
     }
@@ -221,6 +220,7 @@ public abstract class ResponseCreationSupport {
     /**
      * Combines the known information about a resource.
      */
+    @SuppressWarnings("PMD.DataClass")
     public static class ResourceInfo {
         public Boolean isDirectory;
         public Instant lastModifiedAt;
@@ -262,7 +262,8 @@ public abstract class ResponseCreationSupport {
      * @param resource the resource URL
      * @return the resource info
      */
-    @SuppressWarnings("PMD.EmptyCatchBlock")
+    @SuppressWarnings({ "PMD.EmptyCatchBlock",
+        "PMD.AvoidLiteralsInIfCondition" })
     public static ResourceInfo resourceInfo(URL resource) {
         try {
             Path path = Paths.get(resource.toURI());

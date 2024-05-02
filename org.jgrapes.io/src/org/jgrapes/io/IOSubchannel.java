@@ -109,6 +109,7 @@ public interface IOSubchannel extends Subchannel {
     /**
      * A simple implementation of {@link IOSubchannel}.
      */
+    @SuppressWarnings("PMD.DataClass")
     class DefaultIOSubchannel extends Subchannel.DefaultSubchannel
             implements IOSubchannel {
         private final EventPipeline responsePipeline;
@@ -157,6 +158,7 @@ public interface IOSubchannel extends Subchannel {
          * Returns the buffer pool set. If no buffer pool has been set, a
          * buffer pool with with two buffers of size 4096 is created.
          */
+        @Override
         public ManagedBufferPool<ManagedBuffer<ByteBuffer>, ByteBuffer>
                 byteBufferPool() {
             if (byteBufferPool == null) {
@@ -174,6 +176,7 @@ public interface IOSubchannel extends Subchannel {
          * Returns the buffer pool set. If no buffer pool has been set, a
          * buffer pool with with two buffers of size 4096 is created.
          */
+        @Override
         public ManagedBufferPool<ManagedBuffer<CharBuffer>, CharBuffer>
                 charBufferPool() {
             if (charBufferPool == null) {

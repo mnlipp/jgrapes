@@ -148,6 +148,7 @@ public abstract class Component extends ComponentVertex
      * @see Channel#isEligibleFor(Object)
      */
     @Override
+    @SuppressWarnings("PMD.CompareObjectsWithEquals")
     public boolean isEligibleFor(Object value) {
         return value.equals(Channel.class)
             || value == defaultCriterion();

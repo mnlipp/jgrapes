@@ -63,11 +63,11 @@ class HandlerReference implements Comparable<HandlerReference> {
             this.method = MethodHandles.lookup().unreflect(method);
             this.method = this.method.bindTo(component);
         } catch (IllegalAccessException e) {
-            throw (RuntimeException) (new IllegalArgumentException("Method "
+            throw (RuntimeException) new IllegalArgumentException("Method "
                 + component.getClass().getName()
                 + "." + method.getName()
                 + " annotated as handler has wrong signature"
-                + " or class is not accessible"))
+                + " or class is not accessible")
                     .initCause(e);
         }
     }
@@ -246,18 +246,12 @@ class HandlerReference implements Comparable<HandlerReference> {
         StringBuilder builder = new StringBuilder(50);
         builder.append("Handler [");
         if (method != null) {
-            builder.append("method=");
-            builder.append(methodToString());
-            builder.append(", ");
+            builder.append("method=").append(methodToString()).append(", ");
         }
         if (filter != null) {
-            builder.append("filter=");
-            builder.append(filter);
-            builder.append(", ");
+            builder.append("filter=").append(filter).append(", ");
         }
-        builder.append("priority=")
-            .append(priority)
-            .append(']');
+        builder.append("priority=").append(priority).append(']');
         return builder.toString();
     }
 

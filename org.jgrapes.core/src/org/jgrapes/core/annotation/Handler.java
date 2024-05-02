@@ -380,7 +380,7 @@ public @interface Handler {
                     }
                     for (Annotation annotation : m.getDeclaredAnnotations()) {
                         Class<?> annoType = annotation.annotationType();
-                        if (!(annoType.equals(Handler.class))) {
+                        if (!annoType.equals(Handler.class)) {
                             continue;
                         }
                         HandlerDefinition hda
@@ -407,8 +407,8 @@ public @interface Handler {
                     "No method named \"" + method + "\" with DynamicHandler"
                         + " annotation and correct parameter list.");
             } catch (SecurityException e) {
-                throw (RuntimeException) (new IllegalArgumentException()
-                    .initCause(e));
+                throw (RuntimeException) new IllegalArgumentException()
+                    .initCause(e);
             }
         }
 
@@ -548,7 +548,7 @@ public @interface Handler {
              */
             @Override
             public String toString() {
-                StringBuilder builder = new StringBuilder();
+                StringBuilder builder = new StringBuilder(100);
                 builder.append("Scope [");
                 if (eventCriteria != null) {
                     builder.append("handledEvents=")
@@ -557,12 +557,10 @@ public @interface Handler {
                                 return Components.className((Class<?>) crit);
                             }
                             return crit.toString();
-                        }).collect(Collectors.toSet()));
-                    builder.append(", ");
+                        }).collect(Collectors.toSet())).append(", ");
                 }
                 if (channelCriteria != null) {
-                    builder.append("handledChannels=");
-                    builder.append(channelCriteria);
+                    builder.append("handledChannels=").append(channelCriteria);
                 }
                 builder.append(']');
                 return builder.toString();

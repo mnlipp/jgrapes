@@ -36,6 +36,11 @@ public class ManagedBufferStreamer {
 
     private final ManagedBufferReader reader = new ManagedBufferReader();
 
+    /**
+     * Instantiates a new managed buffer streamer.
+     *
+     * @param processor the processor
+     */
     public ManagedBufferStreamer(Consumer<Reader> processor) {
         Thread thread = new Thread(() -> {
             processor.accept(reader);

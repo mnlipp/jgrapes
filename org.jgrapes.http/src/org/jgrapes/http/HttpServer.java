@@ -94,9 +94,10 @@ import org.jgrapes.net.events.Accepted;
  * processed by the associated {@link EventProcessor}) to ensure
  * that responses and their associated data do not interleave. 
  */
-@SuppressWarnings("PMD.ExcessiveImports")
+@SuppressWarnings({ "PMD.ExcessiveImports", "PMD.CouplingBetweenObjects" })
 public class HttpServer extends Component {
 
+    @SuppressWarnings("PMD.SingularField")
     private WeakReference<Channel> networkChannelPassBack;
     private List<Class<? extends Request.In>> providedFallbacks;
     private int matchLevels = 1;
@@ -106,7 +107,7 @@ public class HttpServer extends Component {
     /**
      * Denotes the network channel in handler annotations.
      */
-    private static class NetworkChannel extends ClassChannel {
+    private static final class NetworkChannel extends ClassChannel {
     }
 
     /**

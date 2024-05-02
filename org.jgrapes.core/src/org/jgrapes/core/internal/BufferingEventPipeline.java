@@ -128,8 +128,7 @@ public class BufferingEventPipeline implements InternalEventPipeline {
         // Avoid problem with concurrency
         var bufd = buffered;
         if (bufd != null) {
-            builder.append("buffered=");
-            builder.append(bufd);
+            builder.append("buffered=").append(bufd);
         }
         builder.append(']');
         return builder.toString();

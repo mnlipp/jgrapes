@@ -133,7 +133,7 @@ public @interface RequestHandler {
             if (annotation.dynamic()) {
                 return null;
             }
-            return new Scope(component, method, (RequestHandler) annotation,
+            return new Scope(component, method, annotation,
                 channelReplacements, null);
         }
 
@@ -161,6 +161,7 @@ public @interface RequestHandler {
          * @param pattern the pattern
          * @param priority the priority
          */
+        @SuppressWarnings("PMD.UnnecessaryBoxing")
         public static void add(ComponentType component, String method,
                 String pattern, int priority) {
             add(component, method, pattern, Integer.valueOf(priority));
@@ -198,8 +199,8 @@ public @interface RequestHandler {
                     "No method named \"" + method + "\" with DynamicHandler"
                         + " annotation and correct parameter list.");
             } catch (SecurityException e) {
-                throw (RuntimeException) (new IllegalArgumentException()
-                    .initCause(e));
+                throw (RuntimeException) new IllegalArgumentException()
+                    .initCause(e);
             }
         }
 
@@ -225,7 +226,7 @@ public @interface RequestHandler {
             @SuppressWarnings({ "PMD.CyclomaticComplexity",
                 "PMD.NPathComplexity", "PMD.AvoidDeeplyNestedIfStmts",
                 "PMD.CollapsibleIfStatements", "PMD.CognitiveComplexity",
-                "PMD.AvoidInstantiatingObjectsInLoops" })
+                "PMD.AvoidInstantiatingObjectsInLoops", "PMD.NcssCount" })
             public Scope(ComponentType component,
                     Method method, RequestHandler annotation,
                     Map<Class<? extends Channel>, Object[]> channelReplacements,
@@ -363,7 +364,7 @@ public @interface RequestHandler {
              */
             @Override
             public String toString() {
-                StringBuilder builder = new StringBuilder();
+                StringBuilder builder = new StringBuilder(100);
                 builder.append("Scope [");
                 if (handledEventTypes != null) {
                     builder.append("handledEventTypes=")
@@ -372,17 +373,14 @@ public @interface RequestHandler {
                                 return Components.className((Class<?>) value);
                             }
                             return value.toString();
-                        }).collect(Collectors.toSet()));
-                    builder.append(", ");
+                        }).collect(Collectors.toSet())).append(", ");
                 }
                 if (handledChannels != null) {
-                    builder.append("handledChannels=");
-                    builder.append(handledChannels);
-                    builder.append(", ");
+                    builder.append("handledChannels=").append(handledChannels)
+                        .append(", ");
                 }
                 if (handledPatterns != null) {
-                    builder.append("handledPatterns=");
-                    builder.append(handledPatterns);
+                    builder.append("handledPatterns=").append(handledPatterns);
                 }
                 builder.append(']');
                 return builder.toString();

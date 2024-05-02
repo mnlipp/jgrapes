@@ -85,7 +85,7 @@ import org.jgrapes.io.events.Output;
  * @param <T> the type of the content buffer that is wrapped
  */
 @SuppressWarnings({ "PMD.ExcessiveImports", "PMD.NcssCount",
-    "PMD.EmptyCatchBlock" })
+    "PMD.EmptyCatchBlock", "PMD.CouplingBetweenObjects" })
 public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
         implements BufferCollector<W> {
 
@@ -211,6 +211,7 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
      * 
      * @param buffer the buffer to remove
      */
+    @SuppressWarnings("PMD.GuardLogStatement")
     private void removeBuffer(W buffer) {
         createdBufs.decrementAndGet();
         if (bufferMonitor.remove(buffer) == null) {
@@ -303,7 +304,8 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
         removeBuffer(buffer);
     }
 
-    @SuppressWarnings("PMD.UnusedFormalParameter")
+    @SuppressWarnings({ "PMD.UnusedFormalParameter",
+        "PMD.UnusedPrivateMethod" })
     private void drain(Timer timer) {
         idleTimer.set(null);
         while (true) {
@@ -325,8 +327,7 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
         StringBuilder builder = new StringBuilder(50);
         builder.append("ManagedBufferPool [");
         if (queue != null) {
-            builder.append("queue=");
-            builder.append(queue);
+            builder.append("queue=").append(queue);
         }
         builder.append(']');
         return builder.toString();
@@ -369,7 +370,7 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
     @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
     private class BufferMonitor {
 
-        private Entry<W>[] data;
+        private final Entry<W>[] data;
         private int indexMask;
         private final ReferenceQueue<W> orphanedEntries
             = new ReferenceQueue<>();
@@ -457,7 +458,7 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
                         }
                         return properties;
                     }
-                    if (entry.getKey() == buffer) {
+                    if (entry.getKey() == buffer) { // NOPMD
                         // Found, update.
                         BufferProperties old = entry.getValue();
                         entry.setValue(properties);
@@ -563,9 +564,8 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
                     if (trace != null) {
                         msg.append(", created");
                         for (StackTraceElement e : trace) {
-                            msg.append(System.lineSeparator());
-                            msg.append("\tat ");
-                            msg.append(e.toString());
+                            msg.append(System.lineSeparator()).append("\tat ")
+                                .append(e.toString());
                         }
                     }
                     logger.warning(msg.toString());
@@ -695,8 +695,7 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
                             dupsNext.put(key, 2);
                         }
                         allPools.put(key + "#"
-                            + (dupsNext.put(key, dupsNext.get(key) + 1)),
-                            infos);
+                            + dupsNext.put(key, dupsNext.get(key) + 1), infos);
                     } else {
                         allPools.put(key, infos);
                     }
@@ -795,7 +794,7 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
     /**
      * The MBean view
      */
-    private static class MBeanView implements ManagedBufferPoolMXBean {
+    private static final class MBeanView implements ManagedBufferPoolMXBean {
 
         private static Set<ManagedBufferPool<?, ?>> allPools
             = Collections.synchronizedSet(
@@ -818,17 +817,17 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 
         @Override
         public long getDefaultDrainDelay() {
-            return ManagedBufferPool.defaultDrainDelay();
+            return defaultDrainDelay();
         }
 
         @Override
         public void setAcquireWarningLimit(long millis) {
-            ManagedBufferPool.acquireWarningLimit = millis;
+            acquireWarningLimit = millis;
         }
 
         @Override
         public long getAcquireWarningLimit() {
-            return ManagedBufferPool.acquireWarningLimit;
+            return acquireWarningLimit;
         }
 
         @Override

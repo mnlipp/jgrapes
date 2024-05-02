@@ -19,6 +19,7 @@
 package org.jgrapes.http.events;
 
 import java.nio.charset.Charset;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.stream.Stream;
 import org.jdrupes.httpcodec.MessageHeader;
@@ -56,13 +57,14 @@ public class Response extends MessageReceived<Void> {
      *
      * @return the optional
      */
+    @SuppressWarnings("PMD.AvoidCatchingGenericException")
     public Optional<Charset> charset() {
         return ((HttpResponse) response())
             .findValue(HttpField.CONTENT_TYPE, Converters.MEDIA_TYPE)
             .map(mt -> mt.parameters().entrySet().stream())
             .orElse(Stream.empty())
             .filter(e -> "charset".equalsIgnoreCase(e.getKey()))
-            .findFirst().map(e -> e.getValue()).map(csn -> {
+            .findFirst().map(Entry::getValue).map(csn -> {
                 try {
                     return Charset.forName(csn);
                 } catch (Exception e) {

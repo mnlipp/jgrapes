@@ -166,7 +166,8 @@ public abstract class ConnectionManager<
         /**
          * @param mainChannel
          */
-        @SuppressWarnings("unchecked")
+        @SuppressWarnings({ "unchecked",
+            "PMD.ConstructorCallsOverridableMethod" })
         public Connection(Channel mainChannel) {
             super(mainChannel);
             synchronized (ConnectionManager.this) {

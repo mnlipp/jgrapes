@@ -92,7 +92,8 @@ import org.jgrapes.util.Password;
  * by firing a {@link UpdateMailFolders} event for the folders used.
  */
 @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",
-    "PMD.DataflowAnomalyAnalysis", "PMD.ExcessiveImports" })
+    "PMD.DataflowAnomalyAnalysis", "PMD.ExcessiveImports",
+    "PMD.CouplingBetweenObjects" })
 public class MailMonitor extends MailConnectionManager<
         MailMonitor.MonitorChannel, OpenMailMonitor> {
 
@@ -144,7 +145,7 @@ public class MailMonitor extends MailConnectionManager<
     protected void configureComponent(Map<String, String> values) {
         Optional.ofNullable(values.get("maxIdleTime"))
             .map(Integer::parseInt).map(Duration::ofSeconds)
-            .ifPresent(d -> setMaxIdleTime(d));
+            .ifPresent(this::setMaxIdleTime);
     }
 
     /**
@@ -167,6 +168,7 @@ public class MailMonitor extends MailConnectionManager<
             // See https://github.com/eclipse-ee4j/mail/issues/631
             new Authenticator() {
                 @Override
+                @SuppressWarnings("PMD.StringInstantiation")
                 protected PasswordAuthentication
                         getPasswordAuthentication() {
                     return new PasswordAuthentication(
@@ -338,7 +340,8 @@ public class MailMonitor extends MailConnectionManager<
          * @param onOpenFailed the on open failed
          * @throws InterruptedException the interrupted exception
          */
-        @SuppressWarnings("PMD.AvoidInstanceofChecksInCatchClause")
+        @SuppressWarnings({ "PMD.AvoidInstanceofChecksInCatchClause",
+            "PMD.StringInstantiation" })
         private void attemptConnect(Consumer<Throwable> onOpenFailed)
                 throws InterruptedException {
             try {
@@ -348,7 +351,6 @@ public class MailMonitor extends MailConnectionManager<
                         state = ChannelState.Open;
                     } else {
                         state = ChannelState.Reopened;
-                        return;
                     }
                 }
             } catch (MessagingException e) {
@@ -522,7 +524,7 @@ public class MailMonitor extends MailConnectionManager<
             event.setResult(folders);
             Event.onCompletion(event, e -> downPipeline().fire(Event
                 .onCompletion(new MailFoldersUpdated(folders, newMsgs),
-                    evt -> refreshWatches(evt)),
+                    this::refreshWatches),
                 this));
         }
 
@@ -583,9 +585,8 @@ public class MailMonitor extends MailConnectionManager<
             downPipeline().fire(
                 Event.onCompletion(
                     new MailFoldersUpdated(
-                        new ArrayList<>(folderCache.values()),
-                        newMsgs),
-                    evt -> refreshWatches(evt)),
+                        new ArrayList<>(folderCache.values()), newMsgs),
+                    this::refreshWatches),
                 this);
         }
 
@@ -595,7 +596,7 @@ public class MailMonitor extends MailConnectionManager<
          *
          * @param event the event
          */
-        @SuppressWarnings("PMD.CloseResource")
+        @SuppressWarnings({ "PMD.CloseResource", "PMD.UnusedPrivateMethod" })
         private void refreshWatches(MailFoldersUpdated event) {
             if (!state.isOpen()) {
                 return;

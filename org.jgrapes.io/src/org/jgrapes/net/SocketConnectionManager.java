@@ -169,6 +169,7 @@ public abstract class SocketConnectionManager extends Component {
     /**
      * The purgeable state.
      */
+    @SuppressWarnings("PMD.ShortVariable")
     private enum PurgeableState {
         NO, PENDING, YES
     }
@@ -563,6 +564,7 @@ public abstract class SocketConnectionManager extends Component {
          * 
          * @see org.jgrapes.io.IOSubchannel.DefaultSubchannel#toString()
          */
+        @Override
         @SuppressWarnings("PMD.CommentRequired")
         public String toString() {
             return Subchannel.toString(this);

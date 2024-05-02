@@ -101,7 +101,7 @@ import org.jgrapes.util.events.ConfigurationUpdate;
  */
 @SuppressWarnings({ "PMD.ExcessiveImports", "PMD.ExcessivePublicCount",
     "PMD.NcssCount", "PMD.EmptyCatchBlock", "PMD.AvoidDuplicateLiterals",
-    "PMD.ExcessiveClassLength" })
+    "PMD.ExcessiveClassLength", "PMD.CouplingBetweenObjects" })
 public class SocketServer extends SocketConnectionManager
         implements NioHandler {
 
@@ -111,6 +111,7 @@ public class SocketServer extends SocketConnectionManager
     private int backlog;
     private PermitsPool connLimiter;
     private Registration registration;
+    @SuppressWarnings("PMD.SingularField")
     private Purger purger;
     private long minimumPurgeableTime;
 
@@ -169,7 +170,7 @@ public class SocketServer extends SocketConnectionManager
                     candidates = candidates.stream()
                         .filter(channel -> channel.isPurgeable()
                             && channel.purgeableSince() < purgeableSince)
-                        .sorted(new Comparator<SocketChannelImpl>() {
+                        .sorted(new Comparator<>() {
                             @Override
                             @SuppressWarnings("PMD.ShortVariable")
                             public int compare(SocketChannelImpl c1,
@@ -738,7 +739,7 @@ public class SocketServer extends SocketConnectionManager
     /**
      * The MBeanView.
      */
-    private static class MBeanView implements SocketServerSummaryMXBean {
+    private static final class MBeanView implements SocketServerSummaryMXBean {
         private static Set<SocketServerInfo> serverInfos = new HashSet<>();
 
         /**

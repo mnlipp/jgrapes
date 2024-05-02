@@ -27,7 +27,7 @@ import org.jgrapes.core.Event;
  */
 public class DataInput<T> extends Event<Void> {
 
-    private T data;
+    private final T data;
 
     /**
      * Instantiates a new data input providing the given data.

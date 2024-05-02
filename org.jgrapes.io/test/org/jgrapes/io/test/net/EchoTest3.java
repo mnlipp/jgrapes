@@ -118,7 +118,8 @@ public class EchoTest3 {
                 = event.openEvent().associated("test", Boolean.class).get();
             channel.setAssociated(EchoTest3.class, this);
             new Thread(() -> {
-                try (Writer out = new OutputStreamWriter(
+                try (@SuppressWarnings("resource")
+                Writer out = new OutputStreamWriter(
                     new ByteBufferOutputStream(channel).suppressClose())) {
                     for (int i = 0; i < 100000; i++) {
                         out.write(String.format("%9d\n", i));

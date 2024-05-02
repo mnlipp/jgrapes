@@ -104,7 +104,7 @@ public abstract class IOEvent<T extends Buffer> extends Event<Void> {
      */
     @Override
     public String toString() {
-        StringBuilder builder = new StringBuilder();
+        StringBuilder builder = new StringBuilder(50);
         builder.append(Components.objectName(this))
             .append(" [");
         if (channels().length > 0) {

@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
+import java.util.ServiceLoader.Provider;
 import java.util.function.Function;
 import java.util.function.IntFunction;
 import java.util.stream.Collectors;
@@ -83,7 +84,7 @@ public class ComponentCollector<F extends ComponentFactory>
             var res = (F[]) Array.newInstance(factoryClass, size);
             return res;
         };
-        var factories = serviceLoader.stream().map(p -> p.get())
+        var factories = serviceLoader.stream().map(Provider::get)
             .toArray(createFactoryArray);
         setFactories(factories);
 

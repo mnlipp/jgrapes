@@ -120,6 +120,7 @@ public class InputStreamPipeline implements Runnable {
     }
 
     @Override
+    @SuppressWarnings("PMD.CloseResource")
     public void run() {
         try {
             if (inStream instanceof FileInputStream fip) {
@@ -130,7 +131,7 @@ public class InputStreamPipeline implements Runnable {
             if (sendClosed) {
                 eventPipeline.fire(associate(new Closed<Void>()), channel);
             }
-        } catch (InterruptedException e) {
+        } catch (InterruptedException e) { // NOPMD
             // Just stop
         } catch (IOException e) {
             eventPipeline.fire(associate(new IOError(null, e)), channel);

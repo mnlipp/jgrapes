@@ -72,7 +72,7 @@ public class Attached extends Event<Void> {
      */
     @Override
     public String toString() {
-        StringBuilder builder = new StringBuilder();
+        StringBuilder builder = new StringBuilder(50);
         builder.append(Components.objectName(this))
             .append(" [");
         if (parent == null) {

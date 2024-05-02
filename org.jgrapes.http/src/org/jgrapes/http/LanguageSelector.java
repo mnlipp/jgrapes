@@ -234,8 +234,7 @@ public class LanguageSelector extends Component {
                     .fromFieldValue(localeNames.get());
                 if (!cookieLocales.isEmpty()) {
                     Collections.reverse(cookieLocales);
-                    cookieLocales.stream()
-                        .forEach(locale -> selection.prefer(locale));
+                    cookieLocales.stream().forEach(selection::prefer);
                     return;
                 }
             } catch (ParseException e) {
@@ -249,7 +248,7 @@ public class LanguageSelector extends Component {
         if (accepted.isPresent()) {
             Locale[] locales = accepted.get().stream()
                 .sorted(ParameterizedValue.WEIGHT_COMPARATOR)
-                .map(value -> value.value()).toArray(Locale[]::new);
+                .map(ParameterizedValue::value).toArray(Locale[]::new);
             selection.updateFallbacks(locales);
         }
     }
@@ -284,7 +283,7 @@ public class LanguageSelector extends Component {
      * Represents a locale selection.
      */
     @SuppressWarnings({ "serial", "PMD.DataflowAnomalyAnalysis" })
-    public static class Selection implements Serializable {
+    public static final class Selection implements Serializable {
         private transient WeakReference<Request.In> currentEvent;
         private final String cookieName;
         private final String cookiePath;
@@ -426,13 +425,10 @@ public class LanguageSelector extends Component {
             StringBuilder builder = new StringBuilder(50);
             builder.append("Selection [");
             if (locales != null) {
-                builder.append("locales=");
-                builder.append(Arrays.toString(locales));
-                builder.append(", ");
+                builder.append("locales=").append(Arrays.toString(locales))
+                    .append(", ");
             }
-            builder.append("explicitlySet=")
-                .append(explicitlySet)
-                .append(']');
+            builder.append("explicitlySet=").append(explicitlySet).append(']');
             return builder.toString();
         }
 
