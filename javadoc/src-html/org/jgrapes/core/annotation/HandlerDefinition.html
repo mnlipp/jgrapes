@@ -90,71 +90,75 @@
 <span class="source-line-no">077</span><span id="line-77">         * @return the scope or {@code null} if a handler for the method</span>
 <span class="source-line-no">078</span><span id="line-78">         * should not be created</span>
 <span class="source-line-no">079</span><span id="line-79">         */</span>
-<span class="source-line-no">080</span><span id="line-80">        HandlerScope scope(ComponentType component, Method method,</span>
-<span class="source-line-no">081</span><span id="line-81">                ChannelReplacements channelReplacements);</span>
-<span class="source-line-no">082</span><span id="line-82"></span>
-<span class="source-line-no">083</span><span id="line-83">        /**</span>
-<span class="source-line-no">084</span><span id="line-84">         * Returns the priority defined by the annotation</span>
-<span class="source-line-no">085</span><span id="line-85">         * </span>
-<span class="source-line-no">086</span><span id="line-86">         * @param annotation the annotation</span>
-<span class="source-line-no">087</span><span id="line-87">         * @return the priority</span>
-<span class="source-line-no">088</span><span id="line-88">         */</span>
-<span class="source-line-no">089</span><span id="line-89">        int priority(Annotation annotation);</span>
-<span class="source-line-no">090</span><span id="line-90"></span>
-<span class="source-line-no">091</span><span id="line-91">        /**</span>
-<span class="source-line-no">092</span><span id="line-92">         * Utility method for checking if the method can be used as handler.</span>
-<span class="source-line-no">093</span><span id="line-93">         * </span>
-<span class="source-line-no">094</span><span id="line-94">         * @param method the method</span>
-<span class="source-line-no">095</span><span id="line-95">         * @return the result</span>
-<span class="source-line-no">096</span><span id="line-96">         */</span>
-<span class="source-line-no">097</span><span id="line-97">        static boolean checkMethodSignature(Method method) {</span>
-<span class="source-line-no">098</span><span id="line-98">            return method.getParameterTypes().length == 0</span>
-<span class="source-line-no">099</span><span id="line-99">                || method.getParameterTypes().length == 1</span>
-<span class="source-line-no">100</span><span id="line-100">                    &amp;&amp; Event.class.isAssignableFrom(</span>
-<span class="source-line-no">101</span><span id="line-101">                        method.getParameterTypes()[0])</span>
-<span class="source-line-no">102</span><span id="line-102">                || (method.getParameterTypes().length == 2</span>
-<span class="source-line-no">103</span><span id="line-103">                    &amp;&amp; Event.class.isAssignableFrom(</span>
-<span class="source-line-no">104</span><span id="line-104">                        method.getParameterTypes()[0]))</span>
-<span class="source-line-no">105</span><span id="line-105">                    &amp;&amp; Channel.class.isAssignableFrom(</span>
-<span class="source-line-no">106</span><span id="line-106">                        method.getParameterTypes()[1]);</span>
-<span class="source-line-no">107</span><span id="line-107">        }</span>
-<span class="source-line-no">108</span><span id="line-108">    }</span>
-<span class="source-line-no">109</span><span id="line-109"></span>
-<span class="source-line-no">110</span><span id="line-110">    /**</span>
-<span class="source-line-no">111</span><span id="line-111">     * Represents channel (criteria) replacements that are to</span>
-<span class="source-line-no">112</span><span id="line-112">     * be applied to `channels` elements of {@link Handler}</span>
-<span class="source-line-no">113</span><span id="line-113">     * annotations.</span>
-<span class="source-line-no">114</span><span id="line-114">     */</span>
-<span class="source-line-no">115</span><span id="line-115">    @SuppressWarnings("serial")</span>
-<span class="source-line-no">116</span><span id="line-116">    class ChannelReplacements // NOPMD (for missing serialVersionUID)</span>
-<span class="source-line-no">117</span><span id="line-117">            extends HashMap&lt;Class&lt;? extends Channel&gt;, Object[]&gt; {</span>
-<span class="source-line-no">118</span><span id="line-118"></span>
-<span class="source-line-no">119</span><span id="line-119">        /**</span>
-<span class="source-line-no">120</span><span id="line-120">         * Create a new replacements specification object.</span>
-<span class="source-line-no">121</span><span id="line-121">         *</span>
-<span class="source-line-no">122</span><span id="line-122">         * @return the channel replacements</span>
-<span class="source-line-no">123</span><span id="line-123">         */</span>
-<span class="source-line-no">124</span><span id="line-124">        public static ChannelReplacements create() {</span>
-<span class="source-line-no">125</span><span id="line-125">            return new ChannelReplacements();</span>
-<span class="source-line-no">126</span><span id="line-126">        }</span>
-<span class="source-line-no">127</span><span id="line-127"></span>
-<span class="source-line-no">128</span><span id="line-128">        /**</span>
-<span class="source-line-no">129</span><span id="line-129">         * Adds a replacements to the replacements.</span>
-<span class="source-line-no">130</span><span id="line-130">         *</span>
-<span class="source-line-no">131</span><span id="line-131">         * @param annotationCriterion the criterion used in the annotation</span>
-<span class="source-line-no">132</span><span id="line-132">         * @param replacements the replacements</span>
-<span class="source-line-no">133</span><span id="line-133">         * @return the channel replacements for easy chaining</span>
-<span class="source-line-no">134</span><span id="line-134">         */</span>
-<span class="source-line-no">135</span><span id="line-135">        public ChannelReplacements add(</span>
-<span class="source-line-no">136</span><span id="line-136">                Class&lt;? extends Channel&gt; annotationCriterion,</span>
-<span class="source-line-no">137</span><span id="line-137">                Channel... replacements) {</span>
-<span class="source-line-no">138</span><span id="line-138">            var criteria = Arrays.stream(replacements)</span>
-<span class="source-line-no">139</span><span id="line-139">                .map(Channel::defaultCriterion).toArray(Object[]::new);</span>
-<span class="source-line-no">140</span><span id="line-140">            put(annotationCriterion, criteria);</span>
-<span class="source-line-no">141</span><span id="line-141">            return this;</span>
-<span class="source-line-no">142</span><span id="line-142">        }</span>
-<span class="source-line-no">143</span><span id="line-143">    }</span>
-<span class="source-line-no">144</span><span id="line-144">}</span>
+<span class="source-line-no">080</span><span id="line-80">        @SuppressWarnings("PMD.LooseCoupling")</span>
+<span class="source-line-no">081</span><span id="line-81">        HandlerScope scope(ComponentType component, Method method,</span>
+<span class="source-line-no">082</span><span id="line-82">                ChannelReplacements channelReplacements);</span>
+<span class="source-line-no">083</span><span id="line-83"></span>
+<span class="source-line-no">084</span><span id="line-84">        /**</span>
+<span class="source-line-no">085</span><span id="line-85">         * Returns the priority defined by the annotation</span>
+<span class="source-line-no">086</span><span id="line-86">         * </span>
+<span class="source-line-no">087</span><span id="line-87">         * @param annotation the annotation</span>
+<span class="source-line-no">088</span><span id="line-88">         * @return the priority</span>
+<span class="source-line-no">089</span><span id="line-89">         */</span>
+<span class="source-line-no">090</span><span id="line-90">        int priority(Annotation annotation);</span>
+<span class="source-line-no">091</span><span id="line-91"></span>
+<span class="source-line-no">092</span><span id="line-92">        /**</span>
+<span class="source-line-no">093</span><span id="line-93">         * Utility method for checking if the method can be used as handler.</span>
+<span class="source-line-no">094</span><span id="line-94">         * </span>
+<span class="source-line-no">095</span><span id="line-95">         * @param method the method</span>
+<span class="source-line-no">096</span><span id="line-96">         * @return the result</span>
+<span class="source-line-no">097</span><span id="line-97">         */</span>
+<span class="source-line-no">098</span><span id="line-98">        @SuppressWarnings("PMD.UselessParentheses")</span>
+<span class="source-line-no">099</span><span id="line-99">        static boolean checkMethodSignature(Method method) {</span>
+<span class="source-line-no">100</span><span id="line-100">            return method.getParameterTypes().length == 0</span>
+<span class="source-line-no">101</span><span id="line-101">                || method.getParameterTypes().length == 1</span>
+<span class="source-line-no">102</span><span id="line-102">                    &amp;&amp; Event.class.isAssignableFrom(</span>
+<span class="source-line-no">103</span><span id="line-103">                        method.getParameterTypes()[0])</span>
+<span class="source-line-no">104</span><span id="line-104">                || (method.getParameterTypes().length == 2</span>
+<span class="source-line-no">105</span><span id="line-105">                    &amp;&amp; Event.class.isAssignableFrom(</span>
+<span class="source-line-no">106</span><span id="line-106">                        method.getParameterTypes()[0]))</span>
+<span class="source-line-no">107</span><span id="line-107">                    &amp;&amp; Channel.class.isAssignableFrom(</span>
+<span class="source-line-no">108</span><span id="line-108">                        method.getParameterTypes()[1]);</span>
+<span class="source-line-no">109</span><span id="line-109">        }</span>
+<span class="source-line-no">110</span><span id="line-110">    }</span>
+<span class="source-line-no">111</span><span id="line-111"></span>
+<span class="source-line-no">112</span><span id="line-112">    /**</span>
+<span class="source-line-no">113</span><span id="line-113">     * Represents channel (criteria) replacements that are to</span>
+<span class="source-line-no">114</span><span id="line-114">     * be applied to `channels` elements of {@link Handler}</span>
+<span class="source-line-no">115</span><span id="line-115">     * annotations.</span>
+<span class="source-line-no">116</span><span id="line-116">     */</span>
+<span class="source-line-no">117</span><span id="line-117">    @SuppressWarnings("serial")</span>
+<span class="source-line-no">118</span><span id="line-118">    class ChannelReplacements // NOPMD (for missing serialVersionUID)</span>
+<span class="source-line-no">119</span><span id="line-119">            extends HashMap&lt;Class&lt;? extends Channel&gt;, Object[]&gt; {</span>
+<span class="source-line-no">120</span><span id="line-120"></span>
+<span class="source-line-no">121</span><span id="line-121">        /**</span>
+<span class="source-line-no">122</span><span id="line-122">         * Create a new replacements specification object.</span>
+<span class="source-line-no">123</span><span id="line-123">         *</span>
+<span class="source-line-no">124</span><span id="line-124">         * @return the channel replacements</span>
+<span class="source-line-no">125</span><span id="line-125">         */</span>
+<span class="source-line-no">126</span><span id="line-126">        @SuppressWarnings("PMD.LooseCoupling")</span>
+<span class="source-line-no">127</span><span id="line-127">        public static ChannelReplacements create() {</span>
+<span class="source-line-no">128</span><span id="line-128">            return new ChannelReplacements();</span>
+<span class="source-line-no">129</span><span id="line-129">        }</span>
+<span class="source-line-no">130</span><span id="line-130"></span>
+<span class="source-line-no">131</span><span id="line-131">        /**</span>
+<span class="source-line-no">132</span><span id="line-132">         * Adds a replacements to the replacements.</span>
+<span class="source-line-no">133</span><span id="line-133">         *</span>
+<span class="source-line-no">134</span><span id="line-134">         * @param annotationCriterion the criterion used in the annotation</span>
+<span class="source-line-no">135</span><span id="line-135">         * @param replacements the replacements</span>
+<span class="source-line-no">136</span><span id="line-136">         * @return the channel replacements for easy chaining</span>
+<span class="source-line-no">137</span><span id="line-137">         */</span>
+<span class="source-line-no">138</span><span id="line-138">        @SuppressWarnings("PMD.LooseCoupling")</span>
+<span class="source-line-no">139</span><span id="line-139">        public ChannelReplacements add(</span>
+<span class="source-line-no">140</span><span id="line-140">                Class&lt;? extends Channel&gt; annotationCriterion,</span>
+<span class="source-line-no">141</span><span id="line-141">                Channel... replacements) {</span>
+<span class="source-line-no">142</span><span id="line-142">            var criteria = Arrays.stream(replacements)</span>
+<span class="source-line-no">143</span><span id="line-143">                .map(Channel::defaultCriterion).toArray(Object[]::new);</span>
+<span class="source-line-no">144</span><span id="line-144">            put(annotationCriterion, criteria);</span>
+<span class="source-line-no">145</span><span id="line-145">            return this;</span>
+<span class="source-line-no">146</span><span id="line-146">        }</span>
+<span class="source-line-no">147</span><span id="line-147">    }</span>
+<span class="source-line-no">148</span><span id="line-148">}</span>
 
 
 

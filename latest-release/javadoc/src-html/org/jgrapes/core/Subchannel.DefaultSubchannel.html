@@ -162,7 +162,7 @@
 <span class="source-line-no">149</span><span id="line-149">            }</span>
 <span class="source-line-no">150</span><span id="line-150">            return Optional.ofNullable(contextData.get(by))</span>
 <span class="source-line-no">151</span><span id="line-151">                .filter(found -&gt; type.isAssignableFrom(found.getClass()))</span>
-<span class="source-line-no">152</span><span id="line-152">                .map(match -&gt; type.cast(match));</span>
+<span class="source-line-no">152</span><span id="line-152">                .map(type::cast);</span>
 <span class="source-line-no">153</span><span id="line-153">        }</span>
 <span class="source-line-no">154</span><span id="line-154"></span>
 <span class="source-line-no">155</span><span id="line-155">        /*</span>

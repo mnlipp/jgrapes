@@ -133,117 +133,118 @@
 <span class="source-line-no">120</span><span id="line-120">    }</span>
 <span class="source-line-no">121</span><span id="line-121"></span>
 <span class="source-line-no">122</span><span id="line-122">    @Override</span>
-<span class="source-line-no">123</span><span id="line-123">    public void run() {</span>
-<span class="source-line-no">124</span><span id="line-124">        try {</span>
-<span class="source-line-no">125</span><span id="line-125">            if (inStream instanceof FileInputStream fip) {</span>
-<span class="source-line-no">126</span><span id="line-126">                seekableTransfer(fip.getChannel());</span>
-<span class="source-line-no">127</span><span id="line-127">            } else {</span>
-<span class="source-line-no">128</span><span id="line-128">                defaultTransfer();</span>
-<span class="source-line-no">129</span><span id="line-129">            }</span>
-<span class="source-line-no">130</span><span id="line-130">            if (sendClosed) {</span>
-<span class="source-line-no">131</span><span id="line-131">                eventPipeline.fire(associate(new Closed&lt;Void&gt;()), channel);</span>
-<span class="source-line-no">132</span><span id="line-132">            }</span>
-<span class="source-line-no">133</span><span id="line-133">        } catch (InterruptedException e) {</span>
-<span class="source-line-no">134</span><span id="line-134">            // Just stop</span>
-<span class="source-line-no">135</span><span id="line-135">        } catch (IOException e) {</span>
-<span class="source-line-no">136</span><span id="line-136">            eventPipeline.fire(associate(new IOError(null, e)), channel);</span>
-<span class="source-line-no">137</span><span id="line-137">        }</span>
-<span class="source-line-no">138</span><span id="line-138">    }</span>
-<span class="source-line-no">139</span><span id="line-139"></span>
-<span class="source-line-no">140</span><span id="line-140">    private void defaultTransfer() throws InterruptedException, IOException {</span>
-<span class="source-line-no">141</span><span id="line-141">        // If available() returns remaining, we can optimize.</span>
-<span class="source-line-no">142</span><span id="line-142">        // Regrettably, there is no marker interface for this, but</span>
-<span class="source-line-no">143</span><span id="line-143">        // the assumption should be true for ByteArrayInputStream.</span>
-<span class="source-line-no">144</span><span id="line-144">        boolean availableIsRemaining = inStream instanceof ByteArrayInputStream;</span>
-<span class="source-line-no">145</span><span id="line-145">        while (true) {</span>
-<span class="source-line-no">146</span><span id="line-146">            ManagedBuffer&lt;ByteBuffer&gt; buffer = null;</span>
-<span class="source-line-no">147</span><span id="line-147">            try {</span>
-<span class="source-line-no">148</span><span id="line-148">                buffer = channel.byteBufferPool().acquire();</span>
-<span class="source-line-no">149</span><span id="line-149">                var backing = buffer.backing;</span>
-<span class="source-line-no">150</span><span id="line-150">                int recvd = inStream.read(backing.array(),</span>
-<span class="source-line-no">151</span><span id="line-151">                    backing.position(), backing.remaining());</span>
-<span class="source-line-no">152</span><span id="line-152">                if (recvd &gt; 0) {</span>
-<span class="source-line-no">153</span><span id="line-153">                    boolean eof</span>
-<span class="source-line-no">154</span><span id="line-154">                        = availableIsRemaining &amp;&amp; inStream.available() == 0;</span>
-<span class="source-line-no">155</span><span id="line-155">                    backing.position(backing.position() + recvd);</span>
-<span class="source-line-no">156</span><span id="line-156">                    eventPipeline.fire(associate(ioEvent(buffer, eof)),</span>
-<span class="source-line-no">157</span><span id="line-157">                        channel);</span>
-<span class="source-line-no">158</span><span id="line-158">                    if (eof) {</span>
-<span class="source-line-no">159</span><span id="line-159">                        break;</span>
-<span class="source-line-no">160</span><span id="line-160">                    }</span>
-<span class="source-line-no">161</span><span id="line-161">                    continue;</span>
-<span class="source-line-no">162</span><span id="line-162">                }</span>
-<span class="source-line-no">163</span><span id="line-163">                if (recvd == -1) {</span>
-<span class="source-line-no">164</span><span id="line-164">                    eventPipeline.fire(associate(ioEvent(buffer, true)),</span>
-<span class="source-line-no">165</span><span id="line-165">                        channel);</span>
-<span class="source-line-no">166</span><span id="line-166">                    break;</span>
-<span class="source-line-no">167</span><span id="line-167">                }</span>
-<span class="source-line-no">168</span><span id="line-168">                // Reading 0 bytes shouldn't happen.</span>
-<span class="source-line-no">169</span><span id="line-169">                buffer.unlockBuffer();</span>
-<span class="source-line-no">170</span><span id="line-170">            } catch (IOException e) {</span>
-<span class="source-line-no">171</span><span id="line-171">                buffer.unlockBuffer();</span>
-<span class="source-line-no">172</span><span id="line-172">                throw e;</span>
-<span class="source-line-no">173</span><span id="line-173">            }</span>
-<span class="source-line-no">174</span><span id="line-174">        }</span>
-<span class="source-line-no">175</span><span id="line-175">    }</span>
-<span class="source-line-no">176</span><span id="line-176"></span>
-<span class="source-line-no">177</span><span id="line-177">    /**</span>
-<span class="source-line-no">178</span><span id="line-178">     * A seekable channel allows us to avoid generating an event with</span>
-<span class="source-line-no">179</span><span id="line-179">     * no data and eof set, because we can check after reading if there</span>
-<span class="source-line-no">180</span><span id="line-180">     * is remaining data.</span>
-<span class="source-line-no">181</span><span id="line-181">     *</span>
-<span class="source-line-no">182</span><span id="line-182">     * @param input the input</span>
-<span class="source-line-no">183</span><span id="line-183">     * @throws InterruptedException the interrupted exception</span>
-<span class="source-line-no">184</span><span id="line-184">     * @throws IOException Signals that an I/O exception has occurred.</span>
-<span class="source-line-no">185</span><span id="line-185">     */</span>
-<span class="source-line-no">186</span><span id="line-186">    private void seekableTransfer(SeekableByteChannel input)</span>
-<span class="source-line-no">187</span><span id="line-187">            throws InterruptedException, IOException {</span>
-<span class="source-line-no">188</span><span id="line-188">        while (true) {</span>
-<span class="source-line-no">189</span><span id="line-189">            ManagedBuffer&lt;ByteBuffer&gt; buffer = null;</span>
-<span class="source-line-no">190</span><span id="line-190">            try {</span>
-<span class="source-line-no">191</span><span id="line-191">                buffer = channel.byteBufferPool().acquire();</span>
-<span class="source-line-no">192</span><span id="line-192">                int recvd = input.read(buffer.backing);</span>
-<span class="source-line-no">193</span><span id="line-193">                if (recvd &gt; 0) {</span>
-<span class="source-line-no">194</span><span id="line-194">                    boolean eof = input.position() == input.size();</span>
-<span class="source-line-no">195</span><span id="line-195">                    eventPipeline.fire(associate(ioEvent(buffer, eof)),</span>
-<span class="source-line-no">196</span><span id="line-196">                        channel);</span>
-<span class="source-line-no">197</span><span id="line-197">                    if (eof) {</span>
-<span class="source-line-no">198</span><span id="line-198">                        break;</span>
-<span class="source-line-no">199</span><span id="line-199">                    }</span>
-<span class="source-line-no">200</span><span id="line-200">                    continue;</span>
-<span class="source-line-no">201</span><span id="line-201">                }</span>
-<span class="source-line-no">202</span><span id="line-202">                if (recvd == -1) {</span>
-<span class="source-line-no">203</span><span id="line-203">                    eventPipeline.fire(associate(ioEvent(buffer, true)),</span>
-<span class="source-line-no">204</span><span id="line-204">                        channel);</span>
-<span class="source-line-no">205</span><span id="line-205">                    break;</span>
-<span class="source-line-no">206</span><span id="line-206">                }</span>
-<span class="source-line-no">207</span><span id="line-207">                // Reading 0 bytes shouldn't happen.</span>
-<span class="source-line-no">208</span><span id="line-208">                buffer.unlockBuffer();</span>
-<span class="source-line-no">209</span><span id="line-209">            } catch (IOException e) {</span>
-<span class="source-line-no">210</span><span id="line-210">                buffer.unlockBuffer();</span>
-<span class="source-line-no">211</span><span id="line-211">                throw e;</span>
-<span class="source-line-no">212</span><span id="line-212">            }</span>
-<span class="source-line-no">213</span><span id="line-213">        }</span>
-<span class="source-line-no">214</span><span id="line-214">    }</span>
-<span class="source-line-no">215</span><span id="line-215"></span>
-<span class="source-line-no">216</span><span id="line-216">    private IOEvent&lt;ByteBuffer&gt; ioEvent(ManagedBuffer&lt;ByteBuffer&gt; buffer,</span>
-<span class="source-line-no">217</span><span id="line-217">            boolean eor) {</span>
-<span class="source-line-no">218</span><span id="line-218">        if (sendInputEvents) {</span>
-<span class="source-line-no">219</span><span id="line-219">            return Input.fromSink(buffer, eor);</span>
-<span class="source-line-no">220</span><span id="line-220">        }</span>
-<span class="source-line-no">221</span><span id="line-221">        return Output.fromSink(buffer, eor);</span>
-<span class="source-line-no">222</span><span id="line-222">    }</span>
-<span class="source-line-no">223</span><span id="line-223"></span>
-<span class="source-line-no">224</span><span id="line-224">    private Event&lt;?&gt; associate(Event&lt;?&gt; event) {</span>
-<span class="source-line-no">225</span><span id="line-225">        if (eventAssociations != null) {</span>
-<span class="source-line-no">226</span><span id="line-226">            for (var entry : eventAssociations.entrySet()) {</span>
-<span class="source-line-no">227</span><span id="line-227">                event.setAssociated(entry.getKey(), entry.getValue());</span>
-<span class="source-line-no">228</span><span id="line-228">            }</span>
-<span class="source-line-no">229</span><span id="line-229">        }</span>
-<span class="source-line-no">230</span><span id="line-230">        return event;</span>
-<span class="source-line-no">231</span><span id="line-231">    }</span>
-<span class="source-line-no">232</span><span id="line-232"></span>
-<span class="source-line-no">233</span><span id="line-233">}</span>
+<span class="source-line-no">123</span><span id="line-123">    @SuppressWarnings("PMD.CloseResource")</span>
+<span class="source-line-no">124</span><span id="line-124">    public void run() {</span>
+<span class="source-line-no">125</span><span id="line-125">        try {</span>
+<span class="source-line-no">126</span><span id="line-126">            if (inStream instanceof FileInputStream fip) {</span>
+<span class="source-line-no">127</span><span id="line-127">                seekableTransfer(fip.getChannel());</span>
+<span class="source-line-no">128</span><span id="line-128">            } else {</span>
+<span class="source-line-no">129</span><span id="line-129">                defaultTransfer();</span>
+<span class="source-line-no">130</span><span id="line-130">            }</span>
+<span class="source-line-no">131</span><span id="line-131">            if (sendClosed) {</span>
+<span class="source-line-no">132</span><span id="line-132">                eventPipeline.fire(associate(new Closed&lt;Void&gt;()), channel);</span>
+<span class="source-line-no">133</span><span id="line-133">            }</span>
+<span class="source-line-no">134</span><span id="line-134">        } catch (InterruptedException e) { // NOPMD</span>
+<span class="source-line-no">135</span><span id="line-135">            // Just stop</span>
+<span class="source-line-no">136</span><span id="line-136">        } catch (IOException e) {</span>
+<span class="source-line-no">137</span><span id="line-137">            eventPipeline.fire(associate(new IOError(null, e)), channel);</span>
+<span class="source-line-no">138</span><span id="line-138">        }</span>
+<span class="source-line-no">139</span><span id="line-139">    }</span>
+<span class="source-line-no">140</span><span id="line-140"></span>
+<span class="source-line-no">141</span><span id="line-141">    private void defaultTransfer() throws InterruptedException, IOException {</span>
+<span class="source-line-no">142</span><span id="line-142">        // If available() returns remaining, we can optimize.</span>
+<span class="source-line-no">143</span><span id="line-143">        // Regrettably, there is no marker interface for this, but</span>
+<span class="source-line-no">144</span><span id="line-144">        // the assumption should be true for ByteArrayInputStream.</span>
+<span class="source-line-no">145</span><span id="line-145">        boolean availableIsRemaining = inStream instanceof ByteArrayInputStream;</span>
+<span class="source-line-no">146</span><span id="line-146">        while (true) {</span>
+<span class="source-line-no">147</span><span id="line-147">            ManagedBuffer&lt;ByteBuffer&gt; buffer = null;</span>
+<span class="source-line-no">148</span><span id="line-148">            try {</span>
+<span class="source-line-no">149</span><span id="line-149">                buffer = channel.byteBufferPool().acquire();</span>
+<span class="source-line-no">150</span><span id="line-150">                var backing = buffer.backing;</span>
+<span class="source-line-no">151</span><span id="line-151">                int recvd = inStream.read(backing.array(),</span>
+<span class="source-line-no">152</span><span id="line-152">                    backing.position(), backing.remaining());</span>
+<span class="source-line-no">153</span><span id="line-153">                if (recvd &gt; 0) {</span>
+<span class="source-line-no">154</span><span id="line-154">                    boolean eof</span>
+<span class="source-line-no">155</span><span id="line-155">                        = availableIsRemaining &amp;&amp; inStream.available() == 0;</span>
+<span class="source-line-no">156</span><span id="line-156">                    backing.position(backing.position() + recvd);</span>
+<span class="source-line-no">157</span><span id="line-157">                    eventPipeline.fire(associate(ioEvent(buffer, eof)),</span>
+<span class="source-line-no">158</span><span id="line-158">                        channel);</span>
+<span class="source-line-no">159</span><span id="line-159">                    if (eof) {</span>
+<span class="source-line-no">160</span><span id="line-160">                        break;</span>
+<span class="source-line-no">161</span><span id="line-161">                    }</span>
+<span class="source-line-no">162</span><span id="line-162">                    continue;</span>
+<span class="source-line-no">163</span><span id="line-163">                }</span>
+<span class="source-line-no">164</span><span id="line-164">                if (recvd == -1) {</span>
+<span class="source-line-no">165</span><span id="line-165">                    eventPipeline.fire(associate(ioEvent(buffer, true)),</span>
+<span class="source-line-no">166</span><span id="line-166">                        channel);</span>
+<span class="source-line-no">167</span><span id="line-167">                    break;</span>
+<span class="source-line-no">168</span><span id="line-168">                }</span>
+<span class="source-line-no">169</span><span id="line-169">                // Reading 0 bytes shouldn't happen.</span>
+<span class="source-line-no">170</span><span id="line-170">                buffer.unlockBuffer();</span>
+<span class="source-line-no">171</span><span id="line-171">            } catch (IOException e) {</span>
+<span class="source-line-no">172</span><span id="line-172">                buffer.unlockBuffer();</span>
+<span class="source-line-no">173</span><span id="line-173">                throw e;</span>
+<span class="source-line-no">174</span><span id="line-174">            }</span>
+<span class="source-line-no">175</span><span id="line-175">        }</span>
+<span class="source-line-no">176</span><span id="line-176">    }</span>
+<span class="source-line-no">177</span><span id="line-177"></span>
+<span class="source-line-no">178</span><span id="line-178">    /**</span>
+<span class="source-line-no">179</span><span id="line-179">     * A seekable channel allows us to avoid generating an event with</span>
+<span class="source-line-no">180</span><span id="line-180">     * no data and eof set, because we can check after reading if there</span>
+<span class="source-line-no">181</span><span id="line-181">     * is remaining data.</span>
+<span class="source-line-no">182</span><span id="line-182">     *</span>
+<span class="source-line-no">183</span><span id="line-183">     * @param input the input</span>
+<span class="source-line-no">184</span><span id="line-184">     * @throws InterruptedException the interrupted exception</span>
+<span class="source-line-no">185</span><span id="line-185">     * @throws IOException Signals that an I/O exception has occurred.</span>
+<span class="source-line-no">186</span><span id="line-186">     */</span>
+<span class="source-line-no">187</span><span id="line-187">    private void seekableTransfer(SeekableByteChannel input)</span>
+<span class="source-line-no">188</span><span id="line-188">            throws InterruptedException, IOException {</span>
+<span class="source-line-no">189</span><span id="line-189">        while (true) {</span>
+<span class="source-line-no">190</span><span id="line-190">            ManagedBuffer&lt;ByteBuffer&gt; buffer = null;</span>
+<span class="source-line-no">191</span><span id="line-191">            try {</span>
+<span class="source-line-no">192</span><span id="line-192">                buffer = channel.byteBufferPool().acquire();</span>
+<span class="source-line-no">193</span><span id="line-193">                int recvd = input.read(buffer.backing);</span>
+<span class="source-line-no">194</span><span id="line-194">                if (recvd &gt; 0) {</span>
+<span class="source-line-no">195</span><span id="line-195">                    boolean eof = input.position() == input.size();</span>
+<span class="source-line-no">196</span><span id="line-196">                    eventPipeline.fire(associate(ioEvent(buffer, eof)),</span>
+<span class="source-line-no">197</span><span id="line-197">                        channel);</span>
+<span class="source-line-no">198</span><span id="line-198">                    if (eof) {</span>
+<span class="source-line-no">199</span><span id="line-199">                        break;</span>
+<span class="source-line-no">200</span><span id="line-200">                    }</span>
+<span class="source-line-no">201</span><span id="line-201">                    continue;</span>
+<span class="source-line-no">202</span><span id="line-202">                }</span>
+<span class="source-line-no">203</span><span id="line-203">                if (recvd == -1) {</span>
+<span class="source-line-no">204</span><span id="line-204">                    eventPipeline.fire(associate(ioEvent(buffer, true)),</span>
+<span class="source-line-no">205</span><span id="line-205">                        channel);</span>
+<span class="source-line-no">206</span><span id="line-206">                    break;</span>
+<span class="source-line-no">207</span><span id="line-207">                }</span>
+<span class="source-line-no">208</span><span id="line-208">                // Reading 0 bytes shouldn't happen.</span>
+<span class="source-line-no">209</span><span id="line-209">                buffer.unlockBuffer();</span>
+<span class="source-line-no">210</span><span id="line-210">            } catch (IOException e) {</span>
+<span class="source-line-no">211</span><span id="line-211">                buffer.unlockBuffer();</span>
+<span class="source-line-no">212</span><span id="line-212">                throw e;</span>
+<span class="source-line-no">213</span><span id="line-213">            }</span>
+<span class="source-line-no">214</span><span id="line-214">        }</span>
+<span class="source-line-no">215</span><span id="line-215">    }</span>
+<span class="source-line-no">216</span><span id="line-216"></span>
+<span class="source-line-no">217</span><span id="line-217">    private IOEvent&lt;ByteBuffer&gt; ioEvent(ManagedBuffer&lt;ByteBuffer&gt; buffer,</span>
+<span class="source-line-no">218</span><span id="line-218">            boolean eor) {</span>
+<span class="source-line-no">219</span><span id="line-219">        if (sendInputEvents) {</span>
+<span class="source-line-no">220</span><span id="line-220">            return Input.fromSink(buffer, eor);</span>
+<span class="source-line-no">221</span><span id="line-221">        }</span>
+<span class="source-line-no">222</span><span id="line-222">        return Output.fromSink(buffer, eor);</span>
+<span class="source-line-no">223</span><span id="line-223">    }</span>
+<span class="source-line-no">224</span><span id="line-224"></span>
+<span class="source-line-no">225</span><span id="line-225">    private Event&lt;?&gt; associate(Event&lt;?&gt; event) {</span>
+<span class="source-line-no">226</span><span id="line-226">        if (eventAssociations != null) {</span>
+<span class="source-line-no">227</span><span id="line-227">            for (var entry : eventAssociations.entrySet()) {</span>
+<span class="source-line-no">228</span><span id="line-228">                event.setAssociated(entry.getKey(), entry.getValue());</span>
+<span class="source-line-no">229</span><span id="line-229">            }</span>
+<span class="source-line-no">230</span><span id="line-230">        }</span>
+<span class="source-line-no">231</span><span id="line-231">        return event;</span>
+<span class="source-line-no">232</span><span id="line-232">    }</span>
+<span class="source-line-no">233</span><span id="line-233"></span>
+<span class="source-line-no">234</span><span id="line-234">}</span>
 
 
 

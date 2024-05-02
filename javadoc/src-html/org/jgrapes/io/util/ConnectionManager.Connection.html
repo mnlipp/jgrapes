@@ -179,48 +179,49 @@
 <span class="source-line-no">166</span><span id="line-166">        /**</span>
 <span class="source-line-no">167</span><span id="line-167">         * @param mainChannel</span>
 <span class="source-line-no">168</span><span id="line-168">         */</span>
-<span class="source-line-no">169</span><span id="line-169">        @SuppressWarnings("unchecked")</span>
-<span class="source-line-no">170</span><span id="line-170">        public Connection(Channel mainChannel) {</span>
-<span class="source-line-no">171</span><span id="line-171">            super(mainChannel);</span>
-<span class="source-line-no">172</span><span id="line-172">            synchronized (ConnectionManager.this) {</span>
-<span class="source-line-no">173</span><span id="line-173">                if (connections.isEmpty() &amp;&amp; connectionsGenerate()) {</span>
-<span class="source-line-no">174</span><span id="line-174">                    registerAsGenerator();</span>
-<span class="source-line-no">175</span><span id="line-175">                }</span>
-<span class="source-line-no">176</span><span id="line-176">                connections.add((C) this);</span>
-<span class="source-line-no">177</span><span id="line-177">            }</span>
-<span class="source-line-no">178</span><span id="line-178">            if (executorService == null) {</span>
-<span class="source-line-no">179</span><span id="line-179">                downPipeline = newEventPipeline();</span>
-<span class="source-line-no">180</span><span id="line-180">            } else {</span>
-<span class="source-line-no">181</span><span id="line-181">                downPipeline = newEventPipeline(executorService);</span>
-<span class="source-line-no">182</span><span id="line-182">            }</span>
-<span class="source-line-no">183</span><span id="line-183">        }</span>
-<span class="source-line-no">184</span><span id="line-184"></span>
-<span class="source-line-no">185</span><span id="line-185">        /**</span>
-<span class="source-line-no">186</span><span id="line-186">         * Gets the down pipeline.</span>
-<span class="source-line-no">187</span><span id="line-187">         *</span>
-<span class="source-line-no">188</span><span id="line-188">         * @return the downPipeline</span>
-<span class="source-line-no">189</span><span id="line-189">         */</span>
-<span class="source-line-no">190</span><span id="line-190">        public EventPipeline downPipeline() {</span>
-<span class="source-line-no">191</span><span id="line-191">            return downPipeline;</span>
-<span class="source-line-no">192</span><span id="line-192">        }</span>
-<span class="source-line-no">193</span><span id="line-193"></span>
-<span class="source-line-no">194</span><span id="line-194">        /**</span>
-<span class="source-line-no">195</span><span id="line-195">         * Closes the connection. If the last connection is closed</span>
-<span class="source-line-no">196</span><span id="line-196">         * and the component is a generator (see </span>
-<span class="source-line-no">197</span><span id="line-197">         * {@link ConnectionManager#connectionsGenerate()), the component</span>
-<span class="source-line-no">198</span><span id="line-198">         * is unregistered as generator.</span>
-<span class="source-line-no">199</span><span id="line-199">         */</span>
-<span class="source-line-no">200</span><span id="line-200">        public void close() {</span>
-<span class="source-line-no">201</span><span id="line-201">            synchronized (this) {</span>
-<span class="source-line-no">202</span><span id="line-202">                connections.remove(this);</span>
-<span class="source-line-no">203</span><span id="line-203">                if (connections.isEmpty() &amp;&amp; connectionsGenerate()) {</span>
-<span class="source-line-no">204</span><span id="line-204">                    unregisterAsGenerator();</span>
-<span class="source-line-no">205</span><span id="line-205">                }</span>
-<span class="source-line-no">206</span><span id="line-206">            }</span>
-<span class="source-line-no">207</span><span id="line-207">        }</span>
-<span class="source-line-no">208</span><span id="line-208"></span>
-<span class="source-line-no">209</span><span id="line-209">    }</span>
-<span class="source-line-no">210</span><span id="line-210">}</span>
+<span class="source-line-no">169</span><span id="line-169">        @SuppressWarnings({ "unchecked",</span>
+<span class="source-line-no">170</span><span id="line-170">            "PMD.ConstructorCallsOverridableMethod" })</span>
+<span class="source-line-no">171</span><span id="line-171">        public Connection(Channel mainChannel) {</span>
+<span class="source-line-no">172</span><span id="line-172">            super(mainChannel);</span>
+<span class="source-line-no">173</span><span id="line-173">            synchronized (ConnectionManager.this) {</span>
+<span class="source-line-no">174</span><span id="line-174">                if (connections.isEmpty() &amp;&amp; connectionsGenerate()) {</span>
+<span class="source-line-no">175</span><span id="line-175">                    registerAsGenerator();</span>
+<span class="source-line-no">176</span><span id="line-176">                }</span>
+<span class="source-line-no">177</span><span id="line-177">                connections.add((C) this);</span>
+<span class="source-line-no">178</span><span id="line-178">            }</span>
+<span class="source-line-no">179</span><span id="line-179">            if (executorService == null) {</span>
+<span class="source-line-no">180</span><span id="line-180">                downPipeline = newEventPipeline();</span>
+<span class="source-line-no">181</span><span id="line-181">            } else {</span>
+<span class="source-line-no">182</span><span id="line-182">                downPipeline = newEventPipeline(executorService);</span>
+<span class="source-line-no">183</span><span id="line-183">            }</span>
+<span class="source-line-no">184</span><span id="line-184">        }</span>
+<span class="source-line-no">185</span><span id="line-185"></span>
+<span class="source-line-no">186</span><span id="line-186">        /**</span>
+<span class="source-line-no">187</span><span id="line-187">         * Gets the down pipeline.</span>
+<span class="source-line-no">188</span><span id="line-188">         *</span>
+<span class="source-line-no">189</span><span id="line-189">         * @return the downPipeline</span>
+<span class="source-line-no">190</span><span id="line-190">         */</span>
+<span class="source-line-no">191</span><span id="line-191">        public EventPipeline downPipeline() {</span>
+<span class="source-line-no">192</span><span id="line-192">            return downPipeline;</span>
+<span class="source-line-no">193</span><span id="line-193">        }</span>
+<span class="source-line-no">194</span><span id="line-194"></span>
+<span class="source-line-no">195</span><span id="line-195">        /**</span>
+<span class="source-line-no">196</span><span id="line-196">         * Closes the connection. If the last connection is closed</span>
+<span class="source-line-no">197</span><span id="line-197">         * and the component is a generator (see </span>
+<span class="source-line-no">198</span><span id="line-198">         * {@link ConnectionManager#connectionsGenerate()), the component</span>
+<span class="source-line-no">199</span><span id="line-199">         * is unregistered as generator.</span>
+<span class="source-line-no">200</span><span id="line-200">         */</span>
+<span class="source-line-no">201</span><span id="line-201">        public void close() {</span>
+<span class="source-line-no">202</span><span id="line-202">            synchronized (this) {</span>
+<span class="source-line-no">203</span><span id="line-203">                connections.remove(this);</span>
+<span class="source-line-no">204</span><span id="line-204">                if (connections.isEmpty() &amp;&amp; connectionsGenerate()) {</span>
+<span class="source-line-no">205</span><span id="line-205">                    unregisterAsGenerator();</span>
+<span class="source-line-no">206</span><span id="line-206">                }</span>
+<span class="source-line-no">207</span><span id="line-207">            }</span>
+<span class="source-line-no">208</span><span id="line-208">        }</span>
+<span class="source-line-no">209</span><span id="line-209"></span>
+<span class="source-line-no">210</span><span id="line-210">    }</span>
+<span class="source-line-no">211</span><span id="line-211">}</span>
 
 
 

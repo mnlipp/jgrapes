@@ -263,7 +263,7 @@
 <span class="source-line-no">250</span><span id="line-250">            return;</span>
 <span class="source-line-no">251</span><span id="line-251">        }</span>
 <span class="source-line-no">252</span><span id="line-252">        var newTarget = ((Map&lt;Object, Object&gt;) target)</span>
-<span class="source-line-no">253</span><span id="line-253">            .computeIfAbsent(key, k -&gt; new TreeMap&lt;Object, Object&gt;());</span>
+<span class="source-line-no">253</span><span id="line-253">            .computeIfAbsent(key, k -&gt; new TreeMap&lt;&gt;());</span>
 <span class="source-line-no">254</span><span id="line-254"></span>
 <span class="source-line-no">255</span><span id="line-255">        // Convert list to map</span>
 <span class="source-line-no">256</span><span id="line-256">        if (newTarget instanceof List list) {</span>

@@ -128,7 +128,7 @@
 <span class="source-line-no">115</span><span id="line-115">    protected void configureComponent(Map&lt;String, String&gt; values) {</span>
 <span class="source-line-no">116</span><span id="line-116">        Optional.ofNullable(values.get("maxIdleTime"))</span>
 <span class="source-line-no">117</span><span id="line-117">            .map(Integer::parseInt).map(Duration::ofSeconds)</span>
-<span class="source-line-no">118</span><span id="line-118">            .ifPresent(d -&gt; setMaxIdleTime(d));</span>
+<span class="source-line-no">118</span><span id="line-118">            .ifPresent(this::setMaxIdleTime);</span>
 <span class="source-line-no">119</span><span id="line-119">    }</span>
 <span class="source-line-no">120</span><span id="line-120"></span>
 <span class="source-line-no">121</span><span id="line-121">    /**</span>

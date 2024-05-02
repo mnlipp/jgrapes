@@ -49,42 +49,47 @@
 <span class="source-line-no">036</span><span id="line-36"></span>
 <span class="source-line-no">037</span><span id="line-37">    private final ManagedBufferReader reader = new ManagedBufferReader();</span>
 <span class="source-line-no">038</span><span id="line-38"></span>
-<span class="source-line-no">039</span><span id="line-39">    public ManagedBufferStreamer(Consumer&lt;Reader&gt; processor) {</span>
-<span class="source-line-no">040</span><span id="line-40">        Thread thread = new Thread(() -&gt; {</span>
-<span class="source-line-no">041</span><span id="line-41">            processor.accept(reader);</span>
-<span class="source-line-no">042</span><span id="line-42">        });</span>
-<span class="source-line-no">043</span><span id="line-43">        thread.start();</span>
-<span class="source-line-no">044</span><span id="line-44">        ThreadCleaner.watch(this, thread);</span>
-<span class="source-line-no">045</span><span id="line-45">    }</span>
-<span class="source-line-no">046</span><span id="line-46"></span>
-<span class="source-line-no">047</span><span id="line-47">    /**</span>
-<span class="source-line-no">048</span><span id="line-48">     * Sets the charset to be used if {@link #feed(ManagedBuffer)}</span>
-<span class="source-line-no">049</span><span id="line-49">     * is invoked with `ManagedBuffer&lt;ByteBuffer&gt;`. Defaults to UTF-8. </span>
-<span class="source-line-no">050</span><span id="line-50">     * Must be set before the first invocation of </span>
-<span class="source-line-no">051</span><span id="line-51">     * {@link #feed(ManagedBuffer)}.  </span>
-<span class="source-line-no">052</span><span id="line-52">     *</span>
-<span class="source-line-no">053</span><span id="line-53">     * @param charset the charset</span>
-<span class="source-line-no">054</span><span id="line-54">     * @return the managed buffer streamer</span>
-<span class="source-line-no">055</span><span id="line-55">     */</span>
-<span class="source-line-no">056</span><span id="line-56">    public ManagedBufferStreamer charset(Charset charset) {</span>
-<span class="source-line-no">057</span><span id="line-57">        reader.charset(charset);</span>
-<span class="source-line-no">058</span><span id="line-58">        return this;</span>
-<span class="source-line-no">059</span><span id="line-59">    }</span>
-<span class="source-line-no">060</span><span id="line-60"></span>
-<span class="source-line-no">061</span><span id="line-61">    /**</span>
-<span class="source-line-no">062</span><span id="line-62">     * Feed data to underlying the reader</span>
-<span class="source-line-no">063</span><span id="line-63">     * (see {@link ManagedBufferReader#feed). </span>
-<span class="source-line-no">064</span><span id="line-64">     * </span>
-<span class="source-line-no">065</span><span id="line-65">     * @param buffer the buffer</span>
-<span class="source-line-no">066</span><span id="line-66">     * @throws IOException Signals that an I/O exception has occurred.</span>
-<span class="source-line-no">067</span><span id="line-67">     */</span>
-<span class="source-line-no">068</span><span id="line-68">    @SuppressWarnings({ "PMD.PreserveStackTrace" })</span>
-<span class="source-line-no">069</span><span id="line-69">    public &lt;W extends Buffer&gt; void feed(ManagedBuffer&lt;W&gt; buffer)</span>
-<span class="source-line-no">070</span><span id="line-70">            throws IOException {</span>
-<span class="source-line-no">071</span><span id="line-71">        reader.feed(buffer);</span>
-<span class="source-line-no">072</span><span id="line-72">    }</span>
-<span class="source-line-no">073</span><span id="line-73"></span>
-<span class="source-line-no">074</span><span id="line-74">}</span>
+<span class="source-line-no">039</span><span id="line-39">    /**</span>
+<span class="source-line-no">040</span><span id="line-40">     * Instantiates a new managed buffer streamer.</span>
+<span class="source-line-no">041</span><span id="line-41">     *</span>
+<span class="source-line-no">042</span><span id="line-42">     * @param processor the processor</span>
+<span class="source-line-no">043</span><span id="line-43">     */</span>
+<span class="source-line-no">044</span><span id="line-44">    public ManagedBufferStreamer(Consumer&lt;Reader&gt; processor) {</span>
+<span class="source-line-no">045</span><span id="line-45">        Thread thread = new Thread(() -&gt; {</span>
+<span class="source-line-no">046</span><span id="line-46">            processor.accept(reader);</span>
+<span class="source-line-no">047</span><span id="line-47">        });</span>
+<span class="source-line-no">048</span><span id="line-48">        thread.start();</span>
+<span class="source-line-no">049</span><span id="line-49">        ThreadCleaner.watch(this, thread);</span>
+<span class="source-line-no">050</span><span id="line-50">    }</span>
+<span class="source-line-no">051</span><span id="line-51"></span>
+<span class="source-line-no">052</span><span id="line-52">    /**</span>
+<span class="source-line-no">053</span><span id="line-53">     * Sets the charset to be used if {@link #feed(ManagedBuffer)}</span>
+<span class="source-line-no">054</span><span id="line-54">     * is invoked with `ManagedBuffer&lt;ByteBuffer&gt;`. Defaults to UTF-8. </span>
+<span class="source-line-no">055</span><span id="line-55">     * Must be set before the first invocation of </span>
+<span class="source-line-no">056</span><span id="line-56">     * {@link #feed(ManagedBuffer)}.  </span>
+<span class="source-line-no">057</span><span id="line-57">     *</span>
+<span class="source-line-no">058</span><span id="line-58">     * @param charset the charset</span>
+<span class="source-line-no">059</span><span id="line-59">     * @return the managed buffer streamer</span>
+<span class="source-line-no">060</span><span id="line-60">     */</span>
+<span class="source-line-no">061</span><span id="line-61">    public ManagedBufferStreamer charset(Charset charset) {</span>
+<span class="source-line-no">062</span><span id="line-62">        reader.charset(charset);</span>
+<span class="source-line-no">063</span><span id="line-63">        return this;</span>
+<span class="source-line-no">064</span><span id="line-64">    }</span>
+<span class="source-line-no">065</span><span id="line-65"></span>
+<span class="source-line-no">066</span><span id="line-66">    /**</span>
+<span class="source-line-no">067</span><span id="line-67">     * Feed data to underlying the reader</span>
+<span class="source-line-no">068</span><span id="line-68">     * (see {@link ManagedBufferReader#feed). </span>
+<span class="source-line-no">069</span><span id="line-69">     * </span>
+<span class="source-line-no">070</span><span id="line-70">     * @param buffer the buffer</span>
+<span class="source-line-no">071</span><span id="line-71">     * @throws IOException Signals that an I/O exception has occurred.</span>
+<span class="source-line-no">072</span><span id="line-72">     */</span>
+<span class="source-line-no">073</span><span id="line-73">    @SuppressWarnings({ "PMD.PreserveStackTrace" })</span>
+<span class="source-line-no">074</span><span id="line-74">    public &lt;W extends Buffer&gt; void feed(ManagedBuffer&lt;W&gt; buffer)</span>
+<span class="source-line-no">075</span><span id="line-75">            throws IOException {</span>
+<span class="source-line-no">076</span><span id="line-76">        reader.feed(buffer);</span>
+<span class="source-line-no">077</span><span id="line-77">    }</span>
+<span class="source-line-no">078</span><span id="line-78"></span>
+<span class="source-line-no">079</span><span id="line-79">}</span>
 
 
 

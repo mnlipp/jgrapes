@@ -60,7 +60,7 @@
 <span class="source-line-no">047</span><span id="line-47">    private CharBuffer rest;</span>
 <span class="source-line-no">048</span><span id="line-48">    private boolean endedWithLF;</span>
 <span class="source-line-no">049</span><span id="line-49">    private final Queue&lt;String&gt; lines = new ConcurrentLinkedQueue&lt;&gt;();</span>
-<span class="source-line-no">050</span><span id="line-50">    private Consumer&lt;String&gt; consumer = s -&gt; lines.add(s);</span>
+<span class="source-line-no">050</span><span id="line-50">    private Consumer&lt;String&gt; consumer = lines::add;</span>
 <span class="source-line-no">051</span><span id="line-51"></span>
 <span class="source-line-no">052</span><span id="line-52">    /**</span>
 <span class="source-line-no">053</span><span id="line-53">     * Sets the charset to be used if {@link #feed(ManagedBuffer)}</span>

@@ -140,45 +140,41 @@
 <span class="source-line-no">127</span><span id="line-127">        if (getClass() != obj.getClass()) {</span>
 <span class="source-line-no">128</span><span id="line-128">            return false;</span>
 <span class="source-line-no">129</span><span id="line-129">        }</span>
-<span class="source-line-no">130</span><span id="line-130">        InMemorySession other = (InMemorySession) obj;</span>
-<span class="source-line-no">131</span><span id="line-131">        if (id == null) {</span>
-<span class="source-line-no">132</span><span id="line-132">            if (other.id != null) {</span>
-<span class="source-line-no">133</span><span id="line-133">                return false;</span>
-<span class="source-line-no">134</span><span id="line-134">            }</span>
-<span class="source-line-no">135</span><span id="line-135">        } else if (!id.equals(other.id)) {</span>
-<span class="source-line-no">136</span><span id="line-136">            return false;</span>
-<span class="source-line-no">137</span><span id="line-137">        }</span>
-<span class="source-line-no">138</span><span id="line-138">        return true;</span>
-<span class="source-line-no">139</span><span id="line-139">    }</span>
-<span class="source-line-no">140</span><span id="line-140"></span>
-<span class="source-line-no">141</span><span id="line-141">    /*</span>
-<span class="source-line-no">142</span><span id="line-142">     * (non-Javadoc)</span>
-<span class="source-line-no">143</span><span id="line-143">     * </span>
-<span class="source-line-no">144</span><span id="line-144">     * @see java.lang.Object#toString()</span>
-<span class="source-line-no">145</span><span id="line-145">     */</span>
-<span class="source-line-no">146</span><span id="line-146">    @Override</span>
-<span class="source-line-no">147</span><span id="line-147">    public String toString() {</span>
-<span class="source-line-no">148</span><span id="line-148">        StringBuilder builder = new StringBuilder(50);</span>
-<span class="source-line-no">149</span><span id="line-149">        builder.append("InMemorySession [");</span>
-<span class="source-line-no">150</span><span id="line-150">        if (id != null) {</span>
-<span class="source-line-no">151</span><span id="line-151">            builder.append("id=");</span>
-<span class="source-line-no">152</span><span id="line-152">            builder.append(id);</span>
-<span class="source-line-no">153</span><span id="line-153">            builder.append(", ");</span>
-<span class="source-line-no">154</span><span id="line-154">        }</span>
-<span class="source-line-no">155</span><span id="line-155">        if (createdAt != null) {</span>
-<span class="source-line-no">156</span><span id="line-156">            builder.append("createdAt=");</span>
-<span class="source-line-no">157</span><span id="line-157">            builder.append(createdAt);</span>
-<span class="source-line-no">158</span><span id="line-158">            builder.append(", ");</span>
+<span class="source-line-no">130</span><span id="line-130">        @SuppressWarnings("PMD.LooseCoupling")</span>
+<span class="source-line-no">131</span><span id="line-131">        InMemorySession other = (InMemorySession) obj;</span>
+<span class="source-line-no">132</span><span id="line-132">        if (id == null) {</span>
+<span class="source-line-no">133</span><span id="line-133">            if (other.id != null) {</span>
+<span class="source-line-no">134</span><span id="line-134">                return false;</span>
+<span class="source-line-no">135</span><span id="line-135">            }</span>
+<span class="source-line-no">136</span><span id="line-136">        } else if (!id.equals(other.id)) {</span>
+<span class="source-line-no">137</span><span id="line-137">            return false;</span>
+<span class="source-line-no">138</span><span id="line-138">        }</span>
+<span class="source-line-no">139</span><span id="line-139">        return true;</span>
+<span class="source-line-no">140</span><span id="line-140">    }</span>
+<span class="source-line-no">141</span><span id="line-141"></span>
+<span class="source-line-no">142</span><span id="line-142">    /*</span>
+<span class="source-line-no">143</span><span id="line-143">     * (non-Javadoc)</span>
+<span class="source-line-no">144</span><span id="line-144">     * </span>
+<span class="source-line-no">145</span><span id="line-145">     * @see java.lang.Object#toString()</span>
+<span class="source-line-no">146</span><span id="line-146">     */</span>
+<span class="source-line-no">147</span><span id="line-147">    @Override</span>
+<span class="source-line-no">148</span><span id="line-148">    public String toString() {</span>
+<span class="source-line-no">149</span><span id="line-149">        StringBuilder builder = new StringBuilder(50);</span>
+<span class="source-line-no">150</span><span id="line-150">        builder.append("InMemorySession [");</span>
+<span class="source-line-no">151</span><span id="line-151">        if (id != null) {</span>
+<span class="source-line-no">152</span><span id="line-152">            builder.append("id=").append(id).append(", ");</span>
+<span class="source-line-no">153</span><span id="line-153">        }</span>
+<span class="source-line-no">154</span><span id="line-154">        if (createdAt != null) {</span>
+<span class="source-line-no">155</span><span id="line-155">            builder.append("createdAt=").append(createdAt).append(", ");</span>
+<span class="source-line-no">156</span><span id="line-156">        }</span>
+<span class="source-line-no">157</span><span id="line-157">        if (lastUsedAt != null) {</span>
+<span class="source-line-no">158</span><span id="line-158">            builder.append("lastUsedAt=").append(lastUsedAt);</span>
 <span class="source-line-no">159</span><span id="line-159">        }</span>
-<span class="source-line-no">160</span><span id="line-160">        if (lastUsedAt != null) {</span>
-<span class="source-line-no">161</span><span id="line-161">            builder.append("lastUsedAt=");</span>
-<span class="source-line-no">162</span><span id="line-162">            builder.append(lastUsedAt);</span>
-<span class="source-line-no">163</span><span id="line-163">        }</span>
-<span class="source-line-no">164</span><span id="line-164">        builder.append(']');</span>
-<span class="source-line-no">165</span><span id="line-165">        return builder.toString();</span>
-<span class="source-line-no">166</span><span id="line-166">    }</span>
-<span class="source-line-no">167</span><span id="line-167"></span>
-<span class="source-line-no">168</span><span id="line-168">}</span>
+<span class="source-line-no">160</span><span id="line-160">        builder.append(']');</span>
+<span class="source-line-no">161</span><span id="line-161">        return builder.toString();</span>
+<span class="source-line-no">162</span><span id="line-162">    }</span>
+<span class="source-line-no">163</span><span id="line-163"></span>
+<span class="source-line-no">164</span><span id="line-164">}</span>
 
 
 

@@ -84,7 +84,7 @@
 <span class="source-line-no">071</span><span id="line-71">    @SuppressWarnings({ "unchecked" })</span>
 <span class="source-line-no">072</span><span id="line-72">    public static &lt;V&gt; V put(Map&lt;? super TypedIdKey&lt;V&gt;, ? super V&gt; map,</span>
 <span class="source-line-no">073</span><span id="line-73">            Serializable id, V value) {</span>
-<span class="source-line-no">074</span><span id="line-74">        map.put(new TypedIdKey&lt;V&gt;((Class&lt;V&gt;) value.getClass(), id), value);</span>
+<span class="source-line-no">074</span><span id="line-74">        map.put(new TypedIdKey&lt;&gt;((Class&lt;V&gt;) value.getClass(), id), value);</span>
 <span class="source-line-no">075</span><span id="line-75">        return value;</span>
 <span class="source-line-no">076</span><span id="line-76">    }</span>
 <span class="source-line-no">077</span><span id="line-77"></span>

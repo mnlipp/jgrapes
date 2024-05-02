@@ -162,7 +162,7 @@
 <span class="source-line-no">149</span><span id="line-149"></span>
 <span class="source-line-no">150</span><span id="line-150">    @Override</span>
 <span class="source-line-no">151</span><span id="line-151">    @SuppressWarnings({ "PMD.AvoidLiteralsInIfCondition",</span>
-<span class="source-line-no">152</span><span id="line-152">        "PMD.AvoidBranchingStatementAsLastInLoop" })</span>
+<span class="source-line-no">152</span><span id="line-152">        "PMD.AvoidBranchingStatementAsLastInLoop", "PMD.CloseResource" })</span>
 <span class="source-line-no">153</span><span id="line-153">    public Optional&lt;Map&lt;String, Object&gt;&gt; structured(String path) {</span>
 <span class="source-line-no">154</span><span id="line-154">        if (!path.startsWith("/")) {</span>
 <span class="source-line-no">155</span><span id="line-155">            throw new IllegalArgumentException("Path must start with \"/\".");</span>
