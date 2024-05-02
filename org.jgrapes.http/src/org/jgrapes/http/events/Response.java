@@ -18,7 +18,13 @@
 
 package org.jgrapes.http.events;
 
+import java.nio.charset.Charset;
+import java.util.Optional;
+import java.util.stream.Stream;
 import org.jdrupes.httpcodec.MessageHeader;
+import org.jdrupes.httpcodec.protocols.http.HttpField;
+import org.jdrupes.httpcodec.protocols.http.HttpResponse;
+import org.jdrupes.httpcodec.types.Converters;
 
 /**
  * Represents the response (header).
@@ -42,6 +48,27 @@ public class Response extends MessageReceived<Void> {
      */
     public MessageHeader response() {
         return response;
+    }
+
+    /**
+     * Convenience method for retrieving the {@link Charset}
+     * from the response.
+     *
+     * @return the optional
+     */
+    public Optional<Charset> charset() {
+        return ((HttpResponse) response())
+            .findValue(HttpField.CONTENT_TYPE, Converters.MEDIA_TYPE)
+            .map(mt -> mt.parameters().entrySet().stream())
+            .orElse(Stream.empty())
+            .filter(e -> "charset".equalsIgnoreCase(e.getKey()))
+            .findFirst().map(e -> e.getValue()).map(csn -> {
+                try {
+                    return Charset.forName(csn);
+                } catch (Exception e) {
+                    return null;
+                }
+            });
     }
 
 }
