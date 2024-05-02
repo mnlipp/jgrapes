@@ -215,12 +215,14 @@ public class EventProcessor implements InternalEventPipeline, Runnable {
                     // JUnit support
                     CoreUtils.setAssertionError(t);
                     event.handlingError(asEventPipeline, t);
+                    event.invokedFor = null;
                 } catch (Error e) { // NOPMD
                     // Wouldn't have caught it, if it was possible.
                     throw e;
                 } catch (Throwable t) { // NOPMD
                     // Errors have been rethrown, so this should work.
                     event.handlingError(asEventPipeline, t);
+                    event.invokedFor = null;
                 }
             }
         } catch (AssertionError t) {

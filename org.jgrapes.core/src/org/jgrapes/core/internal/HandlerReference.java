@@ -130,7 +130,9 @@ class HandlerReference implements Comparable<HandlerReference> {
             Class<?> channelParam = method.type().parameterType(1);
             for (Channel channel : event.channels()) {
                 if (channelParam.isAssignableFrom(channel.getClass())) {
+                    event.invokedFor = channel;
                     method.invoke(event, channel);
+                    event.invokedFor = null;
                 }
             }
             break;

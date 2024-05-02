@@ -122,8 +122,11 @@ public class Event<T> extends EventBase<T> {
     @Override
     protected void handlingError(
             EventPipeline eventProcessor, Throwable throwable) {
-        eventProcessor.fire(
-            new HandlingError(this, throwable), channels());
+        if (invokedFor != null) {
+            eventProcessor.fire(new HandlingError(this, throwable), invokedFor);
+        } else {
+            eventProcessor.fire(new HandlingError(this, throwable), channels());
+        }
     }
 
     /**

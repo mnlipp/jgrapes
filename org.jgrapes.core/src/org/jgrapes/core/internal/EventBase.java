@@ -63,6 +63,9 @@ public abstract class EventBase<T>
      * {@link Event#completionEvents()}, which wraps the result in
      * an unmodifiable set. */
     protected Set<Event<?>> completionEvents;
+    /** Temporarily set when invoking a handler, only to be used by
+     * {@link #handlingError(EventPipeline, Throwable)}. */
+    protected Channel invokedFor;
     /** Set when the event has been completed. */
     protected boolean completed;
     private boolean requiresResult;

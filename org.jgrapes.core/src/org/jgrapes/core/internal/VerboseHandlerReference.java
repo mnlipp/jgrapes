@@ -91,9 +91,11 @@ class VerboseHandlerReference extends HandlerReference {
             for (Channel channel : event.channels()) {
                 if (channelParam.isAssignableFrom(channel.getClass())) {
                     handlerFound = true;
+                    event.invokedFor = channel;
                     invocation = reportInvocation(event, false);
                     method.invoke(event, channel);
                     reportResult(event, invocation);
+                    event.invokedFor = null;
                 }
             }
             if (!handlerFound) {
