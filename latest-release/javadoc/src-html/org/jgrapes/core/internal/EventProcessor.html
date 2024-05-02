@@ -228,98 +228,100 @@
 <span class="source-line-no">215</span><span id="line-215">                    // JUnit support</span>
 <span class="source-line-no">216</span><span id="line-216">                    CoreUtils.setAssertionError(t);</span>
 <span class="source-line-no">217</span><span id="line-217">                    event.handlingError(asEventPipeline, t);</span>
-<span class="source-line-no">218</span><span id="line-218">                } catch (Error e) { // NOPMD</span>
-<span class="source-line-no">219</span><span id="line-219">                    // Wouldn't have caught it, if it was possible.</span>
-<span class="source-line-no">220</span><span id="line-220">                    throw e;</span>
-<span class="source-line-no">221</span><span id="line-221">                } catch (Throwable t) { // NOPMD</span>
-<span class="source-line-no">222</span><span id="line-222">                    // Errors have been rethrown, so this should work.</span>
-<span class="source-line-no">223</span><span id="line-223">                    event.handlingError(asEventPipeline, t);</span>
-<span class="source-line-no">224</span><span id="line-224">                }</span>
-<span class="source-line-no">225</span><span id="line-225">            }</span>
-<span class="source-line-no">226</span><span id="line-226">        } catch (AssertionError t) {</span>
-<span class="source-line-no">227</span><span id="line-227">            // JUnit support</span>
-<span class="source-line-no">228</span><span id="line-228">            CoreUtils.setAssertionError(t);</span>
-<span class="source-line-no">229</span><span id="line-229">            event.handlingError(asEventPipeline, t);</span>
-<span class="source-line-no">230</span><span id="line-230">        } catch (Error e) { // NOPMD</span>
-<span class="source-line-no">231</span><span id="line-231">            // Wouldn't have caught it, if it was possible.</span>
-<span class="source-line-no">232</span><span id="line-232">            throw e;</span>
-<span class="source-line-no">233</span><span id="line-233">        } catch (Throwable t) { // NOPMD</span>
-<span class="source-line-no">234</span><span id="line-234">            // Errors have been rethrown, so this should work.</span>
-<span class="source-line-no">235</span><span id="line-235">            event.handlingError(asEventPipeline, t);</span>
-<span class="source-line-no">236</span><span id="line-236">        } finally { // NOPMD</span>
-<span class="source-line-no">237</span><span id="line-237">            if (invoking != null) {</span>
-<span class="source-line-no">238</span><span id="line-238">                event.handled();</span>
-<span class="source-line-no">239</span><span id="line-239">                invoking = null;</span>
-<span class="source-line-no">240</span><span id="line-240">                newEventsParent.get().decrementOpen();</span>
-<span class="source-line-no">241</span><span id="line-241">            }</span>
-<span class="source-line-no">242</span><span id="line-242">        }</span>
-<span class="source-line-no">243</span><span id="line-243">    }</span>
-<span class="source-line-no">244</span><span id="line-244"></span>
-<span class="source-line-no">245</span><span id="line-245">    @SuppressWarnings("PMD.CompareObjectsWithEquals")</span>
-<span class="source-line-no">246</span><span id="line-246">    /* default */ void suspendHandling(EventBase&lt;?&gt; event) {</span>
-<span class="source-line-no">247</span><span id="line-247">        if (Thread.currentThread() != executor.get()) {</span>
-<span class="source-line-no">248</span><span id="line-248">            throw new IllegalStateException("May only be called from handler.");</span>
-<span class="source-line-no">249</span><span id="line-249">        }</span>
-<span class="source-line-no">250</span><span id="line-250">        if (!invoking.hasNext()) {</span>
-<span class="source-line-no">251</span><span id="line-251">            // Last anyway, nothing to be done</span>
-<span class="source-line-no">252</span><span id="line-252">            return;</span>
-<span class="source-line-no">253</span><span id="line-253">        }</span>
-<span class="source-line-no">254</span><span id="line-254">        event.setSuspendedHandlers(invoking);</span>
-<span class="source-line-no">255</span><span id="line-255">        invoking = null;</span>
-<span class="source-line-no">256</span><span id="line-256">        suspended.add(event);</span>
-<span class="source-line-no">257</span><span id="line-257">        // Just in case (might happen)</span>
-<span class="source-line-no">258</span><span id="line-258">        toBeResumed.remove(event);</span>
-<span class="source-line-no">259</span><span id="line-259">    }</span>
-<span class="source-line-no">260</span><span id="line-260"></span>
-<span class="source-line-no">261</span><span id="line-261">    /* default */ void resumeHandling(EventBase&lt;?&gt; event) {</span>
-<span class="source-line-no">262</span><span id="line-262">        toBeResumed.add(event);</span>
-<span class="source-line-no">263</span><span id="line-263">        synchronized (this) {</span>
-<span class="source-line-no">264</span><span id="line-264">            if (!isExecuting) {</span>
-<span class="source-line-no">265</span><span id="line-265">                // There were no more events, restart</span>
-<span class="source-line-no">266</span><span id="line-266">                GeneratorRegistry.instance().add(this);</span>
-<span class="source-line-no">267</span><span id="line-267">                isExecuting = true;</span>
-<span class="source-line-no">268</span><span id="line-268">                executorService.execute(this);</span>
-<span class="source-line-no">269</span><span id="line-269">            }</span>
-<span class="source-line-no">270</span><span id="line-270">        }</span>
-<span class="source-line-no">271</span><span id="line-271">    }</span>
-<span class="source-line-no">272</span><span id="line-272"></span>
-<span class="source-line-no">273</span><span id="line-273">    /*</span>
-<span class="source-line-no">274</span><span id="line-274">     * (non-Javadoc)</span>
-<span class="source-line-no">275</span><span id="line-275">     * </span>
-<span class="source-line-no">276</span><span id="line-276">     * @see org.jgrapes.core.internal.InternalEventPipeline#executorService()</span>
-<span class="source-line-no">277</span><span id="line-277">     */</span>
-<span class="source-line-no">278</span><span id="line-278">    @Override</span>
-<span class="source-line-no">279</span><span id="line-279">    public ExecutorService executorService() {</span>
-<span class="source-line-no">280</span><span id="line-280">        return executorService;</span>
-<span class="source-line-no">281</span><span id="line-281">    }</span>
-<span class="source-line-no">282</span><span id="line-282"></span>
-<span class="source-line-no">283</span><span id="line-283">    @Override</span>
-<span class="source-line-no">284</span><span id="line-284">    public void awaitExhaustion() throws InterruptedException {</span>
-<span class="source-line-no">285</span><span id="line-285">        synchronized (executor) {</span>
-<span class="source-line-no">286</span><span id="line-286">            while (isExecuting) {</span>
-<span class="source-line-no">287</span><span id="line-287">                executor.wait();</span>
-<span class="source-line-no">288</span><span id="line-288">            }</span>
-<span class="source-line-no">289</span><span id="line-289">        }</span>
-<span class="source-line-no">290</span><span id="line-290">    }</span>
-<span class="source-line-no">291</span><span id="line-291"></span>
-<span class="source-line-no">292</span><span id="line-292">    /*</span>
-<span class="source-line-no">293</span><span id="line-293">     * (non-Javadoc)</span>
-<span class="source-line-no">294</span><span id="line-294">     * </span>
-<span class="source-line-no">295</span><span id="line-295">     * @see java.lang.Object#toString()</span>
-<span class="source-line-no">296</span><span id="line-296">     */</span>
-<span class="source-line-no">297</span><span id="line-297">    @Override</span>
-<span class="source-line-no">298</span><span id="line-298">    public String toString() {</span>
-<span class="source-line-no">299</span><span id="line-299">        StringBuilder builder = new StringBuilder();</span>
-<span class="source-line-no">300</span><span id="line-300">        builder.append(Components.objectName(this))</span>
-<span class="source-line-no">301</span><span id="line-301">            .append(" [");</span>
-<span class="source-line-no">302</span><span id="line-302">        if (queue != null) {</span>
-<span class="source-line-no">303</span><span id="line-303">            builder.append("queue=").append(queue);</span>
-<span class="source-line-no">304</span><span id="line-304">        }</span>
-<span class="source-line-no">305</span><span id="line-305">        builder.append(']');</span>
-<span class="source-line-no">306</span><span id="line-306">        return builder.toString();</span>
-<span class="source-line-no">307</span><span id="line-307">    }</span>
-<span class="source-line-no">308</span><span id="line-308"></span>
-<span class="source-line-no">309</span><span id="line-309">}</span>
+<span class="source-line-no">218</span><span id="line-218">                    event.invokedFor = null;</span>
+<span class="source-line-no">219</span><span id="line-219">                } catch (Error e) { // NOPMD</span>
+<span class="source-line-no">220</span><span id="line-220">                    // Wouldn't have caught it, if it was possible.</span>
+<span class="source-line-no">221</span><span id="line-221">                    throw e;</span>
+<span class="source-line-no">222</span><span id="line-222">                } catch (Throwable t) { // NOPMD</span>
+<span class="source-line-no">223</span><span id="line-223">                    // Errors have been rethrown, so this should work.</span>
+<span class="source-line-no">224</span><span id="line-224">                    event.handlingError(asEventPipeline, t);</span>
+<span class="source-line-no">225</span><span id="line-225">                    event.invokedFor = null;</span>
+<span class="source-line-no">226</span><span id="line-226">                }</span>
+<span class="source-line-no">227</span><span id="line-227">            }</span>
+<span class="source-line-no">228</span><span id="line-228">        } catch (AssertionError t) {</span>
+<span class="source-line-no">229</span><span id="line-229">            // JUnit support</span>
+<span class="source-line-no">230</span><span id="line-230">            CoreUtils.setAssertionError(t);</span>
+<span class="source-line-no">231</span><span id="line-231">            event.handlingError(asEventPipeline, t);</span>
+<span class="source-line-no">232</span><span id="line-232">        } catch (Error e) { // NOPMD</span>
+<span class="source-line-no">233</span><span id="line-233">            // Wouldn't have caught it, if it was possible.</span>
+<span class="source-line-no">234</span><span id="line-234">            throw e;</span>
+<span class="source-line-no">235</span><span id="line-235">        } catch (Throwable t) { // NOPMD</span>
+<span class="source-line-no">236</span><span id="line-236">            // Errors have been rethrown, so this should work.</span>
+<span class="source-line-no">237</span><span id="line-237">            event.handlingError(asEventPipeline, t);</span>
+<span class="source-line-no">238</span><span id="line-238">        } finally { // NOPMD</span>
+<span class="source-line-no">239</span><span id="line-239">            if (invoking != null) {</span>
+<span class="source-line-no">240</span><span id="line-240">                event.handled();</span>
+<span class="source-line-no">241</span><span id="line-241">                invoking = null;</span>
+<span class="source-line-no">242</span><span id="line-242">                newEventsParent.get().decrementOpen();</span>
+<span class="source-line-no">243</span><span id="line-243">            }</span>
+<span class="source-line-no">244</span><span id="line-244">        }</span>
+<span class="source-line-no">245</span><span id="line-245">    }</span>
+<span class="source-line-no">246</span><span id="line-246"></span>
+<span class="source-line-no">247</span><span id="line-247">    @SuppressWarnings("PMD.CompareObjectsWithEquals")</span>
+<span class="source-line-no">248</span><span id="line-248">    /* default */ void suspendHandling(EventBase&lt;?&gt; event) {</span>
+<span class="source-line-no">249</span><span id="line-249">        if (Thread.currentThread() != executor.get()) {</span>
+<span class="source-line-no">250</span><span id="line-250">            throw new IllegalStateException("May only be called from handler.");</span>
+<span class="source-line-no">251</span><span id="line-251">        }</span>
+<span class="source-line-no">252</span><span id="line-252">        if (!invoking.hasNext()) {</span>
+<span class="source-line-no">253</span><span id="line-253">            // Last anyway, nothing to be done</span>
+<span class="source-line-no">254</span><span id="line-254">            return;</span>
+<span class="source-line-no">255</span><span id="line-255">        }</span>
+<span class="source-line-no">256</span><span id="line-256">        event.setSuspendedHandlers(invoking);</span>
+<span class="source-line-no">257</span><span id="line-257">        invoking = null;</span>
+<span class="source-line-no">258</span><span id="line-258">        suspended.add(event);</span>
+<span class="source-line-no">259</span><span id="line-259">        // Just in case (might happen)</span>
+<span class="source-line-no">260</span><span id="line-260">        toBeResumed.remove(event);</span>
+<span class="source-line-no">261</span><span id="line-261">    }</span>
+<span class="source-line-no">262</span><span id="line-262"></span>
+<span class="source-line-no">263</span><span id="line-263">    /* default */ void resumeHandling(EventBase&lt;?&gt; event) {</span>
+<span class="source-line-no">264</span><span id="line-264">        toBeResumed.add(event);</span>
+<span class="source-line-no">265</span><span id="line-265">        synchronized (this) {</span>
+<span class="source-line-no">266</span><span id="line-266">            if (!isExecuting) {</span>
+<span class="source-line-no">267</span><span id="line-267">                // There were no more events, restart</span>
+<span class="source-line-no">268</span><span id="line-268">                GeneratorRegistry.instance().add(this);</span>
+<span class="source-line-no">269</span><span id="line-269">                isExecuting = true;</span>
+<span class="source-line-no">270</span><span id="line-270">                executorService.execute(this);</span>
+<span class="source-line-no">271</span><span id="line-271">            }</span>
+<span class="source-line-no">272</span><span id="line-272">        }</span>
+<span class="source-line-no">273</span><span id="line-273">    }</span>
+<span class="source-line-no">274</span><span id="line-274"></span>
+<span class="source-line-no">275</span><span id="line-275">    /*</span>
+<span class="source-line-no">276</span><span id="line-276">     * (non-Javadoc)</span>
+<span class="source-line-no">277</span><span id="line-277">     * </span>
+<span class="source-line-no">278</span><span id="line-278">     * @see org.jgrapes.core.internal.InternalEventPipeline#executorService()</span>
+<span class="source-line-no">279</span><span id="line-279">     */</span>
+<span class="source-line-no">280</span><span id="line-280">    @Override</span>
+<span class="source-line-no">281</span><span id="line-281">    public ExecutorService executorService() {</span>
+<span class="source-line-no">282</span><span id="line-282">        return executorService;</span>
+<span class="source-line-no">283</span><span id="line-283">    }</span>
+<span class="source-line-no">284</span><span id="line-284"></span>
+<span class="source-line-no">285</span><span id="line-285">    @Override</span>
+<span class="source-line-no">286</span><span id="line-286">    public void awaitExhaustion() throws InterruptedException {</span>
+<span class="source-line-no">287</span><span id="line-287">        synchronized (executor) {</span>
+<span class="source-line-no">288</span><span id="line-288">            while (isExecuting) {</span>
+<span class="source-line-no">289</span><span id="line-289">                executor.wait();</span>
+<span class="source-line-no">290</span><span id="line-290">            }</span>
+<span class="source-line-no">291</span><span id="line-291">        }</span>
+<span class="source-line-no">292</span><span id="line-292">    }</span>
+<span class="source-line-no">293</span><span id="line-293"></span>
+<span class="source-line-no">294</span><span id="line-294">    /*</span>
+<span class="source-line-no">295</span><span id="line-295">     * (non-Javadoc)</span>
+<span class="source-line-no">296</span><span id="line-296">     * </span>
+<span class="source-line-no">297</span><span id="line-297">     * @see java.lang.Object#toString()</span>
+<span class="source-line-no">298</span><span id="line-298">     */</span>
+<span class="source-line-no">299</span><span id="line-299">    @Override</span>
+<span class="source-line-no">300</span><span id="line-300">    public String toString() {</span>
+<span class="source-line-no">301</span><span id="line-301">        StringBuilder builder = new StringBuilder();</span>
+<span class="source-line-no">302</span><span id="line-302">        builder.append(Components.objectName(this))</span>
+<span class="source-line-no">303</span><span id="line-303">            .append(" [");</span>
+<span class="source-line-no">304</span><span id="line-304">        if (queue != null) {</span>
+<span class="source-line-no">305</span><span id="line-305">            builder.append("queue=").append(queue);</span>
+<span class="source-line-no">306</span><span id="line-306">        }</span>
+<span class="source-line-no">307</span><span id="line-307">        builder.append(']');</span>
+<span class="source-line-no">308</span><span id="line-308">        return builder.toString();</span>
+<span class="source-line-no">309</span><span id="line-309">    }</span>
+<span class="source-line-no">310</span><span id="line-310"></span>
+<span class="source-line-no">311</span><span id="line-311">}</span>
 
 
 
