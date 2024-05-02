@@ -54,6 +54,7 @@ public class ErrorTest {
         } finally {
             System.setErr(oldErr);
         }
+        Components.awaitExhaustion();
     }
 
     public static class BuggyComponentWithHandler extends Component {
@@ -78,6 +79,7 @@ public class ErrorTest {
         BuggyComponentWithHandler app = new BuggyComponentWithHandler();
         Components.start(app);
         assertTrue(app.caughtError);
+        Components.awaitExhaustion();
     }
 
 }

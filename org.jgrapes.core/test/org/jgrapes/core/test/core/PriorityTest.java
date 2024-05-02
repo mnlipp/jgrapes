@@ -64,6 +64,7 @@ public class PriorityTest {
         PrioritisedHandlers app = new PrioritisedHandlers();
         Components.start(app);
         assertTrue(app.result.equals("Hello"));
+        Components.awaitExhaustion();
     }
 
 }

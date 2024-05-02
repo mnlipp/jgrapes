@@ -65,6 +65,7 @@ public class StoppedTest {
         PrioritisedHandlers app = new PrioritisedHandlers();
         Components.start(app);
         assertTrue(app.result.equals("Hel"));
+        Components.awaitExhaustion();
     }
 
 }

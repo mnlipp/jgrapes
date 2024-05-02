@@ -190,6 +190,7 @@ public class EchoTest {
             }
             break;
         }
+        Components.awaitExhaustion();
         Components.checkAssertions();
     }
 
@@ -276,6 +277,7 @@ public class EchoTest {
             }
             break;
         }
+        Components.awaitExhaustion();
         Components.checkAssertions();
     }
 

@@ -197,6 +197,7 @@ public class SslEchoServerTest {
             }
             break;
         }
+        Components.awaitExhaustion();
         Components.checkAssertions();
     }
 

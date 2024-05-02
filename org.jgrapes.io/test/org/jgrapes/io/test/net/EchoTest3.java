@@ -227,6 +227,7 @@ public class EchoTest3 {
             }
             break;
         }
+        Components.awaitExhaustion();
         Components.checkAssertions();
     }
 
@@ -276,6 +277,7 @@ public class EchoTest3 {
             }
             break;
         }
+        Components.awaitExhaustion();
         Components.checkAssertions();
         Files.deleteIfExists(udsPath);
     }
@@ -346,6 +348,7 @@ public class EchoTest3 {
             }
             break;
         }
+        Components.awaitExhaustion();
         Components.checkAssertions();
     }
 

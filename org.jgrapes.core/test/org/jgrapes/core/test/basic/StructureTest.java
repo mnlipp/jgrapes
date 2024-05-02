@@ -91,6 +91,7 @@ public class StructureTest {
         assertNull(comp2.getManager().parent());
         assertEquals(comp2, comp2.getManager().root());
         assertEquals(0, comp.getManager().children().size());
+        Components.awaitExhaustion();
     }
 
     @Test

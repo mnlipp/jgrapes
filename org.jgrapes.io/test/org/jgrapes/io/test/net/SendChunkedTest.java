@@ -185,6 +185,7 @@ public class SendChunkedTest {
             }
             break;
         }
+        Components.awaitExhaustion();
     }
 
 }

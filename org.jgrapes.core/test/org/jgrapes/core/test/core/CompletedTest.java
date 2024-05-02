@@ -91,6 +91,7 @@ public class CompletedTest {
         }
         test1.get();
         assertTrue(app.testDone);
+        Components.awaitExhaustion();
     }
 
 }

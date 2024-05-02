@@ -166,6 +166,7 @@ public class EchoTest2 {
             }
             break;
         }
+        Components.awaitExhaustion();
         Components.checkAssertions();
     }
 
@@ -235,6 +236,7 @@ public class EchoTest2 {
             }
             break;
         }
+        Components.awaitExhaustion();
         Components.checkAssertions();
     }
 

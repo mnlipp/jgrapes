@@ -29,6 +29,7 @@ import org.jgrapes.io.events.Closed;
 import org.jgrapes.io.test.WaitForTests;
 import org.jgrapes.net.SocketServer;
 import org.jgrapes.net.events.Ready;
+import org.junit.After;
 import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
@@ -83,6 +84,11 @@ public class ServerStateTest {
             = new WaitForTests<>(app, Ready.class, Channel.class);
         Components.start(app);
         wf.get();
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        Components.awaitExhaustion();
     }
 
     @Test
