@@ -92,6 +92,7 @@ public final class ComponentProxy extends ComponentVertex {
      */
     private ComponentProxy(
             Field field, ComponentType component, Channel componentChannel) {
+        super(null);
         this.component = component;
         try {
             field.set(component, this);
@@ -102,7 +103,7 @@ public final class ComponentProxy extends ComponentVertex {
                 componentChannel = this;
             }
             this.componentChannel = componentChannel;
-            initComponentsHandlers(null);
+            initComponentsHandlers();
         } catch (SecurityException | IllegalAccessException e) {
             throw (RuntimeException) new IllegalArgumentException(
                 "Cannot access component's manager attribute").initCause(e);

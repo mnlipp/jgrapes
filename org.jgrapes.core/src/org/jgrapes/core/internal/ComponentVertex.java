@@ -65,13 +65,27 @@ public abstract class ComponentVertex implements Manager, Channel {
     private final List<ComponentVertex> children = new ArrayList<>();
     /** The handlers provided by this component. */
     private List<HandlerReference> handlers;
+    /** The channel replacements. */
+    private final ChannelReplacements channelReplacements;
 
-    /** 
+    /**
+     *  
      * Initialize the ComponentVertex. By default it forms a stand-alone
      * tree, i.e. the root is set to the component itself.
+     *
+     * @param channelReplacements the channel replacements
      */
-    protected ComponentVertex() {
-        // Nothing to do, but appropriate for abstract class.
+    protected ComponentVertex(ChannelReplacements channelReplacements) {
+        this.channelReplacements = channelReplacements;
+    }
+
+    /**
+     * Return the channel replacements passed to the constructor.
+     *
+     * @return the channel replacements
+     */
+    public ChannelReplacements channelReplacements() {
+        return channelReplacements;
     }
 
     /**
@@ -80,8 +94,7 @@ public abstract class ComponentVertex implements Manager, Channel {
      * correct value.
      */
     @SuppressWarnings("PMD.AvoidDuplicateLiterals")
-    protected void initComponentsHandlers(
-            ChannelReplacements channelReplacements) {
+    protected void initComponentsHandlers() {
         handlers = new ArrayList<>();
         // Have a look at all methods.
         for (Method m : component().getClass().getMethods()) {

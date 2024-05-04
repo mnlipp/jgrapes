@@ -44,6 +44,7 @@ import org.jgrapes.core.annotation.Handler.NoChannel;
 import org.jgrapes.core.annotation.Handler.NoEvent;
 import org.jgrapes.core.annotation.HandlerDefinition;
 import org.jgrapes.core.annotation.HandlerDefinition.ChannelReplacements;
+import org.jgrapes.core.internal.ComponentVertex;
 import org.jgrapes.core.internal.EventBase;
 import org.jgrapes.http.ResourcePattern;
 import org.jgrapes.http.events.Request;
@@ -167,7 +168,8 @@ public @interface RequestHandler {
             add(component, method, pattern, Integer.valueOf(priority));
         }
 
-        @SuppressWarnings("PMD.AvoidBranchingStatementAsLastInLoop")
+        @SuppressWarnings({ "PMD.AvoidBranchingStatementAsLastInLoop",
+            "PMD.CognitiveComplexity" })
         private static void add(ComponentType component, String method,
                 String pattern, Integer priority) {
             try {
@@ -187,7 +189,10 @@ public @interface RequestHandler {
                         @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
                         Scope scope = new Scope(component, m,
                             (RequestHandler) annotation,
-                            Collections.emptyMap(), pattern);
+                            component instanceof ComponentVertex vertex
+                                ? vertex.channelReplacements()
+                                : Collections.emptyMap(),
+                            pattern);
                         Components.manager(component)
                             .addHandler(m, scope, priority == null
                                 ? ((RequestHandler) annotation).priority()

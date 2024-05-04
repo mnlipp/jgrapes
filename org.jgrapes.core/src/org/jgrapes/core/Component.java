@@ -52,9 +52,9 @@ public abstract class Component extends ComponentVertex
      * itself.
      */
     public Component() {
-        super();
+        super(null);
         componentChannel = this;
-        initComponentsHandlers(null);
+        initComponentsHandlers();
     }
 
     /**
@@ -70,13 +70,13 @@ public abstract class Component extends ComponentVertex
      * {@link Manager#fire(Event, Channel...)} sends the event to
      */
     public Component(Channel componentChannel) {
-        super();
+        super(null);
         if (componentChannel == SELF) {
             this.componentChannel = this;
         } else {
             this.componentChannel = componentChannel;
         }
-        initComponentsHandlers(null);
+        initComponentsHandlers();
     }
 
     /**
@@ -91,13 +91,13 @@ public abstract class Component extends ComponentVertex
      */
     public Component(
             Channel componentChannel, ChannelReplacements channelReplacements) {
-        super();
+        super(channelReplacements);
         if (componentChannel == SELF) {
             this.componentChannel = this;
         } else {
             this.componentChannel = componentChannel;
         }
-        initComponentsHandlers(channelReplacements);
+        initComponentsHandlers();
     }
 
     /*
