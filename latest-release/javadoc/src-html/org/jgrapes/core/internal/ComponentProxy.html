@@ -105,97 +105,98 @@
 <span class="source-line-no">092</span><span id="line-92">     */</span>
 <span class="source-line-no">093</span><span id="line-93">    private ComponentProxy(</span>
 <span class="source-line-no">094</span><span id="line-94">            Field field, ComponentType component, Channel componentChannel) {</span>
-<span class="source-line-no">095</span><span id="line-95">        this.component = component;</span>
-<span class="source-line-no">096</span><span id="line-96">        try {</span>
-<span class="source-line-no">097</span><span id="line-97">            field.set(component, this);</span>
-<span class="source-line-no">098</span><span id="line-98">            if (componentChannel == null) {</span>
-<span class="source-line-no">099</span><span id="line-99">                componentChannel = getComponentChannel(field);</span>
-<span class="source-line-no">100</span><span id="line-100">            }</span>
-<span class="source-line-no">101</span><span id="line-101">            if (componentChannel.equals(Channel.SELF)) {</span>
-<span class="source-line-no">102</span><span id="line-102">                componentChannel = this;</span>
-<span class="source-line-no">103</span><span id="line-103">            }</span>
-<span class="source-line-no">104</span><span id="line-104">            this.componentChannel = componentChannel;</span>
-<span class="source-line-no">105</span><span id="line-105">            initComponentsHandlers(null);</span>
-<span class="source-line-no">106</span><span id="line-106">        } catch (SecurityException | IllegalAccessException e) {</span>
-<span class="source-line-no">107</span><span id="line-107">            throw (RuntimeException) new IllegalArgumentException(</span>
-<span class="source-line-no">108</span><span id="line-108">                "Cannot access component's manager attribute").initCause(e);</span>
-<span class="source-line-no">109</span><span id="line-109">        }</span>
-<span class="source-line-no">110</span><span id="line-110">    }</span>
-<span class="source-line-no">111</span><span id="line-111"></span>
-<span class="source-line-no">112</span><span id="line-112">    /**</span>
-<span class="source-line-no">113</span><span id="line-113">     * Return the component node for a component that is represented</span>
-<span class="source-line-no">114</span><span id="line-114">     * by a proxy in the tree.</span>
-<span class="source-line-no">115</span><span id="line-115">     * </span>
-<span class="source-line-no">116</span><span id="line-116">     * @param component the component</span>
-<span class="source-line-no">117</span><span id="line-117">     * @param componentChannel the component's channel</span>
-<span class="source-line-no">118</span><span id="line-118">     * @return the node representing the component in the tree</span>
-<span class="source-line-no">119</span><span id="line-119">     */</span>
-<span class="source-line-no">120</span><span id="line-120">    @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",</span>
-<span class="source-line-no">121</span><span id="line-121">        "PMD.AvoidAccessibilityAlteration", "PMD.ConfusingTernary" })</span>
-<span class="source-line-no">122</span><span id="line-122">    /* default */ static ComponentVertex getComponentProxy(</span>
-<span class="source-line-no">123</span><span id="line-123">            ComponentType component, Channel componentChannel) {</span>
-<span class="source-line-no">124</span><span id="line-124">        ComponentProxy componentProxy;</span>
-<span class="source-line-no">125</span><span id="line-125">        try {</span>
-<span class="source-line-no">126</span><span id="line-126">            Field field = getManagerField(component.getClass());</span>
-<span class="source-line-no">127</span><span id="line-127">            synchronized (component) {</span>
-<span class="source-line-no">128</span><span id="line-128">                if (!field.canAccess(component)) {</span>
-<span class="source-line-no">129</span><span id="line-129">                    field.setAccessible(true);</span>
-<span class="source-line-no">130</span><span id="line-130">                    componentProxy = (ComponentProxy) field.get(component);</span>
-<span class="source-line-no">131</span><span id="line-131">                    if (componentProxy == null) {</span>
-<span class="source-line-no">132</span><span id="line-132">                        componentProxy = new ComponentProxy(</span>
-<span class="source-line-no">133</span><span id="line-133">                            field, component, componentChannel);</span>
-<span class="source-line-no">134</span><span id="line-134">                    }</span>
-<span class="source-line-no">135</span><span id="line-135">                    field.setAccessible(false);</span>
-<span class="source-line-no">136</span><span id="line-136">                } else {</span>
-<span class="source-line-no">137</span><span id="line-137">                    componentProxy = (ComponentProxy) field.get(component);</span>
-<span class="source-line-no">138</span><span id="line-138">                    if (componentProxy == null) {</span>
-<span class="source-line-no">139</span><span id="line-139">                        componentProxy = new ComponentProxy(</span>
-<span class="source-line-no">140</span><span id="line-140">                            field, component, componentChannel);</span>
-<span class="source-line-no">141</span><span id="line-141">                    }</span>
-<span class="source-line-no">142</span><span id="line-142">                }</span>
-<span class="source-line-no">143</span><span id="line-143">            }</span>
-<span class="source-line-no">144</span><span id="line-144">        } catch (SecurityException | IllegalAccessException e) {</span>
-<span class="source-line-no">145</span><span id="line-145">            throw (RuntimeException) new IllegalArgumentException(</span>
-<span class="source-line-no">146</span><span id="line-146">                "Cannot access component's manager attribute").initCause(e);</span>
-<span class="source-line-no">147</span><span id="line-147">        }</span>
-<span class="source-line-no">148</span><span id="line-148">        return componentProxy;</span>
-<span class="source-line-no">149</span><span id="line-149">    }</span>
-<span class="source-line-no">150</span><span id="line-150"></span>
-<span class="source-line-no">151</span><span id="line-151">    public ComponentType component() {</span>
-<span class="source-line-no">152</span><span id="line-152">        return component;</span>
-<span class="source-line-no">153</span><span id="line-153">    }</span>
-<span class="source-line-no">154</span><span id="line-154"></span>
-<span class="source-line-no">155</span><span id="line-155">    /*</span>
-<span class="source-line-no">156</span><span id="line-156">     * (non-Javadoc)</span>
-<span class="source-line-no">157</span><span id="line-157">     * </span>
-<span class="source-line-no">158</span><span id="line-158">     * @see org.jgrapes.core.Manager#getChannel()</span>
-<span class="source-line-no">159</span><span id="line-159">     */</span>
-<span class="source-line-no">160</span><span id="line-160">    @Override</span>
-<span class="source-line-no">161</span><span id="line-161">    public Channel channel() {</span>
-<span class="source-line-no">162</span><span id="line-162">        return componentChannel;</span>
-<span class="source-line-no">163</span><span id="line-163">    }</span>
-<span class="source-line-no">164</span><span id="line-164"></span>
-<span class="source-line-no">165</span><span id="line-165">    /**</span>
-<span class="source-line-no">166</span><span id="line-166">     * Return the object itself as value.</span>
-<span class="source-line-no">167</span><span id="line-167">     */</span>
-<span class="source-line-no">168</span><span id="line-168">    @Override</span>
-<span class="source-line-no">169</span><span id="line-169">    public Object defaultCriterion() {</span>
-<span class="source-line-no">170</span><span id="line-170">        return this;</span>
-<span class="source-line-no">171</span><span id="line-171">    }</span>
-<span class="source-line-no">172</span><span id="line-172"></span>
-<span class="source-line-no">173</span><span id="line-173">    /**</span>
-<span class="source-line-no">174</span><span id="line-174">     * Matches the object itself (using identity comparison) or the</span>
-<span class="source-line-no">175</span><span id="line-175">     * {@link Channel} class.</span>
-<span class="source-line-no">176</span><span id="line-176">     * </span>
-<span class="source-line-no">177</span><span id="line-177">     * @see Channel#isEligibleFor(Object)</span>
-<span class="source-line-no">178</span><span id="line-178">     */</span>
-<span class="source-line-no">179</span><span id="line-179">    @Override</span>
-<span class="source-line-no">180</span><span id="line-180">    @SuppressWarnings("PMD.CompareObjectsWithEquals")</span>
-<span class="source-line-no">181</span><span id="line-181">    public boolean isEligibleFor(Object value) {</span>
-<span class="source-line-no">182</span><span id="line-182">        return value.equals(Channel.class)</span>
-<span class="source-line-no">183</span><span id="line-183">            || value == defaultCriterion();</span>
-<span class="source-line-no">184</span><span id="line-184">    }</span>
-<span class="source-line-no">185</span><span id="line-185">}</span>
+<span class="source-line-no">095</span><span id="line-95">        super(null);</span>
+<span class="source-line-no">096</span><span id="line-96">        this.component = component;</span>
+<span class="source-line-no">097</span><span id="line-97">        try {</span>
+<span class="source-line-no">098</span><span id="line-98">            field.set(component, this);</span>
+<span class="source-line-no">099</span><span id="line-99">            if (componentChannel == null) {</span>
+<span class="source-line-no">100</span><span id="line-100">                componentChannel = getComponentChannel(field);</span>
+<span class="source-line-no">101</span><span id="line-101">            }</span>
+<span class="source-line-no">102</span><span id="line-102">            if (componentChannel.equals(Channel.SELF)) {</span>
+<span class="source-line-no">103</span><span id="line-103">                componentChannel = this;</span>
+<span class="source-line-no">104</span><span id="line-104">            }</span>
+<span class="source-line-no">105</span><span id="line-105">            this.componentChannel = componentChannel;</span>
+<span class="source-line-no">106</span><span id="line-106">            initComponentsHandlers();</span>
+<span class="source-line-no">107</span><span id="line-107">        } catch (SecurityException | IllegalAccessException e) {</span>
+<span class="source-line-no">108</span><span id="line-108">            throw (RuntimeException) new IllegalArgumentException(</span>
+<span class="source-line-no">109</span><span id="line-109">                "Cannot access component's manager attribute").initCause(e);</span>
+<span class="source-line-no">110</span><span id="line-110">        }</span>
+<span class="source-line-no">111</span><span id="line-111">    }</span>
+<span class="source-line-no">112</span><span id="line-112"></span>
+<span class="source-line-no">113</span><span id="line-113">    /**</span>
+<span class="source-line-no">114</span><span id="line-114">     * Return the component node for a component that is represented</span>
+<span class="source-line-no">115</span><span id="line-115">     * by a proxy in the tree.</span>
+<span class="source-line-no">116</span><span id="line-116">     * </span>
+<span class="source-line-no">117</span><span id="line-117">     * @param component the component</span>
+<span class="source-line-no">118</span><span id="line-118">     * @param componentChannel the component's channel</span>
+<span class="source-line-no">119</span><span id="line-119">     * @return the node representing the component in the tree</span>
+<span class="source-line-no">120</span><span id="line-120">     */</span>
+<span class="source-line-no">121</span><span id="line-121">    @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",</span>
+<span class="source-line-no">122</span><span id="line-122">        "PMD.AvoidAccessibilityAlteration", "PMD.ConfusingTernary" })</span>
+<span class="source-line-no">123</span><span id="line-123">    /* default */ static ComponentVertex getComponentProxy(</span>
+<span class="source-line-no">124</span><span id="line-124">            ComponentType component, Channel componentChannel) {</span>
+<span class="source-line-no">125</span><span id="line-125">        ComponentProxy componentProxy;</span>
+<span class="source-line-no">126</span><span id="line-126">        try {</span>
+<span class="source-line-no">127</span><span id="line-127">            Field field = getManagerField(component.getClass());</span>
+<span class="source-line-no">128</span><span id="line-128">            synchronized (component) {</span>
+<span class="source-line-no">129</span><span id="line-129">                if (!field.canAccess(component)) {</span>
+<span class="source-line-no">130</span><span id="line-130">                    field.setAccessible(true);</span>
+<span class="source-line-no">131</span><span id="line-131">                    componentProxy = (ComponentProxy) field.get(component);</span>
+<span class="source-line-no">132</span><span id="line-132">                    if (componentProxy == null) {</span>
+<span class="source-line-no">133</span><span id="line-133">                        componentProxy = new ComponentProxy(</span>
+<span class="source-line-no">134</span><span id="line-134">                            field, component, componentChannel);</span>
+<span class="source-line-no">135</span><span id="line-135">                    }</span>
+<span class="source-line-no">136</span><span id="line-136">                    field.setAccessible(false);</span>
+<span class="source-line-no">137</span><span id="line-137">                } else {</span>
+<span class="source-line-no">138</span><span id="line-138">                    componentProxy = (ComponentProxy) field.get(component);</span>
+<span class="source-line-no">139</span><span id="line-139">                    if (componentProxy == null) {</span>
+<span class="source-line-no">140</span><span id="line-140">                        componentProxy = new ComponentProxy(</span>
+<span class="source-line-no">141</span><span id="line-141">                            field, component, componentChannel);</span>
+<span class="source-line-no">142</span><span id="line-142">                    }</span>
+<span class="source-line-no">143</span><span id="line-143">                }</span>
+<span class="source-line-no">144</span><span id="line-144">            }</span>
+<span class="source-line-no">145</span><span id="line-145">        } catch (SecurityException | IllegalAccessException e) {</span>
+<span class="source-line-no">146</span><span id="line-146">            throw (RuntimeException) new IllegalArgumentException(</span>
+<span class="source-line-no">147</span><span id="line-147">                "Cannot access component's manager attribute").initCause(e);</span>
+<span class="source-line-no">148</span><span id="line-148">        }</span>
+<span class="source-line-no">149</span><span id="line-149">        return componentProxy;</span>
+<span class="source-line-no">150</span><span id="line-150">    }</span>
+<span class="source-line-no">151</span><span id="line-151"></span>
+<span class="source-line-no">152</span><span id="line-152">    public ComponentType component() {</span>
+<span class="source-line-no">153</span><span id="line-153">        return component;</span>
+<span class="source-line-no">154</span><span id="line-154">    }</span>
+<span class="source-line-no">155</span><span id="line-155"></span>
+<span class="source-line-no">156</span><span id="line-156">    /*</span>
+<span class="source-line-no">157</span><span id="line-157">     * (non-Javadoc)</span>
+<span class="source-line-no">158</span><span id="line-158">     * </span>
+<span class="source-line-no">159</span><span id="line-159">     * @see org.jgrapes.core.Manager#getChannel()</span>
+<span class="source-line-no">160</span><span id="line-160">     */</span>
+<span class="source-line-no">161</span><span id="line-161">    @Override</span>
+<span class="source-line-no">162</span><span id="line-162">    public Channel channel() {</span>
+<span class="source-line-no">163</span><span id="line-163">        return componentChannel;</span>
+<span class="source-line-no">164</span><span id="line-164">    }</span>
+<span class="source-line-no">165</span><span id="line-165"></span>
+<span class="source-line-no">166</span><span id="line-166">    /**</span>
+<span class="source-line-no">167</span><span id="line-167">     * Return the object itself as value.</span>
+<span class="source-line-no">168</span><span id="line-168">     */</span>
+<span class="source-line-no">169</span><span id="line-169">    @Override</span>
+<span class="source-line-no">170</span><span id="line-170">    public Object defaultCriterion() {</span>
+<span class="source-line-no">171</span><span id="line-171">        return this;</span>
+<span class="source-line-no">172</span><span id="line-172">    }</span>
+<span class="source-line-no">173</span><span id="line-173"></span>
+<span class="source-line-no">174</span><span id="line-174">    /**</span>
+<span class="source-line-no">175</span><span id="line-175">     * Matches the object itself (using identity comparison) or the</span>
+<span class="source-line-no">176</span><span id="line-176">     * {@link Channel} class.</span>
+<span class="source-line-no">177</span><span id="line-177">     * </span>
+<span class="source-line-no">178</span><span id="line-178">     * @see Channel#isEligibleFor(Object)</span>
+<span class="source-line-no">179</span><span id="line-179">     */</span>
+<span class="source-line-no">180</span><span id="line-180">    @Override</span>
+<span class="source-line-no">181</span><span id="line-181">    @SuppressWarnings("PMD.CompareObjectsWithEquals")</span>
+<span class="source-line-no">182</span><span id="line-182">    public boolean isEligibleFor(Object value) {</span>
+<span class="source-line-no">183</span><span id="line-183">        return value.equals(Channel.class)</span>
+<span class="source-line-no">184</span><span id="line-184">            || value == defaultCriterion();</span>
+<span class="source-line-no">185</span><span id="line-185">    }</span>
+<span class="source-line-no">186</span><span id="line-186">}</span>
 
 
 

@@ -65,9 +65,9 @@
 <span class="source-line-no">052</span><span id="line-52">     * itself.</span>
 <span class="source-line-no">053</span><span id="line-53">     */</span>
 <span class="source-line-no">054</span><span id="line-54">    public Component() {</span>
-<span class="source-line-no">055</span><span id="line-55">        super();</span>
+<span class="source-line-no">055</span><span id="line-55">        super(null);</span>
 <span class="source-line-no">056</span><span id="line-56">        componentChannel = this;</span>
-<span class="source-line-no">057</span><span id="line-57">        initComponentsHandlers(null);</span>
+<span class="source-line-no">057</span><span id="line-57">        initComponentsHandlers();</span>
 <span class="source-line-no">058</span><span id="line-58">    }</span>
 <span class="source-line-no">059</span><span id="line-59"></span>
 <span class="source-line-no">060</span><span id="line-60">    /**</span>
@@ -83,13 +83,13 @@
 <span class="source-line-no">070</span><span id="line-70">     * {@link Manager#fire(Event, Channel...)} sends the event to</span>
 <span class="source-line-no">071</span><span id="line-71">     */</span>
 <span class="source-line-no">072</span><span id="line-72">    public Component(Channel componentChannel) {</span>
-<span class="source-line-no">073</span><span id="line-73">        super();</span>
+<span class="source-line-no">073</span><span id="line-73">        super(null);</span>
 <span class="source-line-no">074</span><span id="line-74">        if (componentChannel == SELF) {</span>
 <span class="source-line-no">075</span><span id="line-75">            this.componentChannel = this;</span>
 <span class="source-line-no">076</span><span id="line-76">        } else {</span>
 <span class="source-line-no">077</span><span id="line-77">            this.componentChannel = componentChannel;</span>
 <span class="source-line-no">078</span><span id="line-78">        }</span>
-<span class="source-line-no">079</span><span id="line-79">        initComponentsHandlers(null);</span>
+<span class="source-line-no">079</span><span id="line-79">        initComponentsHandlers();</span>
 <span class="source-line-no">080</span><span id="line-80">    }</span>
 <span class="source-line-no">081</span><span id="line-81"></span>
 <span class="source-line-no">082</span><span id="line-82">    /**</span>
@@ -104,13 +104,13 @@
 <span class="source-line-no">091</span><span id="line-91">     */</span>
 <span class="source-line-no">092</span><span id="line-92">    public Component(</span>
 <span class="source-line-no">093</span><span id="line-93">            Channel componentChannel, ChannelReplacements channelReplacements) {</span>
-<span class="source-line-no">094</span><span id="line-94">        super();</span>
+<span class="source-line-no">094</span><span id="line-94">        super(channelReplacements);</span>
 <span class="source-line-no">095</span><span id="line-95">        if (componentChannel == SELF) {</span>
 <span class="source-line-no">096</span><span id="line-96">            this.componentChannel = this;</span>
 <span class="source-line-no">097</span><span id="line-97">        } else {</span>
 <span class="source-line-no">098</span><span id="line-98">            this.componentChannel = componentChannel;</span>
 <span class="source-line-no">099</span><span id="line-99">        }</span>
-<span class="source-line-no">100</span><span id="line-100">        initComponentsHandlers(channelReplacements);</span>
+<span class="source-line-no">100</span><span id="line-100">        initComponentsHandlers();</span>
 <span class="source-line-no">101</span><span id="line-101">    }</span>
 <span class="source-line-no">102</span><span id="line-102"></span>
 <span class="source-line-no">103</span><span id="line-103">    /*</span>
