@@ -165,7 +165,8 @@ public class HttpConnector extends Component {
      * @throws InterruptedException the interrupted exception
      */
     @Handler
-    @SuppressWarnings("PMD.CompareObjectsWithEquals")
+    @SuppressWarnings({ "PMD.CompareObjectsWithEquals",
+        "PMD.AvoidDuplicateLiterals" })
     public void onOutput(Output<?> event, WebAppMsgChannel appChannel)
             throws InterruptedException {
         if (appChannel.httpConnector() == this) {
