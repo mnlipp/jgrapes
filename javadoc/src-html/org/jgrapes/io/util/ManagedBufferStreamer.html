@@ -45,7 +45,7 @@
 <span class="source-line-no">032</span><span id="line-32"> *  </span>
 <span class="source-line-no">033</span><span id="line-33"> * @since 2.8.0</span>
 <span class="source-line-no">034</span><span id="line-34"> */</span>
-<span class="source-line-no">035</span><span id="line-35">public class ManagedBufferStreamer {</span>
+<span class="source-line-no">035</span><span id="line-35">public class ManagedBufferStreamer implements InputConsumer {</span>
 <span class="source-line-no">036</span><span id="line-36"></span>
 <span class="source-line-no">037</span><span id="line-37">    private final ManagedBufferReader reader = new ManagedBufferReader();</span>
 <span class="source-line-no">038</span><span id="line-38"></span>
@@ -84,12 +84,11 @@
 <span class="source-line-no">071</span><span id="line-71">     * @throws IOException Signals that an I/O exception has occurred.</span>
 <span class="source-line-no">072</span><span id="line-72">     */</span>
 <span class="source-line-no">073</span><span id="line-73">    @SuppressWarnings({ "PMD.PreserveStackTrace" })</span>
-<span class="source-line-no">074</span><span id="line-74">    public &lt;W extends Buffer&gt; void feed(ManagedBuffer&lt;W&gt; buffer)</span>
-<span class="source-line-no">075</span><span id="line-75">            throws IOException {</span>
-<span class="source-line-no">076</span><span id="line-76">        reader.feed(buffer);</span>
-<span class="source-line-no">077</span><span id="line-77">    }</span>
-<span class="source-line-no">078</span><span id="line-78"></span>
-<span class="source-line-no">079</span><span id="line-79">}</span>
+<span class="source-line-no">074</span><span id="line-74">    public &lt;W extends Buffer&gt; void feed(ManagedBuffer&lt;W&gt; buffer) {</span>
+<span class="source-line-no">075</span><span id="line-75">        reader.feed(buffer);</span>
+<span class="source-line-no">076</span><span id="line-76">    }</span>
+<span class="source-line-no">077</span><span id="line-77"></span>
+<span class="source-line-no">078</span><span id="line-78">}</span>
 
 
 

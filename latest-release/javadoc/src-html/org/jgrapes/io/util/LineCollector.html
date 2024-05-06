@@ -40,258 +40,242 @@
 <span class="source-line-no">027</span><span id="line-27">import java.util.Queue;</span>
 <span class="source-line-no">028</span><span id="line-28">import java.util.concurrent.ConcurrentLinkedQueue;</span>
 <span class="source-line-no">029</span><span id="line-29">import java.util.function.Consumer;</span>
-<span class="source-line-no">030</span><span id="line-30">import org.jgrapes.io.events.Input;</span>
-<span class="source-line-no">031</span><span id="line-31"></span>
-<span class="source-line-no">032</span><span id="line-32">/**</span>
-<span class="source-line-no">033</span><span id="line-33"> * Collects character data from buffers and makes it available as</span>
-<span class="source-line-no">034</span><span id="line-34"> * complete lines.</span>
-<span class="source-line-no">035</span><span id="line-35"> * </span>
-<span class="source-line-no">036</span><span id="line-36"> * Lines end with a LF which may optionally be followed by a CR.</span>
-<span class="source-line-no">037</span><span id="line-37"> * Neither character is part of the result returned by {@link #getLine()}.</span>
-<span class="source-line-no">038</span><span id="line-38"> * If no more input is expected and characters without trailing LF</span>
-<span class="source-line-no">039</span><span id="line-39"> * remain, these remaining character are returned as a line as well.   </span>
-<span class="source-line-no">040</span><span id="line-40"> */</span>
-<span class="source-line-no">041</span><span id="line-41">@SuppressWarnings("PMD.DataflowAnomalyAnalysis")</span>
-<span class="source-line-no">042</span><span id="line-42">public class LineCollector {</span>
-<span class="source-line-no">043</span><span id="line-43">    private boolean isEof;</span>
-<span class="source-line-no">044</span><span id="line-44">    private CharsetDecoder decoder;</span>
-<span class="source-line-no">045</span><span id="line-45">    private Charset charset = StandardCharsets.UTF_8;</span>
-<span class="source-line-no">046</span><span id="line-46">    private CharBuffer pending;</span>
-<span class="source-line-no">047</span><span id="line-47">    private CharBuffer rest;</span>
-<span class="source-line-no">048</span><span id="line-48">    private boolean endedWithLF;</span>
-<span class="source-line-no">049</span><span id="line-49">    private final Queue&lt;String&gt; lines = new ConcurrentLinkedQueue&lt;&gt;();</span>
-<span class="source-line-no">050</span><span id="line-50">    private Consumer&lt;String&gt; consumer = lines::add;</span>
-<span class="source-line-no">051</span><span id="line-51"></span>
-<span class="source-line-no">052</span><span id="line-52">    /**</span>
-<span class="source-line-no">053</span><span id="line-53">     * Sets the charset to be used if {@link #feed(ManagedBuffer)}</span>
-<span class="source-line-no">054</span><span id="line-54">     * is invoked with `ManagedBuffer&lt;ByteBuffer&gt;`. Defaults to UTF-8. </span>
-<span class="source-line-no">055</span><span id="line-55">     * Must be set before the first invocation of </span>
-<span class="source-line-no">056</span><span id="line-56">     * {@link #feed(ManagedBuffer)}.  </span>
-<span class="source-line-no">057</span><span id="line-57">     *</span>
-<span class="source-line-no">058</span><span id="line-58">     * @param charset the charset</span>
-<span class="source-line-no">059</span><span id="line-59">     * @return the managed buffer reader</span>
-<span class="source-line-no">060</span><span id="line-60">     */</span>
-<span class="source-line-no">061</span><span id="line-61">    public LineCollector charset(Charset charset) {</span>
-<span class="source-line-no">062</span><span id="line-62">        if (decoder != null) {</span>
-<span class="source-line-no">063</span><span id="line-63">            throw new IllegalStateException("Charset cannot be changed.");</span>
-<span class="source-line-no">064</span><span id="line-64">        }</span>
-<span class="source-line-no">065</span><span id="line-65">        this.charset = charset;</span>
-<span class="source-line-no">066</span><span id="line-66">        return this;</span>
-<span class="source-line-no">067</span><span id="line-67">    }</span>
-<span class="source-line-no">068</span><span id="line-68"></span>
-<span class="source-line-no">069</span><span id="line-69">    /**</span>
-<span class="source-line-no">070</span><span id="line-70">     * Sets the charset to be used if {@link #feed(ManagedBuffer)}</span>
-<span class="source-line-no">071</span><span id="line-71">     * is invoked with `ManagedBuffer&lt;ByteBuffer&gt;` to the charset</span>
-<span class="source-line-no">072</span><span id="line-72">     * specified as system property `native.encoding`. If this</span>
-<span class="source-line-no">073</span><span id="line-73">     * property does not specify a valid charset, </span>
-<span class="source-line-no">074</span><span id="line-74">     * {@link Charset#defaultCharset()} is used.</span>
-<span class="source-line-no">075</span><span id="line-75">     *  </span>
-<span class="source-line-no">076</span><span id="line-76">     * Must be invoked before the first invocation of </span>
-<span class="source-line-no">077</span><span id="line-77">     * {@link #feed(ManagedBuffer)}.  </span>
-<span class="source-line-no">078</span><span id="line-78">     *</span>
-<span class="source-line-no">079</span><span id="line-79">     * @return the managed buffer reader</span>
-<span class="source-line-no">080</span><span id="line-80">     */</span>
-<span class="source-line-no">081</span><span id="line-81">    @SuppressWarnings({ "PMD.AvoidCatchingGenericException",</span>
-<span class="source-line-no">082</span><span id="line-82">        "PMD.EmptyCatchBlock" })</span>
-<span class="source-line-no">083</span><span id="line-83">    public LineCollector nativeCharset() {</span>
-<span class="source-line-no">084</span><span id="line-84">        Charset toSet = Charset.defaultCharset();</span>
-<span class="source-line-no">085</span><span id="line-85">        var toCheck = System.getProperty("native.encoding");</span>
-<span class="source-line-no">086</span><span id="line-86">        if (toCheck != null) {</span>
-<span class="source-line-no">087</span><span id="line-87">            try {</span>
-<span class="source-line-no">088</span><span id="line-88">                toSet = Charset.forName(toCheck);</span>
-<span class="source-line-no">089</span><span id="line-89">            } catch (Exception e) {</span>
-<span class="source-line-no">090</span><span id="line-90">                // If this fails, simply use default</span>
-<span class="source-line-no">091</span><span id="line-91">            }</span>
-<span class="source-line-no">092</span><span id="line-92">        }</span>
-<span class="source-line-no">093</span><span id="line-93">        charset(toSet);</span>
-<span class="source-line-no">094</span><span id="line-94">        return this;</span>
-<span class="source-line-no">095</span><span id="line-95">    }</span>
-<span class="source-line-no">096</span><span id="line-96"></span>
-<span class="source-line-no">097</span><span id="line-97">    /**</span>
-<span class="source-line-no">098</span><span id="line-98">     * Configures a consumer for lines. The consumer is invoked when</span>
-<span class="source-line-no">099</span><span id="line-99">     * a complete line has been detected. If a consumer is configured,</span>
-<span class="source-line-no">100</span><span id="line-100">     * {@link #getLine()} may not be used (always returns `null`).</span>
-<span class="source-line-no">101</span><span id="line-101">     *</span>
-<span class="source-line-no">102</span><span id="line-102">     * @param consumer the consumer</span>
-<span class="source-line-no">103</span><span id="line-103">     * @return the line collector</span>
-<span class="source-line-no">104</span><span id="line-104">     */</span>
-<span class="source-line-no">105</span><span id="line-105">    public LineCollector consumer(Consumer&lt;String&gt; consumer) {</span>
-<span class="source-line-no">106</span><span id="line-106">        this.consumer = consumer;</span>
-<span class="source-line-no">107</span><span id="line-107">        return this;</span>
-<span class="source-line-no">108</span><span id="line-108">    }</span>
-<span class="source-line-no">109</span><span id="line-109"></span>
-<span class="source-line-no">110</span><span id="line-110">    /**</span>
-<span class="source-line-no">111</span><span id="line-111">     * Feed data to the collector. </span>
-<span class="source-line-no">112</span><span id="line-112">     * </span>
-<span class="source-line-no">113</span><span id="line-113">     * Calling this method with `null` as argument closes the feed.</span>
-<span class="source-line-no">114</span><span id="line-114">     *</span>
-<span class="source-line-no">115</span><span id="line-115">     * @param buffer the buffer</span>
-<span class="source-line-no">116</span><span id="line-116">     */</span>
-<span class="source-line-no">117</span><span id="line-117">    public &lt;W extends Buffer&gt; void feed(W buffer) {</span>
-<span class="source-line-no">118</span><span id="line-118">        if (isEof) {</span>
-<span class="source-line-no">119</span><span id="line-119">            return;</span>
-<span class="source-line-no">120</span><span id="line-120">        }</span>
-<span class="source-line-no">121</span><span id="line-121">        if (buffer == null) {</span>
-<span class="source-line-no">122</span><span id="line-122">            isEof = true;</span>
-<span class="source-line-no">123</span><span id="line-123">        } else {</span>
-<span class="source-line-no">124</span><span id="line-124">            copyToPending(buffer);</span>
-<span class="source-line-no">125</span><span id="line-125">        }</span>
-<span class="source-line-no">126</span><span id="line-126">        extractLines();</span>
-<span class="source-line-no">127</span><span id="line-127"></span>
-<span class="source-line-no">128</span><span id="line-128">    }</span>
-<span class="source-line-no">129</span><span id="line-129"></span>
-<span class="source-line-no">130</span><span id="line-130">    /**</span>
-<span class="source-line-no">131</span><span id="line-131">     * Feed data to the collector. </span>
-<span class="source-line-no">132</span><span id="line-132">     * </span>
-<span class="source-line-no">133</span><span id="line-133">     * Calling this method with `null` as argument closes the feed.</span>
-<span class="source-line-no">134</span><span id="line-134">     *</span>
-<span class="source-line-no">135</span><span id="line-135">     * @param buffer the buffer</span>
-<span class="source-line-no">136</span><span id="line-136">     */</span>
-<span class="source-line-no">137</span><span id="line-137">    public &lt;W extends Buffer&gt; void feed(ManagedBuffer&lt;W&gt; buffer) {</span>
-<span class="source-line-no">138</span><span id="line-138">        if (buffer == null) {</span>
-<span class="source-line-no">139</span><span id="line-139">            feed((W) null);</span>
-<span class="source-line-no">140</span><span id="line-140">        } else {</span>
-<span class="source-line-no">141</span><span id="line-141">            feed(buffer.backingBuffer());</span>
-<span class="source-line-no">142</span><span id="line-142">        }</span>
-<span class="source-line-no">143</span><span id="line-143">    }</span>
-<span class="source-line-no">144</span><span id="line-144"></span>
-<span class="source-line-no">145</span><span id="line-145">    /**</span>
-<span class="source-line-no">146</span><span id="line-146">     * Feed data to the collector. </span>
-<span class="source-line-no">147</span><span id="line-147">     * </span>
-<span class="source-line-no">148</span><span id="line-148">     * Calling this method with `null` as argument closes the feed.</span>
-<span class="source-line-no">149</span><span id="line-149">     *</span>
-<span class="source-line-no">150</span><span id="line-150">     * @param event the event</span>
-<span class="source-line-no">151</span><span id="line-151">     */</span>
-<span class="source-line-no">152</span><span id="line-152">    public &lt;W extends Buffer&gt; void feed(Input&lt;W&gt; event) {</span>
-<span class="source-line-no">153</span><span id="line-153">        if (event == null) {</span>
-<span class="source-line-no">154</span><span id="line-154">            feed((W) null);</span>
-<span class="source-line-no">155</span><span id="line-155">        } else {</span>
-<span class="source-line-no">156</span><span id="line-156">            feed(event.buffer());</span>
-<span class="source-line-no">157</span><span id="line-157">        }</span>
-<span class="source-line-no">158</span><span id="line-158">    }</span>
-<span class="source-line-no">159</span><span id="line-159"></span>
-<span class="source-line-no">160</span><span id="line-160">    private &lt;W extends Buffer&gt; void copyToPending(W buffer) {</span>
-<span class="source-line-no">161</span><span id="line-161">        try {</span>
-<span class="source-line-no">162</span><span id="line-162">            buffer.mark();</span>
-<span class="source-line-no">163</span><span id="line-163">            if (pending == null) {</span>
-<span class="source-line-no">164</span><span id="line-164">                pending = CharBuffer.allocate(buffer.capacity());</span>
-<span class="source-line-no">165</span><span id="line-165">            }</span>
-<span class="source-line-no">166</span><span id="line-166">            if (buffer instanceof CharBuffer charBuf) {</span>
-<span class="source-line-no">167</span><span id="line-167">                if (pending.remaining() &lt; charBuf.remaining()) {</span>
-<span class="source-line-no">168</span><span id="line-168">                    resizePending(charBuf);</span>
-<span class="source-line-no">169</span><span id="line-169">                }</span>
-<span class="source-line-no">170</span><span id="line-170">                pending.put(charBuf);</span>
-<span class="source-line-no">171</span><span id="line-171">                return;</span>
-<span class="source-line-no">172</span><span id="line-172">            }</span>
-<span class="source-line-no">173</span><span id="line-173">            if (decoder == null) {</span>
-<span class="source-line-no">174</span><span id="line-174">                decoder = charset.newDecoder();</span>
-<span class="source-line-no">175</span><span id="line-175">            }</span>
-<span class="source-line-no">176</span><span id="line-176">            while (true) {</span>
-<span class="source-line-no">177</span><span id="line-177">                var result</span>
-<span class="source-line-no">178</span><span id="line-178">                    = decoder.decode((ByteBuffer) buffer, pending, isEof);</span>
-<span class="source-line-no">179</span><span id="line-179">                if (!result.isOverflow()) {</span>
-<span class="source-line-no">180</span><span id="line-180">                    break;</span>
-<span class="source-line-no">181</span><span id="line-181">                }</span>
-<span class="source-line-no">182</span><span id="line-182">                // Need larger buffer</span>
-<span class="source-line-no">183</span><span id="line-183">                resizePending(buffer);</span>
-<span class="source-line-no">184</span><span id="line-184">            }</span>
-<span class="source-line-no">185</span><span id="line-185">        } finally {</span>
-<span class="source-line-no">186</span><span id="line-186">            buffer.reset();</span>
-<span class="source-line-no">187</span><span id="line-187">        }</span>
-<span class="source-line-no">188</span><span id="line-188">    }</span>
-<span class="source-line-no">189</span><span id="line-189"></span>
-<span class="source-line-no">190</span><span id="line-190">    private void resizePending(Buffer toAppend) {</span>
-<span class="source-line-no">191</span><span id="line-191">        var old = pending;</span>
-<span class="source-line-no">192</span><span id="line-192">        pending = CharBuffer.allocate(old.capacity() + toAppend.capacity());</span>
-<span class="source-line-no">193</span><span id="line-193">        old.flip();</span>
-<span class="source-line-no">194</span><span id="line-194">        pending.put(old);</span>
-<span class="source-line-no">195</span><span id="line-195">    }</span>
-<span class="source-line-no">196</span><span id="line-196"></span>
-<span class="source-line-no">197</span><span id="line-197">    @SuppressWarnings({ "PMD.CognitiveComplexity", "PMD.NcssCount",</span>
-<span class="source-line-no">198</span><span id="line-198">        "PMD.NPathComplexity", "PMD.AvoidLiteralsInIfCondition",</span>
-<span class="source-line-no">199</span><span id="line-199">        "PMD.AvoidReassigningLoopVariables",</span>
-<span class="source-line-no">200</span><span id="line-200">        "PMD.AvoidBranchingStatementAsLastInLoop", "PMD.CyclomaticComplexity",</span>
-<span class="source-line-no">201</span><span id="line-201">        "PMD.AvoidInstantiatingObjectsInLoops" })</span>
-<span class="source-line-no">202</span><span id="line-202">    private void extractLines() {</span>
-<span class="source-line-no">203</span><span id="line-203">        pending.flip();</span>
-<span class="source-line-no">204</span><span id="line-204">        if (!pending.hasRemaining()) {</span>
-<span class="source-line-no">205</span><span id="line-205">            pending.clear();</span>
-<span class="source-line-no">206</span><span id="line-206">            return;</span>
-<span class="source-line-no">207</span><span id="line-207">        }</span>
-<span class="source-line-no">208</span><span id="line-208">        if (endedWithLF &amp;&amp; pending.get(pending.position()) == '\r') {</span>
-<span class="source-line-no">209</span><span id="line-209">            pending.get();</span>
-<span class="source-line-no">210</span><span id="line-210">        }</span>
-<span class="source-line-no">211</span><span id="line-211">        int end = pending.limit();</span>
-<span class="source-line-no">212</span><span id="line-212">        endedWithLF = false;</span>
-<span class="source-line-no">213</span><span id="line-213">        while (pending.hasRemaining()) {</span>
-<span class="source-line-no">214</span><span id="line-214">            int start = pending.position();</span>
-<span class="source-line-no">215</span><span id="line-215">            for (int pos = start; pos &lt; end;) {</span>
-<span class="source-line-no">216</span><span id="line-216">                if (pending.get(pos) != '\n') {</span>
-<span class="source-line-no">217</span><span id="line-217">                    pos += 1;</span>
-<span class="source-line-no">218</span><span id="line-218">                    continue;</span>
-<span class="source-line-no">219</span><span id="line-219">                }</span>
-<span class="source-line-no">220</span><span id="line-220">                consumer</span>
-<span class="source-line-no">221</span><span id="line-221">                    .accept(new String(pending.array(), start, pos - start));</span>
-<span class="source-line-no">222</span><span id="line-222">                pos += 1;</span>
-<span class="source-line-no">223</span><span id="line-223">                endedWithLF = pos &gt;= end;</span>
-<span class="source-line-no">224</span><span id="line-224">                if (pos &lt; end &amp;&amp; pending.get(pos) == '\r') {</span>
-<span class="source-line-no">225</span><span id="line-225">                    pos += 1;</span>
-<span class="source-line-no">226</span><span id="line-226">                }</span>
-<span class="source-line-no">227</span><span id="line-227">                pending.position(pos);</span>
-<span class="source-line-no">228</span><span id="line-228">                break;</span>
-<span class="source-line-no">229</span><span id="line-229">            }</span>
-<span class="source-line-no">230</span><span id="line-230">            if (pending.position() == start) {</span>
-<span class="source-line-no">231</span><span id="line-231">                // No LF found</span>
-<span class="source-line-no">232</span><span id="line-232">                break;</span>
-<span class="source-line-no">233</span><span id="line-233">            }</span>
-<span class="source-line-no">234</span><span id="line-234">        }</span>
-<span class="source-line-no">235</span><span id="line-235">        if (!pending.hasRemaining()) {</span>
-<span class="source-line-no">236</span><span id="line-236">            // Last input was or ended with complete line</span>
-<span class="source-line-no">237</span><span id="line-237">            pending.clear();</span>
-<span class="source-line-no">238</span><span id="line-238">            return;</span>
-<span class="source-line-no">239</span><span id="line-239">        }</span>
-<span class="source-line-no">240</span><span id="line-240">        // Incomplete line</span>
-<span class="source-line-no">241</span><span id="line-241">        if (isEof) {</span>
-<span class="source-line-no">242</span><span id="line-242">            consumer.accept(new String(pending.array(), pending.position(),</span>
-<span class="source-line-no">243</span><span id="line-243">                pending.remaining()));</span>
-<span class="source-line-no">244</span><span id="line-244">            return;</span>
-<span class="source-line-no">245</span><span id="line-245">        }</span>
-<span class="source-line-no">246</span><span id="line-246">        if (pending.position() == 0) {</span>
-<span class="source-line-no">247</span><span id="line-247">            // Nothing consumed, continue to write into pending</span>
-<span class="source-line-no">248</span><span id="line-248">            var limit = pending.limit();</span>
-<span class="source-line-no">249</span><span id="line-249">            pending.clear();</span>
-<span class="source-line-no">250</span><span id="line-250">            pending.position(limit);</span>
-<span class="source-line-no">251</span><span id="line-251">            return;</span>
-<span class="source-line-no">252</span><span id="line-252">        }</span>
-<span class="source-line-no">253</span><span id="line-253">        // Transfer remaining to beginning of pending</span>
-<span class="source-line-no">254</span><span id="line-254">        if (rest == null || rest.capacity() &lt; pending.remaining()) {</span>
-<span class="source-line-no">255</span><span id="line-255">            rest = CharBuffer.allocate(pending.capacity());</span>
-<span class="source-line-no">256</span><span id="line-256">        }</span>
-<span class="source-line-no">257</span><span id="line-257">        rest.put(pending);</span>
-<span class="source-line-no">258</span><span id="line-258">        rest.flip();</span>
-<span class="source-line-no">259</span><span id="line-259">        pending.clear();</span>
-<span class="source-line-no">260</span><span id="line-260">        pending.put(rest);</span>
-<span class="source-line-no">261</span><span id="line-261">        rest.clear();</span>
-<span class="source-line-no">262</span><span id="line-262">    }</span>
-<span class="source-line-no">263</span><span id="line-263"></span>
-<span class="source-line-no">264</span><span id="line-264">    /**</span>
-<span class="source-line-no">265</span><span id="line-265">     * Checks if more input may become available.</span>
-<span class="source-line-no">266</span><span id="line-266">     *</span>
-<span class="source-line-no">267</span><span id="line-267">     * @return true, if successful</span>
-<span class="source-line-no">268</span><span id="line-268">     */</span>
-<span class="source-line-no">269</span><span id="line-269">    public boolean eof() {</span>
-<span class="source-line-no">270</span><span id="line-270">        return isEof;</span>
-<span class="source-line-no">271</span><span id="line-271">    }</span>
-<span class="source-line-no">272</span><span id="line-272"></span>
-<span class="source-line-no">273</span><span id="line-273">    /**</span>
-<span class="source-line-no">274</span><span id="line-274">     * Gets the next line.</span>
-<span class="source-line-no">275</span><span id="line-275">     *</span>
-<span class="source-line-no">276</span><span id="line-276">     * @return the line</span>
-<span class="source-line-no">277</span><span id="line-277">     */</span>
-<span class="source-line-no">278</span><span id="line-278">    public String getLine() {</span>
-<span class="source-line-no">279</span><span id="line-279">        return lines.poll();</span>
-<span class="source-line-no">280</span><span id="line-280">    }</span>
-<span class="source-line-no">281</span><span id="line-281">}</span>
+<span class="source-line-no">030</span><span id="line-30"></span>
+<span class="source-line-no">031</span><span id="line-31">/**</span>
+<span class="source-line-no">032</span><span id="line-32"> * Collects character data from buffers and makes it available as</span>
+<span class="source-line-no">033</span><span id="line-33"> * complete lines.</span>
+<span class="source-line-no">034</span><span id="line-34"> * </span>
+<span class="source-line-no">035</span><span id="line-35"> * Lines end with a LF which may optionally be followed by a CR.</span>
+<span class="source-line-no">036</span><span id="line-36"> * Neither character is part of the result returned by {@link #getLine()}.</span>
+<span class="source-line-no">037</span><span id="line-37"> * If no more input is expected and characters without trailing LF</span>
+<span class="source-line-no">038</span><span id="line-38"> * remain, these remaining character are returned as a line as well.   </span>
+<span class="source-line-no">039</span><span id="line-39"> */</span>
+<span class="source-line-no">040</span><span id="line-40">@SuppressWarnings("PMD.DataflowAnomalyAnalysis")</span>
+<span class="source-line-no">041</span><span id="line-41">public class LineCollector implements InputConsumer {</span>
+<span class="source-line-no">042</span><span id="line-42">    private boolean isEof;</span>
+<span class="source-line-no">043</span><span id="line-43">    private CharsetDecoder decoder;</span>
+<span class="source-line-no">044</span><span id="line-44">    private Charset charset = StandardCharsets.UTF_8;</span>
+<span class="source-line-no">045</span><span id="line-45">    private CharBuffer pending;</span>
+<span class="source-line-no">046</span><span id="line-46">    private CharBuffer rest;</span>
+<span class="source-line-no">047</span><span id="line-47">    private boolean endedWithLF;</span>
+<span class="source-line-no">048</span><span id="line-48">    private final Queue&lt;String&gt; lines = new ConcurrentLinkedQueue&lt;&gt;();</span>
+<span class="source-line-no">049</span><span id="line-49">    private Consumer&lt;String&gt; consumer = lines::add;</span>
+<span class="source-line-no">050</span><span id="line-50"></span>
+<span class="source-line-no">051</span><span id="line-51">    /**</span>
+<span class="source-line-no">052</span><span id="line-52">     * Sets the charset to be used if {@link #feed(ManagedBuffer)}</span>
+<span class="source-line-no">053</span><span id="line-53">     * is invoked with `ManagedBuffer&lt;ByteBuffer&gt;`. Defaults to UTF-8. </span>
+<span class="source-line-no">054</span><span id="line-54">     * Must be set before the first invocation of </span>
+<span class="source-line-no">055</span><span id="line-55">     * {@link #feed(ManagedBuffer)}.  </span>
+<span class="source-line-no">056</span><span id="line-56">     *</span>
+<span class="source-line-no">057</span><span id="line-57">     * @param charset the charset</span>
+<span class="source-line-no">058</span><span id="line-58">     * @return the managed buffer reader</span>
+<span class="source-line-no">059</span><span id="line-59">     */</span>
+<span class="source-line-no">060</span><span id="line-60">    public LineCollector charset(Charset charset) {</span>
+<span class="source-line-no">061</span><span id="line-61">        if (decoder != null) {</span>
+<span class="source-line-no">062</span><span id="line-62">            throw new IllegalStateException("Charset cannot be changed.");</span>
+<span class="source-line-no">063</span><span id="line-63">        }</span>
+<span class="source-line-no">064</span><span id="line-64">        this.charset = charset;</span>
+<span class="source-line-no">065</span><span id="line-65">        return this;</span>
+<span class="source-line-no">066</span><span id="line-66">    }</span>
+<span class="source-line-no">067</span><span id="line-67"></span>
+<span class="source-line-no">068</span><span id="line-68">    /**</span>
+<span class="source-line-no">069</span><span id="line-69">     * Sets the charset to be used if {@link #feed(ManagedBuffer)}</span>
+<span class="source-line-no">070</span><span id="line-70">     * is invoked with `ManagedBuffer&lt;ByteBuffer&gt;` to the charset</span>
+<span class="source-line-no">071</span><span id="line-71">     * specified as system property `native.encoding`. If this</span>
+<span class="source-line-no">072</span><span id="line-72">     * property does not specify a valid charset, </span>
+<span class="source-line-no">073</span><span id="line-73">     * {@link Charset#defaultCharset()} is used.</span>
+<span class="source-line-no">074</span><span id="line-74">     *  </span>
+<span class="source-line-no">075</span><span id="line-75">     * Must be invoked before the first invocation of </span>
+<span class="source-line-no">076</span><span id="line-76">     * {@link #feed(ManagedBuffer)}.  </span>
+<span class="source-line-no">077</span><span id="line-77">     *</span>
+<span class="source-line-no">078</span><span id="line-78">     * @return the managed buffer reader</span>
+<span class="source-line-no">079</span><span id="line-79">     */</span>
+<span class="source-line-no">080</span><span id="line-80">    @SuppressWarnings({ "PMD.AvoidCatchingGenericException",</span>
+<span class="source-line-no">081</span><span id="line-81">        "PMD.EmptyCatchBlock" })</span>
+<span class="source-line-no">082</span><span id="line-82">    public LineCollector nativeCharset() {</span>
+<span class="source-line-no">083</span><span id="line-83">        Charset toSet = Charset.defaultCharset();</span>
+<span class="source-line-no">084</span><span id="line-84">        var toCheck = System.getProperty("native.encoding");</span>
+<span class="source-line-no">085</span><span id="line-85">        if (toCheck != null) {</span>
+<span class="source-line-no">086</span><span id="line-86">            try {</span>
+<span class="source-line-no">087</span><span id="line-87">                toSet = Charset.forName(toCheck);</span>
+<span class="source-line-no">088</span><span id="line-88">            } catch (Exception e) {</span>
+<span class="source-line-no">089</span><span id="line-89">                // If this fails, simply use default</span>
+<span class="source-line-no">090</span><span id="line-90">            }</span>
+<span class="source-line-no">091</span><span id="line-91">        }</span>
+<span class="source-line-no">092</span><span id="line-92">        charset(toSet);</span>
+<span class="source-line-no">093</span><span id="line-93">        return this;</span>
+<span class="source-line-no">094</span><span id="line-94">    }</span>
+<span class="source-line-no">095</span><span id="line-95"></span>
+<span class="source-line-no">096</span><span id="line-96">    /**</span>
+<span class="source-line-no">097</span><span id="line-97">     * Configures a consumer for lines. The consumer is invoked when</span>
+<span class="source-line-no">098</span><span id="line-98">     * a complete line has been detected. If a consumer is configured,</span>
+<span class="source-line-no">099</span><span id="line-99">     * {@link #getLine()} may not be used (always returns `null`).</span>
+<span class="source-line-no">100</span><span id="line-100">     *</span>
+<span class="source-line-no">101</span><span id="line-101">     * @param consumer the consumer</span>
+<span class="source-line-no">102</span><span id="line-102">     * @return the line collector</span>
+<span class="source-line-no">103</span><span id="line-103">     */</span>
+<span class="source-line-no">104</span><span id="line-104">    public LineCollector consumer(Consumer&lt;String&gt; consumer) {</span>
+<span class="source-line-no">105</span><span id="line-105">        this.consumer = consumer;</span>
+<span class="source-line-no">106</span><span id="line-106">        return this;</span>
+<span class="source-line-no">107</span><span id="line-107">    }</span>
+<span class="source-line-no">108</span><span id="line-108"></span>
+<span class="source-line-no">109</span><span id="line-109">    /**</span>
+<span class="source-line-no">110</span><span id="line-110">     * Feed data to the collector. </span>
+<span class="source-line-no">111</span><span id="line-111">     * </span>
+<span class="source-line-no">112</span><span id="line-112">     * Calling this method with `null` as argument closes the feed.</span>
+<span class="source-line-no">113</span><span id="line-113">     *</span>
+<span class="source-line-no">114</span><span id="line-114">     * @param buffer the buffer</span>
+<span class="source-line-no">115</span><span id="line-115">     */</span>
+<span class="source-line-no">116</span><span id="line-116">    public &lt;W extends Buffer&gt; void feed(W buffer) {</span>
+<span class="source-line-no">117</span><span id="line-117">        if (isEof) {</span>
+<span class="source-line-no">118</span><span id="line-118">            return;</span>
+<span class="source-line-no">119</span><span id="line-119">        }</span>
+<span class="source-line-no">120</span><span id="line-120">        if (buffer == null) {</span>
+<span class="source-line-no">121</span><span id="line-121">            isEof = true;</span>
+<span class="source-line-no">122</span><span id="line-122">        } else {</span>
+<span class="source-line-no">123</span><span id="line-123">            copyToPending(buffer);</span>
+<span class="source-line-no">124</span><span id="line-124">        }</span>
+<span class="source-line-no">125</span><span id="line-125">        extractLines();</span>
+<span class="source-line-no">126</span><span id="line-126"></span>
+<span class="source-line-no">127</span><span id="line-127">    }</span>
+<span class="source-line-no">128</span><span id="line-128"></span>
+<span class="source-line-no">129</span><span id="line-129">    /**</span>
+<span class="source-line-no">130</span><span id="line-130">     * Feed data to the collector. </span>
+<span class="source-line-no">131</span><span id="line-131">     * </span>
+<span class="source-line-no">132</span><span id="line-132">     * Calling this method with `null` as argument closes the feed.</span>
+<span class="source-line-no">133</span><span id="line-133">     *</span>
+<span class="source-line-no">134</span><span id="line-134">     * @param buffer the buffer</span>
+<span class="source-line-no">135</span><span id="line-135">     */</span>
+<span class="source-line-no">136</span><span id="line-136">    public &lt;W extends Buffer&gt; void feed(ManagedBuffer&lt;W&gt; buffer) {</span>
+<span class="source-line-no">137</span><span id="line-137">        if (buffer == null) {</span>
+<span class="source-line-no">138</span><span id="line-138">            feed((W) null);</span>
+<span class="source-line-no">139</span><span id="line-139">        } else {</span>
+<span class="source-line-no">140</span><span id="line-140">            feed(buffer.backingBuffer());</span>
+<span class="source-line-no">141</span><span id="line-141">        }</span>
+<span class="source-line-no">142</span><span id="line-142">    }</span>
+<span class="source-line-no">143</span><span id="line-143"></span>
+<span class="source-line-no">144</span><span id="line-144">    private &lt;W extends Buffer&gt; void copyToPending(W buffer) {</span>
+<span class="source-line-no">145</span><span id="line-145">        try {</span>
+<span class="source-line-no">146</span><span id="line-146">            buffer.mark();</span>
+<span class="source-line-no">147</span><span id="line-147">            if (pending == null) {</span>
+<span class="source-line-no">148</span><span id="line-148">                pending = CharBuffer.allocate(buffer.capacity());</span>
+<span class="source-line-no">149</span><span id="line-149">            }</span>
+<span class="source-line-no">150</span><span id="line-150">            if (buffer instanceof CharBuffer charBuf) {</span>
+<span class="source-line-no">151</span><span id="line-151">                if (pending.remaining() &lt; charBuf.remaining()) {</span>
+<span class="source-line-no">152</span><span id="line-152">                    resizePending(charBuf);</span>
+<span class="source-line-no">153</span><span id="line-153">                }</span>
+<span class="source-line-no">154</span><span id="line-154">                pending.put(charBuf);</span>
+<span class="source-line-no">155</span><span id="line-155">                return;</span>
+<span class="source-line-no">156</span><span id="line-156">            }</span>
+<span class="source-line-no">157</span><span id="line-157">            if (decoder == null) {</span>
+<span class="source-line-no">158</span><span id="line-158">                decoder = charset.newDecoder();</span>
+<span class="source-line-no">159</span><span id="line-159">            }</span>
+<span class="source-line-no">160</span><span id="line-160">            while (true) {</span>
+<span class="source-line-no">161</span><span id="line-161">                var result</span>
+<span class="source-line-no">162</span><span id="line-162">                    = decoder.decode((ByteBuffer) buffer, pending, isEof);</span>
+<span class="source-line-no">163</span><span id="line-163">                if (!result.isOverflow()) {</span>
+<span class="source-line-no">164</span><span id="line-164">                    break;</span>
+<span class="source-line-no">165</span><span id="line-165">                }</span>
+<span class="source-line-no">166</span><span id="line-166">                // Need larger buffer</span>
+<span class="source-line-no">167</span><span id="line-167">                resizePending(buffer);</span>
+<span class="source-line-no">168</span><span id="line-168">            }</span>
+<span class="source-line-no">169</span><span id="line-169">        } finally {</span>
+<span class="source-line-no">170</span><span id="line-170">            buffer.reset();</span>
+<span class="source-line-no">171</span><span id="line-171">        }</span>
+<span class="source-line-no">172</span><span id="line-172">    }</span>
+<span class="source-line-no">173</span><span id="line-173"></span>
+<span class="source-line-no">174</span><span id="line-174">    private void resizePending(Buffer toAppend) {</span>
+<span class="source-line-no">175</span><span id="line-175">        var old = pending;</span>
+<span class="source-line-no">176</span><span id="line-176">        pending = CharBuffer.allocate(old.capacity() + toAppend.capacity());</span>
+<span class="source-line-no">177</span><span id="line-177">        old.flip();</span>
+<span class="source-line-no">178</span><span id="line-178">        pending.put(old);</span>
+<span class="source-line-no">179</span><span id="line-179">    }</span>
+<span class="source-line-no">180</span><span id="line-180"></span>
+<span class="source-line-no">181</span><span id="line-181">    @SuppressWarnings({ "PMD.CognitiveComplexity", "PMD.NcssCount",</span>
+<span class="source-line-no">182</span><span id="line-182">        "PMD.NPathComplexity", "PMD.AvoidLiteralsInIfCondition",</span>
+<span class="source-line-no">183</span><span id="line-183">        "PMD.AvoidReassigningLoopVariables",</span>
+<span class="source-line-no">184</span><span id="line-184">        "PMD.AvoidBranchingStatementAsLastInLoop", "PMD.CyclomaticComplexity",</span>
+<span class="source-line-no">185</span><span id="line-185">        "PMD.AvoidInstantiatingObjectsInLoops" })</span>
+<span class="source-line-no">186</span><span id="line-186">    private void extractLines() {</span>
+<span class="source-line-no">187</span><span id="line-187">        pending.flip();</span>
+<span class="source-line-no">188</span><span id="line-188">        if (!pending.hasRemaining()) {</span>
+<span class="source-line-no">189</span><span id="line-189">            pending.clear();</span>
+<span class="source-line-no">190</span><span id="line-190">            return;</span>
+<span class="source-line-no">191</span><span id="line-191">        }</span>
+<span class="source-line-no">192</span><span id="line-192">        if (endedWithLF &amp;&amp; pending.get(pending.position()) == '\r') {</span>
+<span class="source-line-no">193</span><span id="line-193">            pending.get();</span>
+<span class="source-line-no">194</span><span id="line-194">        }</span>
+<span class="source-line-no">195</span><span id="line-195">        int end = pending.limit();</span>
+<span class="source-line-no">196</span><span id="line-196">        endedWithLF = false;</span>
+<span class="source-line-no">197</span><span id="line-197">        while (pending.hasRemaining()) {</span>
+<span class="source-line-no">198</span><span id="line-198">            int start = pending.position();</span>
+<span class="source-line-no">199</span><span id="line-199">            for (int pos = start; pos &lt; end;) {</span>
+<span class="source-line-no">200</span><span id="line-200">                if (pending.get(pos) != '\n') {</span>
+<span class="source-line-no">201</span><span id="line-201">                    pos += 1;</span>
+<span class="source-line-no">202</span><span id="line-202">                    continue;</span>
+<span class="source-line-no">203</span><span id="line-203">                }</span>
+<span class="source-line-no">204</span><span id="line-204">                consumer</span>
+<span class="source-line-no">205</span><span id="line-205">                    .accept(new String(pending.array(), start, pos - start));</span>
+<span class="source-line-no">206</span><span id="line-206">                pos += 1;</span>
+<span class="source-line-no">207</span><span id="line-207">                endedWithLF = pos &gt;= end;</span>
+<span class="source-line-no">208</span><span id="line-208">                if (pos &lt; end &amp;&amp; pending.get(pos) == '\r') {</span>
+<span class="source-line-no">209</span><span id="line-209">                    pos += 1;</span>
+<span class="source-line-no">210</span><span id="line-210">                }</span>
+<span class="source-line-no">211</span><span id="line-211">                pending.position(pos);</span>
+<span class="source-line-no">212</span><span id="line-212">                break;</span>
+<span class="source-line-no">213</span><span id="line-213">            }</span>
+<span class="source-line-no">214</span><span id="line-214">            if (pending.position() == start) {</span>
+<span class="source-line-no">215</span><span id="line-215">                // No LF found</span>
+<span class="source-line-no">216</span><span id="line-216">                break;</span>
+<span class="source-line-no">217</span><span id="line-217">            }</span>
+<span class="source-line-no">218</span><span id="line-218">        }</span>
+<span class="source-line-no">219</span><span id="line-219">        if (!pending.hasRemaining()) {</span>
+<span class="source-line-no">220</span><span id="line-220">            // Last input was or ended with complete line</span>
+<span class="source-line-no">221</span><span id="line-221">            pending.clear();</span>
+<span class="source-line-no">222</span><span id="line-222">            return;</span>
+<span class="source-line-no">223</span><span id="line-223">        }</span>
+<span class="source-line-no">224</span><span id="line-224">        // Incomplete line</span>
+<span class="source-line-no">225</span><span id="line-225">        if (isEof) {</span>
+<span class="source-line-no">226</span><span id="line-226">            consumer.accept(new String(pending.array(), pending.position(),</span>
+<span class="source-line-no">227</span><span id="line-227">                pending.remaining()));</span>
+<span class="source-line-no">228</span><span id="line-228">            return;</span>
+<span class="source-line-no">229</span><span id="line-229">        }</span>
+<span class="source-line-no">230</span><span id="line-230">        if (pending.position() == 0) {</span>
+<span class="source-line-no">231</span><span id="line-231">            // Nothing consumed, continue to write into pending</span>
+<span class="source-line-no">232</span><span id="line-232">            var limit = pending.limit();</span>
+<span class="source-line-no">233</span><span id="line-233">            pending.clear();</span>
+<span class="source-line-no">234</span><span id="line-234">            pending.position(limit);</span>
+<span class="source-line-no">235</span><span id="line-235">            return;</span>
+<span class="source-line-no">236</span><span id="line-236">        }</span>
+<span class="source-line-no">237</span><span id="line-237">        // Transfer remaining to beginning of pending</span>
+<span class="source-line-no">238</span><span id="line-238">        if (rest == null || rest.capacity() &lt; pending.remaining()) {</span>
+<span class="source-line-no">239</span><span id="line-239">            rest = CharBuffer.allocate(pending.capacity());</span>
+<span class="source-line-no">240</span><span id="line-240">        }</span>
+<span class="source-line-no">241</span><span id="line-241">        rest.put(pending);</span>
+<span class="source-line-no">242</span><span id="line-242">        rest.flip();</span>
+<span class="source-line-no">243</span><span id="line-243">        pending.clear();</span>
+<span class="source-line-no">244</span><span id="line-244">        pending.put(rest);</span>
+<span class="source-line-no">245</span><span id="line-245">        rest.clear();</span>
+<span class="source-line-no">246</span><span id="line-246">    }</span>
+<span class="source-line-no">247</span><span id="line-247"></span>
+<span class="source-line-no">248</span><span id="line-248">    /**</span>
+<span class="source-line-no">249</span><span id="line-249">     * Checks if more input may become available.</span>
+<span class="source-line-no">250</span><span id="line-250">     *</span>
+<span class="source-line-no">251</span><span id="line-251">     * @return true, if successful</span>
+<span class="source-line-no">252</span><span id="line-252">     */</span>
+<span class="source-line-no">253</span><span id="line-253">    public boolean eof() {</span>
+<span class="source-line-no">254</span><span id="line-254">        return isEof;</span>
+<span class="source-line-no">255</span><span id="line-255">    }</span>
+<span class="source-line-no">256</span><span id="line-256"></span>
+<span class="source-line-no">257</span><span id="line-257">    /**</span>
+<span class="source-line-no">258</span><span id="line-258">     * Gets the next line.</span>
+<span class="source-line-no">259</span><span id="line-259">     *</span>
+<span class="source-line-no">260</span><span id="line-260">     * @return the line</span>
+<span class="source-line-no">261</span><span id="line-261">     */</span>
+<span class="source-line-no">262</span><span id="line-262">    public String getLine() {</span>
+<span class="source-line-no">263</span><span id="line-263">        return lines.poll();</span>
+<span class="source-line-no">264</span><span id="line-264">    }</span>
+<span class="source-line-no">265</span><span id="line-265">}</span>
 
 
 
