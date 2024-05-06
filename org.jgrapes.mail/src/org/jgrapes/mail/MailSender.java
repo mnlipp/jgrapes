@@ -157,9 +157,11 @@ public class MailSender
      * @throws MessagingException the messaging exception
      */
     @Handler
+    @SuppressWarnings("PMD.CompareObjectsWithEquals")
     public void onMessage(SendMailMessage event, Channel channel)
             throws MessagingException {
-        if (channel instanceof SenderChannel chan) {
+        if (channel instanceof SenderChannel chan
+            && chan.mailSender() == this) {
             chan.sendMessage(event);
         } else {
             systemChannel.sendMessage(event);
@@ -206,6 +208,10 @@ public class MailSender
             transport.connect(sessionProps.getProperty("mail.user"), passwd);
             idleTimer
                 = Components.schedule(timer -> closeConnection(), maxIdleTime);
+        }
+
+        private MailSender mailSender() {
+            return MailSender.this;
         }
 
         /**

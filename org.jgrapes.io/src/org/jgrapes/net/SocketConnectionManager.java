@@ -237,6 +237,9 @@ public abstract class SocketConnectionManager extends Component {
                 }, 2)
                     .setName(channelName + ".downstream.buffers");
 
+            // Ready to use
+            channels.add(this);
+
             // Register with dispatcher
             nioChannel.configureBlocking(false);
             SocketConnectionManager.this.fire(

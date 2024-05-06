@@ -423,7 +423,8 @@ public class SocketServer extends SocketConnectionManager
             fire(new Ready(serverSocketChannel.getLocalAddress()));
             return;
         }
-        if (handler instanceof SocketChannelImpl channel) {
+        if (handler instanceof SocketChannelImpl channel
+            && channels.contains(channel)) {
             var accepted = new Accepted(channel.nioChannel().getLocalAddress(),
                 channel.nioChannel().getRemoteAddress(), false,
                 Collections.emptyList());
@@ -461,7 +462,7 @@ public class SocketServer extends SocketConnectionManager
                     }
                     return;
                 }
-                channels.add(new SocketChannelImpl(null, socketChannel));
+                new SocketChannelImpl(null, socketChannel);
             } catch (IOException e) {
                 fire(new IOError(null, e));
             }

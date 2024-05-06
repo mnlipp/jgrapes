@@ -72,7 +72,7 @@ public class SocketConnector extends SocketConnectionManager {
         try {
             @SuppressWarnings("PMD.CloseResource")
             SocketChannel socketChannel = SocketChannel.open(event.address());
-            channels.add(new SocketChannelImpl(event, socketChannel));
+            new SocketChannelImpl(event, socketChannel);
         } catch (ConnectException e) {
             fire(new ConnectError(event, "Connection refused.", e));
         } catch (IOException e) {
@@ -93,7 +93,8 @@ public class SocketConnector extends SocketConnectionManager {
     public void onRegistered(NioRegistration.Completed event)
             throws InterruptedException, IOException {
         NioHandler handler = event.event().handler();
-        if (!(handler instanceof SocketChannelImpl)) {
+        if (!(handler instanceof SocketChannelImpl)
+            || !channels.contains(handler)) {
             return;
         }
         if (event.event().get() == null) {
