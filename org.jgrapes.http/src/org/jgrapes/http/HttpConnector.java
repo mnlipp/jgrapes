@@ -165,9 +165,12 @@ public class HttpConnector extends Component {
      * @throws InterruptedException the interrupted exception
      */
     @Handler
+    @SuppressWarnings("PMD.CompareObjectsWithEquals")
     public void onOutput(Output<?> event, WebAppMsgChannel appChannel)
             throws InterruptedException {
-        appChannel.handleAppOutput(event);
+        if (appChannel.httpConnector() == this) {
+            appChannel.handleAppOutput(event);
+        }
     }
 
     /**
@@ -185,7 +188,8 @@ public class HttpConnector extends Component {
             SocketIOChannel netConnChannel)
             throws InterruptedException, IOException {
         // Check if this is a response to our request
-        var appChannel = event.openEvent().associated(WebAppMsgChannel.class);
+        var appChannel = event.openEvent().associated(WebAppMsgChannel.class)
+            .filter(c -> c.httpConnector() == this);
         if (appChannel.isPresent()) {
             appChannel.get().connected(netConnChannel);
         }
@@ -198,12 +202,14 @@ public class HttpConnector extends Component {
      * @throws IOException Signals that an I/O exception has occurred.
      */
     @Handler(channels = NetworkChannel.class)
+    @SuppressWarnings("PMD.CompareObjectsWithEquals")
     public void onIoError(IOError event) throws IOException {
         for (Channel channel : event.channels()) {
             if (channel instanceof SocketIOChannel netConnChannel) {
                 // Error while using established network connection
                 Optional<WebAppMsgChannel> appChannel
-                    = netConnChannel.associated(WebAppMsgChannel.class);
+                    = netConnChannel.associated(WebAppMsgChannel.class)
+                        .filter(c -> c.httpConnector() == this);
                 if (appChannel.isPresent()) {
                     // Error while using a network connection
                     appChannel.get().handleIoError(event, netConnChannel);
@@ -216,9 +222,10 @@ public class HttpConnector extends Component {
 
             // Error while trying to establish the network connection
             if (event.event() instanceof OpenSocketConnection connEvent) {
-                connEvent.associated(WebAppMsgChannel.class).ifPresent(c -> {
-                    c.openError(event);
-                });
+                connEvent.associated(WebAppMsgChannel.class)
+                    .filter(c -> c.httpConnector() == this).ifPresent(c -> {
+                        c.openError(event);
+                    });
             }
         }
     }
@@ -232,10 +239,12 @@ public class HttpConnector extends Component {
      * @throws ProtocolException if the protocol is violated
      */
     @Handler(channels = NetworkChannel.class)
+    @SuppressWarnings("PMD.CompareObjectsWithEquals")
     public void onInput(Input<ByteBuffer> event, SocketIOChannel netConnChannel)
             throws InterruptedException, ProtocolException {
         Optional<WebAppMsgChannel> appChannel
-            = netConnChannel.associated(WebAppMsgChannel.class);
+            = netConnChannel.associated(WebAppMsgChannel.class)
+                .filter(c -> c.httpConnector() == this);
         if (appChannel.isPresent()) {
             appChannel.get().handleNetInput(event, netConnChannel);
         }
@@ -249,8 +258,9 @@ public class HttpConnector extends Component {
      */
     @Handler(channels = NetworkChannel.class)
     public void onClosed(Closed<?> event, SocketIOChannel netConnChannel) {
-        netConnChannel.associated(WebAppMsgChannel.class).ifPresent(
-            appChannel -> appChannel.handleClosed(event));
+        netConnChannel.associated(WebAppMsgChannel.class)
+            .filter(c -> c.httpConnector() == this).ifPresent(
+                appChannel -> appChannel.handleClosed(event));
         pooled.remove(netConnChannel.remoteAddress(), netConnChannel);
     }
 
@@ -263,8 +273,11 @@ public class HttpConnector extends Component {
      * @param appChannel the application channel
      */
     @Handler
+    @SuppressWarnings("PMD.CompareObjectsWithEquals")
     public void onClose(Close event, WebAppMsgChannel appChannel) {
-        appChannel.handleClose(event);
+        if (appChannel.httpConnector() == this) {
+            appChannel.handleClose(event);
+        }
     }
 
     /**
@@ -335,6 +348,10 @@ public class HttpConnector extends Component {
             fire(new OpenSocketConnection(serverAddress)
                 .setAssociated(WebAppMsgChannel.class, this),
                 useSecure ? netSecureChannel : netMainChannel);
+        }
+
+        private HttpConnector httpConnector() {
+            return HttpConnector.this;
         }
 
         /**
