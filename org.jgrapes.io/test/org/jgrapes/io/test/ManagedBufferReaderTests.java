@@ -67,7 +67,7 @@ public class ManagedBufferReaderTests {
         data.unlockBuffer();
 
         // End of feed
-        reader.feed(null);
+        reader.feed((ManagedBuffer<?>) null);
         readerThread.join(1000);
         assertTrue(readerThread.gotEof);
         assertEquals("Hello World!\n", readerThread.received.toString());
@@ -111,7 +111,7 @@ public class ManagedBufferReaderTests {
         data.unlockBuffer();
 
         // End of feed
-        reader.feed(null);
+        reader.feed((ManagedBuffer<?>) null);
         readerThread.join(1000);
         assertTrue(readerThread.gotEof);
         assertEquals("Special chars: äöüÄÖÜß.\n",

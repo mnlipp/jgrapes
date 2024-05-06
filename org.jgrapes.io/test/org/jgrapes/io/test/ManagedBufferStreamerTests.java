@@ -41,7 +41,7 @@ public class ManagedBufferStreamerTests {
         data.unlockBuffer();
 
         // End of feed
-        streamer.feed(null);
+        streamer.feed((ManagedBuffer<?>) null);
 
         while (result == null) {
             Thread.sleep(10);

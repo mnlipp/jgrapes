@@ -27,7 +27,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Consumer;
-import org.jgrapes.io.events.Input;
 
 /**
  * Collects character data from buffers and makes it available as
@@ -39,7 +38,7 @@ import org.jgrapes.io.events.Input;
  * remain, these remaining character are returned as a line as well.   
  */
 @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
-public class LineCollector {
+public class LineCollector implements InputConsumer {
     private boolean isEof;
     private CharsetDecoder decoder;
     private Charset charset = StandardCharsets.UTF_8;
@@ -139,21 +138,6 @@ public class LineCollector {
             feed((W) null);
         } else {
             feed(buffer.backingBuffer());
-        }
-    }
-
-    /**
-     * Feed data to the collector. 
-     * 
-     * Calling this method with `null` as argument closes the feed.
-     *
-     * @param event the event
-     */
-    public <W extends Buffer> void feed(Input<W> event) {
-        if (event == null) {
-            feed((W) null);
-        } else {
-            feed(event.buffer());
         }
     }
 

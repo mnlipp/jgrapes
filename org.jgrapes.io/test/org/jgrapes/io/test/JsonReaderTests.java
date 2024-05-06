@@ -38,7 +38,7 @@ public class JsonReaderTests {
             data.unlockBuffer();
 
             // End of feed
-            rdr.feed(null);
+            rdr.feed((ManagedBuffer<?>) null);
         }
 
         @Handler

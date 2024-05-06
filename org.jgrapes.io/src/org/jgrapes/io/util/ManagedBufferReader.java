@@ -21,6 +21,7 @@ package org.jgrapes.io.util;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.io.Reader;
+import java.io.UncheckedIOException;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
@@ -34,7 +35,7 @@ import java.util.Objects;
  * fed to it to a consumer. This class is intended to be used as a pipe 
  * between two threads.  
  */
-public class ManagedBufferReader extends Reader {
+public class ManagedBufferReader extends Reader implements InputConsumer {
 
     private boolean isEndOfFeed;
     private boolean isOpen = true;
@@ -117,8 +118,7 @@ public class ManagedBufferReader extends Reader {
      * @throws IOException Signals that an I/O exception has occurred.
      */
     @SuppressWarnings({ "PMD.PreserveStackTrace" })
-    public <W extends Buffer> void feed(ManagedBuffer<W> buffer)
-            throws IOException {
+    public <W extends Buffer> void feed(ManagedBuffer<W> buffer) {
         synchronized (lock) {
             if (buffer == null) {
                 isEndOfFeed = true;
@@ -135,7 +135,7 @@ public class ManagedBufferReader extends Reader {
                     @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
                     var exc = new InterruptedIOException(e.getMessage());
                     exc.setStackTrace(e.getStackTrace());
-                    throw exc;
+                    throw new UncheckedIOException(exc);
                 }
             }
             current = buffer;

@@ -32,7 +32,7 @@ import org.jgrapes.io.events.Input;
  *  
  * @since 2.8.0
  */
-public class ManagedBufferStreamer {
+public class ManagedBufferStreamer implements InputConsumer {
 
     private final ManagedBufferReader reader = new ManagedBufferReader();
 
@@ -71,8 +71,7 @@ public class ManagedBufferStreamer {
      * @throws IOException Signals that an I/O exception has occurred.
      */
     @SuppressWarnings({ "PMD.PreserveStackTrace" })
-    public <W extends Buffer> void feed(ManagedBuffer<W> buffer)
-            throws IOException {
+    public <W extends Buffer> void feed(ManagedBuffer<W> buffer) {
         reader.feed(buffer);
     }
 
