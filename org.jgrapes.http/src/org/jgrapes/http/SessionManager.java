@@ -314,12 +314,14 @@ public abstract class SessionManager extends Component {
     /**
      * Associates the event with a {@link Session} object
      * using `Session.class` as association identifier.
+     * Does nothing if a session is already associated or
+     * the request has already been fulfilled.
      * 
      * @param event the event
      */
     @RequestHandler(dynamic = true)
     public void onRequest(Request.In event) {
-        if (event.associated(Session.class).isPresent()) {
+        if (event.associated(Session.class).isPresent() || event.fulfilled()) {
             return;
         }
         final HttpRequest request = event.httpRequest();

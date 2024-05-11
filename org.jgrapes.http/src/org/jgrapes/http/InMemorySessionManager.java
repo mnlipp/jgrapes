@@ -73,8 +73,8 @@ public class InMemorySessionManager extends SessionManager {
 
     /**
      * Creates a new session manager with its channel set to
-     * the given channel and the path to "/". The manager handles
-     * all {@link Request} events.
+     * the given channel, the path to "/" and the handler's priority 
+     * to 1000. The manager handles all {@link Request} events.
      * 
      * @param componentChannel the component channel
      */
@@ -86,7 +86,7 @@ public class InMemorySessionManager extends SessionManager {
      * Creates a new session manager with the given channel and path.
      * The manager handles all requests that match the given path, using
      * the same rules as browsers do for selecting the cookies that
-     * are to be sent.
+     * are to be sent. The request handler's priority is set to 1000.
      *  
      * @param componentChannel the component channel
      * @param path the path

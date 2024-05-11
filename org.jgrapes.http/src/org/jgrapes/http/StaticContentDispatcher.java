@@ -134,6 +134,9 @@ public class StaticContentDispatcher extends Component {
     @RequestHandler(dynamic = true)
     public void onGet(Request.In.Get event, IOSubchannel channel)
             throws ParseException, IOException {
+        if (event.fulfilled()) {
+            return;
+        }
         int prefixSegs = resourcePattern.matches(event.requestUri());
         if (prefixSegs < 0) {
             return;

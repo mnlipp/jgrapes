@@ -90,7 +90,8 @@ public class LanguageSelector extends Component {
 
     /**
      * Creates a new language selector component with its channel set to
-     * itself and the scope set to "/".
+     * itself and the scope set to "/". The handler's priority
+     * is set to 990.
      */
     public LanguageSelector() {
         this("/");
@@ -98,7 +99,8 @@ public class LanguageSelector extends Component {
 
     /**
      * Creates a new language selector component with its channel set to
-     * itself and the scope set to the given value.
+     * itself and the scope set to the given value. The handler's priority
+     * is set to 990.
      * 
      * @param scope the scope
      */
@@ -108,7 +110,8 @@ public class LanguageSelector extends Component {
 
     /**
      * Creates a new language selector component with its channel set 
-     * to the given channel and the scope to "/".
+     * to the given channel and the scope to "/". The handler's priority
+     * is set to 990.
      * 
      * @param componentChannel the component channel
      */
@@ -118,13 +121,29 @@ public class LanguageSelector extends Component {
 
     /**
      * Creates a new language selector component with its channel set 
-     * to the given channel and the scope to the given scope.
+     * to the given channel and the scope to the given scope. The 
+     * handler's priority is set to 990.
      * 
      * @param componentChannel the component channel
      * @param scope the scope
      */
     @SuppressWarnings("PMD.AvoidLiteralsInIfCondition")
     public LanguageSelector(Channel componentChannel, String scope) {
+        this(componentChannel, scope, 990);
+    }
+
+    /**
+     * Creates a new language selector component with its channel set 
+     * to the given channel and the scope to the given scope. The
+     * handler's priority is set to the given value.
+     *
+     * @param componentChannel the component channel
+     * @param scope the scope
+     * @param priority the priority
+     */
+    @SuppressWarnings("PMD.AvoidLiteralsInIfCondition")
+    public LanguageSelector(Channel componentChannel, String scope,
+            int priority) {
         super(componentChannel);
         if ("/".equals(scope) || !scope.endsWith("/")) {
             path = scope;
@@ -137,7 +156,7 @@ public class LanguageSelector extends Component {
         } else {
             pattern = path + "," + path + "/**";
         }
-        RequestHandler.Evaluator.add(this, "onRequest", pattern);
+        RequestHandler.Evaluator.add(this, "onRequest", pattern, priority);
     }
 
     /**
@@ -206,12 +225,16 @@ public class LanguageSelector extends Component {
     /**
      * Associates the event with a {@link Selection} object
      * using `Selection.class` as association identifier.
+     * Does nothing if the request has already been fulfilled.
      * 
      * @param event the event
      */
     @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis", "PMD.EmptyCatchBlock" })
-    @RequestHandler(priority = 990, dynamic = true)
+    @RequestHandler(dynamic = true)
     public void onRequest(Request.In event) {
+        if (event.fulfilled()) {
+            return;
+        }
         @SuppressWarnings("PMD.AccessorClassGeneration")
         final Selection selection
             = (Selection) Session.from(event).computeIfAbsent(Selection.class,
