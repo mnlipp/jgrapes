@@ -63,7 +63,7 @@
 <span class="source-line-no">050</span><span id="line-50">     */</span>
 <span class="source-line-no">051</span><span id="line-51">    @Override</span>
 <span class="source-line-no">052</span><span id="line-52">    public String toString() {</span>
-<span class="source-line-no">053</span><span id="line-53">        StringBuilder builder = new StringBuilder();</span>
+<span class="source-line-no">053</span><span id="line-53">        StringBuilder builder = new StringBuilder(50);</span>
 <span class="source-line-no">054</span><span id="line-54">        builder.append(Components.objectName(this))</span>
 <span class="source-line-no">055</span><span id="line-55">            .append(" [");</span>
 <span class="source-line-no">056</span><span id="line-56">        if (request().method() != null) {</span>

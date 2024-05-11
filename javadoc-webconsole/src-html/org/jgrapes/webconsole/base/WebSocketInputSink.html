@@ -32,20 +32,20 @@
 <span class="source-line-no">019</span><span id="line-19">package org.jgrapes.webconsole.base;</span>
 <span class="source-line-no">020</span><span id="line-20"></span>
 <span class="source-line-no">021</span><span id="line-21">import java.io.IOException;</span>
-<span class="source-line-no">022</span><span id="line-22">import java.lang.ref.ReferenceQueue;</span>
-<span class="source-line-no">023</span><span id="line-23">import java.lang.ref.WeakReference;</span>
-<span class="source-line-no">024</span><span id="line-24">import java.nio.CharBuffer;</span>
-<span class="source-line-no">025</span><span id="line-25">import java.util.Optional;</span>
-<span class="source-line-no">026</span><span id="line-26">import java.util.logging.Logger;</span>
-<span class="source-line-no">027</span><span id="line-27">import org.jdrupes.json.JsonBeanDecoder;</span>
-<span class="source-line-no">028</span><span id="line-28">import org.jdrupes.json.JsonDecodeException;</span>
-<span class="source-line-no">029</span><span id="line-29">import org.jdrupes.json.JsonRpc;</span>
-<span class="source-line-no">030</span><span id="line-30">import org.jdrupes.json.JsonRpc.DefaultJsonRpc;</span>
-<span class="source-line-no">031</span><span id="line-31">import org.jgrapes.core.Components;</span>
-<span class="source-line-no">032</span><span id="line-32">import org.jgrapes.core.EventPipeline;</span>
-<span class="source-line-no">033</span><span id="line-33">import org.jgrapes.io.events.Input;</span>
-<span class="source-line-no">034</span><span id="line-34">import org.jgrapes.io.util.ManagedBuffer;</span>
-<span class="source-line-no">035</span><span id="line-35">import org.jgrapes.io.util.ManagedBufferReader;</span>
+<span class="source-line-no">022</span><span id="line-22">import java.lang.ref.WeakReference;</span>
+<span class="source-line-no">023</span><span id="line-23">import java.nio.CharBuffer;</span>
+<span class="source-line-no">024</span><span id="line-24">import java.util.Optional;</span>
+<span class="source-line-no">025</span><span id="line-25">import java.util.logging.Logger;</span>
+<span class="source-line-no">026</span><span id="line-26">import org.jdrupes.json.JsonBeanDecoder;</span>
+<span class="source-line-no">027</span><span id="line-27">import org.jdrupes.json.JsonDecodeException;</span>
+<span class="source-line-no">028</span><span id="line-28">import org.jdrupes.json.JsonRpc;</span>
+<span class="source-line-no">029</span><span id="line-29">import org.jdrupes.json.JsonRpc.DefaultJsonRpc;</span>
+<span class="source-line-no">030</span><span id="line-30">import org.jgrapes.core.Components;</span>
+<span class="source-line-no">031</span><span id="line-31">import org.jgrapes.core.EventPipeline;</span>
+<span class="source-line-no">032</span><span id="line-32">import org.jgrapes.io.events.Input;</span>
+<span class="source-line-no">033</span><span id="line-33">import org.jgrapes.io.util.ManagedBuffer;</span>
+<span class="source-line-no">034</span><span id="line-34">import org.jgrapes.io.util.ManagedBufferReader;</span>
+<span class="source-line-no">035</span><span id="line-35">import org.jgrapes.io.util.ThreadCleaner;</span>
 <span class="source-line-no">036</span><span id="line-36">import org.jgrapes.webconsole.base.events.JsonInput;</span>
 <span class="source-line-no">037</span><span id="line-37"></span>
 <span class="source-line-no">038</span><span id="line-38">/**</span>
@@ -59,154 +59,112 @@
 <span class="source-line-no">046</span><span id="line-46">    private static final Logger logger</span>
 <span class="source-line-no">047</span><span id="line-47">        = Logger.getLogger(WebSocketInputSink.class.getName());</span>
 <span class="source-line-no">048</span><span id="line-48"></span>
-<span class="source-line-no">049</span><span id="line-49">    private final WeakReference&lt;EventPipeline&gt; pipelineRef;</span>
-<span class="source-line-no">050</span><span id="line-50">    private final WeakReference&lt;ConsoleConnection&gt; channelRef;</span>
+<span class="source-line-no">049</span><span id="line-49">    private final WeakReference&lt;ConsoleConnection&gt; channelRef;</span>
+<span class="source-line-no">050</span><span id="line-50">    private final WeakReference&lt;EventPipeline&gt; pipelineRef;</span>
 <span class="source-line-no">051</span><span id="line-51">    private ManagedBufferReader jsonSource;</span>
 <span class="source-line-no">052</span><span id="line-52"></span>
-<span class="source-line-no">053</span><span id="line-53">    private static ReferenceQueue&lt;Object&gt; abandoned</span>
-<span class="source-line-no">054</span><span id="line-54">        = new ReferenceQueue&lt;&gt;();</span>
-<span class="source-line-no">055</span><span id="line-55"></span>
-<span class="source-line-no">056</span><span id="line-56">    /**</span>
-<span class="source-line-no">057</span><span id="line-57">     * Weak references to `T` that interrupt the input collecting</span>
-<span class="source-line-no">058</span><span id="line-58">     * thread if the referent has been garbage collected.</span>
-<span class="source-line-no">059</span><span id="line-59">     *</span>
-<span class="source-line-no">060</span><span id="line-60">     * @param &lt;T&gt; the generic type</span>
-<span class="source-line-no">061</span><span id="line-61">     */</span>
-<span class="source-line-no">062</span><span id="line-62">    private static class RefWithThread&lt;T&gt; extends WeakReference&lt;T&gt; {</span>
-<span class="source-line-no">063</span><span id="line-63">        public Thread watched;</span>
-<span class="source-line-no">064</span><span id="line-64"></span>
-<span class="source-line-no">065</span><span id="line-65">        /**</span>
-<span class="source-line-no">066</span><span id="line-66">         * Creates a new instance.</span>
-<span class="source-line-no">067</span><span id="line-67">         *</span>
-<span class="source-line-no">068</span><span id="line-68">         * @param referent the referent</span>
-<span class="source-line-no">069</span><span id="line-69">         * @param thread the thread</span>
-<span class="source-line-no">070</span><span id="line-70">         */</span>
-<span class="source-line-no">071</span><span id="line-71">        public RefWithThread(T referent, Thread thread) {</span>
-<span class="source-line-no">072</span><span id="line-72">            super(referent, abandoned);</span>
-<span class="source-line-no">073</span><span id="line-73">            watched = thread;</span>
-<span class="source-line-no">074</span><span id="line-74">        }</span>
-<span class="source-line-no">075</span><span id="line-75">    }</span>
-<span class="source-line-no">076</span><span id="line-76"></span>
-<span class="source-line-no">077</span><span id="line-77">    static {</span>
-<span class="source-line-no">078</span><span id="line-78">        Thread watchdog = new Thread(() -&gt; {</span>
-<span class="source-line-no">079</span><span id="line-79">            while (true) {</span>
-<span class="source-line-no">080</span><span id="line-80">                try {</span>
-<span class="source-line-no">081</span><span id="line-81">                    @SuppressWarnings("unchecked")</span>
-<span class="source-line-no">082</span><span id="line-82">                    WebSocketInputSink.RefWithThread&lt;Object&gt; ref</span>
-<span class="source-line-no">083</span><span id="line-83">                        = (WebSocketInputSink.RefWithThread&lt;Object&gt;) abandoned</span>
-<span class="source-line-no">084</span><span id="line-84">                            .remove();</span>
-<span class="source-line-no">085</span><span id="line-85">                    ref.watched.interrupt();</span>
-<span class="source-line-no">086</span><span id="line-86">                } catch (InterruptedException e) {</span>
-<span class="source-line-no">087</span><span id="line-87">                    // Nothing to do</span>
-<span class="source-line-no">088</span><span id="line-88">                }</span>
-<span class="source-line-no">089</span><span id="line-89">            }</span>
-<span class="source-line-no">090</span><span id="line-90">        });</span>
-<span class="source-line-no">091</span><span id="line-91">        watchdog.setDaemon(true);</span>
-<span class="source-line-no">092</span><span id="line-92">        watchdog.start();</span>
-<span class="source-line-no">093</span><span id="line-93">    }</span>
-<span class="source-line-no">094</span><span id="line-94"></span>
-<span class="source-line-no">095</span><span id="line-95">    /**</span>
-<span class="source-line-no">096</span><span id="line-96">     * Instantiates a new web socket input reader.</span>
-<span class="source-line-no">097</span><span id="line-97">     *</span>
-<span class="source-line-no">098</span><span id="line-98">     * @param wsInPipeline the ws in pipeline</span>
-<span class="source-line-no">099</span><span id="line-99">     * @param consoleChannel the web console channel</span>
-<span class="source-line-no">100</span><span id="line-100">     */</span>
-<span class="source-line-no">101</span><span id="line-101">    public WebSocketInputSink(EventPipeline wsInPipeline,</span>
-<span class="source-line-no">102</span><span id="line-102">            ConsoleConnection consoleChannel) {</span>
-<span class="source-line-no">103</span><span id="line-103">        pipelineRef</span>
-<span class="source-line-no">104</span><span id="line-104">            = new WebSocketInputSink.RefWithThread&lt;&gt;(wsInPipeline, this);</span>
-<span class="source-line-no">105</span><span id="line-105">        channelRef</span>
-<span class="source-line-no">106</span><span id="line-106">            = new WebSocketInputSink.RefWithThread&lt;&gt;(consoleChannel, this);</span>
-<span class="source-line-no">107</span><span id="line-107">        setDaemon(true);</span>
-<span class="source-line-no">108</span><span id="line-108">    }</span>
-<span class="source-line-no">109</span><span id="line-109"></span>
-<span class="source-line-no">110</span><span id="line-110">    /**</span>
-<span class="source-line-no">111</span><span id="line-111">     * Forward the data to the JSON decoder.</span>
-<span class="source-line-no">112</span><span id="line-112">     *</span>
-<span class="source-line-no">113</span><span id="line-113">     * @param input the data to be converted</span>
-<span class="source-line-no">114</span><span id="line-114">     * @throws IOException Signals that an I/O exception has occurred.</span>
-<span class="source-line-no">115</span><span id="line-115">     */</span>
-<span class="source-line-no">116</span><span id="line-116">    public void feed(ManagedBuffer&lt;CharBuffer&gt; input) throws IOException {</span>
-<span class="source-line-no">117</span><span id="line-117">        // Delayed initialization, allows adaption to buffer size.</span>
-<span class="source-line-no">118</span><span id="line-118">        if (jsonSource == null) {</span>
-<span class="source-line-no">119</span><span id="line-119">            jsonSource = new ManagedBufferReader();</span>
-<span class="source-line-no">120</span><span id="line-120">            start();</span>
-<span class="source-line-no">121</span><span id="line-121">        }</span>
-<span class="source-line-no">122</span><span id="line-122">        jsonSource.feed(input);</span>
-<span class="source-line-no">123</span><span id="line-123">    }</span>
-<span class="source-line-no">124</span><span id="line-124"></span>
-<span class="source-line-no">125</span><span id="line-125">    /**</span>
-<span class="source-line-no">126</span><span id="line-126">     * Forward the close to the JSON decoder.</span>
-<span class="source-line-no">127</span><span id="line-127">     *</span>
-<span class="source-line-no">128</span><span id="line-128">     * @throws IOException Signals that an I/O exception has occurred.</span>
-<span class="source-line-no">129</span><span id="line-129">     */</span>
-<span class="source-line-no">130</span><span id="line-130">    public void close() throws IOException {</span>
-<span class="source-line-no">131</span><span id="line-131">        if (jsonSource == null) {</span>
-<span class="source-line-no">132</span><span id="line-132">            // Never started</span>
-<span class="source-line-no">133</span><span id="line-133">            return;</span>
-<span class="source-line-no">134</span><span id="line-134">        }</span>
-<span class="source-line-no">135</span><span id="line-135">        jsonSource.close();</span>
-<span class="source-line-no">136</span><span id="line-136">        try {</span>
-<span class="source-line-no">137</span><span id="line-137">            join(1000);</span>
-<span class="source-line-no">138</span><span id="line-138">        } catch (InterruptedException e) {</span>
-<span class="source-line-no">139</span><span id="line-139">            // Just in case</span>
-<span class="source-line-no">140</span><span id="line-140">            interrupt();</span>
+<span class="source-line-no">053</span><span id="line-53">    /**</span>
+<span class="source-line-no">054</span><span id="line-54">     * Instantiates a new web socket input reader.</span>
+<span class="source-line-no">055</span><span id="line-55">     *</span>
+<span class="source-line-no">056</span><span id="line-56">     * @param wsInPipeline the ws in pipeline</span>
+<span class="source-line-no">057</span><span id="line-57">     * @param consoleChannel the web console channel</span>
+<span class="source-line-no">058</span><span id="line-58">     */</span>
+<span class="source-line-no">059</span><span id="line-59">    public WebSocketInputSink(EventPipeline wsInPipeline,</span>
+<span class="source-line-no">060</span><span id="line-60">            ConsoleConnection consoleChannel) {</span>
+<span class="source-line-no">061</span><span id="line-61">        channelRef = new WeakReference&lt;&gt;(consoleChannel);</span>
+<span class="source-line-no">062</span><span id="line-62">        pipelineRef = new WeakReference&lt;&gt;(wsInPipeline);</span>
+<span class="source-line-no">063</span><span id="line-63">        ThreadCleaner.watch(wsInPipeline, this);</span>
+<span class="source-line-no">064</span><span id="line-64">        ThreadCleaner.watch(consoleChannel, this);</span>
+<span class="source-line-no">065</span><span id="line-65">        setDaemon(true);</span>
+<span class="source-line-no">066</span><span id="line-66">    }</span>
+<span class="source-line-no">067</span><span id="line-67"></span>
+<span class="source-line-no">068</span><span id="line-68">    /**</span>
+<span class="source-line-no">069</span><span id="line-69">     * Forward the data to the JSON decoder.</span>
+<span class="source-line-no">070</span><span id="line-70">     *</span>
+<span class="source-line-no">071</span><span id="line-71">     * @param input the data to be converted</span>
+<span class="source-line-no">072</span><span id="line-72">     * @throws IOException Signals that an I/O exception has occurred.</span>
+<span class="source-line-no">073</span><span id="line-73">     */</span>
+<span class="source-line-no">074</span><span id="line-74">    public void feed(ManagedBuffer&lt;CharBuffer&gt; input) throws IOException {</span>
+<span class="source-line-no">075</span><span id="line-75">        // Delayed initialization, allows adaption to buffer size.</span>
+<span class="source-line-no">076</span><span id="line-76">        if (jsonSource == null) {</span>
+<span class="source-line-no">077</span><span id="line-77">            jsonSource = new ManagedBufferReader();</span>
+<span class="source-line-no">078</span><span id="line-78">            start();</span>
+<span class="source-line-no">079</span><span id="line-79">        }</span>
+<span class="source-line-no">080</span><span id="line-80">        jsonSource.feed(input);</span>
+<span class="source-line-no">081</span><span id="line-81">    }</span>
+<span class="source-line-no">082</span><span id="line-82"></span>
+<span class="source-line-no">083</span><span id="line-83">    /**</span>
+<span class="source-line-no">084</span><span id="line-84">     * Forward the close to the JSON decoder.</span>
+<span class="source-line-no">085</span><span id="line-85">     *</span>
+<span class="source-line-no">086</span><span id="line-86">     * @throws IOException Signals that an I/O exception has occurred.</span>
+<span class="source-line-no">087</span><span id="line-87">     */</span>
+<span class="source-line-no">088</span><span id="line-88">    public void close() throws IOException {</span>
+<span class="source-line-no">089</span><span id="line-89">        if (jsonSource == null) {</span>
+<span class="source-line-no">090</span><span id="line-90">            // Never started</span>
+<span class="source-line-no">091</span><span id="line-91">            return;</span>
+<span class="source-line-no">092</span><span id="line-92">        }</span>
+<span class="source-line-no">093</span><span id="line-93">        jsonSource.close();</span>
+<span class="source-line-no">094</span><span id="line-94">        try {</span>
+<span class="source-line-no">095</span><span id="line-95">            join(1000);</span>
+<span class="source-line-no">096</span><span id="line-96">        } catch (InterruptedException e) {</span>
+<span class="source-line-no">097</span><span id="line-97">            // Just in case</span>
+<span class="source-line-no">098</span><span id="line-98">            interrupt();</span>
+<span class="source-line-no">099</span><span id="line-99">        }</span>
+<span class="source-line-no">100</span><span id="line-100">    }</span>
+<span class="source-line-no">101</span><span id="line-101"></span>
+<span class="source-line-no">102</span><span id="line-102">    @SuppressWarnings({ "PMD.AvoidLiteralsInIfCondition",</span>
+<span class="source-line-no">103</span><span id="line-103">        "PMD.AvoidInstantiatingObjectsInLoops", "PMD.DataflowAnomalyAnalysis",</span>
+<span class="source-line-no">104</span><span id="line-104">        "PMD.GuardLogStatement", "PMD.CognitiveComplexity" })</span>
+<span class="source-line-no">105</span><span id="line-105">    @Override</span>
+<span class="source-line-no">106</span><span id="line-106">    public void run() {</span>
+<span class="source-line-no">107</span><span id="line-107">        while (true) {</span>
+<span class="source-line-no">108</span><span id="line-108">            JsonBeanDecoder jsonDecoder = JsonBeanDecoder.create(jsonSource);</span>
+<span class="source-line-no">109</span><span id="line-109">            @SuppressWarnings("PMD.UnusedAssignment")</span>
+<span class="source-line-no">110</span><span id="line-110">            JsonRpc rpc = null;</span>
+<span class="source-line-no">111</span><span id="line-111">            try {</span>
+<span class="source-line-no">112</span><span id="line-112">                rpc = jsonDecoder.readObject(DefaultJsonRpc.class);</span>
+<span class="source-line-no">113</span><span id="line-113">            } catch (JsonDecodeException e) {</span>
+<span class="source-line-no">114</span><span id="line-114">                logger.severe(</span>
+<span class="source-line-no">115</span><span id="line-115">                    () -&gt; toString() + " cannot decode request from console: "</span>
+<span class="source-line-no">116</span><span id="line-116">                        + e.getMessage());</span>
+<span class="source-line-no">117</span><span id="line-117">                break;</span>
+<span class="source-line-no">118</span><span id="line-118">            }</span>
+<span class="source-line-no">119</span><span id="line-119">            if (rpc == null) {</span>
+<span class="source-line-no">120</span><span id="line-120">                break;</span>
+<span class="source-line-no">121</span><span id="line-121">            }</span>
+<span class="source-line-no">122</span><span id="line-122">            // Fully decoded JSON available.</span>
+<span class="source-line-no">123</span><span id="line-123">            ConsoleConnection connection = channelRef.get();</span>
+<span class="source-line-no">124</span><span id="line-124">            EventPipeline eventPipeline = pipelineRef.get();</span>
+<span class="source-line-no">125</span><span id="line-125">            if (eventPipeline == null || connection == null) {</span>
+<span class="source-line-no">126</span><span id="line-126">                break;</span>
+<span class="source-line-no">127</span><span id="line-127">            }</span>
+<span class="source-line-no">128</span><span id="line-128">            // WebConsole connection established, check for special disconnect</span>
+<span class="source-line-no">129</span><span id="line-129">            if ("disconnect".equals(rpc.method())</span>
+<span class="source-line-no">130</span><span id="line-130">                &amp;&amp; connection.consoleConnectionId()</span>
+<span class="source-line-no">131</span><span id="line-131">                    .equals(rpc.params().asString(0))) {</span>
+<span class="source-line-no">132</span><span id="line-132">                connection.close();</span>
+<span class="source-line-no">133</span><span id="line-133">                return;</span>
+<span class="source-line-no">134</span><span id="line-134">            }</span>
+<span class="source-line-no">135</span><span id="line-135">            // Ordinary message from web console (view) to server.</span>
+<span class="source-line-no">136</span><span id="line-136">            connection.refresh();</span>
+<span class="source-line-no">137</span><span id="line-137">            if ("keepAlive".equals(rpc.method())) {</span>
+<span class="source-line-no">138</span><span id="line-138">                continue;</span>
+<span class="source-line-no">139</span><span id="line-139">            }</span>
+<span class="source-line-no">140</span><span id="line-140">            eventPipeline.fire(new JsonInput(rpc), connection);</span>
 <span class="source-line-no">141</span><span id="line-141">        }</span>
 <span class="source-line-no">142</span><span id="line-142">    }</span>
 <span class="source-line-no">143</span><span id="line-143"></span>
-<span class="source-line-no">144</span><span id="line-144">    @SuppressWarnings({ "PMD.AvoidLiteralsInIfCondition",</span>
-<span class="source-line-no">145</span><span id="line-145">        "PMD.AvoidInstantiatingObjectsInLoops", "PMD.DataflowAnomalyAnalysis",</span>
-<span class="source-line-no">146</span><span id="line-146">        "PMD.GuardLogStatement", "PMD.CognitiveComplexity" })</span>
-<span class="source-line-no">147</span><span id="line-147">    @Override</span>
-<span class="source-line-no">148</span><span id="line-148">    public void run() {</span>
-<span class="source-line-no">149</span><span id="line-149">        while (true) {</span>
-<span class="source-line-no">150</span><span id="line-150">            JsonBeanDecoder jsonDecoder = JsonBeanDecoder.create(jsonSource);</span>
-<span class="source-line-no">151</span><span id="line-151">            @SuppressWarnings("PMD.UnusedAssignment")</span>
-<span class="source-line-no">152</span><span id="line-152">            JsonRpc rpc = null;</span>
-<span class="source-line-no">153</span><span id="line-153">            try {</span>
-<span class="source-line-no">154</span><span id="line-154">                rpc = jsonDecoder.readObject(DefaultJsonRpc.class);</span>
-<span class="source-line-no">155</span><span id="line-155">            } catch (JsonDecodeException e) {</span>
-<span class="source-line-no">156</span><span id="line-156">                logger.severe(</span>
-<span class="source-line-no">157</span><span id="line-157">                    () -&gt; toString() + " cannot decode request from console: "</span>
-<span class="source-line-no">158</span><span id="line-158">                        + e.getMessage());</span>
-<span class="source-line-no">159</span><span id="line-159">                break;</span>
-<span class="source-line-no">160</span><span id="line-160">            }</span>
-<span class="source-line-no">161</span><span id="line-161">            if (rpc == null) {</span>
-<span class="source-line-no">162</span><span id="line-162">                break;</span>
-<span class="source-line-no">163</span><span id="line-163">            }</span>
-<span class="source-line-no">164</span><span id="line-164">            // Fully decoded JSON available.</span>
-<span class="source-line-no">165</span><span id="line-165">            ConsoleConnection connection = channelRef.get();</span>
-<span class="source-line-no">166</span><span id="line-166">            EventPipeline eventPipeline = pipelineRef.get();</span>
-<span class="source-line-no">167</span><span id="line-167">            if (eventPipeline == null || connection == null) {</span>
-<span class="source-line-no">168</span><span id="line-168">                break;</span>
-<span class="source-line-no">169</span><span id="line-169">            }</span>
-<span class="source-line-no">170</span><span id="line-170">            // WebConsole connection established, check for special disconnect</span>
-<span class="source-line-no">171</span><span id="line-171">            if ("disconnect".equals(rpc.method())</span>
-<span class="source-line-no">172</span><span id="line-172">                &amp;&amp; connection.consoleConnectionId()</span>
-<span class="source-line-no">173</span><span id="line-173">                    .equals(rpc.params().asString(0))) {</span>
-<span class="source-line-no">174</span><span id="line-174">                connection.close();</span>
-<span class="source-line-no">175</span><span id="line-175">                return;</span>
-<span class="source-line-no">176</span><span id="line-176">            }</span>
-<span class="source-line-no">177</span><span id="line-177">            // Ordinary message from web console (view) to server.</span>
-<span class="source-line-no">178</span><span id="line-178">            connection.refresh();</span>
-<span class="source-line-no">179</span><span id="line-179">            if ("keepAlive".equals(rpc.method())) {</span>
-<span class="source-line-no">180</span><span id="line-180">                continue;</span>
-<span class="source-line-no">181</span><span id="line-181">            }</span>
-<span class="source-line-no">182</span><span id="line-182">            eventPipeline.fire(new JsonInput(rpc), connection);</span>
-<span class="source-line-no">183</span><span id="line-183">        }</span>
-<span class="source-line-no">184</span><span id="line-184">    }</span>
-<span class="source-line-no">185</span><span id="line-185"></span>
-<span class="source-line-no">186</span><span id="line-186">    @Override</span>
-<span class="source-line-no">187</span><span id="line-187">    public String toString() {</span>
-<span class="source-line-no">188</span><span id="line-188">        StringBuilder res = new StringBuilder()</span>
-<span class="source-line-no">189</span><span id="line-189">            .append(Components.objectName(this)).append(" [");</span>
-<span class="source-line-no">190</span><span id="line-190">        Optional.ofNullable(channelRef.get()).ifPresentOrElse(</span>
-<span class="source-line-no">191</span><span id="line-191">            c -&gt; res.append(c.toString()),</span>
-<span class="source-line-no">192</span><span id="line-192">            () -&gt; res.append('?'));</span>
-<span class="source-line-no">193</span><span id="line-193">        return res.append(']').toString();</span>
-<span class="source-line-no">194</span><span id="line-194">    }</span>
-<span class="source-line-no">195</span><span id="line-195"></span>
-<span class="source-line-no">196</span><span id="line-196">}</span>
+<span class="source-line-no">144</span><span id="line-144">    @Override</span>
+<span class="source-line-no">145</span><span id="line-145">    public String toString() {</span>
+<span class="source-line-no">146</span><span id="line-146">        StringBuilder res = new StringBuilder()</span>
+<span class="source-line-no">147</span><span id="line-147">            .append(Components.objectName(this)).append(" [");</span>
+<span class="source-line-no">148</span><span id="line-148">        Optional.ofNullable(channelRef.get()).ifPresentOrElse(</span>
+<span class="source-line-no">149</span><span id="line-149">            c -&gt; res.append(c.toString()),</span>
+<span class="source-line-no">150</span><span id="line-150">            () -&gt; res.append('?'));</span>
+<span class="source-line-no">151</span><span id="line-151">        return res.append(']').toString();</span>
+<span class="source-line-no">152</span><span id="line-152">    }</span>
+<span class="source-line-no">153</span><span id="line-153"></span>
+<span class="source-line-no">154</span><span id="line-154">}</span>
 
 
 

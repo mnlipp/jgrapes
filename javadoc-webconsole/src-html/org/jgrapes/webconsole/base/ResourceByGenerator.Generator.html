@@ -70,14 +70,15 @@
 <span class="source-line-no">057</span><span id="line-57">            Generator generator, MediaType mediaType,</span>
 <span class="source-line-no">058</span><span id="line-58">            Instant lastModifiedAt, int maxAge) {</span>
 <span class="source-line-no">059</span><span id="line-59">        super(request, channel -&gt; {</span>
-<span class="source-line-no">060</span><span id="line-60">            try (OutputStream out</span>
-<span class="source-line-no">061</span><span id="line-61">                = new ByteBufferOutputStream(channel).suppressClose()) {</span>
-<span class="source-line-no">062</span><span id="line-62">                generator.write(out);</span>
-<span class="source-line-no">063</span><span id="line-63">            }</span>
-<span class="source-line-no">064</span><span id="line-64">        }, mediaType, lastModifiedAt, maxAge);</span>
-<span class="source-line-no">065</span><span id="line-65">    }</span>
-<span class="source-line-no">066</span><span id="line-66"></span>
-<span class="source-line-no">067</span><span id="line-67">}</span>
+<span class="source-line-no">060</span><span id="line-60">            try (@SuppressWarnings("resource")</span>
+<span class="source-line-no">061</span><span id="line-61">            OutputStream out</span>
+<span class="source-line-no">062</span><span id="line-62">                = new ByteBufferOutputStream(channel).suppressClose()) {</span>
+<span class="source-line-no">063</span><span id="line-63">                generator.write(out);</span>
+<span class="source-line-no">064</span><span id="line-64">            }</span>
+<span class="source-line-no">065</span><span id="line-65">        }, mediaType, lastModifiedAt, maxAge);</span>
+<span class="source-line-no">066</span><span id="line-66">    }</span>
+<span class="source-line-no">067</span><span id="line-67"></span>
+<span class="source-line-no">068</span><span id="line-68">}</span>
 
 
 

@@ -195,96 +195,95 @@
 <span class="source-line-no">182</span><span id="line-182">                    return cachedResult;</span>
 <span class="source-line-no">183</span><span id="line-183">                }</span>
 <span class="source-line-no">184</span><span id="line-184">                final Collator coll = Collator.getInstance(locale);</span>
-<span class="source-line-no">185</span><span id="line-185">                final Comparator&lt;LanguageInfo&gt; comp</span>
-<span class="source-line-no">186</span><span id="line-186">                    = new Comparator&lt;LanguageInfo&gt;() {</span>
-<span class="source-line-no">187</span><span id="line-187">                        @Override</span>
-<span class="source-line-no">188</span><span id="line-188">                        public int compare(LanguageInfo o1, LanguageInfo o2) { // NOPMD</span>
-<span class="source-line-no">189</span><span id="line-189">                            return coll.compare(o1.getLabel(), o2.getLabel());</span>
-<span class="source-line-no">190</span><span id="line-190">                        }</span>
-<span class="source-line-no">191</span><span id="line-191">                    };</span>
-<span class="source-line-no">192</span><span id="line-192">                return cachedResult = supportedLocales().entrySet().stream()</span>
-<span class="source-line-no">193</span><span id="line-193">                    .map(entry -&gt; new LanguageInfo(entry.getKey(),</span>
-<span class="source-line-no">194</span><span id="line-194">                        entry.getValue()))</span>
-<span class="source-line-no">195</span><span id="line-195">                    .sorted(comp).toArray(size -&gt; new LanguageInfo[size]);</span>
-<span class="source-line-no">196</span><span id="line-196">            }</span>
-<span class="source-line-no">197</span><span id="line-197">        });</span>
-<span class="source-line-no">198</span><span id="line-198"></span>
-<span class="source-line-no">199</span><span id="line-199">        final ResourceBundle baseResources = consoleResourceBundle(locale);</span>
-<span class="source-line-no">200</span><span id="line-200">        model.put("_", new TemplateMethodModelEx() {</span>
-<span class="source-line-no">201</span><span id="line-201">            @Override</span>
-<span class="source-line-no">202</span><span id="line-202">            public Object exec(@SuppressWarnings("rawtypes") List arguments)</span>
-<span class="source-line-no">203</span><span id="line-203">                    throws TemplateModelException {</span>
-<span class="source-line-no">204</span><span id="line-204">                @SuppressWarnings("unchecked")</span>
-<span class="source-line-no">205</span><span id="line-205">                List&lt;TemplateModel&gt; args = (List&lt;TemplateModel&gt;) arguments;</span>
-<span class="source-line-no">206</span><span id="line-206">                if (!(args.get(0) instanceof SimpleScalar)) {</span>
-<span class="source-line-no">207</span><span id="line-207">                    throw new TemplateModelException("Not a string.");</span>
-<span class="source-line-no">208</span><span id="line-208">                }</span>
-<span class="source-line-no">209</span><span id="line-209">                String key = ((SimpleScalar) args.get(0)).getAsString();</span>
-<span class="source-line-no">210</span><span id="line-210">                try {</span>
-<span class="source-line-no">211</span><span id="line-211">                    return baseResources.getString(key);</span>
-<span class="source-line-no">212</span><span id="line-212">                } catch (MissingResourceException e) { // NOPMD</span>
-<span class="source-line-no">213</span><span id="line-213">                    // no luck</span>
-<span class="source-line-no">214</span><span id="line-214">                }</span>
-<span class="source-line-no">215</span><span id="line-215">                return key;</span>
-<span class="source-line-no">216</span><span id="line-216">            }</span>
-<span class="source-line-no">217</span><span id="line-217">        });</span>
-<span class="source-line-no">218</span><span id="line-218">        return model;</span>
-<span class="source-line-no">219</span><span id="line-219">    }</span>
-<span class="source-line-no">220</span><span id="line-220"></span>
-<span class="source-line-no">221</span><span id="line-221">    /**</span>
-<span class="source-line-no">222</span><span id="line-222">     * Render the console page using the freemarker template </span>
-<span class="source-line-no">223</span><span id="line-223">     * "console.ftl.html". The template for the console page</span>
-<span class="source-line-no">224</span><span id="line-224">     * (and all included templates) are loaded using the </span>
-<span class="source-line-no">225</span><span id="line-225">     * a list of template class loaders created as follows:</span>
-<span class="source-line-no">226</span><span id="line-226">     * </span>
-<span class="source-line-no">227</span><span id="line-227">     *  1. Start with the actual type of the console conlet.</span>
-<span class="source-line-no">228</span><span id="line-228">     *  </span>
-<span class="source-line-no">229</span><span id="line-229">     *  2. Using the current type, add a freemarker class template loader</span>
-<span class="source-line-no">230</span><span id="line-230">     *    {@link ClassTemplateLoader#ClassTemplateLoader(ClassLoader, String)}</span>
-<span class="source-line-no">231</span><span id="line-231">     *    that uses the package name as path (all dots replaced with</span>
-<span class="source-line-no">232</span><span id="line-232">     *    slashes).</span>
-<span class="source-line-no">233</span><span id="line-233">     *    </span>
-<span class="source-line-no">234</span><span id="line-234">     *  3. Repeat step 2 with the super class of the current type</span>
-<span class="source-line-no">235</span><span id="line-235">     *     until type {@link FreeMarkerConsoleWeblet} is reached.</span>
-<span class="source-line-no">236</span><span id="line-236">     *     </span>
-<span class="source-line-no">237</span><span id="line-237">     *  This approach allows a (base) console weblet to provide a</span>
-<span class="source-line-no">238</span><span id="line-238">     *  console page template that includes another template</span>
-<span class="source-line-no">239</span><span id="line-239">     *  e.g. "footer.ftl.html" to provide a specific part of the </span>
-<span class="source-line-no">240</span><span id="line-240">     *  console page. A derived console weblet can then provide its</span>
-<span class="source-line-no">241</span><span id="line-241">     *  own "footer.ftl.html" and thus override the version from the</span>
-<span class="source-line-no">242</span><span id="line-242">     *  base class(es).</span>
-<span class="source-line-no">243</span><span id="line-243">     * </span>
-<span class="source-line-no">244</span><span id="line-244">     * @param event the event</span>
-<span class="source-line-no">245</span><span id="line-245">     * @param channel the channel</span>
-<span class="source-line-no">246</span><span id="line-246">     * @throws IOException Signals that an I/O exception has occurred.</span>
-<span class="source-line-no">247</span><span id="line-247">     * @throws InterruptedException the interrupted exception</span>
-<span class="source-line-no">248</span><span id="line-248">     */</span>
-<span class="source-line-no">249</span><span id="line-249">    @Override</span>
-<span class="source-line-no">250</span><span id="line-250">    protected void renderConsole(Request.In.Get event, IOSubchannel channel,</span>
-<span class="source-line-no">251</span><span id="line-251">            UUID consoleConnectionId) throws IOException, InterruptedException {</span>
-<span class="source-line-no">252</span><span id="line-252">        event.setResult(true);</span>
-<span class="source-line-no">253</span><span id="line-253">        event.stop();</span>
-<span class="source-line-no">254</span><span id="line-254"></span>
-<span class="source-line-no">255</span><span id="line-255">        // Prepare response</span>
-<span class="source-line-no">256</span><span id="line-256">        HttpResponse response = event.httpRequest().response().get();</span>
-<span class="source-line-no">257</span><span id="line-257">        MediaType mediaType = MediaType.builder().setType("text", "html")</span>
-<span class="source-line-no">258</span><span id="line-258">            .setParameter("charset", UTF_8).build();</span>
-<span class="source-line-no">259</span><span id="line-259">        response.setField(HttpField.CONTENT_TYPE, mediaType);</span>
-<span class="source-line-no">260</span><span id="line-260">        response.setStatus(HttpStatus.OK);</span>
-<span class="source-line-no">261</span><span id="line-261">        response.setHasPayload(true);</span>
-<span class="source-line-no">262</span><span id="line-262">        channel.respond(new Response(response));</span>
-<span class="source-line-no">263</span><span id="line-263">        try (@SuppressWarnings("resource")</span>
-<span class="source-line-no">264</span><span id="line-264">        Writer out = new ByteBufferWriter(channel).suppressClose()) {</span>
-<span class="source-line-no">265</span><span id="line-265">            Template tpl = freeMarkerConfig.getTemplate("console.ftl.html");</span>
-<span class="source-line-no">266</span><span id="line-266">            Map&lt;String, Object&gt; consoleModel = expandConsoleModel(</span>
-<span class="source-line-no">267</span><span id="line-267">                createConsoleBaseModel(), event, consoleConnectionId);</span>
-<span class="source-line-no">268</span><span id="line-268">            tpl.process(consoleModel, out);</span>
-<span class="source-line-no">269</span><span id="line-269">        } catch (TemplateException e) {</span>
-<span class="source-line-no">270</span><span id="line-270">            throw new IOException(e);</span>
-<span class="source-line-no">271</span><span id="line-271">        }</span>
-<span class="source-line-no">272</span><span id="line-272">    }</span>
-<span class="source-line-no">273</span><span id="line-273"></span>
-<span class="source-line-no">274</span><span id="line-274">}</span>
+<span class="source-line-no">185</span><span id="line-185">                final Comparator&lt;LanguageInfo&gt; comp = new Comparator&lt;&gt;() {</span>
+<span class="source-line-no">186</span><span id="line-186">                    @Override</span>
+<span class="source-line-no">187</span><span id="line-187">                    public int compare(LanguageInfo o1, LanguageInfo o2) { // NOPMD</span>
+<span class="source-line-no">188</span><span id="line-188">                        return coll.compare(o1.getLabel(), o2.getLabel());</span>
+<span class="source-line-no">189</span><span id="line-189">                    }</span>
+<span class="source-line-no">190</span><span id="line-190">                };</span>
+<span class="source-line-no">191</span><span id="line-191">                return cachedResult = supportedLocales().entrySet().stream()</span>
+<span class="source-line-no">192</span><span id="line-192">                    .map(entry -&gt; new LanguageInfo(entry.getKey(),</span>
+<span class="source-line-no">193</span><span id="line-193">                        entry.getValue()))</span>
+<span class="source-line-no">194</span><span id="line-194">                    .sorted(comp).toArray(size -&gt; new LanguageInfo[size]);</span>
+<span class="source-line-no">195</span><span id="line-195">            }</span>
+<span class="source-line-no">196</span><span id="line-196">        });</span>
+<span class="source-line-no">197</span><span id="line-197"></span>
+<span class="source-line-no">198</span><span id="line-198">        final ResourceBundle baseResources = consoleResourceBundle(locale);</span>
+<span class="source-line-no">199</span><span id="line-199">        model.put("_", new TemplateMethodModelEx() {</span>
+<span class="source-line-no">200</span><span id="line-200">            @Override</span>
+<span class="source-line-no">201</span><span id="line-201">            public Object exec(@SuppressWarnings("rawtypes") List arguments)</span>
+<span class="source-line-no">202</span><span id="line-202">                    throws TemplateModelException {</span>
+<span class="source-line-no">203</span><span id="line-203">                @SuppressWarnings("unchecked")</span>
+<span class="source-line-no">204</span><span id="line-204">                List&lt;TemplateModel&gt; args = (List&lt;TemplateModel&gt;) arguments;</span>
+<span class="source-line-no">205</span><span id="line-205">                if (!(args.get(0) instanceof SimpleScalar)) {</span>
+<span class="source-line-no">206</span><span id="line-206">                    throw new TemplateModelException("Not a string.");</span>
+<span class="source-line-no">207</span><span id="line-207">                }</span>
+<span class="source-line-no">208</span><span id="line-208">                String key = ((SimpleScalar) args.get(0)).getAsString();</span>
+<span class="source-line-no">209</span><span id="line-209">                try {</span>
+<span class="source-line-no">210</span><span id="line-210">                    return baseResources.getString(key);</span>
+<span class="source-line-no">211</span><span id="line-211">                } catch (MissingResourceException e) { // NOPMD</span>
+<span class="source-line-no">212</span><span id="line-212">                    // no luck</span>
+<span class="source-line-no">213</span><span id="line-213">                }</span>
+<span class="source-line-no">214</span><span id="line-214">                return key;</span>
+<span class="source-line-no">215</span><span id="line-215">            }</span>
+<span class="source-line-no">216</span><span id="line-216">        });</span>
+<span class="source-line-no">217</span><span id="line-217">        return model;</span>
+<span class="source-line-no">218</span><span id="line-218">    }</span>
+<span class="source-line-no">219</span><span id="line-219"></span>
+<span class="source-line-no">220</span><span id="line-220">    /**</span>
+<span class="source-line-no">221</span><span id="line-221">     * Render the console page using the freemarker template </span>
+<span class="source-line-no">222</span><span id="line-222">     * "console.ftl.html". The template for the console page</span>
+<span class="source-line-no">223</span><span id="line-223">     * (and all included templates) are loaded using the </span>
+<span class="source-line-no">224</span><span id="line-224">     * a list of template class loaders created as follows:</span>
+<span class="source-line-no">225</span><span id="line-225">     * </span>
+<span class="source-line-no">226</span><span id="line-226">     *  1. Start with the actual type of the console conlet.</span>
+<span class="source-line-no">227</span><span id="line-227">     *  </span>
+<span class="source-line-no">228</span><span id="line-228">     *  2. Using the current type, add a freemarker class template loader</span>
+<span class="source-line-no">229</span><span id="line-229">     *    {@link ClassTemplateLoader#ClassTemplateLoader(ClassLoader, String)}</span>
+<span class="source-line-no">230</span><span id="line-230">     *    that uses the package name as path (all dots replaced with</span>
+<span class="source-line-no">231</span><span id="line-231">     *    slashes).</span>
+<span class="source-line-no">232</span><span id="line-232">     *    </span>
+<span class="source-line-no">233</span><span id="line-233">     *  3. Repeat step 2 with the super class of the current type</span>
+<span class="source-line-no">234</span><span id="line-234">     *     until type {@link FreeMarkerConsoleWeblet} is reached.</span>
+<span class="source-line-no">235</span><span id="line-235">     *     </span>
+<span class="source-line-no">236</span><span id="line-236">     *  This approach allows a (base) console weblet to provide a</span>
+<span class="source-line-no">237</span><span id="line-237">     *  console page template that includes another template</span>
+<span class="source-line-no">238</span><span id="line-238">     *  e.g. "footer.ftl.html" to provide a specific part of the </span>
+<span class="source-line-no">239</span><span id="line-239">     *  console page. A derived console weblet can then provide its</span>
+<span class="source-line-no">240</span><span id="line-240">     *  own "footer.ftl.html" and thus override the version from the</span>
+<span class="source-line-no">241</span><span id="line-241">     *  base class(es).</span>
+<span class="source-line-no">242</span><span id="line-242">     * </span>
+<span class="source-line-no">243</span><span id="line-243">     * @param event the event</span>
+<span class="source-line-no">244</span><span id="line-244">     * @param channel the channel</span>
+<span class="source-line-no">245</span><span id="line-245">     * @throws IOException Signals that an I/O exception has occurred.</span>
+<span class="source-line-no">246</span><span id="line-246">     * @throws InterruptedException the interrupted exception</span>
+<span class="source-line-no">247</span><span id="line-247">     */</span>
+<span class="source-line-no">248</span><span id="line-248">    @Override</span>
+<span class="source-line-no">249</span><span id="line-249">    protected void renderConsole(Request.In.Get event, IOSubchannel channel,</span>
+<span class="source-line-no">250</span><span id="line-250">            UUID consoleConnectionId) throws IOException, InterruptedException {</span>
+<span class="source-line-no">251</span><span id="line-251">        event.setResult(true);</span>
+<span class="source-line-no">252</span><span id="line-252">        event.stop();</span>
+<span class="source-line-no">253</span><span id="line-253"></span>
+<span class="source-line-no">254</span><span id="line-254">        // Prepare response</span>
+<span class="source-line-no">255</span><span id="line-255">        HttpResponse response = event.httpRequest().response().get();</span>
+<span class="source-line-no">256</span><span id="line-256">        MediaType mediaType = MediaType.builder().setType("text", "html")</span>
+<span class="source-line-no">257</span><span id="line-257">            .setParameter("charset", UTF_8).build();</span>
+<span class="source-line-no">258</span><span id="line-258">        response.setField(HttpField.CONTENT_TYPE, mediaType);</span>
+<span class="source-line-no">259</span><span id="line-259">        response.setStatus(HttpStatus.OK);</span>
+<span class="source-line-no">260</span><span id="line-260">        response.setHasPayload(true);</span>
+<span class="source-line-no">261</span><span id="line-261">        channel.respond(new Response(response));</span>
+<span class="source-line-no">262</span><span id="line-262">        try (@SuppressWarnings("resource")</span>
+<span class="source-line-no">263</span><span id="line-263">        Writer out = new ByteBufferWriter(channel).suppressClose()) {</span>
+<span class="source-line-no">264</span><span id="line-264">            Template tpl = freeMarkerConfig.getTemplate("console.ftl.html");</span>
+<span class="source-line-no">265</span><span id="line-265">            Map&lt;String, Object&gt; consoleModel = expandConsoleModel(</span>
+<span class="source-line-no">266</span><span id="line-266">                createConsoleBaseModel(), event, consoleConnectionId);</span>
+<span class="source-line-no">267</span><span id="line-267">            tpl.process(consoleModel, out);</span>
+<span class="source-line-no">268</span><span id="line-268">        } catch (TemplateException e) {</span>
+<span class="source-line-no">269</span><span id="line-269">            throw new IOException(e);</span>
+<span class="source-line-no">270</span><span id="line-270">        }</span>
+<span class="source-line-no">271</span><span id="line-271">    }</span>
+<span class="source-line-no">272</span><span id="line-272"></span>
+<span class="source-line-no">273</span><span id="line-273">}</span>
 
 
 

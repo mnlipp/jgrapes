@@ -187,7 +187,7 @@
 <span class="source-line-no">174</span><span id="line-174">            scripts.append(scriptResource.toJsonValue());</span>
 <span class="source-line-no">175</span><span id="line-175">        }</span>
 <span class="source-line-no">176</span><span id="line-176">        toJson(writer, "addPageResources", Arrays.stream(cssUris()).map(</span>
-<span class="source-line-no">177</span><span id="line-177">            uri -&gt; uri.toString()).toArray(String[]::new),</span>
+<span class="source-line-no">177</span><span id="line-177">            URI::toString).toArray(String[]::new),</span>
 <span class="source-line-no">178</span><span id="line-178">            cssSource(), scripts);</span>
 <span class="source-line-no">179</span><span id="line-179">    }</span>
 <span class="source-line-no">180</span><span id="line-180"></span>
@@ -293,7 +293,7 @@
 <span class="source-line-no">280</span><span id="line-280">         * @return this object for easy chaining</span>
 <span class="source-line-no">281</span><span id="line-281">         * @throws IOException </span>
 <span class="source-line-no">282</span><span id="line-282">         */</span>
-<span class="source-line-no">283</span><span id="line-283">        @SuppressWarnings("PMD.ShortVariable")</span>
+<span class="source-line-no">283</span><span id="line-283">        @SuppressWarnings({ "PMD.ShortVariable", "PMD.PreserveStackTrace" })</span>
 <span class="source-line-no">284</span><span id="line-284">        public ScriptResource loadScriptSource(Reader in) throws IOException {</span>
 <span class="source-line-no">285</span><span id="line-285">            try (BufferedReader buffered = new BufferedReader(in)) {</span>
 <span class="source-line-no">286</span><span id="line-286">                this.scriptSource</span>

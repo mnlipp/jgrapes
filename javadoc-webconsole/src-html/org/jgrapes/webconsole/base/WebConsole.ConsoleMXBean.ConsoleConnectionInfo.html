@@ -321,7 +321,7 @@
 <span class="source-line-no">308</span><span id="line-308"></span>
 <span class="source-line-no">309</span><span id="line-309">        @Override</span>
 <span class="source-line-no">310</span><span id="line-310">        public String getComponentPath() {</span>
-<span class="source-line-no">311</span><span id="line-311">            return console().map(mgr -&gt; mgr.componentPath())</span>
+<span class="source-line-no">311</span><span id="line-311">            return console().map(Component::componentPath)</span>
 <span class="source-line-no">312</span><span id="line-312">                .orElse("&lt;removed&gt;");</span>
 <span class="source-line-no">313</span><span id="line-313">        }</span>
 <span class="source-line-no">314</span><span id="line-314"></span>
@@ -379,7 +379,7 @@
 <span class="source-line-no">366</span><span id="line-366">     * Provides an MBean view of the console.</span>
 <span class="source-line-no">367</span><span id="line-367">     */</span>
 <span class="source-line-no">368</span><span id="line-368">    @SuppressWarnings("PMD.CommentRequired")</span>
-<span class="source-line-no">369</span><span id="line-369">    private static class MBeanView implements WebConsoleSummaryMXBean {</span>
+<span class="source-line-no">369</span><span id="line-369">    private static final class MBeanView implements WebConsoleSummaryMXBean {</span>
 <span class="source-line-no">370</span><span id="line-370"></span>
 <span class="source-line-no">371</span><span id="line-371">        private static Set&lt;WebConsoleInfo&gt; consoleInfos = new HashSet&lt;&gt;();</span>
 <span class="source-line-no">372</span><span id="line-372"></span>

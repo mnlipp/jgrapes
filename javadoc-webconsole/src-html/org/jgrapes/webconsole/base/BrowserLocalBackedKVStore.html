@@ -52,55 +52,55 @@
 <span class="source-line-no">039</span><span id="line-39">import org.jgrapes.webconsole.base.events.JsonInput;</span>
 <span class="source-line-no">040</span><span id="line-40">import org.jgrapes.webconsole.base.events.SimpleConsoleCommand;</span>
 <span class="source-line-no">041</span><span id="line-41"></span>
-<span class="source-line-no">042</span><span id="line-42">// TODO: Auto-generated Javadoc</span>
-<span class="source-line-no">043</span><span id="line-43">/**</span>
-<span class="source-line-no">044</span><span id="line-44"> * The Class BrowserLocalBackedKVStore.</span>
-<span class="source-line-no">045</span><span id="line-45"> */</span>
-<span class="source-line-no">046</span><span id="line-46">public class BrowserLocalBackedKVStore extends Component {</span>
-<span class="source-line-no">047</span><span id="line-47"></span>
-<span class="source-line-no">048</span><span id="line-48">    private final String consolePrefix;</span>
-<span class="source-line-no">049</span><span id="line-49"></span>
-<span class="source-line-no">050</span><span id="line-50">    /**</span>
-<span class="source-line-no">051</span><span id="line-51">     * Create a new key/value store that uses the browser's local storage</span>
-<span class="source-line-no">052</span><span id="line-52">     * for persisting the values.</span>
-<span class="source-line-no">053</span><span id="line-53">     * </span>
-<span class="source-line-no">054</span><span id="line-54">     * @param componentChannel the channel that the component's </span>
-<span class="source-line-no">055</span><span id="line-55">     * handlers listen on by default and that </span>
-<span class="source-line-no">056</span><span id="line-56">     * {@link Manager#fire(Event, Channel...)} sends the event to </span>
-<span class="source-line-no">057</span><span id="line-57">     * @param consolePrefix the web console's prefix as returned by</span>
-<span class="source-line-no">058</span><span id="line-58">     * {@link ConsoleWeblet#prefix()}, i.e. staring and ending with a slash</span>
-<span class="source-line-no">059</span><span id="line-59">     */</span>
-<span class="source-line-no">060</span><span id="line-60">    public BrowserLocalBackedKVStore(</span>
-<span class="source-line-no">061</span><span id="line-61">            Channel componentChannel, String consolePrefix) {</span>
-<span class="source-line-no">062</span><span id="line-62">        super(componentChannel);</span>
-<span class="source-line-no">063</span><span id="line-63">        this.consolePrefix = consolePrefix;</span>
-<span class="source-line-no">064</span><span id="line-64">    }</span>
-<span class="source-line-no">065</span><span id="line-65"></span>
-<span class="source-line-no">066</span><span id="line-66">    /**</span>
-<span class="source-line-no">067</span><span id="line-67">     * Intercept {@link ConsoleReady} event to first get data.</span>
-<span class="source-line-no">068</span><span id="line-68">     *</span>
-<span class="source-line-no">069</span><span id="line-69">     * @param event the event</span>
-<span class="source-line-no">070</span><span id="line-70">     * @param channel the channel</span>
-<span class="source-line-no">071</span><span id="line-71">     * @throws InterruptedException the interrupted exception</span>
-<span class="source-line-no">072</span><span id="line-72">     */</span>
-<span class="source-line-no">073</span><span id="line-73">    @Handler(priority = 1000)</span>
-<span class="source-line-no">074</span><span id="line-74">    public void onConsoleReady(ConsoleReady event, ConsoleConnection channel)</span>
-<span class="source-line-no">075</span><span id="line-75">            throws InterruptedException {</span>
-<span class="source-line-no">076</span><span id="line-76">        // Put there by onJsonInput if retrieval has been done.</span>
-<span class="source-line-no">077</span><span id="line-77">        if (TypedIdKey.get(channel.session(), Store.class,</span>
-<span class="source-line-no">078</span><span id="line-78">            consolePrefix).isPresent()) {</span>
-<span class="source-line-no">079</span><span id="line-79">            // Already have store, nothing to do</span>
-<span class="source-line-no">080</span><span id="line-80">            return;</span>
-<span class="source-line-no">081</span><span id="line-81">        }</span>
-<span class="source-line-no">082</span><span id="line-82">        // Suspend and trigger data retrieval</span>
-<span class="source-line-no">083</span><span id="line-83">        event.suspendHandling();</span>
-<span class="source-line-no">084</span><span id="line-84">        channel.setAssociated(this, event);</span>
-<span class="source-line-no">085</span><span id="line-85">        String keyStart = consolePrefix</span>
-<span class="source-line-no">086</span><span id="line-86">            + BrowserLocalBackedKVStore.class.getName() + "/";</span>
-<span class="source-line-no">087</span><span id="line-87">        channel</span>
-<span class="source-line-no">088</span><span id="line-88">            .respond(new SimpleConsoleCommand("retrieveLocalData", keyStart));</span>
-<span class="source-line-no">089</span><span id="line-89">    }</span>
-<span class="source-line-no">090</span><span id="line-90"></span>
+<span class="source-line-no">042</span><span id="line-42">/**</span>
+<span class="source-line-no">043</span><span id="line-43"> * The Class BrowserLocalBackedKVStore.</span>
+<span class="source-line-no">044</span><span id="line-44"> */</span>
+<span class="source-line-no">045</span><span id="line-45">public class BrowserLocalBackedKVStore extends Component {</span>
+<span class="source-line-no">046</span><span id="line-46"></span>
+<span class="source-line-no">047</span><span id="line-47">    private final String consolePrefix;</span>
+<span class="source-line-no">048</span><span id="line-48"></span>
+<span class="source-line-no">049</span><span id="line-49">    /**</span>
+<span class="source-line-no">050</span><span id="line-50">     * Create a new key/value store that uses the browser's local storage</span>
+<span class="source-line-no">051</span><span id="line-51">     * for persisting the values.</span>
+<span class="source-line-no">052</span><span id="line-52">     * </span>
+<span class="source-line-no">053</span><span id="line-53">     * @param componentChannel the channel that the component's </span>
+<span class="source-line-no">054</span><span id="line-54">     * handlers listen on by default and that </span>
+<span class="source-line-no">055</span><span id="line-55">     * {@link Manager#fire(Event, Channel...)} sends the event to </span>
+<span class="source-line-no">056</span><span id="line-56">     * @param consolePrefix the web console's prefix as returned by</span>
+<span class="source-line-no">057</span><span id="line-57">     * {@link ConsoleWeblet#prefix()}, i.e. staring and ending with a slash</span>
+<span class="source-line-no">058</span><span id="line-58">     */</span>
+<span class="source-line-no">059</span><span id="line-59">    public BrowserLocalBackedKVStore(</span>
+<span class="source-line-no">060</span><span id="line-60">            Channel componentChannel, String consolePrefix) {</span>
+<span class="source-line-no">061</span><span id="line-61">        super(componentChannel);</span>
+<span class="source-line-no">062</span><span id="line-62">        this.consolePrefix = consolePrefix;</span>
+<span class="source-line-no">063</span><span id="line-63">    }</span>
+<span class="source-line-no">064</span><span id="line-64"></span>
+<span class="source-line-no">065</span><span id="line-65">    /**</span>
+<span class="source-line-no">066</span><span id="line-66">     * Intercept {@link ConsoleReady} event to first get data.</span>
+<span class="source-line-no">067</span><span id="line-67">     *</span>
+<span class="source-line-no">068</span><span id="line-68">     * @param event the event</span>
+<span class="source-line-no">069</span><span id="line-69">     * @param channel the channel</span>
+<span class="source-line-no">070</span><span id="line-70">     * @throws InterruptedException the interrupted exception</span>
+<span class="source-line-no">071</span><span id="line-71">     */</span>
+<span class="source-line-no">072</span><span id="line-72">    @Handler(priority = 1000)</span>
+<span class="source-line-no">073</span><span id="line-73">    public void onConsoleReady(ConsoleReady event, ConsoleConnection channel)</span>
+<span class="source-line-no">074</span><span id="line-74">            throws InterruptedException {</span>
+<span class="source-line-no">075</span><span id="line-75">        // Put there by onJsonInput if retrieval has been done.</span>
+<span class="source-line-no">076</span><span id="line-76">        if (TypedIdKey.get(channel.session(), Store.class,</span>
+<span class="source-line-no">077</span><span id="line-77">            consolePrefix).isPresent()) {</span>
+<span class="source-line-no">078</span><span id="line-78">            // Already have store, nothing to do</span>
+<span class="source-line-no">079</span><span id="line-79">            return;</span>
+<span class="source-line-no">080</span><span id="line-80">        }</span>
+<span class="source-line-no">081</span><span id="line-81">        // Suspend and trigger data retrieval</span>
+<span class="source-line-no">082</span><span id="line-82">        event.suspendHandling();</span>
+<span class="source-line-no">083</span><span id="line-83">        channel.setAssociated(this, event);</span>
+<span class="source-line-no">084</span><span id="line-84">        String keyStart = consolePrefix</span>
+<span class="source-line-no">085</span><span id="line-85">            + BrowserLocalBackedKVStore.class.getName() + "/";</span>
+<span class="source-line-no">086</span><span id="line-86">        channel</span>
+<span class="source-line-no">087</span><span id="line-87">            .respond(new SimpleConsoleCommand("retrieveLocalData", keyStart));</span>
+<span class="source-line-no">088</span><span id="line-88">    }</span>
+<span class="source-line-no">089</span><span id="line-89"></span>
+<span class="source-line-no">090</span><span id="line-90">    @SuppressWarnings("PMD.LooseCoupling")</span>
 <span class="source-line-no">091</span><span id="line-91">    private Store getStore(ConsoleConnection channel) {</span>
 <span class="source-line-no">092</span><span id="line-92">        return TypedIdKey</span>
 <span class="source-line-no">093</span><span id="line-93">            .get(channel.session(), Store.class, consolePrefix)</span>
@@ -130,96 +130,98 @@
 <span class="source-line-no">117</span><span id="line-117">                // Having a store now also shows that retrieval has been done.</span>
 <span class="source-line-no">118</span><span id="line-118">                final String keyStart = consolePrefix</span>
 <span class="source-line-no">119</span><span id="line-119">                    + BrowserLocalBackedKVStore.class.getName() + "/";</span>
-<span class="source-line-no">120</span><span id="line-120">                @SuppressWarnings("PMD.DataflowAnomalyAnalysis")</span>
-<span class="source-line-no">121</span><span id="line-121">                Store data = getStore(channel);</span>
-<span class="source-line-no">122</span><span id="line-122">                JsonArray params = (JsonArray) event.request().params();</span>
-<span class="source-line-no">123</span><span id="line-123">                params.asArray(0).arrayStream().forEach(item -&gt; {</span>
-<span class="source-line-no">124</span><span id="line-124">                    String key = item.asString(0);</span>
-<span class="source-line-no">125</span><span id="line-125">                    if (key.startsWith(keyStart)) {</span>
-<span class="source-line-no">126</span><span id="line-126">                        data.put(key.substring(</span>
-<span class="source-line-no">127</span><span id="line-127">                            keyStart.length() - 1), item.asString(1));</span>
-<span class="source-line-no">128</span><span id="line-128">                    }</span>
-<span class="source-line-no">129</span><span id="line-129">                });</span>
-<span class="source-line-no">130</span><span id="line-130">                // Don't re-use</span>
-<span class="source-line-no">131</span><span id="line-131">                channel.setAssociated(this, null);</span>
-<span class="source-line-no">132</span><span id="line-132">                // Let others process the web console ready event</span>
-<span class="source-line-no">133</span><span id="line-133">                origEvent.resumeHandling();</span>
-<span class="source-line-no">134</span><span id="line-134">            });</span>
-<span class="source-line-no">135</span><span id="line-135">    }</span>
-<span class="source-line-no">136</span><span id="line-136"></span>
-<span class="source-line-no">137</span><span id="line-137">    /**</span>
-<span class="source-line-no">138</span><span id="line-138">     * Handle data update events.</span>
-<span class="source-line-no">139</span><span id="line-139">     *</span>
-<span class="source-line-no">140</span><span id="line-140">     * @param event the event</span>
-<span class="source-line-no">141</span><span id="line-141">     * @param channel the channel</span>
-<span class="source-line-no">142</span><span id="line-142">     * @throws InterruptedException the interrupted exception</span>
-<span class="source-line-no">143</span><span id="line-143">     * @throws IOException Signals that an I/O exception has occurred.</span>
-<span class="source-line-no">144</span><span id="line-144">     */</span>
-<span class="source-line-no">145</span><span id="line-145">    @Handler</span>
-<span class="source-line-no">146</span><span id="line-146">    @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",</span>
-<span class="source-line-no">147</span><span id="line-147">        "PMD.AvoidInstantiatingObjectsInLoops" })</span>
-<span class="source-line-no">148</span><span id="line-148">    public void onKeyValueStoreUpdate(</span>
-<span class="source-line-no">149</span><span id="line-149">            KeyValueStoreUpdate event, ConsoleConnection channel)</span>
-<span class="source-line-no">150</span><span id="line-150">            throws InterruptedException, IOException {</span>
-<span class="source-line-no">151</span><span id="line-151">        Store data = getStore(channel);</span>
-<span class="source-line-no">152</span><span id="line-152">        List&lt;String[]&gt; actions = new ArrayList&lt;&gt;();</span>
-<span class="source-line-no">153</span><span id="line-153">        String keyStart = consolePrefix</span>
-<span class="source-line-no">154</span><span id="line-154">            + BrowserLocalBackedKVStore.class.getName();</span>
-<span class="source-line-no">155</span><span id="line-155">        for (Action action : event.actions()) {</span>
-<span class="source-line-no">156</span><span id="line-156">            @SuppressWarnings("PMD.UselessParentheses")</span>
-<span class="source-line-no">157</span><span id="line-157">            String key = keyStart + (action.key().startsWith("/")</span>
-<span class="source-line-no">158</span><span id="line-158">                ? action.key()</span>
-<span class="source-line-no">159</span><span id="line-159">                : ("/" + action.key()));</span>
-<span class="source-line-no">160</span><span id="line-160">            if (action instanceof Update) {</span>
-<span class="source-line-no">161</span><span id="line-161">                actions.add(new String[] { "u", key,</span>
-<span class="source-line-no">162</span><span id="line-162">                    ((Update) action).value() });</span>
-<span class="source-line-no">163</span><span id="line-163">                data.put(action.key(), ((Update) action).value());</span>
-<span class="source-line-no">164</span><span id="line-164">            } else if (action instanceof Deletion) {</span>
-<span class="source-line-no">165</span><span id="line-165">                actions.add(new String[] { "d", key });</span>
-<span class="source-line-no">166</span><span id="line-166">                data.remove(action.key());</span>
-<span class="source-line-no">167</span><span id="line-167">            }</span>
-<span class="source-line-no">168</span><span id="line-168">        }</span>
-<span class="source-line-no">169</span><span id="line-169">        channel.respond(new SimpleConsoleCommand("storeLocalData",</span>
-<span class="source-line-no">170</span><span id="line-170">            new Object[] { actions.toArray() }));</span>
-<span class="source-line-no">171</span><span id="line-171">    }</span>
-<span class="source-line-no">172</span><span id="line-172"></span>
-<span class="source-line-no">173</span><span id="line-173">    /**</span>
-<span class="source-line-no">174</span><span id="line-174">     * Handle data query..</span>
-<span class="source-line-no">175</span><span id="line-175">     *</span>
-<span class="source-line-no">176</span><span id="line-176">     * @param event the event</span>
-<span class="source-line-no">177</span><span id="line-177">     * @param channel the channel</span>
-<span class="source-line-no">178</span><span id="line-178">     */</span>
-<span class="source-line-no">179</span><span id="line-179">    @Handler</span>
-<span class="source-line-no">180</span><span id="line-180">    @SuppressWarnings("PMD.ConfusingTernary")</span>
-<span class="source-line-no">181</span><span id="line-181">    public void onKeyValueStoreQuery(</span>
-<span class="source-line-no">182</span><span id="line-182">            KeyValueStoreQuery event, ConsoleConnection channel) {</span>
-<span class="source-line-no">183</span><span id="line-183">        @SuppressWarnings("PMD.UseConcurrentHashMap")</span>
-<span class="source-line-no">184</span><span id="line-184">        Map&lt;String, String&gt; result = new HashMap&lt;&gt;();</span>
-<span class="source-line-no">185</span><span id="line-185">        TypedIdKey.get(channel.session(), Store.class, consolePrefix)</span>
-<span class="source-line-no">186</span><span id="line-186">            .ifPresent(data -&gt; {</span>
-<span class="source-line-no">187</span><span id="line-187">                if (!event.query().endsWith("/")) {</span>
-<span class="source-line-no">188</span><span id="line-188">                    // Single value</span>
-<span class="source-line-no">189</span><span id="line-189">                    if (data.containsKey(event.query())) {</span>
-<span class="source-line-no">190</span><span id="line-190">                        result.put(event.query(), data.get(event.query()));</span>
-<span class="source-line-no">191</span><span id="line-191">                    }</span>
-<span class="source-line-no">192</span><span id="line-192">                } else {</span>
-<span class="source-line-no">193</span><span id="line-193">                    for (Map.Entry&lt;String, String&gt; e : data.entrySet()) {</span>
-<span class="source-line-no">194</span><span id="line-194">                        if (e.getKey().startsWith(event.query())) {</span>
-<span class="source-line-no">195</span><span id="line-195">                            result.put(e.getKey(), e.getValue());</span>
-<span class="source-line-no">196</span><span id="line-196">                        }</span>
-<span class="source-line-no">197</span><span id="line-197">                    }</span>
-<span class="source-line-no">198</span><span id="line-198">                }</span>
-<span class="source-line-no">199</span><span id="line-199">                event.setResult(result);</span>
-<span class="source-line-no">200</span><span id="line-200">            });</span>
-<span class="source-line-no">201</span><span id="line-201">    }</span>
-<span class="source-line-no">202</span><span id="line-202"></span>
-<span class="source-line-no">203</span><span id="line-203">    /**</span>
-<span class="source-line-no">204</span><span id="line-204">     * The store.</span>
-<span class="source-line-no">205</span><span id="line-205">     */</span>
-<span class="source-line-no">206</span><span id="line-206">    @SuppressWarnings("serial")</span>
-<span class="source-line-no">207</span><span id="line-207">    private class Store extends HashMap&lt;String, String&gt; {</span>
-<span class="source-line-no">208</span><span id="line-208">    }</span>
-<span class="source-line-no">209</span><span id="line-209">}</span>
+<span class="source-line-no">120</span><span id="line-120">                @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",</span>
+<span class="source-line-no">121</span><span id="line-121">                    "PMD.LooseCoupling" })</span>
+<span class="source-line-no">122</span><span id="line-122">                Store data = getStore(channel);</span>
+<span class="source-line-no">123</span><span id="line-123">                JsonArray params = (JsonArray) event.request().params();</span>
+<span class="source-line-no">124</span><span id="line-124">                params.asArray(0).arrayStream().forEach(item -&gt; {</span>
+<span class="source-line-no">125</span><span id="line-125">                    String key = item.asString(0);</span>
+<span class="source-line-no">126</span><span id="line-126">                    if (key.startsWith(keyStart)) {</span>
+<span class="source-line-no">127</span><span id="line-127">                        data.put(key.substring(</span>
+<span class="source-line-no">128</span><span id="line-128">                            keyStart.length() - 1), item.asString(1));</span>
+<span class="source-line-no">129</span><span id="line-129">                    }</span>
+<span class="source-line-no">130</span><span id="line-130">                });</span>
+<span class="source-line-no">131</span><span id="line-131">                // Don't re-use</span>
+<span class="source-line-no">132</span><span id="line-132">                channel.setAssociated(this, null);</span>
+<span class="source-line-no">133</span><span id="line-133">                // Let others process the web console ready event</span>
+<span class="source-line-no">134</span><span id="line-134">                origEvent.resumeHandling();</span>
+<span class="source-line-no">135</span><span id="line-135">            });</span>
+<span class="source-line-no">136</span><span id="line-136">    }</span>
+<span class="source-line-no">137</span><span id="line-137"></span>
+<span class="source-line-no">138</span><span id="line-138">    /**</span>
+<span class="source-line-no">139</span><span id="line-139">     * Handle data update events.</span>
+<span class="source-line-no">140</span><span id="line-140">     *</span>
+<span class="source-line-no">141</span><span id="line-141">     * @param event the event</span>
+<span class="source-line-no">142</span><span id="line-142">     * @param channel the channel</span>
+<span class="source-line-no">143</span><span id="line-143">     * @throws InterruptedException the interrupted exception</span>
+<span class="source-line-no">144</span><span id="line-144">     * @throws IOException Signals that an I/O exception has occurred.</span>
+<span class="source-line-no">145</span><span id="line-145">     */</span>
+<span class="source-line-no">146</span><span id="line-146">    @Handler</span>
+<span class="source-line-no">147</span><span id="line-147">    @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",</span>
+<span class="source-line-no">148</span><span id="line-148">        "PMD.AvoidInstantiatingObjectsInLoops" })</span>
+<span class="source-line-no">149</span><span id="line-149">    public void onKeyValueStoreUpdate(</span>
+<span class="source-line-no">150</span><span id="line-150">            KeyValueStoreUpdate event, ConsoleConnection channel)</span>
+<span class="source-line-no">151</span><span id="line-151">            throws InterruptedException, IOException {</span>
+<span class="source-line-no">152</span><span id="line-152">        @SuppressWarnings("PMD.LooseCoupling")</span>
+<span class="source-line-no">153</span><span id="line-153">        Store data = getStore(channel);</span>
+<span class="source-line-no">154</span><span id="line-154">        List&lt;String[]&gt; actions = new ArrayList&lt;&gt;();</span>
+<span class="source-line-no">155</span><span id="line-155">        String keyStart = consolePrefix</span>
+<span class="source-line-no">156</span><span id="line-156">            + BrowserLocalBackedKVStore.class.getName();</span>
+<span class="source-line-no">157</span><span id="line-157">        for (Action action : event.actions()) {</span>
+<span class="source-line-no">158</span><span id="line-158">            @SuppressWarnings("PMD.UselessParentheses")</span>
+<span class="source-line-no">159</span><span id="line-159">            String key = keyStart + (action.key().startsWith("/")</span>
+<span class="source-line-no">160</span><span id="line-160">                ? action.key()</span>
+<span class="source-line-no">161</span><span id="line-161">                : ("/" + action.key()));</span>
+<span class="source-line-no">162</span><span id="line-162">            if (action instanceof Update) {</span>
+<span class="source-line-no">163</span><span id="line-163">                actions.add(new String[] { "u", key,</span>
+<span class="source-line-no">164</span><span id="line-164">                    ((Update) action).value() });</span>
+<span class="source-line-no">165</span><span id="line-165">                data.put(action.key(), ((Update) action).value());</span>
+<span class="source-line-no">166</span><span id="line-166">            } else if (action instanceof Deletion) {</span>
+<span class="source-line-no">167</span><span id="line-167">                actions.add(new String[] { "d", key });</span>
+<span class="source-line-no">168</span><span id="line-168">                data.remove(action.key());</span>
+<span class="source-line-no">169</span><span id="line-169">            }</span>
+<span class="source-line-no">170</span><span id="line-170">        }</span>
+<span class="source-line-no">171</span><span id="line-171">        channel.respond(new SimpleConsoleCommand("storeLocalData",</span>
+<span class="source-line-no">172</span><span id="line-172">            new Object[] { actions.toArray() }));</span>
+<span class="source-line-no">173</span><span id="line-173">    }</span>
+<span class="source-line-no">174</span><span id="line-174"></span>
+<span class="source-line-no">175</span><span id="line-175">    /**</span>
+<span class="source-line-no">176</span><span id="line-176">     * Handle data query..</span>
+<span class="source-line-no">177</span><span id="line-177">     *</span>
+<span class="source-line-no">178</span><span id="line-178">     * @param event the event</span>
+<span class="source-line-no">179</span><span id="line-179">     * @param channel the channel</span>
+<span class="source-line-no">180</span><span id="line-180">     */</span>
+<span class="source-line-no">181</span><span id="line-181">    @Handler</span>
+<span class="source-line-no">182</span><span id="line-182">    @SuppressWarnings("PMD.ConfusingTernary")</span>
+<span class="source-line-no">183</span><span id="line-183">    public void onKeyValueStoreQuery(</span>
+<span class="source-line-no">184</span><span id="line-184">            KeyValueStoreQuery event, ConsoleConnection channel) {</span>
+<span class="source-line-no">185</span><span id="line-185">        @SuppressWarnings("PMD.UseConcurrentHashMap")</span>
+<span class="source-line-no">186</span><span id="line-186">        Map&lt;String, String&gt; result = new HashMap&lt;&gt;();</span>
+<span class="source-line-no">187</span><span id="line-187">        TypedIdKey.get(channel.session(), Store.class, consolePrefix)</span>
+<span class="source-line-no">188</span><span id="line-188">            .ifPresent(data -&gt; {</span>
+<span class="source-line-no">189</span><span id="line-189">                if (!event.query().endsWith("/")) {</span>
+<span class="source-line-no">190</span><span id="line-190">                    // Single value</span>
+<span class="source-line-no">191</span><span id="line-191">                    if (data.containsKey(event.query())) {</span>
+<span class="source-line-no">192</span><span id="line-192">                        result.put(event.query(), data.get(event.query()));</span>
+<span class="source-line-no">193</span><span id="line-193">                    }</span>
+<span class="source-line-no">194</span><span id="line-194">                } else {</span>
+<span class="source-line-no">195</span><span id="line-195">                    for (Map.Entry&lt;String, String&gt; e : data.entrySet()) {</span>
+<span class="source-line-no">196</span><span id="line-196">                        if (e.getKey().startsWith(event.query())) {</span>
+<span class="source-line-no">197</span><span id="line-197">                            result.put(e.getKey(), e.getValue());</span>
+<span class="source-line-no">198</span><span id="line-198">                        }</span>
+<span class="source-line-no">199</span><span id="line-199">                    }</span>
+<span class="source-line-no">200</span><span id="line-200">                }</span>
+<span class="source-line-no">201</span><span id="line-201">                event.setResult(result);</span>
+<span class="source-line-no">202</span><span id="line-202">            });</span>
+<span class="source-line-no">203</span><span id="line-203">    }</span>
+<span class="source-line-no">204</span><span id="line-204"></span>
+<span class="source-line-no">205</span><span id="line-205">    /**</span>
+<span class="source-line-no">206</span><span id="line-206">     * The store.</span>
+<span class="source-line-no">207</span><span id="line-207">     */</span>
+<span class="source-line-no">208</span><span id="line-208">    @SuppressWarnings("serial")</span>
+<span class="source-line-no">209</span><span id="line-209">    private final class Store extends HashMap&lt;String, String&gt; {</span>
+<span class="source-line-no">210</span><span id="line-210">    }</span>
+<span class="source-line-no">211</span><span id="line-211">}</span>
 
 
 

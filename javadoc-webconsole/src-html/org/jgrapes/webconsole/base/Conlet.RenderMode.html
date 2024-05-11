@@ -117,44 +117,42 @@
 <span class="source-line-no">104</span><span id="line-104">         */</span>
 <span class="source-line-no">105</span><span id="line-105">        @SuppressWarnings("PMD.VariableNamingConventions")</span>
 <span class="source-line-no">106</span><span id="line-106">        public static final Set&lt;RenderMode&gt; basicModes</span>
-<span class="source-line-no">107</span><span id="line-107">            = Collections.unmodifiableSet(</span>
-<span class="source-line-no">108</span><span id="line-108">                asSet(RenderMode.Preview, RenderMode.View, RenderMode.Edit,</span>
-<span class="source-line-no">109</span><span id="line-109">                    RenderMode.Help));</span>
-<span class="source-line-no">110</span><span id="line-110"></span>
-<span class="source-line-no">111</span><span id="line-111">        /**</span>
-<span class="source-line-no">112</span><span id="line-112">         * Utility method that creates a {@link Set} of render modes</span>
-<span class="source-line-no">113</span><span id="line-113">         * from enumerated values.</span>
-<span class="source-line-no">114</span><span id="line-114">         *</span>
-<span class="source-line-no">115</span><span id="line-115">         * @param modes the modes</span>
-<span class="source-line-no">116</span><span id="line-116">         * @return the sets the</span>
-<span class="source-line-no">117</span><span id="line-117">         */</span>
-<span class="source-line-no">118</span><span id="line-118">        public static Set&lt;RenderMode&gt; asSet(RenderMode... modes) {</span>
-<span class="source-line-no">119</span><span id="line-119">            return new HashSet&lt;&gt;(Arrays.asList(modes));</span>
-<span class="source-line-no">120</span><span id="line-120">        }</span>
-<span class="source-line-no">121</span><span id="line-121"></span>
-<span class="source-line-no">122</span><span id="line-122">        /**</span>
-<span class="source-line-no">123</span><span id="line-123">         * Retrieves the modifiers.</span>
-<span class="source-line-no">124</span><span id="line-124">         */</span>
-<span class="source-line-no">125</span><span id="line-125">        public static Set&lt;RenderMode&gt; modifiers(Set&lt;RenderMode&gt; modes) {</span>
-<span class="source-line-no">126</span><span id="line-126">            Set&lt;RenderMode&gt; result = new HashSet&lt;&gt;(modes);</span>
-<span class="source-line-no">127</span><span id="line-127">            result.removeAll(basicModes);</span>
-<span class="source-line-no">128</span><span id="line-128">            return result;</span>
-<span class="source-line-no">129</span><span id="line-129">        }</span>
-<span class="source-line-no">130</span><span id="line-130"></span>
-<span class="source-line-no">131</span><span id="line-131">        /**</span>
-<span class="source-line-no">132</span><span id="line-132">         * Adds the modifiers from the given set to this basic mode.</span>
-<span class="source-line-no">133</span><span id="line-133">         *</span>
-<span class="source-line-no">134</span><span id="line-134">         * @param modifiers the set with modifiers</span>
-<span class="source-line-no">135</span><span id="line-135">         * @return the augmented basic mode</span>
-<span class="source-line-no">136</span><span id="line-136">         */</span>
-<span class="source-line-no">137</span><span id="line-137">        public Set&lt;RenderMode&gt; addModifiers(Set&lt;RenderMode&gt; modifiers) {</span>
-<span class="source-line-no">138</span><span id="line-138">            Set&lt;RenderMode&gt; result = modifiers(modifiers);</span>
-<span class="source-line-no">139</span><span id="line-139">            result.add(this);</span>
-<span class="source-line-no">140</span><span id="line-140">            return result;</span>
-<span class="source-line-no">141</span><span id="line-141">        }</span>
-<span class="source-line-no">142</span><span id="line-142">    }</span>
-<span class="source-line-no">143</span><span id="line-143"></span>
-<span class="source-line-no">144</span><span id="line-144">}</span>
+<span class="source-line-no">107</span><span id="line-107">            = Collections.unmodifiableSet(asSet(Preview, View, Edit, Help));</span>
+<span class="source-line-no">108</span><span id="line-108"></span>
+<span class="source-line-no">109</span><span id="line-109">        /**</span>
+<span class="source-line-no">110</span><span id="line-110">         * Utility method that creates a {@link Set} of render modes</span>
+<span class="source-line-no">111</span><span id="line-111">         * from enumerated values.</span>
+<span class="source-line-no">112</span><span id="line-112">         *</span>
+<span class="source-line-no">113</span><span id="line-113">         * @param modes the modes</span>
+<span class="source-line-no">114</span><span id="line-114">         * @return the sets the</span>
+<span class="source-line-no">115</span><span id="line-115">         */</span>
+<span class="source-line-no">116</span><span id="line-116">        public static Set&lt;RenderMode&gt; asSet(RenderMode... modes) {</span>
+<span class="source-line-no">117</span><span id="line-117">            return new HashSet&lt;&gt;(Arrays.asList(modes));</span>
+<span class="source-line-no">118</span><span id="line-118">        }</span>
+<span class="source-line-no">119</span><span id="line-119"></span>
+<span class="source-line-no">120</span><span id="line-120">        /**</span>
+<span class="source-line-no">121</span><span id="line-121">         * Retrieves the modifiers.</span>
+<span class="source-line-no">122</span><span id="line-122">         */</span>
+<span class="source-line-no">123</span><span id="line-123">        public static Set&lt;RenderMode&gt; modifiers(Set&lt;RenderMode&gt; modes) {</span>
+<span class="source-line-no">124</span><span id="line-124">            Set&lt;RenderMode&gt; result = new HashSet&lt;&gt;(modes);</span>
+<span class="source-line-no">125</span><span id="line-125">            result.removeAll(basicModes);</span>
+<span class="source-line-no">126</span><span id="line-126">            return result;</span>
+<span class="source-line-no">127</span><span id="line-127">        }</span>
+<span class="source-line-no">128</span><span id="line-128"></span>
+<span class="source-line-no">129</span><span id="line-129">        /**</span>
+<span class="source-line-no">130</span><span id="line-130">         * Adds the modifiers from the given set to this basic mode.</span>
+<span class="source-line-no">131</span><span id="line-131">         *</span>
+<span class="source-line-no">132</span><span id="line-132">         * @param modifiers the set with modifiers</span>
+<span class="source-line-no">133</span><span id="line-133">         * @return the augmented basic mode</span>
+<span class="source-line-no">134</span><span id="line-134">         */</span>
+<span class="source-line-no">135</span><span id="line-135">        public Set&lt;RenderMode&gt; addModifiers(Set&lt;RenderMode&gt; modifiers) {</span>
+<span class="source-line-no">136</span><span id="line-136">            Set&lt;RenderMode&gt; result = modifiers(modifiers);</span>
+<span class="source-line-no">137</span><span id="line-137">            result.add(this);</span>
+<span class="source-line-no">138</span><span id="line-138">            return result;</span>
+<span class="source-line-no">139</span><span id="line-139">        }</span>
+<span class="source-line-no">140</span><span id="line-140">    }</span>
+<span class="source-line-no">141</span><span id="line-141"></span>
+<span class="source-line-no">142</span><span id="line-142">}</span>
 
 
 

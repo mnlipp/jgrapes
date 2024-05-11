@@ -122,13 +122,12 @@
 <span class="source-line-no">109</span><span id="line-109">            .append(" [conletId=").append(conletId)</span>
 <span class="source-line-no">110</span><span id="line-110">            .append(", method=").append(method);</span>
 <span class="source-line-no">111</span><span id="line-111">        if (channels() != null) {</span>
-<span class="source-line-no">112</span><span id="line-112">            builder.append(", channels=");</span>
-<span class="source-line-no">113</span><span id="line-113">            builder.append(Channel.toString(channels()));</span>
-<span class="source-line-no">114</span><span id="line-114">        }</span>
-<span class="source-line-no">115</span><span id="line-115">        builder.append(']');</span>
-<span class="source-line-no">116</span><span id="line-116">        return builder.toString();</span>
-<span class="source-line-no">117</span><span id="line-117">    }</span>
-<span class="source-line-no">118</span><span id="line-118">}</span>
+<span class="source-line-no">112</span><span id="line-112">            builder.append(", channels=").append(Channel.toString(channels()));</span>
+<span class="source-line-no">113</span><span id="line-113">        }</span>
+<span class="source-line-no">114</span><span id="line-114">        builder.append(']');</span>
+<span class="source-line-no">115</span><span id="line-115">        return builder.toString();</span>
+<span class="source-line-no">116</span><span id="line-116">    }</span>
+<span class="source-line-no">117</span><span id="line-117">}</span>
 
 
 
