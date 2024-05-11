@@ -289,6 +289,16 @@ public class Request<R> extends MessageReceived<R> {
             return mval.resource.equals(matchValue.resource);
         }
 
+        /**
+         * Checks if the request has been processed, i.e. a response has 
+         * been sent.
+         *
+         * @return true, if fulfilled
+         */
+        public boolean fulfilled() {
+            return currentResults().size() > 0 && currentResults().get(0);
+        }
+
         /*
          * (non-Javadoc)
          * 
