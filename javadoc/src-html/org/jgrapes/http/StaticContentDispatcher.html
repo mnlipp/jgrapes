@@ -147,86 +147,89 @@
 <span class="source-line-no">134</span><span id="line-134">    @RequestHandler(dynamic = true)</span>
 <span class="source-line-no">135</span><span id="line-135">    public void onGet(Request.In.Get event, IOSubchannel channel)</span>
 <span class="source-line-no">136</span><span id="line-136">            throws ParseException, IOException {</span>
-<span class="source-line-no">137</span><span id="line-137">        int prefixSegs = resourcePattern.matches(event.requestUri());</span>
-<span class="source-line-no">138</span><span id="line-138">        if (prefixSegs &lt; 0) {</span>
-<span class="source-line-no">139</span><span id="line-139">            return;</span>
-<span class="source-line-no">140</span><span id="line-140">        }</span>
-<span class="source-line-no">141</span><span id="line-141">        if (contentDirectory == null) {</span>
-<span class="source-line-no">142</span><span id="line-142">            getFromUri(event, channel, prefixSegs);</span>
-<span class="source-line-no">143</span><span id="line-143">        } else {</span>
-<span class="source-line-no">144</span><span id="line-144">            getFromFileSystem(event, channel, prefixSegs);</span>
-<span class="source-line-no">145</span><span id="line-145">        }</span>
-<span class="source-line-no">146</span><span id="line-146">    }</span>
-<span class="source-line-no">147</span><span id="line-147"></span>
-<span class="source-line-no">148</span><span id="line-148">    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")</span>
-<span class="source-line-no">149</span><span id="line-149">    private boolean getFromFileSystem(Request.In.Get event,</span>
-<span class="source-line-no">150</span><span id="line-150">            IOSubchannel channel, int prefixSegs)</span>
-<span class="source-line-no">151</span><span id="line-151">            throws IOException, ParseException {</span>
-<span class="source-line-no">152</span><span id="line-152">        // Final wrapper for usage in closure</span>
-<span class="source-line-no">153</span><span id="line-153">        final Path[] assembly = { contentDirectory };</span>
-<span class="source-line-no">154</span><span id="line-154">        Arrays.stream(event.requestUri().getPath().split("/"))</span>
-<span class="source-line-no">155</span><span id="line-155">            .skip(prefixSegs + 1)</span>
-<span class="source-line-no">156</span><span id="line-156">            .forEach(seg -&gt; assembly[0] = assembly[0].resolve(seg));</span>
-<span class="source-line-no">157</span><span id="line-157">        Path resourcePath = assembly[0];</span>
-<span class="source-line-no">158</span><span id="line-158">        if (Files.isDirectory(resourcePath)) {</span>
-<span class="source-line-no">159</span><span id="line-159">            Path indexPath = resourcePath.resolve("index.html");</span>
-<span class="source-line-no">160</span><span id="line-160">            if (Files.isReadable(indexPath)) {</span>
-<span class="source-line-no">161</span><span id="line-161">                resourcePath = indexPath;</span>
-<span class="source-line-no">162</span><span id="line-162">            } else {</span>
-<span class="source-line-no">163</span><span id="line-163">                return false;</span>
-<span class="source-line-no">164</span><span id="line-164">            }</span>
-<span class="source-line-no">165</span><span id="line-165">        }</span>
-<span class="source-line-no">166</span><span id="line-166">        if (!Files.isReadable(resourcePath)) {</span>
-<span class="source-line-no">167</span><span id="line-167">            return false;</span>
+<span class="source-line-no">137</span><span id="line-137">        if (event.fulfilled()) {</span>
+<span class="source-line-no">138</span><span id="line-138">            return;</span>
+<span class="source-line-no">139</span><span id="line-139">        }</span>
+<span class="source-line-no">140</span><span id="line-140">        int prefixSegs = resourcePattern.matches(event.requestUri());</span>
+<span class="source-line-no">141</span><span id="line-141">        if (prefixSegs &lt; 0) {</span>
+<span class="source-line-no">142</span><span id="line-142">            return;</span>
+<span class="source-line-no">143</span><span id="line-143">        }</span>
+<span class="source-line-no">144</span><span id="line-144">        if (contentDirectory == null) {</span>
+<span class="source-line-no">145</span><span id="line-145">            getFromUri(event, channel, prefixSegs);</span>
+<span class="source-line-no">146</span><span id="line-146">        } else {</span>
+<span class="source-line-no">147</span><span id="line-147">            getFromFileSystem(event, channel, prefixSegs);</span>
+<span class="source-line-no">148</span><span id="line-148">        }</span>
+<span class="source-line-no">149</span><span id="line-149">    }</span>
+<span class="source-line-no">150</span><span id="line-150"></span>
+<span class="source-line-no">151</span><span id="line-151">    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")</span>
+<span class="source-line-no">152</span><span id="line-152">    private boolean getFromFileSystem(Request.In.Get event,</span>
+<span class="source-line-no">153</span><span id="line-153">            IOSubchannel channel, int prefixSegs)</span>
+<span class="source-line-no">154</span><span id="line-154">            throws IOException, ParseException {</span>
+<span class="source-line-no">155</span><span id="line-155">        // Final wrapper for usage in closure</span>
+<span class="source-line-no">156</span><span id="line-156">        final Path[] assembly = { contentDirectory };</span>
+<span class="source-line-no">157</span><span id="line-157">        Arrays.stream(event.requestUri().getPath().split("/"))</span>
+<span class="source-line-no">158</span><span id="line-158">            .skip(prefixSegs + 1)</span>
+<span class="source-line-no">159</span><span id="line-159">            .forEach(seg -&gt; assembly[0] = assembly[0].resolve(seg));</span>
+<span class="source-line-no">160</span><span id="line-160">        Path resourcePath = assembly[0];</span>
+<span class="source-line-no">161</span><span id="line-161">        if (Files.isDirectory(resourcePath)) {</span>
+<span class="source-line-no">162</span><span id="line-162">            Path indexPath = resourcePath.resolve("index.html");</span>
+<span class="source-line-no">163</span><span id="line-163">            if (Files.isReadable(indexPath)) {</span>
+<span class="source-line-no">164</span><span id="line-164">                resourcePath = indexPath;</span>
+<span class="source-line-no">165</span><span id="line-165">            } else {</span>
+<span class="source-line-no">166</span><span id="line-166">                return false;</span>
+<span class="source-line-no">167</span><span id="line-167">            }</span>
 <span class="source-line-no">168</span><span id="line-168">        }</span>
-<span class="source-line-no">169</span><span id="line-169"></span>
-<span class="source-line-no">170</span><span id="line-170">        // Get content type</span>
-<span class="source-line-no">171</span><span id="line-171">        HttpResponse response = event.httpRequest().response().get();</span>
-<span class="source-line-no">172</span><span id="line-172">        MediaType mediaType = HttpResponse.contentType(resourcePath.toUri());</span>
-<span class="source-line-no">173</span><span id="line-173"></span>
-<span class="source-line-no">174</span><span id="line-174">        // Derive max-age</span>
-<span class="source-line-no">175</span><span id="line-175">        ResponseCreationSupport.setMaxAge(</span>
-<span class="source-line-no">176</span><span id="line-176">            response, maxAgeCalculator.maxAge(event.httpRequest(), mediaType));</span>
-<span class="source-line-no">177</span><span id="line-177"></span>
-<span class="source-line-no">178</span><span id="line-178">        // Check if sending is really required.</span>
-<span class="source-line-no">179</span><span id="line-179">        Instant lastModified = Files.getLastModifiedTime(resourcePath)</span>
-<span class="source-line-no">180</span><span id="line-180">            .toInstant().with(ChronoField.NANO_OF_SECOND, 0);</span>
-<span class="source-line-no">181</span><span id="line-181">        Optional&lt;Instant&gt; modifiedSince = event.httpRequest()</span>
-<span class="source-line-no">182</span><span id="line-182">            .findValue(HttpField.IF_MODIFIED_SINCE, Converters.DATE_TIME);</span>
-<span class="source-line-no">183</span><span id="line-183">        event.setResult(true);</span>
-<span class="source-line-no">184</span><span id="line-184">        event.stop();</span>
-<span class="source-line-no">185</span><span id="line-185">        if (modifiedSince.isPresent()</span>
-<span class="source-line-no">186</span><span id="line-186">            &amp;&amp; !lastModified.isAfter(modifiedSince.get())) {</span>
-<span class="source-line-no">187</span><span id="line-187">            response.setStatus(HttpStatus.NOT_MODIFIED);</span>
-<span class="source-line-no">188</span><span id="line-188">            response.setField(HttpField.LAST_MODIFIED, lastModified);</span>
-<span class="source-line-no">189</span><span id="line-189">            channel.respond(new Response(response));</span>
-<span class="source-line-no">190</span><span id="line-190">        } else {</span>
-<span class="source-line-no">191</span><span id="line-191">            response.setContentType(mediaType);</span>
-<span class="source-line-no">192</span><span id="line-192">            response.setStatus(HttpStatus.OK);</span>
-<span class="source-line-no">193</span><span id="line-193">            response.setField(HttpField.LAST_MODIFIED, lastModified);</span>
-<span class="source-line-no">194</span><span id="line-194">            channel.respond(new Response(response));</span>
-<span class="source-line-no">195</span><span id="line-195">            fire(new StreamFile(resourcePath, StandardOpenOption.READ),</span>
-<span class="source-line-no">196</span><span id="line-196">                channel);</span>
-<span class="source-line-no">197</span><span id="line-197">        }</span>
-<span class="source-line-no">198</span><span id="line-198">        return true;</span>
-<span class="source-line-no">199</span><span id="line-199">    }</span>
-<span class="source-line-no">200</span><span id="line-200"></span>
-<span class="source-line-no">201</span><span id="line-201">    private boolean getFromUri(Request.In.Get event, IOSubchannel channel,</span>
-<span class="source-line-no">202</span><span id="line-202">            int prefixSegs) throws ParseException {</span>
-<span class="source-line-no">203</span><span id="line-203">        return ResponseCreationSupport.sendStaticContent(</span>
-<span class="source-line-no">204</span><span id="line-204">            event, channel, path -&gt; {</span>
-<span class="source-line-no">205</span><span id="line-205">                try {</span>
-<span class="source-line-no">206</span><span id="line-206">                    return contentRoot.resolve(</span>
-<span class="source-line-no">207</span><span id="line-207">                        ResourcePattern.removeSegments(</span>
-<span class="source-line-no">208</span><span id="line-208">                            path, prefixSegs + 1))</span>
-<span class="source-line-no">209</span><span id="line-209">                        .toURL();</span>
-<span class="source-line-no">210</span><span id="line-210">                } catch (MalformedURLException e) {</span>
-<span class="source-line-no">211</span><span id="line-211">                    throw new IllegalArgumentException(e);</span>
-<span class="source-line-no">212</span><span id="line-212">                }</span>
-<span class="source-line-no">213</span><span id="line-213">            }, maxAgeCalculator);</span>
-<span class="source-line-no">214</span><span id="line-214">    }</span>
-<span class="source-line-no">215</span><span id="line-215"></span>
-<span class="source-line-no">216</span><span id="line-216">}</span>
+<span class="source-line-no">169</span><span id="line-169">        if (!Files.isReadable(resourcePath)) {</span>
+<span class="source-line-no">170</span><span id="line-170">            return false;</span>
+<span class="source-line-no">171</span><span id="line-171">        }</span>
+<span class="source-line-no">172</span><span id="line-172"></span>
+<span class="source-line-no">173</span><span id="line-173">        // Get content type</span>
+<span class="source-line-no">174</span><span id="line-174">        HttpResponse response = event.httpRequest().response().get();</span>
+<span class="source-line-no">175</span><span id="line-175">        MediaType mediaType = HttpResponse.contentType(resourcePath.toUri());</span>
+<span class="source-line-no">176</span><span id="line-176"></span>
+<span class="source-line-no">177</span><span id="line-177">        // Derive max-age</span>
+<span class="source-line-no">178</span><span id="line-178">        ResponseCreationSupport.setMaxAge(</span>
+<span class="source-line-no">179</span><span id="line-179">            response, maxAgeCalculator.maxAge(event.httpRequest(), mediaType));</span>
+<span class="source-line-no">180</span><span id="line-180"></span>
+<span class="source-line-no">181</span><span id="line-181">        // Check if sending is really required.</span>
+<span class="source-line-no">182</span><span id="line-182">        Instant lastModified = Files.getLastModifiedTime(resourcePath)</span>
+<span class="source-line-no">183</span><span id="line-183">            .toInstant().with(ChronoField.NANO_OF_SECOND, 0);</span>
+<span class="source-line-no">184</span><span id="line-184">        Optional&lt;Instant&gt; modifiedSince = event.httpRequest()</span>
+<span class="source-line-no">185</span><span id="line-185">            .findValue(HttpField.IF_MODIFIED_SINCE, Converters.DATE_TIME);</span>
+<span class="source-line-no">186</span><span id="line-186">        event.setResult(true);</span>
+<span class="source-line-no">187</span><span id="line-187">        event.stop();</span>
+<span class="source-line-no">188</span><span id="line-188">        if (modifiedSince.isPresent()</span>
+<span class="source-line-no">189</span><span id="line-189">            &amp;&amp; !lastModified.isAfter(modifiedSince.get())) {</span>
+<span class="source-line-no">190</span><span id="line-190">            response.setStatus(HttpStatus.NOT_MODIFIED);</span>
+<span class="source-line-no">191</span><span id="line-191">            response.setField(HttpField.LAST_MODIFIED, lastModified);</span>
+<span class="source-line-no">192</span><span id="line-192">            channel.respond(new Response(response));</span>
+<span class="source-line-no">193</span><span id="line-193">        } else {</span>
+<span class="source-line-no">194</span><span id="line-194">            response.setContentType(mediaType);</span>
+<span class="source-line-no">195</span><span id="line-195">            response.setStatus(HttpStatus.OK);</span>
+<span class="source-line-no">196</span><span id="line-196">            response.setField(HttpField.LAST_MODIFIED, lastModified);</span>
+<span class="source-line-no">197</span><span id="line-197">            channel.respond(new Response(response));</span>
+<span class="source-line-no">198</span><span id="line-198">            fire(new StreamFile(resourcePath, StandardOpenOption.READ),</span>
+<span class="source-line-no">199</span><span id="line-199">                channel);</span>
+<span class="source-line-no">200</span><span id="line-200">        }</span>
+<span class="source-line-no">201</span><span id="line-201">        return true;</span>
+<span class="source-line-no">202</span><span id="line-202">    }</span>
+<span class="source-line-no">203</span><span id="line-203"></span>
+<span class="source-line-no">204</span><span id="line-204">    private boolean getFromUri(Request.In.Get event, IOSubchannel channel,</span>
+<span class="source-line-no">205</span><span id="line-205">            int prefixSegs) throws ParseException {</span>
+<span class="source-line-no">206</span><span id="line-206">        return ResponseCreationSupport.sendStaticContent(</span>
+<span class="source-line-no">207</span><span id="line-207">            event, channel, path -&gt; {</span>
+<span class="source-line-no">208</span><span id="line-208">                try {</span>
+<span class="source-line-no">209</span><span id="line-209">                    return contentRoot.resolve(</span>
+<span class="source-line-no">210</span><span id="line-210">                        ResourcePattern.removeSegments(</span>
+<span class="source-line-no">211</span><span id="line-211">                            path, prefixSegs + 1))</span>
+<span class="source-line-no">212</span><span id="line-212">                        .toURL();</span>
+<span class="source-line-no">213</span><span id="line-213">                } catch (MalformedURLException e) {</span>
+<span class="source-line-no">214</span><span id="line-214">                    throw new IllegalArgumentException(e);</span>
+<span class="source-line-no">215</span><span id="line-215">                }</span>
+<span class="source-line-no">216</span><span id="line-216">            }, maxAgeCalculator);</span>
+<span class="source-line-no">217</span><span id="line-217">    }</span>
+<span class="source-line-no">218</span><span id="line-218"></span>
+<span class="source-line-no">219</span><span id="line-219">}</span>
 
 
 

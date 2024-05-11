@@ -327,398 +327,400 @@
 <span class="source-line-no">314</span><span id="line-314">    /**</span>
 <span class="source-line-no">315</span><span id="line-315">     * Associates the event with a {@link Session} object</span>
 <span class="source-line-no">316</span><span id="line-316">     * using `Session.class` as association identifier.</span>
-<span class="source-line-no">317</span><span id="line-317">     * </span>
-<span class="source-line-no">318</span><span id="line-318">     * @param event the event</span>
-<span class="source-line-no">319</span><span id="line-319">     */</span>
-<span class="source-line-no">320</span><span id="line-320">    @RequestHandler(dynamic = true)</span>
-<span class="source-line-no">321</span><span id="line-321">    public void onRequest(Request.In event) {</span>
-<span class="source-line-no">322</span><span id="line-322">        if (event.associated(Session.class).isPresent()) {</span>
-<span class="source-line-no">323</span><span id="line-323">            return;</span>
-<span class="source-line-no">324</span><span id="line-324">        }</span>
-<span class="source-line-no">325</span><span id="line-325">        final HttpRequest request = event.httpRequest();</span>
-<span class="source-line-no">326</span><span id="line-326">        Optional&lt;String&gt; requestedSessionId = request.findValue(</span>
-<span class="source-line-no">327</span><span id="line-327">            HttpField.COOKIE, Converters.COOKIE_LIST)</span>
-<span class="source-line-no">328</span><span id="line-328">            .flatMap(cookies -&gt; cookies.stream().filter(</span>
-<span class="source-line-no">329</span><span id="line-329">                cookie -&gt; cookie.getName().equals(idName()))</span>
-<span class="source-line-no">330</span><span id="line-330">                .findFirst().map(HttpCookie::getValue));</span>
-<span class="source-line-no">331</span><span id="line-331">        if (requestedSessionId.isPresent()) {</span>
-<span class="source-line-no">332</span><span id="line-332">            String sessionId = requestedSessionId.get();</span>
-<span class="source-line-no">333</span><span id="line-333">            synchronized (this) {</span>
-<span class="source-line-no">334</span><span id="line-334">                Optional&lt;Session&gt; session = lookupSession(sessionId);</span>
-<span class="source-line-no">335</span><span id="line-335">                if (session.isPresent()) {</span>
-<span class="source-line-no">336</span><span id="line-336">                    setSessionSupplier(event, sessionId);</span>
-<span class="source-line-no">337</span><span id="line-337">                    session.get().updateLastUsedAt();</span>
-<span class="source-line-no">338</span><span id="line-338">                    return;</span>
-<span class="source-line-no">339</span><span id="line-339">                }</span>
-<span class="source-line-no">340</span><span id="line-340">            }</span>
-<span class="source-line-no">341</span><span id="line-341">        }</span>
-<span class="source-line-no">342</span><span id="line-342">        Session session = createSession(</span>
-<span class="source-line-no">343</span><span id="line-343">            addSessionCookie(request.response().get(), createSessionId()));</span>
-<span class="source-line-no">344</span><span id="line-344">        setSessionSupplier(event, session.id());</span>
-<span class="source-line-no">345</span><span id="line-345">        startPurger();</span>
-<span class="source-line-no">346</span><span id="line-346">    }</span>
-<span class="source-line-no">347</span><span id="line-347"></span>
-<span class="source-line-no">348</span><span id="line-348">    /**</span>
-<span class="source-line-no">349</span><span id="line-349">     * Associated the associator with a session supplier for the </span>
-<span class="source-line-no">350</span><span id="line-350">     * given session id and note `this` as session manager.</span>
-<span class="source-line-no">351</span><span id="line-351">     *</span>
-<span class="source-line-no">352</span><span id="line-352">     * @param holder the channel</span>
-<span class="source-line-no">353</span><span id="line-353">     * @param sessionId the session id</span>
-<span class="source-line-no">354</span><span id="line-354">     */</span>
-<span class="source-line-no">355</span><span id="line-355">    protected void setSessionSupplier(Associator holder, String sessionId) {</span>
-<span class="source-line-no">356</span><span id="line-356">        holder.setAssociated(SessionManager.class, this);</span>
-<span class="source-line-no">357</span><span id="line-357">        holder.setAssociated(Session.class,</span>
-<span class="source-line-no">358</span><span id="line-358">            new SessionSupplier(holder, sessionId));</span>
-<span class="source-line-no">359</span><span id="line-359">    }</span>
-<span class="source-line-no">360</span><span id="line-360"></span>
-<span class="source-line-no">361</span><span id="line-361">    /**</span>
-<span class="source-line-no">362</span><span id="line-362">     * Supports obtaining a {@link Session} from an {@link IOSubchannel}. </span>
-<span class="source-line-no">363</span><span id="line-363">     */</span>
-<span class="source-line-no">364</span><span id="line-364">    private class SessionSupplier implements Supplier&lt;Optional&lt;Session&gt;&gt; {</span>
-<span class="source-line-no">365</span><span id="line-365"></span>
-<span class="source-line-no">366</span><span id="line-366">        private final Associator holder;</span>
-<span class="source-line-no">367</span><span id="line-367">        private final String sessionId;</span>
-<span class="source-line-no">368</span><span id="line-368"></span>
-<span class="source-line-no">369</span><span id="line-369">        /**</span>
-<span class="source-line-no">370</span><span id="line-370">         * Instantiates a new session supplier.</span>
-<span class="source-line-no">371</span><span id="line-371">         *</span>
-<span class="source-line-no">372</span><span id="line-372">         * @param holder the channel</span>
-<span class="source-line-no">373</span><span id="line-373">         * @param sessionId the session id</span>
-<span class="source-line-no">374</span><span id="line-374">         */</span>
-<span class="source-line-no">375</span><span id="line-375">        public SessionSupplier(Associator holder, String sessionId) {</span>
-<span class="source-line-no">376</span><span id="line-376">            this.holder = holder;</span>
-<span class="source-line-no">377</span><span id="line-377">            this.sessionId = sessionId;</span>
-<span class="source-line-no">378</span><span id="line-378">        }</span>
-<span class="source-line-no">379</span><span id="line-379"></span>
-<span class="source-line-no">380</span><span id="line-380">        @Override</span>
-<span class="source-line-no">381</span><span id="line-381">        public Optional&lt;Session&gt; get() {</span>
-<span class="source-line-no">382</span><span id="line-382">            Optional&lt;Session&gt; session = lookupSession(sessionId);</span>
-<span class="source-line-no">383</span><span id="line-383">            if (session.isPresent()) {</span>
-<span class="source-line-no">384</span><span id="line-384">                session.get().updateLastUsedAt();</span>
-<span class="source-line-no">385</span><span id="line-385">                return session;</span>
-<span class="source-line-no">386</span><span id="line-386">            }</span>
-<span class="source-line-no">387</span><span id="line-387">            Session newSession = createSession(createSessionId());</span>
-<span class="source-line-no">388</span><span id="line-388">            setSessionSupplier(holder, newSession.id());</span>
-<span class="source-line-no">389</span><span id="line-389">            return Optional.of(newSession);</span>
-<span class="source-line-no">390</span><span id="line-390">        }</span>
-<span class="source-line-no">391</span><span id="line-391"></span>
-<span class="source-line-no">392</span><span id="line-392">    }</span>
+<span class="source-line-no">317</span><span id="line-317">     * Does nothing if a session is already associated or</span>
+<span class="source-line-no">318</span><span id="line-318">     * the request has already been fulfilled.</span>
+<span class="source-line-no">319</span><span id="line-319">     * </span>
+<span class="source-line-no">320</span><span id="line-320">     * @param event the event</span>
+<span class="source-line-no">321</span><span id="line-321">     */</span>
+<span class="source-line-no">322</span><span id="line-322">    @RequestHandler(dynamic = true)</span>
+<span class="source-line-no">323</span><span id="line-323">    public void onRequest(Request.In event) {</span>
+<span class="source-line-no">324</span><span id="line-324">        if (event.associated(Session.class).isPresent() || event.fulfilled()) {</span>
+<span class="source-line-no">325</span><span id="line-325">            return;</span>
+<span class="source-line-no">326</span><span id="line-326">        }</span>
+<span class="source-line-no">327</span><span id="line-327">        final HttpRequest request = event.httpRequest();</span>
+<span class="source-line-no">328</span><span id="line-328">        Optional&lt;String&gt; requestedSessionId = request.findValue(</span>
+<span class="source-line-no">329</span><span id="line-329">            HttpField.COOKIE, Converters.COOKIE_LIST)</span>
+<span class="source-line-no">330</span><span id="line-330">            .flatMap(cookies -&gt; cookies.stream().filter(</span>
+<span class="source-line-no">331</span><span id="line-331">                cookie -&gt; cookie.getName().equals(idName()))</span>
+<span class="source-line-no">332</span><span id="line-332">                .findFirst().map(HttpCookie::getValue));</span>
+<span class="source-line-no">333</span><span id="line-333">        if (requestedSessionId.isPresent()) {</span>
+<span class="source-line-no">334</span><span id="line-334">            String sessionId = requestedSessionId.get();</span>
+<span class="source-line-no">335</span><span id="line-335">            synchronized (this) {</span>
+<span class="source-line-no">336</span><span id="line-336">                Optional&lt;Session&gt; session = lookupSession(sessionId);</span>
+<span class="source-line-no">337</span><span id="line-337">                if (session.isPresent()) {</span>
+<span class="source-line-no">338</span><span id="line-338">                    setSessionSupplier(event, sessionId);</span>
+<span class="source-line-no">339</span><span id="line-339">                    session.get().updateLastUsedAt();</span>
+<span class="source-line-no">340</span><span id="line-340">                    return;</span>
+<span class="source-line-no">341</span><span id="line-341">                }</span>
+<span class="source-line-no">342</span><span id="line-342">            }</span>
+<span class="source-line-no">343</span><span id="line-343">        }</span>
+<span class="source-line-no">344</span><span id="line-344">        Session session = createSession(</span>
+<span class="source-line-no">345</span><span id="line-345">            addSessionCookie(request.response().get(), createSessionId()));</span>
+<span class="source-line-no">346</span><span id="line-346">        setSessionSupplier(event, session.id());</span>
+<span class="source-line-no">347</span><span id="line-347">        startPurger();</span>
+<span class="source-line-no">348</span><span id="line-348">    }</span>
+<span class="source-line-no">349</span><span id="line-349"></span>
+<span class="source-line-no">350</span><span id="line-350">    /**</span>
+<span class="source-line-no">351</span><span id="line-351">     * Associated the associator with a session supplier for the </span>
+<span class="source-line-no">352</span><span id="line-352">     * given session id and note `this` as session manager.</span>
+<span class="source-line-no">353</span><span id="line-353">     *</span>
+<span class="source-line-no">354</span><span id="line-354">     * @param holder the channel</span>
+<span class="source-line-no">355</span><span id="line-355">     * @param sessionId the session id</span>
+<span class="source-line-no">356</span><span id="line-356">     */</span>
+<span class="source-line-no">357</span><span id="line-357">    protected void setSessionSupplier(Associator holder, String sessionId) {</span>
+<span class="source-line-no">358</span><span id="line-358">        holder.setAssociated(SessionManager.class, this);</span>
+<span class="source-line-no">359</span><span id="line-359">        holder.setAssociated(Session.class,</span>
+<span class="source-line-no">360</span><span id="line-360">            new SessionSupplier(holder, sessionId));</span>
+<span class="source-line-no">361</span><span id="line-361">    }</span>
+<span class="source-line-no">362</span><span id="line-362"></span>
+<span class="source-line-no">363</span><span id="line-363">    /**</span>
+<span class="source-line-no">364</span><span id="line-364">     * Supports obtaining a {@link Session} from an {@link IOSubchannel}. </span>
+<span class="source-line-no">365</span><span id="line-365">     */</span>
+<span class="source-line-no">366</span><span id="line-366">    private class SessionSupplier implements Supplier&lt;Optional&lt;Session&gt;&gt; {</span>
+<span class="source-line-no">367</span><span id="line-367"></span>
+<span class="source-line-no">368</span><span id="line-368">        private final Associator holder;</span>
+<span class="source-line-no">369</span><span id="line-369">        private final String sessionId;</span>
+<span class="source-line-no">370</span><span id="line-370"></span>
+<span class="source-line-no">371</span><span id="line-371">        /**</span>
+<span class="source-line-no">372</span><span id="line-372">         * Instantiates a new session supplier.</span>
+<span class="source-line-no">373</span><span id="line-373">         *</span>
+<span class="source-line-no">374</span><span id="line-374">         * @param holder the channel</span>
+<span class="source-line-no">375</span><span id="line-375">         * @param sessionId the session id</span>
+<span class="source-line-no">376</span><span id="line-376">         */</span>
+<span class="source-line-no">377</span><span id="line-377">        public SessionSupplier(Associator holder, String sessionId) {</span>
+<span class="source-line-no">378</span><span id="line-378">            this.holder = holder;</span>
+<span class="source-line-no">379</span><span id="line-379">            this.sessionId = sessionId;</span>
+<span class="source-line-no">380</span><span id="line-380">        }</span>
+<span class="source-line-no">381</span><span id="line-381"></span>
+<span class="source-line-no">382</span><span id="line-382">        @Override</span>
+<span class="source-line-no">383</span><span id="line-383">        public Optional&lt;Session&gt; get() {</span>
+<span class="source-line-no">384</span><span id="line-384">            Optional&lt;Session&gt; session = lookupSession(sessionId);</span>
+<span class="source-line-no">385</span><span id="line-385">            if (session.isPresent()) {</span>
+<span class="source-line-no">386</span><span id="line-386">                session.get().updateLastUsedAt();</span>
+<span class="source-line-no">387</span><span id="line-387">                return session;</span>
+<span class="source-line-no">388</span><span id="line-388">            }</span>
+<span class="source-line-no">389</span><span id="line-389">            Session newSession = createSession(createSessionId());</span>
+<span class="source-line-no">390</span><span id="line-390">            setSessionSupplier(holder, newSession.id());</span>
+<span class="source-line-no">391</span><span id="line-391">            return Optional.of(newSession);</span>
+<span class="source-line-no">392</span><span id="line-392">        }</span>
 <span class="source-line-no">393</span><span id="line-393"></span>
-<span class="source-line-no">394</span><span id="line-394">    /**</span>
-<span class="source-line-no">395</span><span id="line-395">     * Creates a session id and adds the corresponding cookie to the</span>
-<span class="source-line-no">396</span><span id="line-396">     * response.</span>
-<span class="source-line-no">397</span><span id="line-397">     * </span>
-<span class="source-line-no">398</span><span id="line-398">     * @param response the response</span>
-<span class="source-line-no">399</span><span id="line-399">     * @return the session id</span>
-<span class="source-line-no">400</span><span id="line-400">     */</span>
-<span class="source-line-no">401</span><span id="line-401">    protected String addSessionCookie(HttpResponse response, String sessionId) {</span>
-<span class="source-line-no">402</span><span id="line-402">        HttpCookie sessionCookie = new HttpCookie(idName(), sessionId);</span>
-<span class="source-line-no">403</span><span id="line-403">        sessionCookie.setPath(path);</span>
-<span class="source-line-no">404</span><span id="line-404">        sessionCookie.setHttpOnly(true);</span>
-<span class="source-line-no">405</span><span id="line-405">        response.computeIfAbsent(HttpField.SET_COOKIE,</span>
-<span class="source-line-no">406</span><span id="line-406">            () -&gt; new CookieList(SameSiteAttribute.STRICT))</span>
-<span class="source-line-no">407</span><span id="line-407">            .value().add(sessionCookie);</span>
-<span class="source-line-no">408</span><span id="line-408">        response.computeIfAbsent(</span>
-<span class="source-line-no">409</span><span id="line-409">            HttpField.CACHE_CONTROL, CacheControlDirectives::new).value()</span>
-<span class="source-line-no">410</span><span id="line-410">            .add(new Directive("no-cache", "SetCookie, Set-Cookie2"));</span>
-<span class="source-line-no">411</span><span id="line-411">        return sessionId;</span>
-<span class="source-line-no">412</span><span id="line-412">    }</span>
-<span class="source-line-no">413</span><span id="line-413"></span>
-<span class="source-line-no">414</span><span id="line-414">    private String createSessionId() {</span>
-<span class="source-line-no">415</span><span id="line-415">        StringBuilder sessionIdBuilder = new StringBuilder();</span>
-<span class="source-line-no">416</span><span id="line-416">        byte[] bytes = new byte[16];</span>
-<span class="source-line-no">417</span><span id="line-417">        secureRandom.nextBytes(bytes);</span>
-<span class="source-line-no">418</span><span id="line-418">        for (byte b : bytes) {</span>
-<span class="source-line-no">419</span><span id="line-419">            sessionIdBuilder.append(Integer.toHexString(b &amp; 0xff));</span>
-<span class="source-line-no">420</span><span id="line-420">        }</span>
-<span class="source-line-no">421</span><span id="line-421">        return sessionIdBuilder.toString();</span>
-<span class="source-line-no">422</span><span id="line-422">    }</span>
-<span class="source-line-no">423</span><span id="line-423"></span>
-<span class="source-line-no">424</span><span id="line-424">    /**</span>
-<span class="source-line-no">425</span><span id="line-425">     * Checks if the absolute or idle timeout has been reached.</span>
-<span class="source-line-no">426</span><span id="line-426">     *</span>
-<span class="source-line-no">427</span><span id="line-427">     * @param session the session</span>
-<span class="source-line-no">428</span><span id="line-428">     * @return true, if successful</span>
-<span class="source-line-no">429</span><span id="line-429">     */</span>
-<span class="source-line-no">430</span><span id="line-430">    protected boolean hasTimedOut(Session session) {</span>
-<span class="source-line-no">431</span><span id="line-431">        Instant now = Instant.now();</span>
-<span class="source-line-no">432</span><span id="line-432">        return absoluteTimeout &gt; 0 &amp;&amp; Duration</span>
-<span class="source-line-no">433</span><span id="line-433">            .between(session.createdAt(), now).toMillis() &gt; absoluteTimeout</span>
-<span class="source-line-no">434</span><span id="line-434">            || idleTimeout &gt; 0 &amp;&amp; Duration.between(session.lastUsedAt(),</span>
-<span class="source-line-no">435</span><span id="line-435">                now).toMillis() &gt; idleTimeout;</span>
-<span class="source-line-no">436</span><span id="line-436">    }</span>
-<span class="source-line-no">437</span><span id="line-437"></span>
-<span class="source-line-no">438</span><span id="line-438">    /**</span>
-<span class="source-line-no">439</span><span id="line-439">     * Start discarding all sessions (generate {@link DiscardSession} events)</span>
-<span class="source-line-no">440</span><span id="line-440">     * that have reached their absolute or idle timeout. Do not</span>
-<span class="source-line-no">441</span><span id="line-441">     * make the sessions unavailable yet. </span>
-<span class="source-line-no">442</span><span id="line-442">     * </span>
-<span class="source-line-no">443</span><span id="line-443">     * Returns the time when the next timeout occurs. This method is </span>
-<span class="source-line-no">444</span><span id="line-444">     * called only if at least one of the timeouts has been specified.</span>
-<span class="source-line-no">445</span><span id="line-445">     * </span>
-<span class="source-line-no">446</span><span id="line-446">     * Implementations have to take care that sessions are only discarded</span>
-<span class="source-line-no">447</span><span id="line-447">     * once. As they must remain available while the {@link DiscardSession}</span>
-<span class="source-line-no">448</span><span id="line-448">     * event is handled this may require marking them as being discarded. </span>
-<span class="source-line-no">449</span><span id="line-449">     *</span>
-<span class="source-line-no">450</span><span id="line-450">     * @param absoluteTimeout the absolute timeout</span>
-<span class="source-line-no">451</span><span id="line-451">     * @param idleTimeout the idle timeout</span>
-<span class="source-line-no">452</span><span id="line-452">     * @return the next timeout (empty if no sessions left)</span>
-<span class="source-line-no">453</span><span id="line-453">     */</span>
-<span class="source-line-no">454</span><span id="line-454">    protected abstract Optional&lt;Instant&gt; startDiscarding(long absoluteTimeout,</span>
-<span class="source-line-no">455</span><span id="line-455">            long idleTimeout);</span>
-<span class="source-line-no">456</span><span id="line-456"></span>
-<span class="source-line-no">457</span><span id="line-457">    /**</span>
-<span class="source-line-no">458</span><span id="line-458">     * Creates a new session with the given id.</span>
-<span class="source-line-no">459</span><span id="line-459">     * </span>
-<span class="source-line-no">460</span><span id="line-460">     * @param sessionId</span>
-<span class="source-line-no">461</span><span id="line-461">     * @return the session</span>
-<span class="source-line-no">462</span><span id="line-462">     */</span>
-<span class="source-line-no">463</span><span id="line-463">    protected abstract Session createSession(String sessionId);</span>
-<span class="source-line-no">464</span><span id="line-464"></span>
-<span class="source-line-no">465</span><span id="line-465">    /**</span>
-<span class="source-line-no">466</span><span id="line-466">     * Lookup the session with the given id. Lookup will fail if</span>
-<span class="source-line-no">467</span><span id="line-467">     * the session has timed out.</span>
-<span class="source-line-no">468</span><span id="line-468">     * </span>
-<span class="source-line-no">469</span><span id="line-469">     * @param sessionId</span>
-<span class="source-line-no">470</span><span id="line-470">     * @return the session</span>
-<span class="source-line-no">471</span><span id="line-471">     */</span>
-<span class="source-line-no">472</span><span id="line-472">    protected abstract Optional&lt;Session&gt; lookupSession(String sessionId);</span>
-<span class="source-line-no">473</span><span id="line-473"></span>
-<span class="source-line-no">474</span><span id="line-474">    /**</span>
-<span class="source-line-no">475</span><span id="line-475">     * Removes the given session from the cache.</span>
-<span class="source-line-no">476</span><span id="line-476">     * </span>
-<span class="source-line-no">477</span><span id="line-477">     * @param sessionId the session id</span>
-<span class="source-line-no">478</span><span id="line-478">     */</span>
-<span class="source-line-no">479</span><span id="line-479">    protected abstract void removeSession(String sessionId);</span>
-<span class="source-line-no">480</span><span id="line-480"></span>
-<span class="source-line-no">481</span><span id="line-481">    /**</span>
-<span class="source-line-no">482</span><span id="line-482">     * Return the number of established sessions.</span>
-<span class="source-line-no">483</span><span id="line-483">     * </span>
-<span class="source-line-no">484</span><span id="line-484">     * @return the result</span>
-<span class="source-line-no">485</span><span id="line-485">     */</span>
-<span class="source-line-no">486</span><span id="line-486">    protected abstract int sessionCount();</span>
-<span class="source-line-no">487</span><span id="line-487"></span>
-<span class="source-line-no">488</span><span id="line-488">    /**</span>
-<span class="source-line-no">489</span><span id="line-489">     * Discards the given session. The handler has a priority of -1000,</span>
-<span class="source-line-no">490</span><span id="line-490">     * thus allowing other handler to make use of the session (for a</span>
-<span class="source-line-no">491</span><span id="line-491">     * time) before it becomes unavailable.</span>
-<span class="source-line-no">492</span><span id="line-492">     * </span>
-<span class="source-line-no">493</span><span id="line-493">     * @param event the event</span>
-<span class="source-line-no">494</span><span id="line-494">     */</span>
-<span class="source-line-no">495</span><span id="line-495">    @Handler(channels = Channel.class, priority = -1000)</span>
-<span class="source-line-no">496</span><span id="line-496">    public void onDiscard(DiscardSession event) {</span>
-<span class="source-line-no">497</span><span id="line-497">        removeSession(event.session().id());</span>
-<span class="source-line-no">498</span><span id="line-498">        event.session().close();</span>
-<span class="source-line-no">499</span><span id="line-499">    }</span>
-<span class="source-line-no">500</span><span id="line-500"></span>
-<span class="source-line-no">501</span><span id="line-501">    /**</span>
-<span class="source-line-no">502</span><span id="line-502">     * Associates the channel with a </span>
-<span class="source-line-no">503</span><span id="line-503">     * {@link Supplier {@code Supplier&lt;Optional&lt;Session&gt;&gt;}} </span>
-<span class="source-line-no">504</span><span id="line-504">     * for the session. Initially, the associated session is the session</span>
-<span class="source-line-no">505</span><span id="line-505">     * associated with the protocol switch event. If this session times out,</span>
-<span class="source-line-no">506</span><span id="line-506">     * a new session is returned as a fallback, thus making sure that</span>
-<span class="source-line-no">507</span><span id="line-507">     * the `Optional` is never empty. The new session is, however, created </span>
-<span class="source-line-no">508</span><span id="line-508">     * independently of any new session created by {@link #onRequest}.</span>
-<span class="source-line-no">509</span><span id="line-509">     * </span>
-<span class="source-line-no">510</span><span id="line-510">     * Applications should avoid any ambiguity by executing a proper </span>
-<span class="source-line-no">511</span><span id="line-511">     * cleanup of the web application in response to a </span>
-<span class="source-line-no">512</span><span id="line-512">     * {@link DiscardSession} event (including reestablishing the web</span>
-<span class="source-line-no">513</span><span id="line-513">     * socket connections from new requests).</span>
-<span class="source-line-no">514</span><span id="line-514">     * </span>
-<span class="source-line-no">515</span><span id="line-515">     * @param event the event</span>
-<span class="source-line-no">516</span><span id="line-516">     * @param channel the channel</span>
-<span class="source-line-no">517</span><span id="line-517">     */</span>
-<span class="source-line-no">518</span><span id="line-518">    @Handler(priority = 1000)</span>
-<span class="source-line-no">519</span><span id="line-519">    public void onProtocolSwitchAccepted(</span>
-<span class="source-line-no">520</span><span id="line-520">            ProtocolSwitchAccepted event, IOSubchannel channel) {</span>
-<span class="source-line-no">521</span><span id="line-521">        Request.In request = event.requestEvent();</span>
-<span class="source-line-no">522</span><span id="line-522">        request.associated(SessionManager.class).filter(sm -&gt; sm == this)</span>
-<span class="source-line-no">523</span><span id="line-523">            .ifPresent(</span>
-<span class="source-line-no">524</span><span id="line-524">                sm -&gt; setSessionSupplier(channel, Session.from(request).id()));</span>
-<span class="source-line-no">525</span><span id="line-525">    }</span>
-<span class="source-line-no">526</span><span id="line-526"></span>
-<span class="source-line-no">527</span><span id="line-527">    /**</span>
-<span class="source-line-no">528</span><span id="line-528">     * An MBean interface for getting information about the </span>
-<span class="source-line-no">529</span><span id="line-529">     * established sessions.</span>
-<span class="source-line-no">530</span><span id="line-530">     */</span>
-<span class="source-line-no">531</span><span id="line-531">    @SuppressWarnings("PMD.CommentRequired")</span>
-<span class="source-line-no">532</span><span id="line-532">    public interface SessionManagerMXBean {</span>
-<span class="source-line-no">533</span><span id="line-533"></span>
-<span class="source-line-no">534</span><span id="line-534">        String getComponentPath();</span>
+<span class="source-line-no">394</span><span id="line-394">    }</span>
+<span class="source-line-no">395</span><span id="line-395"></span>
+<span class="source-line-no">396</span><span id="line-396">    /**</span>
+<span class="source-line-no">397</span><span id="line-397">     * Creates a session id and adds the corresponding cookie to the</span>
+<span class="source-line-no">398</span><span id="line-398">     * response.</span>
+<span class="source-line-no">399</span><span id="line-399">     * </span>
+<span class="source-line-no">400</span><span id="line-400">     * @param response the response</span>
+<span class="source-line-no">401</span><span id="line-401">     * @return the session id</span>
+<span class="source-line-no">402</span><span id="line-402">     */</span>
+<span class="source-line-no">403</span><span id="line-403">    protected String addSessionCookie(HttpResponse response, String sessionId) {</span>
+<span class="source-line-no">404</span><span id="line-404">        HttpCookie sessionCookie = new HttpCookie(idName(), sessionId);</span>
+<span class="source-line-no">405</span><span id="line-405">        sessionCookie.setPath(path);</span>
+<span class="source-line-no">406</span><span id="line-406">        sessionCookie.setHttpOnly(true);</span>
+<span class="source-line-no">407</span><span id="line-407">        response.computeIfAbsent(HttpField.SET_COOKIE,</span>
+<span class="source-line-no">408</span><span id="line-408">            () -&gt; new CookieList(SameSiteAttribute.STRICT))</span>
+<span class="source-line-no">409</span><span id="line-409">            .value().add(sessionCookie);</span>
+<span class="source-line-no">410</span><span id="line-410">        response.computeIfAbsent(</span>
+<span class="source-line-no">411</span><span id="line-411">            HttpField.CACHE_CONTROL, CacheControlDirectives::new).value()</span>
+<span class="source-line-no">412</span><span id="line-412">            .add(new Directive("no-cache", "SetCookie, Set-Cookie2"));</span>
+<span class="source-line-no">413</span><span id="line-413">        return sessionId;</span>
+<span class="source-line-no">414</span><span id="line-414">    }</span>
+<span class="source-line-no">415</span><span id="line-415"></span>
+<span class="source-line-no">416</span><span id="line-416">    private String createSessionId() {</span>
+<span class="source-line-no">417</span><span id="line-417">        StringBuilder sessionIdBuilder = new StringBuilder();</span>
+<span class="source-line-no">418</span><span id="line-418">        byte[] bytes = new byte[16];</span>
+<span class="source-line-no">419</span><span id="line-419">        secureRandom.nextBytes(bytes);</span>
+<span class="source-line-no">420</span><span id="line-420">        for (byte b : bytes) {</span>
+<span class="source-line-no">421</span><span id="line-421">            sessionIdBuilder.append(Integer.toHexString(b &amp; 0xff));</span>
+<span class="source-line-no">422</span><span id="line-422">        }</span>
+<span class="source-line-no">423</span><span id="line-423">        return sessionIdBuilder.toString();</span>
+<span class="source-line-no">424</span><span id="line-424">    }</span>
+<span class="source-line-no">425</span><span id="line-425"></span>
+<span class="source-line-no">426</span><span id="line-426">    /**</span>
+<span class="source-line-no">427</span><span id="line-427">     * Checks if the absolute or idle timeout has been reached.</span>
+<span class="source-line-no">428</span><span id="line-428">     *</span>
+<span class="source-line-no">429</span><span id="line-429">     * @param session the session</span>
+<span class="source-line-no">430</span><span id="line-430">     * @return true, if successful</span>
+<span class="source-line-no">431</span><span id="line-431">     */</span>
+<span class="source-line-no">432</span><span id="line-432">    protected boolean hasTimedOut(Session session) {</span>
+<span class="source-line-no">433</span><span id="line-433">        Instant now = Instant.now();</span>
+<span class="source-line-no">434</span><span id="line-434">        return absoluteTimeout &gt; 0 &amp;&amp; Duration</span>
+<span class="source-line-no">435</span><span id="line-435">            .between(session.createdAt(), now).toMillis() &gt; absoluteTimeout</span>
+<span class="source-line-no">436</span><span id="line-436">            || idleTimeout &gt; 0 &amp;&amp; Duration.between(session.lastUsedAt(),</span>
+<span class="source-line-no">437</span><span id="line-437">                now).toMillis() &gt; idleTimeout;</span>
+<span class="source-line-no">438</span><span id="line-438">    }</span>
+<span class="source-line-no">439</span><span id="line-439"></span>
+<span class="source-line-no">440</span><span id="line-440">    /**</span>
+<span class="source-line-no">441</span><span id="line-441">     * Start discarding all sessions (generate {@link DiscardSession} events)</span>
+<span class="source-line-no">442</span><span id="line-442">     * that have reached their absolute or idle timeout. Do not</span>
+<span class="source-line-no">443</span><span id="line-443">     * make the sessions unavailable yet. </span>
+<span class="source-line-no">444</span><span id="line-444">     * </span>
+<span class="source-line-no">445</span><span id="line-445">     * Returns the time when the next timeout occurs. This method is </span>
+<span class="source-line-no">446</span><span id="line-446">     * called only if at least one of the timeouts has been specified.</span>
+<span class="source-line-no">447</span><span id="line-447">     * </span>
+<span class="source-line-no">448</span><span id="line-448">     * Implementations have to take care that sessions are only discarded</span>
+<span class="source-line-no">449</span><span id="line-449">     * once. As they must remain available while the {@link DiscardSession}</span>
+<span class="source-line-no">450</span><span id="line-450">     * event is handled this may require marking them as being discarded. </span>
+<span class="source-line-no">451</span><span id="line-451">     *</span>
+<span class="source-line-no">452</span><span id="line-452">     * @param absoluteTimeout the absolute timeout</span>
+<span class="source-line-no">453</span><span id="line-453">     * @param idleTimeout the idle timeout</span>
+<span class="source-line-no">454</span><span id="line-454">     * @return the next timeout (empty if no sessions left)</span>
+<span class="source-line-no">455</span><span id="line-455">     */</span>
+<span class="source-line-no">456</span><span id="line-456">    protected abstract Optional&lt;Instant&gt; startDiscarding(long absoluteTimeout,</span>
+<span class="source-line-no">457</span><span id="line-457">            long idleTimeout);</span>
+<span class="source-line-no">458</span><span id="line-458"></span>
+<span class="source-line-no">459</span><span id="line-459">    /**</span>
+<span class="source-line-no">460</span><span id="line-460">     * Creates a new session with the given id.</span>
+<span class="source-line-no">461</span><span id="line-461">     * </span>
+<span class="source-line-no">462</span><span id="line-462">     * @param sessionId</span>
+<span class="source-line-no">463</span><span id="line-463">     * @return the session</span>
+<span class="source-line-no">464</span><span id="line-464">     */</span>
+<span class="source-line-no">465</span><span id="line-465">    protected abstract Session createSession(String sessionId);</span>
+<span class="source-line-no">466</span><span id="line-466"></span>
+<span class="source-line-no">467</span><span id="line-467">    /**</span>
+<span class="source-line-no">468</span><span id="line-468">     * Lookup the session with the given id. Lookup will fail if</span>
+<span class="source-line-no">469</span><span id="line-469">     * the session has timed out.</span>
+<span class="source-line-no">470</span><span id="line-470">     * </span>
+<span class="source-line-no">471</span><span id="line-471">     * @param sessionId</span>
+<span class="source-line-no">472</span><span id="line-472">     * @return the session</span>
+<span class="source-line-no">473</span><span id="line-473">     */</span>
+<span class="source-line-no">474</span><span id="line-474">    protected abstract Optional&lt;Session&gt; lookupSession(String sessionId);</span>
+<span class="source-line-no">475</span><span id="line-475"></span>
+<span class="source-line-no">476</span><span id="line-476">    /**</span>
+<span class="source-line-no">477</span><span id="line-477">     * Removes the given session from the cache.</span>
+<span class="source-line-no">478</span><span id="line-478">     * </span>
+<span class="source-line-no">479</span><span id="line-479">     * @param sessionId the session id</span>
+<span class="source-line-no">480</span><span id="line-480">     */</span>
+<span class="source-line-no">481</span><span id="line-481">    protected abstract void removeSession(String sessionId);</span>
+<span class="source-line-no">482</span><span id="line-482"></span>
+<span class="source-line-no">483</span><span id="line-483">    /**</span>
+<span class="source-line-no">484</span><span id="line-484">     * Return the number of established sessions.</span>
+<span class="source-line-no">485</span><span id="line-485">     * </span>
+<span class="source-line-no">486</span><span id="line-486">     * @return the result</span>
+<span class="source-line-no">487</span><span id="line-487">     */</span>
+<span class="source-line-no">488</span><span id="line-488">    protected abstract int sessionCount();</span>
+<span class="source-line-no">489</span><span id="line-489"></span>
+<span class="source-line-no">490</span><span id="line-490">    /**</span>
+<span class="source-line-no">491</span><span id="line-491">     * Discards the given session. The handler has a priority of -1000,</span>
+<span class="source-line-no">492</span><span id="line-492">     * thus allowing other handler to make use of the session (for a</span>
+<span class="source-line-no">493</span><span id="line-493">     * time) before it becomes unavailable.</span>
+<span class="source-line-no">494</span><span id="line-494">     * </span>
+<span class="source-line-no">495</span><span id="line-495">     * @param event the event</span>
+<span class="source-line-no">496</span><span id="line-496">     */</span>
+<span class="source-line-no">497</span><span id="line-497">    @Handler(channels = Channel.class, priority = -1000)</span>
+<span class="source-line-no">498</span><span id="line-498">    public void onDiscard(DiscardSession event) {</span>
+<span class="source-line-no">499</span><span id="line-499">        removeSession(event.session().id());</span>
+<span class="source-line-no">500</span><span id="line-500">        event.session().close();</span>
+<span class="source-line-no">501</span><span id="line-501">    }</span>
+<span class="source-line-no">502</span><span id="line-502"></span>
+<span class="source-line-no">503</span><span id="line-503">    /**</span>
+<span class="source-line-no">504</span><span id="line-504">     * Associates the channel with a </span>
+<span class="source-line-no">505</span><span id="line-505">     * {@link Supplier {@code Supplier&lt;Optional&lt;Session&gt;&gt;}} </span>
+<span class="source-line-no">506</span><span id="line-506">     * for the session. Initially, the associated session is the session</span>
+<span class="source-line-no">507</span><span id="line-507">     * associated with the protocol switch event. If this session times out,</span>
+<span class="source-line-no">508</span><span id="line-508">     * a new session is returned as a fallback, thus making sure that</span>
+<span class="source-line-no">509</span><span id="line-509">     * the `Optional` is never empty. The new session is, however, created </span>
+<span class="source-line-no">510</span><span id="line-510">     * independently of any new session created by {@link #onRequest}.</span>
+<span class="source-line-no">511</span><span id="line-511">     * </span>
+<span class="source-line-no">512</span><span id="line-512">     * Applications should avoid any ambiguity by executing a proper </span>
+<span class="source-line-no">513</span><span id="line-513">     * cleanup of the web application in response to a </span>
+<span class="source-line-no">514</span><span id="line-514">     * {@link DiscardSession} event (including reestablishing the web</span>
+<span class="source-line-no">515</span><span id="line-515">     * socket connections from new requests).</span>
+<span class="source-line-no">516</span><span id="line-516">     * </span>
+<span class="source-line-no">517</span><span id="line-517">     * @param event the event</span>
+<span class="source-line-no">518</span><span id="line-518">     * @param channel the channel</span>
+<span class="source-line-no">519</span><span id="line-519">     */</span>
+<span class="source-line-no">520</span><span id="line-520">    @Handler(priority = 1000)</span>
+<span class="source-line-no">521</span><span id="line-521">    public void onProtocolSwitchAccepted(</span>
+<span class="source-line-no">522</span><span id="line-522">            ProtocolSwitchAccepted event, IOSubchannel channel) {</span>
+<span class="source-line-no">523</span><span id="line-523">        Request.In request = event.requestEvent();</span>
+<span class="source-line-no">524</span><span id="line-524">        request.associated(SessionManager.class).filter(sm -&gt; sm == this)</span>
+<span class="source-line-no">525</span><span id="line-525">            .ifPresent(</span>
+<span class="source-line-no">526</span><span id="line-526">                sm -&gt; setSessionSupplier(channel, Session.from(request).id()));</span>
+<span class="source-line-no">527</span><span id="line-527">    }</span>
+<span class="source-line-no">528</span><span id="line-528"></span>
+<span class="source-line-no">529</span><span id="line-529">    /**</span>
+<span class="source-line-no">530</span><span id="line-530">     * An MBean interface for getting information about the </span>
+<span class="source-line-no">531</span><span id="line-531">     * established sessions.</span>
+<span class="source-line-no">532</span><span id="line-532">     */</span>
+<span class="source-line-no">533</span><span id="line-533">    @SuppressWarnings("PMD.CommentRequired")</span>
+<span class="source-line-no">534</span><span id="line-534">    public interface SessionManagerMXBean {</span>
 <span class="source-line-no">535</span><span id="line-535"></span>
-<span class="source-line-no">536</span><span id="line-536">        String getPath();</span>
+<span class="source-line-no">536</span><span id="line-536">        String getComponentPath();</span>
 <span class="source-line-no">537</span><span id="line-537"></span>
-<span class="source-line-no">538</span><span id="line-538">        int getMaxSessions();</span>
+<span class="source-line-no">538</span><span id="line-538">        String getPath();</span>
 <span class="source-line-no">539</span><span id="line-539"></span>
-<span class="source-line-no">540</span><span id="line-540">        long getAbsoluteTimeout();</span>
+<span class="source-line-no">540</span><span id="line-540">        int getMaxSessions();</span>
 <span class="source-line-no">541</span><span id="line-541"></span>
-<span class="source-line-no">542</span><span id="line-542">        long getIdleTimeout();</span>
+<span class="source-line-no">542</span><span id="line-542">        long getAbsoluteTimeout();</span>
 <span class="source-line-no">543</span><span id="line-543"></span>
-<span class="source-line-no">544</span><span id="line-544">        int getSessionCount();</span>
-<span class="source-line-no">545</span><span id="line-545">    }</span>
-<span class="source-line-no">546</span><span id="line-546"></span>
-<span class="source-line-no">547</span><span id="line-547">    /**</span>
-<span class="source-line-no">548</span><span id="line-548">     * The session manager information.</span>
-<span class="source-line-no">549</span><span id="line-549">     */</span>
-<span class="source-line-no">550</span><span id="line-550">    public static class SessionManagerInfo implements SessionManagerMXBean {</span>
-<span class="source-line-no">551</span><span id="line-551"></span>
-<span class="source-line-no">552</span><span id="line-552">        private static MBeanServer mbs</span>
-<span class="source-line-no">553</span><span id="line-553">            = ManagementFactory.getPlatformMBeanServer();</span>
-<span class="source-line-no">554</span><span id="line-554"></span>
-<span class="source-line-no">555</span><span id="line-555">        private ObjectName mbeanName;</span>
-<span class="source-line-no">556</span><span id="line-556">        private final WeakReference&lt;SessionManager&gt; sessionManagerRef;</span>
-<span class="source-line-no">557</span><span id="line-557"></span>
-<span class="source-line-no">558</span><span id="line-558">        /**</span>
-<span class="source-line-no">559</span><span id="line-559">         * Instantiates a new session manager info.</span>
-<span class="source-line-no">560</span><span id="line-560">         *</span>
-<span class="source-line-no">561</span><span id="line-561">         * @param sessionManager the session manager</span>
-<span class="source-line-no">562</span><span id="line-562">         */</span>
-<span class="source-line-no">563</span><span id="line-563">        @SuppressWarnings({ "PMD.AvoidCatchingGenericException",</span>
-<span class="source-line-no">564</span><span id="line-564">            "PMD.EmptyCatchBlock" })</span>
-<span class="source-line-no">565</span><span id="line-565">        public SessionManagerInfo(SessionManager sessionManager) {</span>
-<span class="source-line-no">566</span><span id="line-566">            try {</span>
-<span class="source-line-no">567</span><span id="line-567">                mbeanName = new ObjectName("org.jgrapes.http:type="</span>
-<span class="source-line-no">568</span><span id="line-568">                    + SessionManager.class.getSimpleName() + ",name="</span>
-<span class="source-line-no">569</span><span id="line-569">                    + ObjectName.quote(Components.simpleObjectName(</span>
-<span class="source-line-no">570</span><span id="line-570">                        sessionManager)));</span>
-<span class="source-line-no">571</span><span id="line-571">            } catch (MalformedObjectNameException e) {</span>
-<span class="source-line-no">572</span><span id="line-572">                // Won't happen</span>
-<span class="source-line-no">573</span><span id="line-573">            }</span>
-<span class="source-line-no">574</span><span id="line-574">            sessionManagerRef = new WeakReference&lt;&gt;(sessionManager);</span>
-<span class="source-line-no">575</span><span id="line-575">            try {</span>
-<span class="source-line-no">576</span><span id="line-576">                mbs.unregisterMBean(mbeanName);</span>
-<span class="source-line-no">577</span><span id="line-577">            } catch (Exception e) {</span>
-<span class="source-line-no">578</span><span id="line-578">                // Just in case, should not work</span>
-<span class="source-line-no">579</span><span id="line-579">            }</span>
-<span class="source-line-no">580</span><span id="line-580">            try {</span>
-<span class="source-line-no">581</span><span id="line-581">                mbs.registerMBean(this, mbeanName);</span>
-<span class="source-line-no">582</span><span id="line-582">            } catch (InstanceAlreadyExistsException | MBeanRegistrationException</span>
-<span class="source-line-no">583</span><span id="line-583">                    | NotCompliantMBeanException e) {</span>
-<span class="source-line-no">584</span><span id="line-584">                // Have to live with that</span>
-<span class="source-line-no">585</span><span id="line-585">            }</span>
-<span class="source-line-no">586</span><span id="line-586">        }</span>
-<span class="source-line-no">587</span><span id="line-587"></span>
-<span class="source-line-no">588</span><span id="line-588">        /**</span>
-<span class="source-line-no">589</span><span id="line-589">         * Returns the session manager.</span>
-<span class="source-line-no">590</span><span id="line-590">         *</span>
-<span class="source-line-no">591</span><span id="line-591">         * @return the optional session manager</span>
-<span class="source-line-no">592</span><span id="line-592">         */</span>
-<span class="source-line-no">593</span><span id="line-593">        @SuppressWarnings({ "PMD.AvoidCatchingGenericException",</span>
-<span class="source-line-no">594</span><span id="line-594">            "PMD.EmptyCatchBlock" })</span>
-<span class="source-line-no">595</span><span id="line-595">        public Optional&lt;SessionManager&gt; manager() {</span>
-<span class="source-line-no">596</span><span id="line-596">            SessionManager manager = sessionManagerRef.get();</span>
-<span class="source-line-no">597</span><span id="line-597">            if (manager == null) {</span>
-<span class="source-line-no">598</span><span id="line-598">                try {</span>
-<span class="source-line-no">599</span><span id="line-599">                    mbs.unregisterMBean(mbeanName);</span>
-<span class="source-line-no">600</span><span id="line-600">                } catch (MBeanRegistrationException</span>
-<span class="source-line-no">601</span><span id="line-601">                        | InstanceNotFoundException e) {</span>
-<span class="source-line-no">602</span><span id="line-602">                    // Should work.</span>
-<span class="source-line-no">603</span><span id="line-603">                }</span>
-<span class="source-line-no">604</span><span id="line-604">            }</span>
-<span class="source-line-no">605</span><span id="line-605">            return Optional.ofNullable(manager);</span>
-<span class="source-line-no">606</span><span id="line-606">        }</span>
-<span class="source-line-no">607</span><span id="line-607"></span>
-<span class="source-line-no">608</span><span id="line-608">        @Override</span>
-<span class="source-line-no">609</span><span id="line-609">        public String getComponentPath() {</span>
-<span class="source-line-no">610</span><span id="line-610">            return manager().map(mgr -&gt; mgr.componentPath())</span>
-<span class="source-line-no">611</span><span id="line-611">                .orElse("&lt;removed&gt;");</span>
-<span class="source-line-no">612</span><span id="line-612">        }</span>
-<span class="source-line-no">613</span><span id="line-613"></span>
-<span class="source-line-no">614</span><span id="line-614">        @Override</span>
-<span class="source-line-no">615</span><span id="line-615">        public String getPath() {</span>
-<span class="source-line-no">616</span><span id="line-616">            return manager().map(mgr -&gt; mgr.path).orElse("&lt;unknown&gt;");</span>
-<span class="source-line-no">617</span><span id="line-617">        }</span>
-<span class="source-line-no">618</span><span id="line-618"></span>
-<span class="source-line-no">619</span><span id="line-619">        @Override</span>
-<span class="source-line-no">620</span><span id="line-620">        public int getMaxSessions() {</span>
-<span class="source-line-no">621</span><span id="line-621">            return manager().map(SessionManager::maxSessions).orElse(0);</span>
-<span class="source-line-no">622</span><span id="line-622">        }</span>
-<span class="source-line-no">623</span><span id="line-623"></span>
-<span class="source-line-no">624</span><span id="line-624">        @Override</span>
-<span class="source-line-no">625</span><span id="line-625">        public long getAbsoluteTimeout() {</span>
-<span class="source-line-no">626</span><span id="line-626">            return manager().map(mgr -&gt; mgr.absoluteTimeout().toMillis())</span>
-<span class="source-line-no">627</span><span id="line-627">                .orElse(0L);</span>
-<span class="source-line-no">628</span><span id="line-628">        }</span>
-<span class="source-line-no">629</span><span id="line-629"></span>
-<span class="source-line-no">630</span><span id="line-630">        @Override</span>
-<span class="source-line-no">631</span><span id="line-631">        public long getIdleTimeout() {</span>
-<span class="source-line-no">632</span><span id="line-632">            return manager().map(mgr -&gt; mgr.idleTimeout().toMillis())</span>
-<span class="source-line-no">633</span><span id="line-633">                .orElse(0L);</span>
-<span class="source-line-no">634</span><span id="line-634">        }</span>
-<span class="source-line-no">635</span><span id="line-635"></span>
-<span class="source-line-no">636</span><span id="line-636">        @Override</span>
-<span class="source-line-no">637</span><span id="line-637">        public int getSessionCount() {</span>
-<span class="source-line-no">638</span><span id="line-638">            return manager().map(SessionManager::sessionCount).orElse(0);</span>
-<span class="source-line-no">639</span><span id="line-639">        }</span>
-<span class="source-line-no">640</span><span id="line-640">    }</span>
-<span class="source-line-no">641</span><span id="line-641"></span>
-<span class="source-line-no">642</span><span id="line-642">    /**</span>
-<span class="source-line-no">643</span><span id="line-643">     * An MBean interface for getting information about all session</span>
-<span class="source-line-no">644</span><span id="line-644">     * managers.</span>
-<span class="source-line-no">645</span><span id="line-645">     * </span>
-<span class="source-line-no">646</span><span id="line-646">     * There is currently no summary information. However, the (periodic)</span>
-<span class="source-line-no">647</span><span id="line-647">     * invocation of {@link SessionManagerSummaryMXBean#getManagers()} ensures</span>
-<span class="source-line-no">648</span><span id="line-648">     * that entries for removed {@link SessionManager}s are unregistered.</span>
-<span class="source-line-no">649</span><span id="line-649">     */</span>
-<span class="source-line-no">650</span><span id="line-650">    public interface SessionManagerSummaryMXBean {</span>
-<span class="source-line-no">651</span><span id="line-651"></span>
-<span class="source-line-no">652</span><span id="line-652">        /**</span>
-<span class="source-line-no">653</span><span id="line-653">         * Gets the managers.</span>
-<span class="source-line-no">654</span><span id="line-654">         *</span>
-<span class="source-line-no">655</span><span id="line-655">         * @return the managers</span>
-<span class="source-line-no">656</span><span id="line-656">         */</span>
-<span class="source-line-no">657</span><span id="line-657">        Set&lt;SessionManagerMXBean&gt; getManagers();</span>
-<span class="source-line-no">658</span><span id="line-658">    }</span>
-<span class="source-line-no">659</span><span id="line-659"></span>
-<span class="source-line-no">660</span><span id="line-660">    /**</span>
-<span class="source-line-no">661</span><span id="line-661">     * The MBean view.</span>
-<span class="source-line-no">662</span><span id="line-662">     */</span>
-<span class="source-line-no">663</span><span id="line-663">    private static final class MBeanView</span>
-<span class="source-line-no">664</span><span id="line-664">            implements SessionManagerSummaryMXBean {</span>
-<span class="source-line-no">665</span><span id="line-665">        private static Set&lt;SessionManagerInfo&gt; managerInfos = new HashSet&lt;&gt;();</span>
-<span class="source-line-no">666</span><span id="line-666"></span>
-<span class="source-line-no">667</span><span id="line-667">        /**</span>
-<span class="source-line-no">668</span><span id="line-668">         * Adds a manager.</span>
-<span class="source-line-no">669</span><span id="line-669">         *</span>
-<span class="source-line-no">670</span><span id="line-670">         * @param manager the manager</span>
-<span class="source-line-no">671</span><span id="line-671">         */</span>
-<span class="source-line-no">672</span><span id="line-672">        public static void addManager(SessionManager manager) {</span>
-<span class="source-line-no">673</span><span id="line-673">            synchronized (managerInfos) {</span>
-<span class="source-line-no">674</span><span id="line-674">                managerInfos.add(new SessionManagerInfo(manager));</span>
-<span class="source-line-no">675</span><span id="line-675">            }</span>
-<span class="source-line-no">676</span><span id="line-676">        }</span>
-<span class="source-line-no">677</span><span id="line-677"></span>
-<span class="source-line-no">678</span><span id="line-678">        @Override</span>
-<span class="source-line-no">679</span><span id="line-679">        public Set&lt;SessionManagerMXBean&gt; getManagers() {</span>
-<span class="source-line-no">680</span><span id="line-680">            Set&lt;SessionManagerInfo&gt; expired = new HashSet&lt;&gt;();</span>
-<span class="source-line-no">681</span><span id="line-681">            synchronized (managerInfos) {</span>
-<span class="source-line-no">682</span><span id="line-682">                for (SessionManagerInfo managerInfo : managerInfos) {</span>
-<span class="source-line-no">683</span><span id="line-683">                    if (!managerInfo.manager().isPresent()) {</span>
-<span class="source-line-no">684</span><span id="line-684">                        expired.add(managerInfo);</span>
-<span class="source-line-no">685</span><span id="line-685">                    }</span>
-<span class="source-line-no">686</span><span id="line-686">                }</span>
-<span class="source-line-no">687</span><span id="line-687">                managerInfos.removeAll(expired);</span>
-<span class="source-line-no">688</span><span id="line-688">            }</span>
-<span class="source-line-no">689</span><span id="line-689">            @SuppressWarnings("unchecked")</span>
-<span class="source-line-no">690</span><span id="line-690">            Set&lt;SessionManagerMXBean&gt; result</span>
-<span class="source-line-no">691</span><span id="line-691">                = (Set&lt;SessionManagerMXBean&gt;) (Object) managerInfos;</span>
-<span class="source-line-no">692</span><span id="line-692">            return result;</span>
-<span class="source-line-no">693</span><span id="line-693">        }</span>
-<span class="source-line-no">694</span><span id="line-694">    }</span>
-<span class="source-line-no">695</span><span id="line-695"></span>
-<span class="source-line-no">696</span><span id="line-696">    static {</span>
-<span class="source-line-no">697</span><span id="line-697">        try {</span>
-<span class="source-line-no">698</span><span id="line-698">            MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();</span>
-<span class="source-line-no">699</span><span id="line-699">            ObjectName mxbeanName = new ObjectName("org.jgrapes.http:type="</span>
-<span class="source-line-no">700</span><span id="line-700">                + SessionManager.class.getSimpleName() + "s");</span>
-<span class="source-line-no">701</span><span id="line-701">            mbs.registerMBean(new MBeanView(), mxbeanName);</span>
-<span class="source-line-no">702</span><span id="line-702">        } catch (MalformedObjectNameException | InstanceAlreadyExistsException</span>
-<span class="source-line-no">703</span><span id="line-703">                | MBeanRegistrationException | NotCompliantMBeanException e) {</span>
-<span class="source-line-no">704</span><span id="line-704">            // Does not happen</span>
-<span class="source-line-no">705</span><span id="line-705">            e.printStackTrace();</span>
-<span class="source-line-no">706</span><span id="line-706">        }</span>
-<span class="source-line-no">707</span><span id="line-707">    }</span>
-<span class="source-line-no">708</span><span id="line-708">}</span>
+<span class="source-line-no">544</span><span id="line-544">        long getIdleTimeout();</span>
+<span class="source-line-no">545</span><span id="line-545"></span>
+<span class="source-line-no">546</span><span id="line-546">        int getSessionCount();</span>
+<span class="source-line-no">547</span><span id="line-547">    }</span>
+<span class="source-line-no">548</span><span id="line-548"></span>
+<span class="source-line-no">549</span><span id="line-549">    /**</span>
+<span class="source-line-no">550</span><span id="line-550">     * The session manager information.</span>
+<span class="source-line-no">551</span><span id="line-551">     */</span>
+<span class="source-line-no">552</span><span id="line-552">    public static class SessionManagerInfo implements SessionManagerMXBean {</span>
+<span class="source-line-no">553</span><span id="line-553"></span>
+<span class="source-line-no">554</span><span id="line-554">        private static MBeanServer mbs</span>
+<span class="source-line-no">555</span><span id="line-555">            = ManagementFactory.getPlatformMBeanServer();</span>
+<span class="source-line-no">556</span><span id="line-556"></span>
+<span class="source-line-no">557</span><span id="line-557">        private ObjectName mbeanName;</span>
+<span class="source-line-no">558</span><span id="line-558">        private final WeakReference&lt;SessionManager&gt; sessionManagerRef;</span>
+<span class="source-line-no">559</span><span id="line-559"></span>
+<span class="source-line-no">560</span><span id="line-560">        /**</span>
+<span class="source-line-no">561</span><span id="line-561">         * Instantiates a new session manager info.</span>
+<span class="source-line-no">562</span><span id="line-562">         *</span>
+<span class="source-line-no">563</span><span id="line-563">         * @param sessionManager the session manager</span>
+<span class="source-line-no">564</span><span id="line-564">         */</span>
+<span class="source-line-no">565</span><span id="line-565">        @SuppressWarnings({ "PMD.AvoidCatchingGenericException",</span>
+<span class="source-line-no">566</span><span id="line-566">            "PMD.EmptyCatchBlock" })</span>
+<span class="source-line-no">567</span><span id="line-567">        public SessionManagerInfo(SessionManager sessionManager) {</span>
+<span class="source-line-no">568</span><span id="line-568">            try {</span>
+<span class="source-line-no">569</span><span id="line-569">                mbeanName = new ObjectName("org.jgrapes.http:type="</span>
+<span class="source-line-no">570</span><span id="line-570">                    + SessionManager.class.getSimpleName() + ",name="</span>
+<span class="source-line-no">571</span><span id="line-571">                    + ObjectName.quote(Components.simpleObjectName(</span>
+<span class="source-line-no">572</span><span id="line-572">                        sessionManager)));</span>
+<span class="source-line-no">573</span><span id="line-573">            } catch (MalformedObjectNameException e) {</span>
+<span class="source-line-no">574</span><span id="line-574">                // Won't happen</span>
+<span class="source-line-no">575</span><span id="line-575">            }</span>
+<span class="source-line-no">576</span><span id="line-576">            sessionManagerRef = new WeakReference&lt;&gt;(sessionManager);</span>
+<span class="source-line-no">577</span><span id="line-577">            try {</span>
+<span class="source-line-no">578</span><span id="line-578">                mbs.unregisterMBean(mbeanName);</span>
+<span class="source-line-no">579</span><span id="line-579">            } catch (Exception e) {</span>
+<span class="source-line-no">580</span><span id="line-580">                // Just in case, should not work</span>
+<span class="source-line-no">581</span><span id="line-581">            }</span>
+<span class="source-line-no">582</span><span id="line-582">            try {</span>
+<span class="source-line-no">583</span><span id="line-583">                mbs.registerMBean(this, mbeanName);</span>
+<span class="source-line-no">584</span><span id="line-584">            } catch (InstanceAlreadyExistsException | MBeanRegistrationException</span>
+<span class="source-line-no">585</span><span id="line-585">                    | NotCompliantMBeanException e) {</span>
+<span class="source-line-no">586</span><span id="line-586">                // Have to live with that</span>
+<span class="source-line-no">587</span><span id="line-587">            }</span>
+<span class="source-line-no">588</span><span id="line-588">        }</span>
+<span class="source-line-no">589</span><span id="line-589"></span>
+<span class="source-line-no">590</span><span id="line-590">        /**</span>
+<span class="source-line-no">591</span><span id="line-591">         * Returns the session manager.</span>
+<span class="source-line-no">592</span><span id="line-592">         *</span>
+<span class="source-line-no">593</span><span id="line-593">         * @return the optional session manager</span>
+<span class="source-line-no">594</span><span id="line-594">         */</span>
+<span class="source-line-no">595</span><span id="line-595">        @SuppressWarnings({ "PMD.AvoidCatchingGenericException",</span>
+<span class="source-line-no">596</span><span id="line-596">            "PMD.EmptyCatchBlock" })</span>
+<span class="source-line-no">597</span><span id="line-597">        public Optional&lt;SessionManager&gt; manager() {</span>
+<span class="source-line-no">598</span><span id="line-598">            SessionManager manager = sessionManagerRef.get();</span>
+<span class="source-line-no">599</span><span id="line-599">            if (manager == null) {</span>
+<span class="source-line-no">600</span><span id="line-600">                try {</span>
+<span class="source-line-no">601</span><span id="line-601">                    mbs.unregisterMBean(mbeanName);</span>
+<span class="source-line-no">602</span><span id="line-602">                } catch (MBeanRegistrationException</span>
+<span class="source-line-no">603</span><span id="line-603">                        | InstanceNotFoundException e) {</span>
+<span class="source-line-no">604</span><span id="line-604">                    // Should work.</span>
+<span class="source-line-no">605</span><span id="line-605">                }</span>
+<span class="source-line-no">606</span><span id="line-606">            }</span>
+<span class="source-line-no">607</span><span id="line-607">            return Optional.ofNullable(manager);</span>
+<span class="source-line-no">608</span><span id="line-608">        }</span>
+<span class="source-line-no">609</span><span id="line-609"></span>
+<span class="source-line-no">610</span><span id="line-610">        @Override</span>
+<span class="source-line-no">611</span><span id="line-611">        public String getComponentPath() {</span>
+<span class="source-line-no">612</span><span id="line-612">            return manager().map(mgr -&gt; mgr.componentPath())</span>
+<span class="source-line-no">613</span><span id="line-613">                .orElse("&lt;removed&gt;");</span>
+<span class="source-line-no">614</span><span id="line-614">        }</span>
+<span class="source-line-no">615</span><span id="line-615"></span>
+<span class="source-line-no">616</span><span id="line-616">        @Override</span>
+<span class="source-line-no">617</span><span id="line-617">        public String getPath() {</span>
+<span class="source-line-no">618</span><span id="line-618">            return manager().map(mgr -&gt; mgr.path).orElse("&lt;unknown&gt;");</span>
+<span class="source-line-no">619</span><span id="line-619">        }</span>
+<span class="source-line-no">620</span><span id="line-620"></span>
+<span class="source-line-no">621</span><span id="line-621">        @Override</span>
+<span class="source-line-no">622</span><span id="line-622">        public int getMaxSessions() {</span>
+<span class="source-line-no">623</span><span id="line-623">            return manager().map(SessionManager::maxSessions).orElse(0);</span>
+<span class="source-line-no">624</span><span id="line-624">        }</span>
+<span class="source-line-no">625</span><span id="line-625"></span>
+<span class="source-line-no">626</span><span id="line-626">        @Override</span>
+<span class="source-line-no">627</span><span id="line-627">        public long getAbsoluteTimeout() {</span>
+<span class="source-line-no">628</span><span id="line-628">            return manager().map(mgr -&gt; mgr.absoluteTimeout().toMillis())</span>
+<span class="source-line-no">629</span><span id="line-629">                .orElse(0L);</span>
+<span class="source-line-no">630</span><span id="line-630">        }</span>
+<span class="source-line-no">631</span><span id="line-631"></span>
+<span class="source-line-no">632</span><span id="line-632">        @Override</span>
+<span class="source-line-no">633</span><span id="line-633">        public long getIdleTimeout() {</span>
+<span class="source-line-no">634</span><span id="line-634">            return manager().map(mgr -&gt; mgr.idleTimeout().toMillis())</span>
+<span class="source-line-no">635</span><span id="line-635">                .orElse(0L);</span>
+<span class="source-line-no">636</span><span id="line-636">        }</span>
+<span class="source-line-no">637</span><span id="line-637"></span>
+<span class="source-line-no">638</span><span id="line-638">        @Override</span>
+<span class="source-line-no">639</span><span id="line-639">        public int getSessionCount() {</span>
+<span class="source-line-no">640</span><span id="line-640">            return manager().map(SessionManager::sessionCount).orElse(0);</span>
+<span class="source-line-no">641</span><span id="line-641">        }</span>
+<span class="source-line-no">642</span><span id="line-642">    }</span>
+<span class="source-line-no">643</span><span id="line-643"></span>
+<span class="source-line-no">644</span><span id="line-644">    /**</span>
+<span class="source-line-no">645</span><span id="line-645">     * An MBean interface for getting information about all session</span>
+<span class="source-line-no">646</span><span id="line-646">     * managers.</span>
+<span class="source-line-no">647</span><span id="line-647">     * </span>
+<span class="source-line-no">648</span><span id="line-648">     * There is currently no summary information. However, the (periodic)</span>
+<span class="source-line-no">649</span><span id="line-649">     * invocation of {@link SessionManagerSummaryMXBean#getManagers()} ensures</span>
+<span class="source-line-no">650</span><span id="line-650">     * that entries for removed {@link SessionManager}s are unregistered.</span>
+<span class="source-line-no">651</span><span id="line-651">     */</span>
+<span class="source-line-no">652</span><span id="line-652">    public interface SessionManagerSummaryMXBean {</span>
+<span class="source-line-no">653</span><span id="line-653"></span>
+<span class="source-line-no">654</span><span id="line-654">        /**</span>
+<span class="source-line-no">655</span><span id="line-655">         * Gets the managers.</span>
+<span class="source-line-no">656</span><span id="line-656">         *</span>
+<span class="source-line-no">657</span><span id="line-657">         * @return the managers</span>
+<span class="source-line-no">658</span><span id="line-658">         */</span>
+<span class="source-line-no">659</span><span id="line-659">        Set&lt;SessionManagerMXBean&gt; getManagers();</span>
+<span class="source-line-no">660</span><span id="line-660">    }</span>
+<span class="source-line-no">661</span><span id="line-661"></span>
+<span class="source-line-no">662</span><span id="line-662">    /**</span>
+<span class="source-line-no">663</span><span id="line-663">     * The MBean view.</span>
+<span class="source-line-no">664</span><span id="line-664">     */</span>
+<span class="source-line-no">665</span><span id="line-665">    private static final class MBeanView</span>
+<span class="source-line-no">666</span><span id="line-666">            implements SessionManagerSummaryMXBean {</span>
+<span class="source-line-no">667</span><span id="line-667">        private static Set&lt;SessionManagerInfo&gt; managerInfos = new HashSet&lt;&gt;();</span>
+<span class="source-line-no">668</span><span id="line-668"></span>
+<span class="source-line-no">669</span><span id="line-669">        /**</span>
+<span class="source-line-no">670</span><span id="line-670">         * Adds a manager.</span>
+<span class="source-line-no">671</span><span id="line-671">         *</span>
+<span class="source-line-no">672</span><span id="line-672">         * @param manager the manager</span>
+<span class="source-line-no">673</span><span id="line-673">         */</span>
+<span class="source-line-no">674</span><span id="line-674">        public static void addManager(SessionManager manager) {</span>
+<span class="source-line-no">675</span><span id="line-675">            synchronized (managerInfos) {</span>
+<span class="source-line-no">676</span><span id="line-676">                managerInfos.add(new SessionManagerInfo(manager));</span>
+<span class="source-line-no">677</span><span id="line-677">            }</span>
+<span class="source-line-no">678</span><span id="line-678">        }</span>
+<span class="source-line-no">679</span><span id="line-679"></span>
+<span class="source-line-no">680</span><span id="line-680">        @Override</span>
+<span class="source-line-no">681</span><span id="line-681">        public Set&lt;SessionManagerMXBean&gt; getManagers() {</span>
+<span class="source-line-no">682</span><span id="line-682">            Set&lt;SessionManagerInfo&gt; expired = new HashSet&lt;&gt;();</span>
+<span class="source-line-no">683</span><span id="line-683">            synchronized (managerInfos) {</span>
+<span class="source-line-no">684</span><span id="line-684">                for (SessionManagerInfo managerInfo : managerInfos) {</span>
+<span class="source-line-no">685</span><span id="line-685">                    if (!managerInfo.manager().isPresent()) {</span>
+<span class="source-line-no">686</span><span id="line-686">                        expired.add(managerInfo);</span>
+<span class="source-line-no">687</span><span id="line-687">                    }</span>
+<span class="source-line-no">688</span><span id="line-688">                }</span>
+<span class="source-line-no">689</span><span id="line-689">                managerInfos.removeAll(expired);</span>
+<span class="source-line-no">690</span><span id="line-690">            }</span>
+<span class="source-line-no">691</span><span id="line-691">            @SuppressWarnings("unchecked")</span>
+<span class="source-line-no">692</span><span id="line-692">            Set&lt;SessionManagerMXBean&gt; result</span>
+<span class="source-line-no">693</span><span id="line-693">                = (Set&lt;SessionManagerMXBean&gt;) (Object) managerInfos;</span>
+<span class="source-line-no">694</span><span id="line-694">            return result;</span>
+<span class="source-line-no">695</span><span id="line-695">        }</span>
+<span class="source-line-no">696</span><span id="line-696">    }</span>
+<span class="source-line-no">697</span><span id="line-697"></span>
+<span class="source-line-no">698</span><span id="line-698">    static {</span>
+<span class="source-line-no">699</span><span id="line-699">        try {</span>
+<span class="source-line-no">700</span><span id="line-700">            MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();</span>
+<span class="source-line-no">701</span><span id="line-701">            ObjectName mxbeanName = new ObjectName("org.jgrapes.http:type="</span>
+<span class="source-line-no">702</span><span id="line-702">                + SessionManager.class.getSimpleName() + "s");</span>
+<span class="source-line-no">703</span><span id="line-703">            mbs.registerMBean(new MBeanView(), mxbeanName);</span>
+<span class="source-line-no">704</span><span id="line-704">        } catch (MalformedObjectNameException | InstanceAlreadyExistsException</span>
+<span class="source-line-no">705</span><span id="line-705">                | MBeanRegistrationException | NotCompliantMBeanException e) {</span>
+<span class="source-line-no">706</span><span id="line-706">            // Does not happen</span>
+<span class="source-line-no">707</span><span id="line-707">            e.printStackTrace();</span>
+<span class="source-line-no">708</span><span id="line-708">        }</span>
+<span class="source-line-no">709</span><span id="line-709">    }</span>
+<span class="source-line-no">710</span><span id="line-710">}</span>
 
 
 
