@@ -651,10 +651,7 @@ public class Request<R> extends MessageReceived<R> {
 
     /**
      * The base class for all outgoing HTTP requests. Outgoing
-     * request flow upstream and are served externally. 
-     * 
-     * A result of `true` indicates that the request has been processed, 
-     * i.e. a response has been sent or will sent.
+     * request flow upstream and are served externally.
      */
     @SuppressWarnings("PMD.ShortClassName")
     public static class Out extends Request<Void> {
