@@ -19,6 +19,7 @@
 package org.jgrapes.io.util;
 
 import org.jgrapes.io.IOSubchannel;
+import org.jgrapes.io.events.OpenSocketConnection;
 import org.jgrapes.io.events.Output;
 import org.jgrapes.net.events.ClientConnected;
 

@@ -32,8 +32,10 @@ import org.jdrupes.httpcodec.protocols.http.HttpRequest;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.CompletionEvent;
 import org.jgrapes.core.Components;
+import org.jgrapes.core.Event;
 import org.jgrapes.http.ResourcePattern;
 import org.jgrapes.http.ResourcePattern.PathSpliterator;
+import org.jgrapes.io.events.Output;
 import org.jgrapes.net.SocketIOChannel;
 
 /**
@@ -60,8 +62,8 @@ public class Request<R> extends MessageReceived<R> {
      * check that a request has not been {@link fulfilled} before
      * firing a {@link Response} event to avoid duplicate response
      * events. Handlers that have fired a response event and all
-     * related {@link Output} events SHOULD {@link Event#stop} the
-     * request event to avoid unnecessary subsequent invocations of
+     * related {@link Output} events SHOULD {@link Event#stop stop}
+     * the request event to avoid unnecessary subsequent invocations of
      * handlers. Handlers that want to do "postprocessing" MUST
      * therefore listen for the corresponding {@link Completed}
      * event instead of defining a handler for the request event
