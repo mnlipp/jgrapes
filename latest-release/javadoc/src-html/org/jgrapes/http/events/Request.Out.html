@@ -664,218 +664,215 @@
 <span class="source-line-no">651</span><span id="line-651"></span>
 <span class="source-line-no">652</span><span id="line-652">    /**</span>
 <span class="source-line-no">653</span><span id="line-653">     * The base class for all outgoing HTTP requests. Outgoing</span>
-<span class="source-line-no">654</span><span id="line-654">     * request flow upstream and are served externally. </span>
-<span class="source-line-no">655</span><span id="line-655">     * </span>
-<span class="source-line-no">656</span><span id="line-656">     * A result of `true` indicates that the request has been processed, </span>
-<span class="source-line-no">657</span><span id="line-657">     * i.e. a response has been sent or will sent.</span>
-<span class="source-line-no">658</span><span id="line-658">     */</span>
-<span class="source-line-no">659</span><span id="line-659">    @SuppressWarnings("PMD.ShortClassName")</span>
-<span class="source-line-no">660</span><span id="line-660">    public static class Out extends Request&lt;Void&gt; {</span>
+<span class="source-line-no">654</span><span id="line-654">     * request flow upstream and are served externally.</span>
+<span class="source-line-no">655</span><span id="line-655">     */</span>
+<span class="source-line-no">656</span><span id="line-656">    @SuppressWarnings("PMD.ShortClassName")</span>
+<span class="source-line-no">657</span><span id="line-657">    public static class Out extends Request&lt;Void&gt; {</span>
+<span class="source-line-no">658</span><span id="line-658"></span>
+<span class="source-line-no">659</span><span id="line-659">        private final HttpRequest request;</span>
+<span class="source-line-no">660</span><span id="line-660">        private BiConsumer&lt;Request.Out, SocketIOChannel&gt; connectedCallback;</span>
 <span class="source-line-no">661</span><span id="line-661"></span>
-<span class="source-line-no">662</span><span id="line-662">        private final HttpRequest request;</span>
-<span class="source-line-no">663</span><span id="line-663">        private BiConsumer&lt;Request.Out, SocketIOChannel&gt; connectedCallback;</span>
-<span class="source-line-no">664</span><span id="line-664"></span>
-<span class="source-line-no">665</span><span id="line-665">        /**</span>
-<span class="source-line-no">666</span><span id="line-666">         * Instantiates a new request.</span>
-<span class="source-line-no">667</span><span id="line-667">         *</span>
-<span class="source-line-no">668</span><span id="line-668">         * @param method the method</span>
-<span class="source-line-no">669</span><span id="line-669">         * @param url the url</span>
-<span class="source-line-no">670</span><span id="line-670">         */</span>
-<span class="source-line-no">671</span><span id="line-671">        public Out(String method, URL url) {</span>
-<span class="source-line-no">672</span><span id="line-672">            try {</span>
-<span class="source-line-no">673</span><span id="line-673">                request = new HttpRequest(method, url.toURI(),</span>
-<span class="source-line-no">674</span><span id="line-674">                    HttpProtocol.HTTP_1_1, false);</span>
-<span class="source-line-no">675</span><span id="line-675">            } catch (URISyntaxException e) {</span>
-<span class="source-line-no">676</span><span id="line-676">                // This should not happen because every valid URL can be</span>
-<span class="source-line-no">677</span><span id="line-677">                // converted to a URI.</span>
-<span class="source-line-no">678</span><span id="line-678">                throw new IllegalArgumentException(e);</span>
-<span class="source-line-no">679</span><span id="line-679">            }</span>
-<span class="source-line-no">680</span><span id="line-680">        }</span>
-<span class="source-line-no">681</span><span id="line-681"></span>
-<span class="source-line-no">682</span><span id="line-682">        /**</span>
-<span class="source-line-no">683</span><span id="line-683">         * Sets a "connected callback". When the {@link Out} event is</span>
-<span class="source-line-no">684</span><span id="line-684">         * created, the network connection is not yet known. Some</span>
-<span class="source-line-no">685</span><span id="line-685">         * header fields' values, however, need e.g. the port information</span>
-<span class="source-line-no">686</span><span id="line-686">         * from the connection. Therefore a callback may be set which is</span>
-<span class="source-line-no">687</span><span id="line-687">         * invoked when the connection has been obtained that will be used</span>
-<span class="source-line-no">688</span><span id="line-688">         * to send the request.</span>
-<span class="source-line-no">689</span><span id="line-689">         *</span>
-<span class="source-line-no">690</span><span id="line-690">         * @param connectedCallback the connected callback</span>
-<span class="source-line-no">691</span><span id="line-691">         * @return the out</span>
-<span class="source-line-no">692</span><span id="line-692">         */</span>
-<span class="source-line-no">693</span><span id="line-693">        public Out setConnectedCallback(</span>
-<span class="source-line-no">694</span><span id="line-694">                BiConsumer&lt;Request.Out, SocketIOChannel&gt; connectedCallback) {</span>
-<span class="source-line-no">695</span><span id="line-695">            this.connectedCallback = connectedCallback;</span>
-<span class="source-line-no">696</span><span id="line-696">            return this;</span>
-<span class="source-line-no">697</span><span id="line-697">        }</span>
-<span class="source-line-no">698</span><span id="line-698"></span>
-<span class="source-line-no">699</span><span id="line-699">        /**</span>
-<span class="source-line-no">700</span><span id="line-700">         * Returns the connected callback.</span>
-<span class="source-line-no">701</span><span id="line-701">         *</span>
-<span class="source-line-no">702</span><span id="line-702">         * @return the connected callback, if set</span>
-<span class="source-line-no">703</span><span id="line-703">         */</span>
-<span class="source-line-no">704</span><span id="line-704">        public Optional&lt;BiConsumer&lt;Request.Out, SocketIOChannel&gt;&gt;</span>
-<span class="source-line-no">705</span><span id="line-705">                connectedCallback() {</span>
-<span class="source-line-no">706</span><span id="line-706">            return Optional.ofNullable(connectedCallback);</span>
-<span class="source-line-no">707</span><span id="line-707">        }</span>
-<span class="source-line-no">708</span><span id="line-708"></span>
-<span class="source-line-no">709</span><span id="line-709">        /**</span>
-<span class="source-line-no">710</span><span id="line-710">         * The HTTP request that will be sent by the event.</span>
-<span class="source-line-no">711</span><span id="line-711">         *</span>
-<span class="source-line-no">712</span><span id="line-712">         * @return the http request</span>
-<span class="source-line-no">713</span><span id="line-713">         */</span>
-<span class="source-line-no">714</span><span id="line-714">        public HttpRequest httpRequest() {</span>
-<span class="source-line-no">715</span><span id="line-715">            return request;</span>
-<span class="source-line-no">716</span><span id="line-716">        }</span>
-<span class="source-line-no">717</span><span id="line-717"></span>
-<span class="source-line-no">718</span><span id="line-718">        /**</span>
-<span class="source-line-no">719</span><span id="line-719">         * Returns an absolute URI of the request.</span>
-<span class="source-line-no">720</span><span id="line-720">         * </span>
-<span class="source-line-no">721</span><span id="line-721">         * @return the URI</span>
-<span class="source-line-no">722</span><span id="line-722">         */</span>
-<span class="source-line-no">723</span><span id="line-723">        public URI requestUri() {</span>
-<span class="source-line-no">724</span><span id="line-724">            return request.requestUri();</span>
-<span class="source-line-no">725</span><span id="line-725">        }</span>
-<span class="source-line-no">726</span><span id="line-726"></span>
-<span class="source-line-no">727</span><span id="line-727">        /*</span>
-<span class="source-line-no">728</span><span id="line-728">         * (non-Javadoc)</span>
-<span class="source-line-no">729</span><span id="line-729">         * </span>
-<span class="source-line-no">730</span><span id="line-730">         * @see java.lang.Object#toString()</span>
-<span class="source-line-no">731</span><span id="line-731">         */</span>
-<span class="source-line-no">732</span><span id="line-732">        @Override</span>
-<span class="source-line-no">733</span><span id="line-733">        public String toString() {</span>
-<span class="source-line-no">734</span><span id="line-734">            StringBuilder builder = new StringBuilder();</span>
-<span class="source-line-no">735</span><span id="line-735">            builder.append(Components.objectName(this))</span>
-<span class="source-line-no">736</span><span id="line-736">                .append(" [").append(request.toString());</span>
-<span class="source-line-no">737</span><span id="line-737">            if (channels().length &gt; 0) {</span>
-<span class="source-line-no">738</span><span id="line-738">                builder.append(", channels=");</span>
-<span class="source-line-no">739</span><span id="line-739">                builder.append(Channel.toString(channels()));</span>
-<span class="source-line-no">740</span><span id="line-740">            }</span>
-<span class="source-line-no">741</span><span id="line-741">            builder.append(']');</span>
-<span class="source-line-no">742</span><span id="line-742">            return builder.toString();</span>
-<span class="source-line-no">743</span><span id="line-743">        }</span>
-<span class="source-line-no">744</span><span id="line-744"></span>
-<span class="source-line-no">745</span><span id="line-745">        /**</span>
-<span class="source-line-no">746</span><span id="line-746">         * Represents a HTTP CONNECT request.</span>
-<span class="source-line-no">747</span><span id="line-747">         */</span>
-<span class="source-line-no">748</span><span id="line-748">        public static class Connect extends Out {</span>
-<span class="source-line-no">749</span><span id="line-749"></span>
-<span class="source-line-no">750</span><span id="line-750">            /**</span>
-<span class="source-line-no">751</span><span id="line-751">             * Instantiates a new request.</span>
-<span class="source-line-no">752</span><span id="line-752">             *</span>
-<span class="source-line-no">753</span><span id="line-753">             * @param uri the uri</span>
-<span class="source-line-no">754</span><span id="line-754">             */</span>
-<span class="source-line-no">755</span><span id="line-755">            public Connect(URL uri) {</span>
-<span class="source-line-no">756</span><span id="line-756">                super("CONNECT", uri);</span>
-<span class="source-line-no">757</span><span id="line-757">            }</span>
-<span class="source-line-no">758</span><span id="line-758">        }</span>
-<span class="source-line-no">759</span><span id="line-759"></span>
-<span class="source-line-no">760</span><span id="line-760">        /**</span>
-<span class="source-line-no">761</span><span id="line-761">         * Represents a HTTP DELETE request.</span>
-<span class="source-line-no">762</span><span id="line-762">         */</span>
-<span class="source-line-no">763</span><span id="line-763">        public static class Delete extends Out {</span>
-<span class="source-line-no">764</span><span id="line-764"></span>
-<span class="source-line-no">765</span><span id="line-765">            /**</span>
-<span class="source-line-no">766</span><span id="line-766">             * Instantiates a new request.</span>
-<span class="source-line-no">767</span><span id="line-767">             *</span>
-<span class="source-line-no">768</span><span id="line-768">             * @param uri the uri</span>
-<span class="source-line-no">769</span><span id="line-769">             */</span>
-<span class="source-line-no">770</span><span id="line-770">            public Delete(URL uri) {</span>
-<span class="source-line-no">771</span><span id="line-771">                super("DELETE", uri);</span>
-<span class="source-line-no">772</span><span id="line-772">            }</span>
-<span class="source-line-no">773</span><span id="line-773">        }</span>
-<span class="source-line-no">774</span><span id="line-774"></span>
-<span class="source-line-no">775</span><span id="line-775">        /**</span>
-<span class="source-line-no">776</span><span id="line-776">         * Represents a HTTP GET request.</span>
-<span class="source-line-no">777</span><span id="line-777">         */</span>
-<span class="source-line-no">778</span><span id="line-778">        public static class Get extends Out {</span>
-<span class="source-line-no">779</span><span id="line-779"></span>
-<span class="source-line-no">780</span><span id="line-780">            /**</span>
-<span class="source-line-no">781</span><span id="line-781">             * Instantiates a new request.</span>
-<span class="source-line-no">782</span><span id="line-782">             *</span>
-<span class="source-line-no">783</span><span id="line-783">             * @param uri the uri</span>
-<span class="source-line-no">784</span><span id="line-784">             */</span>
-<span class="source-line-no">785</span><span id="line-785">            public Get(URL uri) {</span>
-<span class="source-line-no">786</span><span id="line-786">                super("GET", uri);</span>
-<span class="source-line-no">787</span><span id="line-787">            }</span>
-<span class="source-line-no">788</span><span id="line-788">        }</span>
-<span class="source-line-no">789</span><span id="line-789"></span>
-<span class="source-line-no">790</span><span id="line-790">        /**</span>
-<span class="source-line-no">791</span><span id="line-791">         * Represents a HTTP HEAD request.</span>
-<span class="source-line-no">792</span><span id="line-792">         */</span>
-<span class="source-line-no">793</span><span id="line-793">        public static class Head extends Out {</span>
-<span class="source-line-no">794</span><span id="line-794"></span>
-<span class="source-line-no">795</span><span id="line-795">            /**</span>
-<span class="source-line-no">796</span><span id="line-796">             * Instantiates a new request.</span>
-<span class="source-line-no">797</span><span id="line-797">             *</span>
-<span class="source-line-no">798</span><span id="line-798">             * @param uri the uri</span>
-<span class="source-line-no">799</span><span id="line-799">             */</span>
-<span class="source-line-no">800</span><span id="line-800">            public Head(URL uri) {</span>
-<span class="source-line-no">801</span><span id="line-801">                super("HEAD", uri);</span>
-<span class="source-line-no">802</span><span id="line-802">            }</span>
-<span class="source-line-no">803</span><span id="line-803">        }</span>
-<span class="source-line-no">804</span><span id="line-804"></span>
-<span class="source-line-no">805</span><span id="line-805">        /**</span>
-<span class="source-line-no">806</span><span id="line-806">         * Represents a HTTP OPTIONS request.</span>
-<span class="source-line-no">807</span><span id="line-807">         */</span>
-<span class="source-line-no">808</span><span id="line-808">        public static class Options extends Out {</span>
-<span class="source-line-no">809</span><span id="line-809"></span>
-<span class="source-line-no">810</span><span id="line-810">            /**</span>
-<span class="source-line-no">811</span><span id="line-811">             * Instantiates a new request.</span>
-<span class="source-line-no">812</span><span id="line-812">             *</span>
-<span class="source-line-no">813</span><span id="line-813">             * @param uri the uri</span>
-<span class="source-line-no">814</span><span id="line-814">             */</span>
-<span class="source-line-no">815</span><span id="line-815">            public Options(URL uri) {</span>
-<span class="source-line-no">816</span><span id="line-816">                super("OPTIONS", uri);</span>
-<span class="source-line-no">817</span><span id="line-817">            }</span>
-<span class="source-line-no">818</span><span id="line-818">        }</span>
-<span class="source-line-no">819</span><span id="line-819"></span>
-<span class="source-line-no">820</span><span id="line-820">        /**</span>
-<span class="source-line-no">821</span><span id="line-821">         * Represents a HTTP POST request.</span>
-<span class="source-line-no">822</span><span id="line-822">         */</span>
-<span class="source-line-no">823</span><span id="line-823">        public static class Post extends Out {</span>
-<span class="source-line-no">824</span><span id="line-824"></span>
-<span class="source-line-no">825</span><span id="line-825">            /**</span>
-<span class="source-line-no">826</span><span id="line-826">             * Instantiates a new request.</span>
-<span class="source-line-no">827</span><span id="line-827">             *</span>
-<span class="source-line-no">828</span><span id="line-828">             * @param uri the uri</span>
-<span class="source-line-no">829</span><span id="line-829">             */</span>
-<span class="source-line-no">830</span><span id="line-830">            public Post(URL uri) {</span>
-<span class="source-line-no">831</span><span id="line-831">                super("POST", uri);</span>
-<span class="source-line-no">832</span><span id="line-832">            }</span>
-<span class="source-line-no">833</span><span id="line-833">        }</span>
-<span class="source-line-no">834</span><span id="line-834"></span>
-<span class="source-line-no">835</span><span id="line-835">        /**</span>
-<span class="source-line-no">836</span><span id="line-836">         * Represents a HTTP PUT request.</span>
-<span class="source-line-no">837</span><span id="line-837">         */</span>
-<span class="source-line-no">838</span><span id="line-838">        public static class Put extends Out {</span>
-<span class="source-line-no">839</span><span id="line-839"></span>
-<span class="source-line-no">840</span><span id="line-840">            /**</span>
-<span class="source-line-no">841</span><span id="line-841">             * Instantiates a new request.</span>
-<span class="source-line-no">842</span><span id="line-842">             *</span>
-<span class="source-line-no">843</span><span id="line-843">             * @param uri the uri</span>
-<span class="source-line-no">844</span><span id="line-844">             */</span>
-<span class="source-line-no">845</span><span id="line-845">            public Put(URL uri) {</span>
-<span class="source-line-no">846</span><span id="line-846">                super("PUT", uri);</span>
-<span class="source-line-no">847</span><span id="line-847">            }</span>
-<span class="source-line-no">848</span><span id="line-848">        }</span>
-<span class="source-line-no">849</span><span id="line-849"></span>
-<span class="source-line-no">850</span><span id="line-850">        /**</span>
-<span class="source-line-no">851</span><span id="line-851">         * Represents a HTTP TRACE request.</span>
-<span class="source-line-no">852</span><span id="line-852">         */</span>
-<span class="source-line-no">853</span><span id="line-853">        public static class Trace extends Out {</span>
-<span class="source-line-no">854</span><span id="line-854"></span>
-<span class="source-line-no">855</span><span id="line-855">            /**</span>
-<span class="source-line-no">856</span><span id="line-856">             * Instantiates a new request.</span>
-<span class="source-line-no">857</span><span id="line-857">             *</span>
-<span class="source-line-no">858</span><span id="line-858">             * @param uri the uri</span>
-<span class="source-line-no">859</span><span id="line-859">             */</span>
-<span class="source-line-no">860</span><span id="line-860">            public Trace(URL uri) {</span>
-<span class="source-line-no">861</span><span id="line-861">                super("TRACE", uri);</span>
-<span class="source-line-no">862</span><span id="line-862">            }</span>
-<span class="source-line-no">863</span><span id="line-863">        }</span>
-<span class="source-line-no">864</span><span id="line-864">    }</span>
-<span class="source-line-no">865</span><span id="line-865">}</span>
+<span class="source-line-no">662</span><span id="line-662">        /**</span>
+<span class="source-line-no">663</span><span id="line-663">         * Instantiates a new request.</span>
+<span class="source-line-no">664</span><span id="line-664">         *</span>
+<span class="source-line-no">665</span><span id="line-665">         * @param method the method</span>
+<span class="source-line-no">666</span><span id="line-666">         * @param url the url</span>
+<span class="source-line-no">667</span><span id="line-667">         */</span>
+<span class="source-line-no">668</span><span id="line-668">        public Out(String method, URL url) {</span>
+<span class="source-line-no">669</span><span id="line-669">            try {</span>
+<span class="source-line-no">670</span><span id="line-670">                request = new HttpRequest(method, url.toURI(),</span>
+<span class="source-line-no">671</span><span id="line-671">                    HttpProtocol.HTTP_1_1, false);</span>
+<span class="source-line-no">672</span><span id="line-672">            } catch (URISyntaxException e) {</span>
+<span class="source-line-no">673</span><span id="line-673">                // This should not happen because every valid URL can be</span>
+<span class="source-line-no">674</span><span id="line-674">                // converted to a URI.</span>
+<span class="source-line-no">675</span><span id="line-675">                throw new IllegalArgumentException(e);</span>
+<span class="source-line-no">676</span><span id="line-676">            }</span>
+<span class="source-line-no">677</span><span id="line-677">        }</span>
+<span class="source-line-no">678</span><span id="line-678"></span>
+<span class="source-line-no">679</span><span id="line-679">        /**</span>
+<span class="source-line-no">680</span><span id="line-680">         * Sets a "connected callback". When the {@link Out} event is</span>
+<span class="source-line-no">681</span><span id="line-681">         * created, the network connection is not yet known. Some</span>
+<span class="source-line-no">682</span><span id="line-682">         * header fields' values, however, need e.g. the port information</span>
+<span class="source-line-no">683</span><span id="line-683">         * from the connection. Therefore a callback may be set which is</span>
+<span class="source-line-no">684</span><span id="line-684">         * invoked when the connection has been obtained that will be used</span>
+<span class="source-line-no">685</span><span id="line-685">         * to send the request.</span>
+<span class="source-line-no">686</span><span id="line-686">         *</span>
+<span class="source-line-no">687</span><span id="line-687">         * @param connectedCallback the connected callback</span>
+<span class="source-line-no">688</span><span id="line-688">         * @return the out</span>
+<span class="source-line-no">689</span><span id="line-689">         */</span>
+<span class="source-line-no">690</span><span id="line-690">        public Out setConnectedCallback(</span>
+<span class="source-line-no">691</span><span id="line-691">                BiConsumer&lt;Request.Out, SocketIOChannel&gt; connectedCallback) {</span>
+<span class="source-line-no">692</span><span id="line-692">            this.connectedCallback = connectedCallback;</span>
+<span class="source-line-no">693</span><span id="line-693">            return this;</span>
+<span class="source-line-no">694</span><span id="line-694">        }</span>
+<span class="source-line-no">695</span><span id="line-695"></span>
+<span class="source-line-no">696</span><span id="line-696">        /**</span>
+<span class="source-line-no">697</span><span id="line-697">         * Returns the connected callback.</span>
+<span class="source-line-no">698</span><span id="line-698">         *</span>
+<span class="source-line-no">699</span><span id="line-699">         * @return the connected callback, if set</span>
+<span class="source-line-no">700</span><span id="line-700">         */</span>
+<span class="source-line-no">701</span><span id="line-701">        public Optional&lt;BiConsumer&lt;Request.Out, SocketIOChannel&gt;&gt;</span>
+<span class="source-line-no">702</span><span id="line-702">                connectedCallback() {</span>
+<span class="source-line-no">703</span><span id="line-703">            return Optional.ofNullable(connectedCallback);</span>
+<span class="source-line-no">704</span><span id="line-704">        }</span>
+<span class="source-line-no">705</span><span id="line-705"></span>
+<span class="source-line-no">706</span><span id="line-706">        /**</span>
+<span class="source-line-no">707</span><span id="line-707">         * The HTTP request that will be sent by the event.</span>
+<span class="source-line-no">708</span><span id="line-708">         *</span>
+<span class="source-line-no">709</span><span id="line-709">         * @return the http request</span>
+<span class="source-line-no">710</span><span id="line-710">         */</span>
+<span class="source-line-no">711</span><span id="line-711">        public HttpRequest httpRequest() {</span>
+<span class="source-line-no">712</span><span id="line-712">            return request;</span>
+<span class="source-line-no">713</span><span id="line-713">        }</span>
+<span class="source-line-no">714</span><span id="line-714"></span>
+<span class="source-line-no">715</span><span id="line-715">        /**</span>
+<span class="source-line-no">716</span><span id="line-716">         * Returns an absolute URI of the request.</span>
+<span class="source-line-no">717</span><span id="line-717">         * </span>
+<span class="source-line-no">718</span><span id="line-718">         * @return the URI</span>
+<span class="source-line-no">719</span><span id="line-719">         */</span>
+<span class="source-line-no">720</span><span id="line-720">        public URI requestUri() {</span>
+<span class="source-line-no">721</span><span id="line-721">            return request.requestUri();</span>
+<span class="source-line-no">722</span><span id="line-722">        }</span>
+<span class="source-line-no">723</span><span id="line-723"></span>
+<span class="source-line-no">724</span><span id="line-724">        /*</span>
+<span class="source-line-no">725</span><span id="line-725">         * (non-Javadoc)</span>
+<span class="source-line-no">726</span><span id="line-726">         * </span>
+<span class="source-line-no">727</span><span id="line-727">         * @see java.lang.Object#toString()</span>
+<span class="source-line-no">728</span><span id="line-728">         */</span>
+<span class="source-line-no">729</span><span id="line-729">        @Override</span>
+<span class="source-line-no">730</span><span id="line-730">        public String toString() {</span>
+<span class="source-line-no">731</span><span id="line-731">            StringBuilder builder = new StringBuilder();</span>
+<span class="source-line-no">732</span><span id="line-732">            builder.append(Components.objectName(this))</span>
+<span class="source-line-no">733</span><span id="line-733">                .append(" [").append(request.toString());</span>
+<span class="source-line-no">734</span><span id="line-734">            if (channels().length &gt; 0) {</span>
+<span class="source-line-no">735</span><span id="line-735">                builder.append(", channels=");</span>
+<span class="source-line-no">736</span><span id="line-736">                builder.append(Channel.toString(channels()));</span>
+<span class="source-line-no">737</span><span id="line-737">            }</span>
+<span class="source-line-no">738</span><span id="line-738">            builder.append(']');</span>
+<span class="source-line-no">739</span><span id="line-739">            return builder.toString();</span>
+<span class="source-line-no">740</span><span id="line-740">        }</span>
+<span class="source-line-no">741</span><span id="line-741"></span>
+<span class="source-line-no">742</span><span id="line-742">        /**</span>
+<span class="source-line-no">743</span><span id="line-743">         * Represents a HTTP CONNECT request.</span>
+<span class="source-line-no">744</span><span id="line-744">         */</span>
+<span class="source-line-no">745</span><span id="line-745">        public static class Connect extends Out {</span>
+<span class="source-line-no">746</span><span id="line-746"></span>
+<span class="source-line-no">747</span><span id="line-747">            /**</span>
+<span class="source-line-no">748</span><span id="line-748">             * Instantiates a new request.</span>
+<span class="source-line-no">749</span><span id="line-749">             *</span>
+<span class="source-line-no">750</span><span id="line-750">             * @param uri the uri</span>
+<span class="source-line-no">751</span><span id="line-751">             */</span>
+<span class="source-line-no">752</span><span id="line-752">            public Connect(URL uri) {</span>
+<span class="source-line-no">753</span><span id="line-753">                super("CONNECT", uri);</span>
+<span class="source-line-no">754</span><span id="line-754">            }</span>
+<span class="source-line-no">755</span><span id="line-755">        }</span>
+<span class="source-line-no">756</span><span id="line-756"></span>
+<span class="source-line-no">757</span><span id="line-757">        /**</span>
+<span class="source-line-no">758</span><span id="line-758">         * Represents a HTTP DELETE request.</span>
+<span class="source-line-no">759</span><span id="line-759">         */</span>
+<span class="source-line-no">760</span><span id="line-760">        public static class Delete extends Out {</span>
+<span class="source-line-no">761</span><span id="line-761"></span>
+<span class="source-line-no">762</span><span id="line-762">            /**</span>
+<span class="source-line-no">763</span><span id="line-763">             * Instantiates a new request.</span>
+<span class="source-line-no">764</span><span id="line-764">             *</span>
+<span class="source-line-no">765</span><span id="line-765">             * @param uri the uri</span>
+<span class="source-line-no">766</span><span id="line-766">             */</span>
+<span class="source-line-no">767</span><span id="line-767">            public Delete(URL uri) {</span>
+<span class="source-line-no">768</span><span id="line-768">                super("DELETE", uri);</span>
+<span class="source-line-no">769</span><span id="line-769">            }</span>
+<span class="source-line-no">770</span><span id="line-770">        }</span>
+<span class="source-line-no">771</span><span id="line-771"></span>
+<span class="source-line-no">772</span><span id="line-772">        /**</span>
+<span class="source-line-no">773</span><span id="line-773">         * Represents a HTTP GET request.</span>
+<span class="source-line-no">774</span><span id="line-774">         */</span>
+<span class="source-line-no">775</span><span id="line-775">        public static class Get extends Out {</span>
+<span class="source-line-no">776</span><span id="line-776"></span>
+<span class="source-line-no">777</span><span id="line-777">            /**</span>
+<span class="source-line-no">778</span><span id="line-778">             * Instantiates a new request.</span>
+<span class="source-line-no">779</span><span id="line-779">             *</span>
+<span class="source-line-no">780</span><span id="line-780">             * @param uri the uri</span>
+<span class="source-line-no">781</span><span id="line-781">             */</span>
+<span class="source-line-no">782</span><span id="line-782">            public Get(URL uri) {</span>
+<span class="source-line-no">783</span><span id="line-783">                super("GET", uri);</span>
+<span class="source-line-no">784</span><span id="line-784">            }</span>
+<span class="source-line-no">785</span><span id="line-785">        }</span>
+<span class="source-line-no">786</span><span id="line-786"></span>
+<span class="source-line-no">787</span><span id="line-787">        /**</span>
+<span class="source-line-no">788</span><span id="line-788">         * Represents a HTTP HEAD request.</span>
+<span class="source-line-no">789</span><span id="line-789">         */</span>
+<span class="source-line-no">790</span><span id="line-790">        public static class Head extends Out {</span>
+<span class="source-line-no">791</span><span id="line-791"></span>
+<span class="source-line-no">792</span><span id="line-792">            /**</span>
+<span class="source-line-no">793</span><span id="line-793">             * Instantiates a new request.</span>
+<span class="source-line-no">794</span><span id="line-794">             *</span>
+<span class="source-line-no">795</span><span id="line-795">             * @param uri the uri</span>
+<span class="source-line-no">796</span><span id="line-796">             */</span>
+<span class="source-line-no">797</span><span id="line-797">            public Head(URL uri) {</span>
+<span class="source-line-no">798</span><span id="line-798">                super("HEAD", uri);</span>
+<span class="source-line-no">799</span><span id="line-799">            }</span>
+<span class="source-line-no">800</span><span id="line-800">        }</span>
+<span class="source-line-no">801</span><span id="line-801"></span>
+<span class="source-line-no">802</span><span id="line-802">        /**</span>
+<span class="source-line-no">803</span><span id="line-803">         * Represents a HTTP OPTIONS request.</span>
+<span class="source-line-no">804</span><span id="line-804">         */</span>
+<span class="source-line-no">805</span><span id="line-805">        public static class Options extends Out {</span>
+<span class="source-line-no">806</span><span id="line-806"></span>
+<span class="source-line-no">807</span><span id="line-807">            /**</span>
+<span class="source-line-no">808</span><span id="line-808">             * Instantiates a new request.</span>
+<span class="source-line-no">809</span><span id="line-809">             *</span>
+<span class="source-line-no">810</span><span id="line-810">             * @param uri the uri</span>
+<span class="source-line-no">811</span><span id="line-811">             */</span>
+<span class="source-line-no">812</span><span id="line-812">            public Options(URL uri) {</span>
+<span class="source-line-no">813</span><span id="line-813">                super("OPTIONS", uri);</span>
+<span class="source-line-no">814</span><span id="line-814">            }</span>
+<span class="source-line-no">815</span><span id="line-815">        }</span>
+<span class="source-line-no">816</span><span id="line-816"></span>
+<span class="source-line-no">817</span><span id="line-817">        /**</span>
+<span class="source-line-no">818</span><span id="line-818">         * Represents a HTTP POST request.</span>
+<span class="source-line-no">819</span><span id="line-819">         */</span>
+<span class="source-line-no">820</span><span id="line-820">        public static class Post extends Out {</span>
+<span class="source-line-no">821</span><span id="line-821"></span>
+<span class="source-line-no">822</span><span id="line-822">            /**</span>
+<span class="source-line-no">823</span><span id="line-823">             * Instantiates a new request.</span>
+<span class="source-line-no">824</span><span id="line-824">             *</span>
+<span class="source-line-no">825</span><span id="line-825">             * @param uri the uri</span>
+<span class="source-line-no">826</span><span id="line-826">             */</span>
+<span class="source-line-no">827</span><span id="line-827">            public Post(URL uri) {</span>
+<span class="source-line-no">828</span><span id="line-828">                super("POST", uri);</span>
+<span class="source-line-no">829</span><span id="line-829">            }</span>
+<span class="source-line-no">830</span><span id="line-830">        }</span>
+<span class="source-line-no">831</span><span id="line-831"></span>
+<span class="source-line-no">832</span><span id="line-832">        /**</span>
+<span class="source-line-no">833</span><span id="line-833">         * Represents a HTTP PUT request.</span>
+<span class="source-line-no">834</span><span id="line-834">         */</span>
+<span class="source-line-no">835</span><span id="line-835">        public static class Put extends Out {</span>
+<span class="source-line-no">836</span><span id="line-836"></span>
+<span class="source-line-no">837</span><span id="line-837">            /**</span>
+<span class="source-line-no">838</span><span id="line-838">             * Instantiates a new request.</span>
+<span class="source-line-no">839</span><span id="line-839">             *</span>
+<span class="source-line-no">840</span><span id="line-840">             * @param uri the uri</span>
+<span class="source-line-no">841</span><span id="line-841">             */</span>
+<span class="source-line-no">842</span><span id="line-842">            public Put(URL uri) {</span>
+<span class="source-line-no">843</span><span id="line-843">                super("PUT", uri);</span>
+<span class="source-line-no">844</span><span id="line-844">            }</span>
+<span class="source-line-no">845</span><span id="line-845">        }</span>
+<span class="source-line-no">846</span><span id="line-846"></span>
+<span class="source-line-no">847</span><span id="line-847">        /**</span>
+<span class="source-line-no">848</span><span id="line-848">         * Represents a HTTP TRACE request.</span>
+<span class="source-line-no">849</span><span id="line-849">         */</span>
+<span class="source-line-no">850</span><span id="line-850">        public static class Trace extends Out {</span>
+<span class="source-line-no">851</span><span id="line-851"></span>
+<span class="source-line-no">852</span><span id="line-852">            /**</span>
+<span class="source-line-no">853</span><span id="line-853">             * Instantiates a new request.</span>
+<span class="source-line-no">854</span><span id="line-854">             *</span>
+<span class="source-line-no">855</span><span id="line-855">             * @param uri the uri</span>
+<span class="source-line-no">856</span><span id="line-856">             */</span>
+<span class="source-line-no">857</span><span id="line-857">            public Trace(URL uri) {</span>
+<span class="source-line-no">858</span><span id="line-858">                super("TRACE", uri);</span>
+<span class="source-line-no">859</span><span id="line-859">            }</span>
+<span class="source-line-no">860</span><span id="line-860">        }</span>
+<span class="source-line-no">861</span><span id="line-861">    }</span>
+<span class="source-line-no">862</span><span id="line-862">}</span>
 
 
 
