@@ -56,7 +56,16 @@ public class Request<R> extends MessageReceived<R> {
      * request flow downstream and are served by the framework. 
      * 
      * A result of `true` indicates that the request has been processed, 
-     * i.e. a response has been sent or will sent.
+     * i.e. a response has been sent or will sent. Händlers MUST
+     * check that a request has not been {@link fulfilled} before
+     * firing a {@link Response} event to avoid duplicate response
+     * events. Handlers that have fired a response event and all
+     * related {@link Output} events SHOULD {@link Event#stop} the
+     * request event to avoid unnecessary subsequent invocations of
+     * handlers. Handlers that want to do "postprocessing" MUST
+     * therefore listen for the corresponding {@link Completed}
+     * event instead of defining a handler for the request event
+     * with low priority.
      */
     @SuppressWarnings("PMD.ShortClassName")
     public static class In extends Request<Boolean> {
