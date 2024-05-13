@@ -3,7 +3,7 @@ Bundle-SymbolicName: org.jgrapes.io
 Bundle-Copyright: Michael N. Lipp (c) 2016, 2023
 Bundle-License: http://www.gnu.org/licenses/agpl-3.0.txt
 
-api_version = 2.5.0.${tstamp}
+api_version = 2.6.0.${tstamp}
 
 -sources: true
 
@@ -11,6 +11,7 @@ Export-Package: \
 	org.jgrapes.io;version="${api_version}",\
 	org.jgrapes.io.events;version="${api_version}",\
 	org.jgrapes.io.util;version="${api_version}",\
+    org.jgrapes.io.util.events;version="${api_version}",\
 	org.jgrapes.net;version="${api_version}",\
 	org.jgrapes.net.events;version="${api_version}"
 
