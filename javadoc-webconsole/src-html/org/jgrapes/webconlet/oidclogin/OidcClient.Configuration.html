@@ -47,14 +47,14 @@
 <span class="source-line-no">034</span><span id="line-34">import java.util.Arrays;</span>
 <span class="source-line-no">035</span><span id="line-35">import java.util.Base64;</span>
 <span class="source-line-no">036</span><span id="line-36">import java.util.Collections;</span>
-<span class="source-line-no">037</span><span id="line-37">import java.util.List;</span>
-<span class="source-line-no">038</span><span id="line-38">import java.util.Locale;</span>
-<span class="source-line-no">039</span><span id="line-39">import java.util.Map;</span>
-<span class="source-line-no">040</span><span id="line-40">import java.util.Optional;</span>
-<span class="source-line-no">041</span><span id="line-41">import java.util.TreeMap;</span>
-<span class="source-line-no">042</span><span id="line-42">import java.util.concurrent.ConcurrentHashMap;</span>
-<span class="source-line-no">043</span><span id="line-43">import java.util.stream.Collectors;</span>
-<span class="source-line-no">044</span><span id="line-44">import javax.security.auth.Subject;</span>
+<span class="source-line-no">037</span><span id="line-37">import java.util.HashSet;</span>
+<span class="source-line-no">038</span><span id="line-38">import java.util.List;</span>
+<span class="source-line-no">039</span><span id="line-39">import java.util.Locale;</span>
+<span class="source-line-no">040</span><span id="line-40">import java.util.Map;</span>
+<span class="source-line-no">041</span><span id="line-41">import java.util.Optional;</span>
+<span class="source-line-no">042</span><span id="line-42">import java.util.TreeMap;</span>
+<span class="source-line-no">043</span><span id="line-43">import java.util.concurrent.ConcurrentHashMap;</span>
+<span class="source-line-no">044</span><span id="line-44">import java.util.stream.Collectors;</span>
 <span class="source-line-no">045</span><span id="line-45">import org.jdrupes.httpcodec.protocols.http.HttpField;</span>
 <span class="source-line-no">046</span><span id="line-46">import org.jdrupes.httpcodec.protocols.http.HttpRequest;</span>
 <span class="source-line-no">047</span><span id="line-47">import org.jdrupes.httpcodec.protocols.http.HttpResponse;</span>
@@ -84,384 +84,380 @@
 <span class="source-line-no">071</span><span id="line-71">import org.jgrapes.util.events.ConfigurationUpdate;</span>
 <span class="source-line-no">072</span><span id="line-72">import org.jgrapes.webconsole.base.ConsoleRole;</span>
 <span class="source-line-no">073</span><span id="line-73">import org.jgrapes.webconsole.base.ConsoleUser;</span>
-<span class="source-line-no">074</span><span id="line-74">import org.jgrapes.webconsole.base.events.UserAuthenticated;</span>
-<span class="source-line-no">075</span><span id="line-75"></span>
-<span class="source-line-no">076</span><span id="line-76">/**</span>
-<span class="source-line-no">077</span><span id="line-77"> * Helper component for {@link LoginConlet} that handles the</span>
-<span class="source-line-no">078</span><span id="line-78"> * communication with the OIDC provider.</span>
-<span class="source-line-no">079</span><span id="line-79"> */</span>
-<span class="source-line-no">080</span><span id="line-80">@SuppressWarnings({ "PMD.DataflowAnomalyAnalysis", "PMD.ExcessiveImports",</span>
-<span class="source-line-no">081</span><span id="line-81">    "PMD.CouplingBetweenObjects" })</span>
-<span class="source-line-no">082</span><span id="line-82">public class OidcClient extends Component {</span>
-<span class="source-line-no">083</span><span id="line-83"></span>
-<span class="source-line-no">084</span><span id="line-84">    @SuppressWarnings("PMD.FieldNamingConventions")</span>
-<span class="source-line-no">085</span><span id="line-85">    private static final SecureRandom secureRandom = new SecureRandom();</span>
-<span class="source-line-no">086</span><span id="line-86">    private Configuration config = new Configuration();</span>
-<span class="source-line-no">087</span><span id="line-87">    private final Map&lt;String, Context&gt; contexts = new ConcurrentHashMap&lt;&gt;();</span>
-<span class="source-line-no">088</span><span id="line-88">    private final Channel httpClientChannel;</span>
-<span class="source-line-no">089</span><span id="line-89"></span>
-<span class="source-line-no">090</span><span id="line-90">    /** For channel replacement. */</span>
-<span class="source-line-no">091</span><span id="line-91">    private final class HttpClientChannel extends ClassChannel {</span>
-<span class="source-line-no">092</span><span id="line-92">    }</span>
-<span class="source-line-no">093</span><span id="line-93"></span>
-<span class="source-line-no">094</span><span id="line-94">    /** For channel replacement. */</span>
-<span class="source-line-no">095</span><span id="line-95">    private final class HttpServerChannel extends ClassChannel {</span>
-<span class="source-line-no">096</span><span id="line-96">    }</span>
-<span class="source-line-no">097</span><span id="line-97"></span>
-<span class="source-line-no">098</span><span id="line-98">    /**</span>
-<span class="source-line-no">099</span><span id="line-99">     * Instantiates a new OIDC client. The OIDC uses three channels.</span>
-<span class="source-line-no">100</span><span id="line-100">     * </span>
-<span class="source-line-no">101</span><span id="line-101">     *  * It is a helper component for the {@link LoginConlet} and</span>
-<span class="source-line-no">102</span><span id="line-102">     *    therefore uses its "primary" (component) channel to </span>
-<span class="source-line-no">103</span><span id="line-103">     *    exchange events with the conlet.</span>
-<span class="source-line-no">104</span><span id="line-104">     *    </span>
-<span class="source-line-no">105</span><span id="line-105">     *  * It uses the `httpClientChannel` to accesses the provider</span>
-<span class="source-line-no">106</span><span id="line-106">     *    as client, i.e. when it fires {@link Request.Out}</span>
-<span class="source-line-no">107</span><span id="line-107">     *    events to obtain information from the provider.</span>
-<span class="source-line-no">108</span><span id="line-108">     *    </span>
-<span class="source-line-no">109</span><span id="line-109">     *  * It defines a request handler that listens on the</span>
-<span class="source-line-no">110</span><span id="line-110">     *    `httpServerChannel` for handling the authorization callback</span>
-<span class="source-line-no">111</span><span id="line-111">     *    from the provider. </span>
-<span class="source-line-no">112</span><span id="line-112">     *</span>
-<span class="source-line-no">113</span><span id="line-113">     * @param componentChannel the component's channel</span>
-<span class="source-line-no">114</span><span id="line-114">     * @param httpClientChannel the channel used for connecting the provider</span>
-<span class="source-line-no">115</span><span id="line-115">     * @param httpServerChannel the channel used by some {@link HttpServer}</span>
-<span class="source-line-no">116</span><span id="line-116">     * to send the {@link Request.In} events from the provider callback</span>
-<span class="source-line-no">117</span><span id="line-117">     * @param redirectTarget defines the path handled by </span>
-<span class="source-line-no">118</span><span id="line-118">     * {@link #onAuthCallback}</span>
-<span class="source-line-no">119</span><span id="line-119">     * @param priority the priority of the {@link #onAuthCallback} handler.</span>
-<span class="source-line-no">120</span><span id="line-120">     * Must be higher than the default priority of request handlers if the</span>
-<span class="source-line-no">121</span><span id="line-121">     * callback URL uses a sub-path of the web console's URL.</span>
-<span class="source-line-no">122</span><span id="line-122">     */</span>
-<span class="source-line-no">123</span><span id="line-123">    public OidcClient(Channel componentChannel, Channel httpClientChannel,</span>
-<span class="source-line-no">124</span><span id="line-124">            Channel httpServerChannel, URI redirectTarget, int priority) {</span>
-<span class="source-line-no">125</span><span id="line-125">        super(componentChannel, ChannelReplacements.create()</span>
-<span class="source-line-no">126</span><span id="line-126">            .add(HttpClientChannel.class, httpClientChannel)</span>
-<span class="source-line-no">127</span><span id="line-127">            .add(HttpServerChannel.class, httpServerChannel));</span>
-<span class="source-line-no">128</span><span id="line-128">        this.httpClientChannel = httpClientChannel;</span>
-<span class="source-line-no">129</span><span id="line-129">        RequestHandler.Evaluator.add(this, "onAuthCallback",</span>
-<span class="source-line-no">130</span><span id="line-130">            redirectTarget.toString(), priority);</span>
-<span class="source-line-no">131</span><span id="line-131">    }</span>
-<span class="source-line-no">132</span><span id="line-132"></span>
-<span class="source-line-no">133</span><span id="line-133">    /**</span>
-<span class="source-line-no">134</span><span id="line-134">     * The component can be configured with events that include</span>
-<span class="source-line-no">135</span><span id="line-135">     * a path (see @link {@link ConfigurationUpdate#paths()})</span>
-<span class="source-line-no">136</span><span id="line-136">     * that matches this components path (see {@link Manager#componentPath()}).</span>
+<span class="source-line-no">074</span><span id="line-74"></span>
+<span class="source-line-no">075</span><span id="line-75">/**</span>
+<span class="source-line-no">076</span><span id="line-76"> * Helper component for {@link LoginConlet} that handles the</span>
+<span class="source-line-no">077</span><span id="line-77"> * communication with the OIDC provider.</span>
+<span class="source-line-no">078</span><span id="line-78"> */</span>
+<span class="source-line-no">079</span><span id="line-79">@SuppressWarnings({ "PMD.DataflowAnomalyAnalysis", "PMD.ExcessiveImports" })</span>
+<span class="source-line-no">080</span><span id="line-80">public class OidcClient extends Component {</span>
+<span class="source-line-no">081</span><span id="line-81"></span>
+<span class="source-line-no">082</span><span id="line-82">    @SuppressWarnings("PMD.FieldNamingConventions")</span>
+<span class="source-line-no">083</span><span id="line-83">    private static final SecureRandom secureRandom = new SecureRandom();</span>
+<span class="source-line-no">084</span><span id="line-84">    private Configuration config = new Configuration();</span>
+<span class="source-line-no">085</span><span id="line-85">    private final Map&lt;String, Context&gt; contexts = new ConcurrentHashMap&lt;&gt;();</span>
+<span class="source-line-no">086</span><span id="line-86">    private final Channel httpClientChannel;</span>
+<span class="source-line-no">087</span><span id="line-87"></span>
+<span class="source-line-no">088</span><span id="line-88">    /** For channel replacement. */</span>
+<span class="source-line-no">089</span><span id="line-89">    private final class HttpClientChannel extends ClassChannel {</span>
+<span class="source-line-no">090</span><span id="line-90">    }</span>
+<span class="source-line-no">091</span><span id="line-91"></span>
+<span class="source-line-no">092</span><span id="line-92">    /** For channel replacement. */</span>
+<span class="source-line-no">093</span><span id="line-93">    private final class HttpServerChannel extends ClassChannel {</span>
+<span class="source-line-no">094</span><span id="line-94">    }</span>
+<span class="source-line-no">095</span><span id="line-95"></span>
+<span class="source-line-no">096</span><span id="line-96">    /**</span>
+<span class="source-line-no">097</span><span id="line-97">     * Instantiates a new OIDC client. The OIDC uses three channels.</span>
+<span class="source-line-no">098</span><span id="line-98">     * </span>
+<span class="source-line-no">099</span><span id="line-99">     *  * It is a helper component for the {@link LoginConlet} and</span>
+<span class="source-line-no">100</span><span id="line-100">     *    therefore uses its "primary" (component) channel to </span>
+<span class="source-line-no">101</span><span id="line-101">     *    exchange events with the conlet.</span>
+<span class="source-line-no">102</span><span id="line-102">     *    </span>
+<span class="source-line-no">103</span><span id="line-103">     *  * It uses the `httpClientChannel` to accesses the provider</span>
+<span class="source-line-no">104</span><span id="line-104">     *    as client, i.e. when it fires {@link Request.Out}</span>
+<span class="source-line-no">105</span><span id="line-105">     *    events to obtain information from the provider.</span>
+<span class="source-line-no">106</span><span id="line-106">     *    </span>
+<span class="source-line-no">107</span><span id="line-107">     *  * It defines a request handler that listens on the</span>
+<span class="source-line-no">108</span><span id="line-108">     *    `httpServerChannel` for handling the authorization callback</span>
+<span class="source-line-no">109</span><span id="line-109">     *    from the provider. </span>
+<span class="source-line-no">110</span><span id="line-110">     *</span>
+<span class="source-line-no">111</span><span id="line-111">     * @param componentChannel the component's channel</span>
+<span class="source-line-no">112</span><span id="line-112">     * @param httpClientChannel the channel used for connecting the provider</span>
+<span class="source-line-no">113</span><span id="line-113">     * @param httpServerChannel the channel used by some {@link HttpServer}</span>
+<span class="source-line-no">114</span><span id="line-114">     * to send the {@link Request.In} events from the provider callback</span>
+<span class="source-line-no">115</span><span id="line-115">     * @param redirectTarget defines the path handled by </span>
+<span class="source-line-no">116</span><span id="line-116">     * {@link #onAuthCallback}</span>
+<span class="source-line-no">117</span><span id="line-117">     * @param priority the priority of the {@link #onAuthCallback} handler.</span>
+<span class="source-line-no">118</span><span id="line-118">     * Must be higher than the default priority of request handlers if the</span>
+<span class="source-line-no">119</span><span id="line-119">     * callback URL uses a sub-path of the web console's URL.</span>
+<span class="source-line-no">120</span><span id="line-120">     */</span>
+<span class="source-line-no">121</span><span id="line-121">    public OidcClient(Channel componentChannel, Channel httpClientChannel,</span>
+<span class="source-line-no">122</span><span id="line-122">            Channel httpServerChannel, URI redirectTarget, int priority) {</span>
+<span class="source-line-no">123</span><span id="line-123">        super(componentChannel, ChannelReplacements.create()</span>
+<span class="source-line-no">124</span><span id="line-124">            .add(HttpClientChannel.class, httpClientChannel)</span>
+<span class="source-line-no">125</span><span id="line-125">            .add(HttpServerChannel.class, httpServerChannel));</span>
+<span class="source-line-no">126</span><span id="line-126">        this.httpClientChannel = httpClientChannel;</span>
+<span class="source-line-no">127</span><span id="line-127">        RequestHandler.Evaluator.add(this, "onAuthCallback",</span>
+<span class="source-line-no">128</span><span id="line-128">            redirectTarget.toString(), priority);</span>
+<span class="source-line-no">129</span><span id="line-129">    }</span>
+<span class="source-line-no">130</span><span id="line-130"></span>
+<span class="source-line-no">131</span><span id="line-131">    /**</span>
+<span class="source-line-no">132</span><span id="line-132">     * The component can be configured with events that include</span>
+<span class="source-line-no">133</span><span id="line-133">     * a path (see @link {@link ConfigurationUpdate#paths()})</span>
+<span class="source-line-no">134</span><span id="line-134">     * that matches this components path (see {@link Manager#componentPath()}).</span>
+<span class="source-line-no">135</span><span id="line-135">     * </span>
+<span class="source-line-no">136</span><span id="line-136">     * The following properties are recognized:</span>
 <span class="source-line-no">137</span><span id="line-137">     * </span>
-<span class="source-line-no">138</span><span id="line-138">     * The following properties are recognized:</span>
-<span class="source-line-no">139</span><span id="line-139">     * </span>
-<span class="source-line-no">140</span><span id="line-140">     * `clientId`</span>
-<span class="source-line-no">141</span><span id="line-141">     * : The client id as defined in the OIDC provider.</span>
-<span class="source-line-no">142</span><span id="line-142">     * `secret`</span>
-<span class="source-line-no">143</span><span id="line-143">     * : The secret as defined in the OIDC provider.</span>
-<span class="source-line-no">144</span><span id="line-144">     * `redirectUri`</span>
-<span class="source-line-no">145</span><span id="line-145">     * : The redirect URI as defined in the OIDC provider.</span>
-<span class="source-line-no">146</span><span id="line-146">     * </span>
-<span class="source-line-no">147</span><span id="line-147">     * @param event the event</span>
-<span class="source-line-no">148</span><span id="line-148">     */</span>
-<span class="source-line-no">149</span><span id="line-149">    @Handler</span>
-<span class="source-line-no">150</span><span id="line-150">    public void onConfigUpdate(ConfigurationUpdate event) {</span>
-<span class="source-line-no">151</span><span id="line-151">        event.structured(componentPath()).ifPresent(m -&gt; {</span>
-<span class="source-line-no">152</span><span id="line-152">            ObjectMapper mapper = new ObjectMapper();</span>
-<span class="source-line-no">153</span><span id="line-153">            config = mapper.convertValue(m, Configuration.class);</span>
-<span class="source-line-no">154</span><span id="line-154">        });</span>
-<span class="source-line-no">155</span><span id="line-155">    }</span>
-<span class="source-line-no">156</span><span id="line-156"></span>
-<span class="source-line-no">157</span><span id="line-157">    /**</span>
-<span class="source-line-no">158</span><span id="line-158">     * On start provider login.</span>
-<span class="source-line-no">159</span><span id="line-159">     *</span>
-<span class="source-line-no">160</span><span id="line-160">     * @param event the event</span>
-<span class="source-line-no">161</span><span id="line-161">     * @throws URISyntaxException </span>
-<span class="source-line-no">162</span><span id="line-162">     */</span>
-<span class="source-line-no">163</span><span id="line-163">    @Handler</span>
-<span class="source-line-no">164</span><span id="line-164">    public void onStartProviderLogin(StartOidcLogin event)</span>
-<span class="source-line-no">165</span><span id="line-165">            throws URISyntaxException {</span>
-<span class="source-line-no">166</span><span id="line-166">        var providerData = event.provider();</span>
-<span class="source-line-no">167</span><span id="line-167">        if (providerData.authorizationEndpoint() != null</span>
-<span class="source-line-no">168</span><span id="line-168">            &amp;&amp; providerData.tokenEndpoint() != null) {</span>
-<span class="source-line-no">169</span><span id="line-169">            attemptAuthorization(new Context(event));</span>
-<span class="source-line-no">170</span><span id="line-170">            return;</span>
-<span class="source-line-no">171</span><span id="line-171">        }</span>
-<span class="source-line-no">172</span><span id="line-172">        // Get configuration information first</span>
-<span class="source-line-no">173</span><span id="line-173">        fire(new Request.Out.Get(providerData.configurationEndpoint())</span>
-<span class="source-line-no">174</span><span id="line-174">            .setAssociated(this, new Context(event)), httpClientChannel);</span>
-<span class="source-line-no">175</span><span id="line-175">    }</span>
-<span class="source-line-no">176</span><span id="line-176"></span>
-<span class="source-line-no">177</span><span id="line-177">    /**</span>
-<span class="source-line-no">178</span><span id="line-178">     * Invoked when the connection to the provider has been established.</span>
-<span class="source-line-no">179</span><span id="line-179">     *</span>
-<span class="source-line-no">180</span><span id="line-180">     * @param event the event</span>
-<span class="source-line-no">181</span><span id="line-181">     * @param clientChannel the client channel</span>
-<span class="source-line-no">182</span><span id="line-182">     */</span>
-<span class="source-line-no">183</span><span id="line-183">    @Handler(channels = HttpClientChannel.class)</span>
-<span class="source-line-no">184</span><span id="line-184">    public void onConnected(HttpConnected event, IOSubchannel clientChannel) {</span>
-<span class="source-line-no">185</span><span id="line-185">        // Transfer context from the request to the new subchannel.</span>
-<span class="source-line-no">186</span><span id="line-186">        event.request().associated(this, Context.class).ifPresent(c -&gt; {</span>
-<span class="source-line-no">187</span><span id="line-187">            clientChannel.setAssociated(this, c);</span>
-<span class="source-line-no">188</span><span id="line-188">            // Also keep the request in order to dispatch responses</span>
-<span class="source-line-no">189</span><span id="line-189">            clientChannel.setAssociated(HttpRequest.class,</span>
-<span class="source-line-no">190</span><span id="line-190">                event.request().httpRequest());</span>
-<span class="source-line-no">191</span><span id="line-191">            // Send body if provided together with the request</span>
-<span class="source-line-no">192</span><span id="line-192">            event.request().associated(OutputSupplier.class)</span>
-<span class="source-line-no">193</span><span id="line-193">                .ifPresent(bp -&gt; bp.emit(clientChannel));</span>
-<span class="source-line-no">194</span><span id="line-194">        });</span>
-<span class="source-line-no">195</span><span id="line-195">    }</span>
-<span class="source-line-no">196</span><span id="line-196"></span>
-<span class="source-line-no">197</span><span id="line-197">    /**</span>
-<span class="source-line-no">198</span><span id="line-198">     * Invoked when a response is received from the provider.</span>
-<span class="source-line-no">199</span><span id="line-199">     *</span>
-<span class="source-line-no">200</span><span id="line-200">     * @param response the response</span>
-<span class="source-line-no">201</span><span id="line-201">     * @param clientChannel the client channel</span>
-<span class="source-line-no">202</span><span id="line-202">     * @throws URISyntaxException </span>
-<span class="source-line-no">203</span><span id="line-203">     */</span>
-<span class="source-line-no">204</span><span id="line-204">    @Handler(channels = HttpClientChannel.class)</span>
-<span class="source-line-no">205</span><span id="line-205">    public void onResponse(Response response, IOSubchannel clientChannel)</span>
-<span class="source-line-no">206</span><span id="line-206">            throws URISyntaxException {</span>
-<span class="source-line-no">207</span><span id="line-207">        var optCtx = clientChannel.associated(this, Context.class);</span>
-<span class="source-line-no">208</span><span id="line-208">        if (optCtx.isEmpty()) {</span>
-<span class="source-line-no">209</span><span id="line-209">            return;</span>
-<span class="source-line-no">210</span><span id="line-210">        }</span>
-<span class="source-line-no">211</span><span id="line-211">        var rsp = (HttpResponse) response.response();</span>
-<span class="source-line-no">212</span><span id="line-212">        clientChannel.setAssociated(Response.class, response);</span>
-<span class="source-line-no">213</span><span id="line-213">        var reqUri</span>
-<span class="source-line-no">214</span><span id="line-214">            = clientChannel.associated(HttpRequest.class).get().requestUri();</span>
-<span class="source-line-no">215</span><span id="line-215">        if (rsp.statusCode() != HttpURLConnection.HTTP_OK) {</span>
-<span class="source-line-no">216</span><span id="line-216">            fire(new Error(response, "Attempt to access " + reqUri</span>
-<span class="source-line-no">217</span><span id="line-217">                + " returned " + rsp.statusCode()));</span>
-<span class="source-line-no">218</span><span id="line-218">        }</span>
-<span class="source-line-no">219</span><span id="line-219">        // All expected responses have a JSON payload (body), so</span>
-<span class="source-line-no">220</span><span id="line-220">        // wait for it and delay dispatching until the data is available.</span>
-<span class="source-line-no">221</span><span id="line-221">        if (rsp.hasPayload()) {</span>
-<span class="source-line-no">222</span><span id="line-222">            clientChannel.setAssociated(InputConsumer.class,</span>
-<span class="source-line-no">223</span><span id="line-223">                new JsonReader(Map.class, activeEventPipeline(), clientChannel)</span>
-<span class="source-line-no">224</span><span id="line-224">                    .charset(</span>
-<span class="source-line-no">225</span><span id="line-225">                        response.charset().orElse(StandardCharsets.UTF_8)));</span>
-<span class="source-line-no">226</span><span id="line-226">        }</span>
-<span class="source-line-no">227</span><span id="line-227">    }</span>
-<span class="source-line-no">228</span><span id="line-228"></span>
-<span class="source-line-no">229</span><span id="line-229">    /**</span>
-<span class="source-line-no">230</span><span id="line-230">     * Collect and process input from the provider.</span>
-<span class="source-line-no">231</span><span id="line-231">     *</span>
-<span class="source-line-no">232</span><span id="line-232">     * @param event the event</span>
-<span class="source-line-no">233</span><span id="line-233">     * @param clientChannel the client channel</span>
-<span class="source-line-no">234</span><span id="line-234">     * @throws IOException Signals that an I/O exception has occurred.</span>
-<span class="source-line-no">235</span><span id="line-235">     */</span>
-<span class="source-line-no">236</span><span id="line-236">    @Handler(channels = HttpClientChannel.class)</span>
-<span class="source-line-no">237</span><span id="line-237">    public void onInput(Input&lt;ByteBuffer&gt; event, IOSubchannel clientChannel)</span>
-<span class="source-line-no">238</span><span id="line-238">            throws IOException {</span>
-<span class="source-line-no">239</span><span id="line-239">        if (clientChannel.associated(this, Context.class).isEmpty()) {</span>
-<span class="source-line-no">240</span><span id="line-240">            return;</span>
-<span class="source-line-no">241</span><span id="line-241">        }</span>
-<span class="source-line-no">242</span><span id="line-242">        clientChannel.associated(InputConsumer.class).ifPresent(</span>
-<span class="source-line-no">243</span><span id="line-243">            ic -&gt; ic.feed(event));</span>
-<span class="source-line-no">244</span><span id="line-244">    }</span>
-<span class="source-line-no">245</span><span id="line-245"></span>
-<span class="source-line-no">246</span><span id="line-246">    /**</span>
-<span class="source-line-no">247</span><span id="line-247">     * On data input.</span>
-<span class="source-line-no">248</span><span id="line-248">     *</span>
-<span class="source-line-no">249</span><span id="line-249">     * @param event the event</span>
-<span class="source-line-no">250</span><span id="line-250">     * @param clientChannel the client channel</span>
-<span class="source-line-no">251</span><span id="line-251">     * @throws MalformedURLException the malformed URL exception</span>
-<span class="source-line-no">252</span><span id="line-252">     * @throws URISyntaxException the URI syntax exception</span>
-<span class="source-line-no">253</span><span id="line-253">     * @throws JsonProcessingException </span>
-<span class="source-line-no">254</span><span id="line-254">     * @throws JsonMappingException </span>
-<span class="source-line-no">255</span><span id="line-255">     */</span>
-<span class="source-line-no">256</span><span id="line-256">    @Handler(channels = HttpClientChannel.class)</span>
-<span class="source-line-no">257</span><span id="line-257">    public void onDataInput(DataInput&lt;Map&lt;String, Object&gt;&gt; event,</span>
-<span class="source-line-no">258</span><span id="line-258">            IOSubchannel clientChannel)</span>
-<span class="source-line-no">259</span><span id="line-259">            throws MalformedURLException, URISyntaxException,</span>
-<span class="source-line-no">260</span><span id="line-260">            JsonMappingException, JsonProcessingException {</span>
-<span class="source-line-no">261</span><span id="line-261">        var optCtx = clientChannel.associated(this, Context.class);</span>
-<span class="source-line-no">262</span><span id="line-262">        if (optCtx.isEmpty()) {</span>
-<span class="source-line-no">263</span><span id="line-263">            return;</span>
-<span class="source-line-no">264</span><span id="line-264">        }</span>
-<span class="source-line-no">265</span><span id="line-265">        if (clientChannel.associated(Response.class)</span>
-<span class="source-line-no">266</span><span id="line-266">            .map(r -&gt; (HttpResponse) r.response())</span>
-<span class="source-line-no">267</span><span id="line-267">            .map(r -&gt; r.statusCode() != HttpURLConnection.HTTP_OK)</span>
-<span class="source-line-no">268</span><span id="line-268">            .orElse(true)) {</span>
-<span class="source-line-no">269</span><span id="line-269">            // Already handled in onResponse, log details</span>
-<span class="source-line-no">270</span><span id="line-270">            Response evt = clientChannel.associated(Response.class).get();</span>
-<span class="source-line-no">271</span><span id="line-271">            logger.finer(() -&gt; "Payload of failed event "</span>
-<span class="source-line-no">272</span><span id="line-272">                + Components.objectName(evt) + ": " + event.data().toString());</span>
-<span class="source-line-no">273</span><span id="line-273">            return;</span>
-<span class="source-line-no">274</span><span id="line-274">        }</span>
-<span class="source-line-no">275</span><span id="line-275">        var provider = optCtx.get().startEvent.provider();</span>
-<span class="source-line-no">276</span><span id="line-276">        // Dispatch based on information from the request URI</span>
-<span class="source-line-no">277</span><span id="line-277">        var reqUri</span>
-<span class="source-line-no">278</span><span id="line-278">            = clientChannel.associated(HttpRequest.class).get().requestUri();</span>
-<span class="source-line-no">279</span><span id="line-279">        if (reqUri.equals(provider.configurationEndpoint().toURI())) {</span>
-<span class="source-line-no">280</span><span id="line-280">            processConfigurationData(event, optCtx.get(), provider);</span>
-<span class="source-line-no">281</span><span id="line-281">        } else if (reqUri.equals(provider.tokenEndpoint().toURI())) {</span>
-<span class="source-line-no">282</span><span id="line-282">            processTokenResponse(event, optCtx.get(), provider);</span>
-<span class="source-line-no">283</span><span id="line-283">        }</span>
-<span class="source-line-no">284</span><span id="line-284">    }</span>
-<span class="source-line-no">285</span><span id="line-285"></span>
-<span class="source-line-no">286</span><span id="line-286">    private void processConfigurationData(DataInput&lt;Map&lt;String, Object&gt;&gt; event,</span>
-<span class="source-line-no">287</span><span id="line-287">            Context ctx, OidcProviderData provider)</span>
-<span class="source-line-no">288</span><span id="line-288">            throws MalformedURLException, URISyntaxException {</span>
-<span class="source-line-no">289</span><span id="line-289">        String aep = (String) event.data().get("authorization_endpoint");</span>
-<span class="source-line-no">290</span><span id="line-290">        if (aep != null) {</span>
-<span class="source-line-no">291</span><span id="line-291">            provider.setAuthorizationEndpoint(new URL(aep));</span>
-<span class="source-line-no">292</span><span id="line-292">        }</span>
-<span class="source-line-no">293</span><span id="line-293">        String tep = (String) event.data().get("token_endpoint");</span>
-<span class="source-line-no">294</span><span id="line-294">        if (tep != null) {</span>
-<span class="source-line-no">295</span><span id="line-295">            provider.setTokenEndpoint(new URL(tep));</span>
-<span class="source-line-no">296</span><span id="line-296">        }</span>
-<span class="source-line-no">297</span><span id="line-297">        String uiep = (String) event.data().get("userinfo_endpoint");</span>
-<span class="source-line-no">298</span><span id="line-298">        if (uiep != null) {</span>
-<span class="source-line-no">299</span><span id="line-299">            provider.setUserinfoEndpoint(new URL(uiep));</span>
-<span class="source-line-no">300</span><span id="line-300">        }</span>
-<span class="source-line-no">301</span><span id="line-301">        String issuer = (String) event.data().get("issuer");</span>
-<span class="source-line-no">302</span><span id="line-302">        if (issuer != null) {</span>
-<span class="source-line-no">303</span><span id="line-303">            provider.setIssuer(new URL(issuer));</span>
-<span class="source-line-no">304</span><span id="line-304">        }</span>
-<span class="source-line-no">305</span><span id="line-305"></span>
-<span class="source-line-no">306</span><span id="line-306">        // We only get the configuration information as part of a login</span>
-<span class="source-line-no">307</span><span id="line-307">        // process, so continue with the login now.</span>
-<span class="source-line-no">308</span><span id="line-308">        attemptAuthorization(ctx);</span>
-<span class="source-line-no">309</span><span id="line-309">    }</span>
-<span class="source-line-no">310</span><span id="line-310"></span>
-<span class="source-line-no">311</span><span id="line-311">    private void attemptAuthorization(Context ctx) throws URISyntaxException {</span>
-<span class="source-line-no">312</span><span id="line-312">        @SuppressWarnings("PMD.UseConcurrentHashMap")</span>
-<span class="source-line-no">313</span><span id="line-313">        Map&lt;String, String&gt; params = new TreeMap&lt;&gt;();</span>
-<span class="source-line-no">314</span><span id="line-314">        params.put("scope", "openid");</span>
-<span class="source-line-no">315</span><span id="line-315">        params.put("response_type", "code");</span>
-<span class="source-line-no">316</span><span id="line-316">        params.put("client_id", ctx.startEvent.provider().clientId());</span>
-<span class="source-line-no">317</span><span id="line-317">        params.put("redirect_uri", config.redirectUri);</span>
-<span class="source-line-no">318</span><span id="line-318">        params.put("prompt", "login");</span>
-<span class="source-line-no">319</span><span id="line-319">        if (ctx.startEvent.locales().length &gt; 0) {</span>
-<span class="source-line-no">320</span><span id="line-320">            params.put("ui_locales", Arrays.stream(ctx.startEvent.locales())</span>
-<span class="source-line-no">321</span><span id="line-321">                .map(Locale::toLanguageTag).collect(Collectors.joining(" ")));</span>
-<span class="source-line-no">322</span><span id="line-322">        }</span>
-<span class="source-line-no">323</span><span id="line-323">        var stateBytes = new byte[16];</span>
-<span class="source-line-no">324</span><span id="line-324">        secureRandom.nextBytes(stateBytes);</span>
-<span class="source-line-no">325</span><span id="line-325">        var state = Base64.getEncoder().encodeToString(stateBytes);</span>
-<span class="source-line-no">326</span><span id="line-326">        params.put("state", state);</span>
-<span class="source-line-no">327</span><span id="line-327">        var request = HttpRequest.replaceQuery(</span>
-<span class="source-line-no">328</span><span id="line-328">            ctx.startEvent.provider().authorizationEndpoint().toURI(),</span>
-<span class="source-line-no">329</span><span id="line-329">            HttpRequest.simpleWwwFormUrlencode(params));</span>
-<span class="source-line-no">330</span><span id="line-330">        logger.finer(() -&gt; "Getting " + request);</span>
-<span class="source-line-no">331</span><span id="line-331">        contexts.put(state, ctx);</span>
-<span class="source-line-no">332</span><span id="line-332">        fire(new OpenLoginWindow(ctx.startEvent, request));</span>
-<span class="source-line-no">333</span><span id="line-333">    }</span>
-<span class="source-line-no">334</span><span id="line-334"></span>
-<span class="source-line-no">335</span><span id="line-335">    /**</span>
-<span class="source-line-no">336</span><span id="line-336">     * On callback from the authorization request. (Path selector</span>
-<span class="source-line-no">337</span><span id="line-337">     * defined in constructor.)</span>
-<span class="source-line-no">338</span><span id="line-338">     *</span>
-<span class="source-line-no">339</span><span id="line-339">     * @param event the event</span>
-<span class="source-line-no">340</span><span id="line-340">     * @param channel the channel</span>
-<span class="source-line-no">341</span><span id="line-341">     */</span>
-<span class="source-line-no">342</span><span id="line-342">    @RequestHandler(channels = HttpServerChannel.class, dynamic = true)</span>
-<span class="source-line-no">343</span><span id="line-343">    public void onAuthCallback(Request.In.Get event, IOSubchannel channel) {</span>
-<span class="source-line-no">344</span><span id="line-344">        ResponseCreationSupport.sendStaticContent(event, channel,</span>
-<span class="source-line-no">345</span><span id="line-345">            path -&gt; getClass().getResource("CloseWindow.html"), null);</span>
-<span class="source-line-no">346</span><span id="line-346">        var query = event.httpRequest().queryData();</span>
-<span class="source-line-no">347</span><span id="line-347">        var state = Optional.ofNullable(query.get("state"))</span>
-<span class="source-line-no">348</span><span id="line-348">            .orElse(Collections.emptyList()).stream().findFirst().orElse(null);</span>
-<span class="source-line-no">349</span><span id="line-349">        var ctx = contexts.remove(state);</span>
-<span class="source-line-no">350</span><span id="line-350">        if (ctx == null) {</span>
-<span class="source-line-no">351</span><span id="line-351">            return;</span>
-<span class="source-line-no">352</span><span id="line-352">        }</span>
-<span class="source-line-no">353</span><span id="line-353">        ctx.code = query.get("code").get(0);</span>
-<span class="source-line-no">354</span><span id="line-354"></span>
-<span class="source-line-no">355</span><span id="line-355">        // Prepare token request</span>
-<span class="source-line-no">356</span><span id="line-356">        OidcProviderData provider = ctx.startEvent.provider();</span>
-<span class="source-line-no">357</span><span id="line-357">        Request.Out.Post post = new Request.Out.Post(provider.tokenEndpoint());</span>
-<span class="source-line-no">358</span><span id="line-358">        post.httpRequest().setField(HttpField.CONTENT_TYPE,</span>
-<span class="source-line-no">359</span><span id="line-359">            new MediaType("application", "x-www-form-urlencoded"));</span>
-<span class="source-line-no">360</span><span id="line-360">        post.httpRequest().setField(HttpField.AUTHORIZATION,</span>
-<span class="source-line-no">361</span><span id="line-361">            new ParameterizedValue&lt;&gt;("Basic "</span>
-<span class="source-line-no">362</span><span id="line-362">                + Base64.getEncoder().encodeToString(</span>
-<span class="source-line-no">363</span><span id="line-363">                    (provider.clientId() + ":" + provider.secret())</span>
-<span class="source-line-no">364</span><span id="line-364">                        .getBytes())));</span>
-<span class="source-line-no">365</span><span id="line-365">        post.httpRequest().setHasPayload(true);</span>
-<span class="source-line-no">366</span><span id="line-366"></span>
-<span class="source-line-no">367</span><span id="line-367">        // Prepare payload data</span>
-<span class="source-line-no">368</span><span id="line-368">        var params = new TreeMap&lt;String, String&gt;();</span>
-<span class="source-line-no">369</span><span id="line-369">        params.put("grant_type", "authorization_code");</span>
-<span class="source-line-no">370</span><span id="line-370">        params.put("code", ctx.code);</span>
-<span class="source-line-no">371</span><span id="line-371">        params.put("redirect_uri", config.redirectUri);</span>
-<span class="source-line-no">372</span><span id="line-372">        @SuppressWarnings("resource")</span>
-<span class="source-line-no">373</span><span id="line-373">        OutputSupplier body = (IOSubchannel c) -&gt; {</span>
-<span class="source-line-no">374</span><span id="line-374">            new CharBufferWriter(c, activeEventPipeline())</span>
-<span class="source-line-no">375</span><span id="line-375">                .append(HttpRequest.simpleWwwFormUrlencode(params)).close();</span>
-<span class="source-line-no">376</span><span id="line-376">        };</span>
-<span class="source-line-no">377</span><span id="line-377">        fire(post.setAssociated(OutputSupplier.class, body).setAssociated(this,</span>
-<span class="source-line-no">378</span><span id="line-378">            ctx), httpClientChannel);</span>
-<span class="source-line-no">379</span><span id="line-379">        event.setResult(true);</span>
-<span class="source-line-no">380</span><span id="line-380">        event.stop();</span>
-<span class="source-line-no">381</span><span id="line-381">    }</span>
-<span class="source-line-no">382</span><span id="line-382"></span>
-<span class="source-line-no">383</span><span id="line-383">    @SuppressWarnings({ "unchecked", "PMD.NPathComplexity" })</span>
-<span class="source-line-no">384</span><span id="line-384">    private void processTokenResponse(DataInput&lt;Map&lt;String, Object&gt;&gt; event,</span>
-<span class="source-line-no">385</span><span id="line-385">            Context ctx, OidcProviderData provider) {</span>
-<span class="source-line-no">386</span><span id="line-386">        ctx.idToken = JsonWebToken.parse((String) event.data().get("id_token"));</span>
-<span class="source-line-no">387</span><span id="line-387">        var idData = ctx.idToken.payload();</span>
-<span class="source-line-no">388</span><span id="line-388"></span>
-<span class="source-line-no">389</span><span id="line-389">        // Mandatory checks, see</span>
-<span class="source-line-no">390</span><span id="line-390">        // https://openid.net/specs/openid-connect-core-1_0.html#IDTokenValidation</span>
-<span class="source-line-no">391</span><span id="line-391">        if (provider.issuer() != null</span>
-<span class="source-line-no">392</span><span id="line-392">            &amp;&amp; !provider.issuer().toString().equals(idData.get("iss"))) {</span>
-<span class="source-line-no">393</span><span id="line-393">            fire(new OidcError(ctx.startEvent, "ID token has invalid issuer."));</span>
-<span class="source-line-no">394</span><span id="line-394">        }</span>
-<span class="source-line-no">395</span><span id="line-395">        if (idData.get("aud") instanceof List auds &amp;&amp; !auds.contains(</span>
-<span class="source-line-no">396</span><span id="line-396">            provider.clientId())</span>
-<span class="source-line-no">397</span><span id="line-397">            || idData.get("aud") instanceof String aud</span>
-<span class="source-line-no">398</span><span id="line-398">                &amp;&amp; !aud.equals(provider.clientId())) {</span>
-<span class="source-line-no">399</span><span id="line-399">            fire(new OidcError(ctx.startEvent,</span>
-<span class="source-line-no">400</span><span id="line-400">                "ID token has invalid audience."));</span>
-<span class="source-line-no">401</span><span id="line-401">        }</span>
-<span class="source-line-no">402</span><span id="line-402">        if (idData.get("exp") instanceof String exp</span>
-<span class="source-line-no">403</span><span id="line-403">            &amp;&amp; !Instant.now()</span>
-<span class="source-line-no">404</span><span id="line-404">                .isBefore(Instant.ofEpochSecond(Long.valueOf(exp)))) {</span>
-<span class="source-line-no">405</span><span id="line-405">            fire(new OidcError(ctx.startEvent, "ID token has expired."));</span>
-<span class="source-line-no">406</span><span id="line-406">        }</span>
-<span class="source-line-no">407</span><span id="line-407">        if (!idData.containsKey("preferred_username")) {</span>
-<span class="source-line-no">408</span><span id="line-408">            fire(new OidcError(ctx.startEvent,</span>
-<span class="source-line-no">409</span><span id="line-409">                "ID token does not contain preferred_username."));</span>
-<span class="source-line-no">410</span><span id="line-410">        }</span>
-<span class="source-line-no">411</span><span id="line-411"></span>
-<span class="source-line-no">412</span><span id="line-412">        // Success</span>
-<span class="source-line-no">413</span><span id="line-413">        Subject subject = new Subject();</span>
-<span class="source-line-no">414</span><span id="line-414">        subject.getPrincipals()</span>
-<span class="source-line-no">415</span><span id="line-415">            .add(new ConsoleUser((String) idData.get("preferred_username"),</span>
-<span class="source-line-no">416</span><span id="line-416">                Optional.ofNullable((String) idData.get("name"))</span>
-<span class="source-line-no">417</span><span id="line-417">                    .orElse((String) idData.get("preferred_username"))));</span>
-<span class="source-line-no">418</span><span id="line-418">        for (var role : (List&lt;String&gt;) idData.get("roles")) {</span>
-<span class="source-line-no">419</span><span id="line-419">            subject.getPrincipals().add(new ConsoleRole(role));</span>
-<span class="source-line-no">420</span><span id="line-420">        }</span>
-<span class="source-line-no">421</span><span id="line-421">        fire(new UserAuthenticated(ctx.startEvent, subject).by(</span>
-<span class="source-line-no">422</span><span id="line-422">            "OIDC Provider " + provider.name()));</span>
-<span class="source-line-no">423</span><span id="line-423">    }</span>
-<span class="source-line-no">424</span><span id="line-424"></span>
-<span class="source-line-no">425</span><span id="line-425">    /**</span>
-<span class="source-line-no">426</span><span id="line-426">     * The configuration information.</span>
-<span class="source-line-no">427</span><span id="line-427">     */</span>
-<span class="source-line-no">428</span><span id="line-428">    public static class Configuration {</span>
-<span class="source-line-no">429</span><span id="line-429">        public String redirectUri;</span>
-<span class="source-line-no">430</span><span id="line-430">    }</span>
-<span class="source-line-no">431</span><span id="line-431"></span>
-<span class="source-line-no">432</span><span id="line-432">    /**</span>
-<span class="source-line-no">433</span><span id="line-433">     * The context information.</span>
-<span class="source-line-no">434</span><span id="line-434">     */</span>
-<span class="source-line-no">435</span><span id="line-435">    private class Context {</span>
-<span class="source-line-no">436</span><span id="line-436">        public final StartOidcLogin startEvent;</span>
-<span class="source-line-no">437</span><span id="line-437">        public String code;</span>
-<span class="source-line-no">438</span><span id="line-438">        public JsonWebToken idToken;</span>
-<span class="source-line-no">439</span><span id="line-439"></span>
-<span class="source-line-no">440</span><span id="line-440">        /**</span>
-<span class="source-line-no">441</span><span id="line-441">         * Instantiates a new context.</span>
-<span class="source-line-no">442</span><span id="line-442">         *</span>
-<span class="source-line-no">443</span><span id="line-443">         * @param startEvent the start event</span>
-<span class="source-line-no">444</span><span id="line-444">         */</span>
-<span class="source-line-no">445</span><span id="line-445">        public Context(StartOidcLogin startEvent) {</span>
-<span class="source-line-no">446</span><span id="line-446">            super();</span>
-<span class="source-line-no">447</span><span id="line-447">            this.startEvent = startEvent;</span>
-<span class="source-line-no">448</span><span id="line-448">        }</span>
-<span class="source-line-no">449</span><span id="line-449">    }</span>
-<span class="source-line-no">450</span><span id="line-450"></span>
-<span class="source-line-no">451</span><span id="line-451">}</span>
+<span class="source-line-no">138</span><span id="line-138">     * `clientId`</span>
+<span class="source-line-no">139</span><span id="line-139">     * : The client id as defined in the OIDC provider.</span>
+<span class="source-line-no">140</span><span id="line-140">     * `secret`</span>
+<span class="source-line-no">141</span><span id="line-141">     * : The secret as defined in the OIDC provider.</span>
+<span class="source-line-no">142</span><span id="line-142">     * `redirectUri`</span>
+<span class="source-line-no">143</span><span id="line-143">     * : The redirect URI as defined in the OIDC provider.</span>
+<span class="source-line-no">144</span><span id="line-144">     * </span>
+<span class="source-line-no">145</span><span id="line-145">     * @param event the event</span>
+<span class="source-line-no">146</span><span id="line-146">     */</span>
+<span class="source-line-no">147</span><span id="line-147">    @Handler</span>
+<span class="source-line-no">148</span><span id="line-148">    public void onConfigUpdate(ConfigurationUpdate event) {</span>
+<span class="source-line-no">149</span><span id="line-149">        event.structured(componentPath()).ifPresent(m -&gt; {</span>
+<span class="source-line-no">150</span><span id="line-150">            ObjectMapper mapper = new ObjectMapper();</span>
+<span class="source-line-no">151</span><span id="line-151">            config = mapper.convertValue(m, Configuration.class);</span>
+<span class="source-line-no">152</span><span id="line-152">        });</span>
+<span class="source-line-no">153</span><span id="line-153">    }</span>
+<span class="source-line-no">154</span><span id="line-154"></span>
+<span class="source-line-no">155</span><span id="line-155">    /**</span>
+<span class="source-line-no">156</span><span id="line-156">     * On start provider login.</span>
+<span class="source-line-no">157</span><span id="line-157">     *</span>
+<span class="source-line-no">158</span><span id="line-158">     * @param event the event</span>
+<span class="source-line-no">159</span><span id="line-159">     * @throws URISyntaxException </span>
+<span class="source-line-no">160</span><span id="line-160">     */</span>
+<span class="source-line-no">161</span><span id="line-161">    @Handler</span>
+<span class="source-line-no">162</span><span id="line-162">    public void onStartProviderLogin(StartOidcLogin event)</span>
+<span class="source-line-no">163</span><span id="line-163">            throws URISyntaxException {</span>
+<span class="source-line-no">164</span><span id="line-164">        var providerData = event.provider();</span>
+<span class="source-line-no">165</span><span id="line-165">        if (providerData.authorizationEndpoint() != null</span>
+<span class="source-line-no">166</span><span id="line-166">            &amp;&amp; providerData.tokenEndpoint() != null) {</span>
+<span class="source-line-no">167</span><span id="line-167">            attemptAuthorization(new Context(event));</span>
+<span class="source-line-no">168</span><span id="line-168">            return;</span>
+<span class="source-line-no">169</span><span id="line-169">        }</span>
+<span class="source-line-no">170</span><span id="line-170">        // Get configuration information first</span>
+<span class="source-line-no">171</span><span id="line-171">        fire(new Request.Out.Get(providerData.configurationEndpoint())</span>
+<span class="source-line-no">172</span><span id="line-172">            .setAssociated(this, new Context(event)), httpClientChannel);</span>
+<span class="source-line-no">173</span><span id="line-173">    }</span>
+<span class="source-line-no">174</span><span id="line-174"></span>
+<span class="source-line-no">175</span><span id="line-175">    /**</span>
+<span class="source-line-no">176</span><span id="line-176">     * Invoked when the connection to the provider has been established.</span>
+<span class="source-line-no">177</span><span id="line-177">     *</span>
+<span class="source-line-no">178</span><span id="line-178">     * @param event the event</span>
+<span class="source-line-no">179</span><span id="line-179">     * @param clientChannel the client channel</span>
+<span class="source-line-no">180</span><span id="line-180">     */</span>
+<span class="source-line-no">181</span><span id="line-181">    @Handler(channels = HttpClientChannel.class)</span>
+<span class="source-line-no">182</span><span id="line-182">    public void onConnected(HttpConnected event, IOSubchannel clientChannel) {</span>
+<span class="source-line-no">183</span><span id="line-183">        // Transfer context from the request to the new subchannel.</span>
+<span class="source-line-no">184</span><span id="line-184">        event.request().associated(this, Context.class).ifPresent(c -&gt; {</span>
+<span class="source-line-no">185</span><span id="line-185">            clientChannel.setAssociated(this, c);</span>
+<span class="source-line-no">186</span><span id="line-186">            // Also keep the request in order to dispatch responses</span>
+<span class="source-line-no">187</span><span id="line-187">            clientChannel.setAssociated(HttpRequest.class,</span>
+<span class="source-line-no">188</span><span id="line-188">                event.request().httpRequest());</span>
+<span class="source-line-no">189</span><span id="line-189">            // Send body if provided together with the request</span>
+<span class="source-line-no">190</span><span id="line-190">            event.request().associated(OutputSupplier.class)</span>
+<span class="source-line-no">191</span><span id="line-191">                .ifPresent(bp -&gt; bp.emit(clientChannel));</span>
+<span class="source-line-no">192</span><span id="line-192">        });</span>
+<span class="source-line-no">193</span><span id="line-193">    }</span>
+<span class="source-line-no">194</span><span id="line-194"></span>
+<span class="source-line-no">195</span><span id="line-195">    /**</span>
+<span class="source-line-no">196</span><span id="line-196">     * Invoked when a response is received from the provider.</span>
+<span class="source-line-no">197</span><span id="line-197">     *</span>
+<span class="source-line-no">198</span><span id="line-198">     * @param response the response</span>
+<span class="source-line-no">199</span><span id="line-199">     * @param clientChannel the client channel</span>
+<span class="source-line-no">200</span><span id="line-200">     * @throws URISyntaxException </span>
+<span class="source-line-no">201</span><span id="line-201">     */</span>
+<span class="source-line-no">202</span><span id="line-202">    @Handler(channels = HttpClientChannel.class)</span>
+<span class="source-line-no">203</span><span id="line-203">    public void onResponse(Response response, IOSubchannel clientChannel)</span>
+<span class="source-line-no">204</span><span id="line-204">            throws URISyntaxException {</span>
+<span class="source-line-no">205</span><span id="line-205">        var optCtx = clientChannel.associated(this, Context.class);</span>
+<span class="source-line-no">206</span><span id="line-206">        if (optCtx.isEmpty()) {</span>
+<span class="source-line-no">207</span><span id="line-207">            return;</span>
+<span class="source-line-no">208</span><span id="line-208">        }</span>
+<span class="source-line-no">209</span><span id="line-209">        var rsp = (HttpResponse) response.response();</span>
+<span class="source-line-no">210</span><span id="line-210">        clientChannel.setAssociated(Response.class, response);</span>
+<span class="source-line-no">211</span><span id="line-211">        var reqUri</span>
+<span class="source-line-no">212</span><span id="line-212">            = clientChannel.associated(HttpRequest.class).get().requestUri();</span>
+<span class="source-line-no">213</span><span id="line-213">        if (rsp.statusCode() != HttpURLConnection.HTTP_OK) {</span>
+<span class="source-line-no">214</span><span id="line-214">            fire(new Error(response, "Attempt to access " + reqUri</span>
+<span class="source-line-no">215</span><span id="line-215">                + " returned " + rsp.statusCode()));</span>
+<span class="source-line-no">216</span><span id="line-216">        }</span>
+<span class="source-line-no">217</span><span id="line-217">        // All expected responses have a JSON payload (body), so</span>
+<span class="source-line-no">218</span><span id="line-218">        // wait for it and delay dispatching until the data is available.</span>
+<span class="source-line-no">219</span><span id="line-219">        if (rsp.hasPayload()) {</span>
+<span class="source-line-no">220</span><span id="line-220">            clientChannel.setAssociated(InputConsumer.class,</span>
+<span class="source-line-no">221</span><span id="line-221">                new JsonReader(Map.class, activeEventPipeline(), clientChannel)</span>
+<span class="source-line-no">222</span><span id="line-222">                    .charset(</span>
+<span class="source-line-no">223</span><span id="line-223">                        response.charset().orElse(StandardCharsets.UTF_8)));</span>
+<span class="source-line-no">224</span><span id="line-224">        }</span>
+<span class="source-line-no">225</span><span id="line-225">    }</span>
+<span class="source-line-no">226</span><span id="line-226"></span>
+<span class="source-line-no">227</span><span id="line-227">    /**</span>
+<span class="source-line-no">228</span><span id="line-228">     * Collect and process input from the provider.</span>
+<span class="source-line-no">229</span><span id="line-229">     *</span>
+<span class="source-line-no">230</span><span id="line-230">     * @param event the event</span>
+<span class="source-line-no">231</span><span id="line-231">     * @param clientChannel the client channel</span>
+<span class="source-line-no">232</span><span id="line-232">     * @throws IOException Signals that an I/O exception has occurred.</span>
+<span class="source-line-no">233</span><span id="line-233">     */</span>
+<span class="source-line-no">234</span><span id="line-234">    @Handler(channels = HttpClientChannel.class)</span>
+<span class="source-line-no">235</span><span id="line-235">    public void onInput(Input&lt;ByteBuffer&gt; event, IOSubchannel clientChannel)</span>
+<span class="source-line-no">236</span><span id="line-236">            throws IOException {</span>
+<span class="source-line-no">237</span><span id="line-237">        if (clientChannel.associated(this, Context.class).isEmpty()) {</span>
+<span class="source-line-no">238</span><span id="line-238">            return;</span>
+<span class="source-line-no">239</span><span id="line-239">        }</span>
+<span class="source-line-no">240</span><span id="line-240">        clientChannel.associated(InputConsumer.class).ifPresent(</span>
+<span class="source-line-no">241</span><span id="line-241">            ic -&gt; ic.feed(event));</span>
+<span class="source-line-no">242</span><span id="line-242">    }</span>
+<span class="source-line-no">243</span><span id="line-243"></span>
+<span class="source-line-no">244</span><span id="line-244">    /**</span>
+<span class="source-line-no">245</span><span id="line-245">     * On data input.</span>
+<span class="source-line-no">246</span><span id="line-246">     *</span>
+<span class="source-line-no">247</span><span id="line-247">     * @param event the event</span>
+<span class="source-line-no">248</span><span id="line-248">     * @param clientChannel the client channel</span>
+<span class="source-line-no">249</span><span id="line-249">     * @throws MalformedURLException the malformed URL exception</span>
+<span class="source-line-no">250</span><span id="line-250">     * @throws URISyntaxException the URI syntax exception</span>
+<span class="source-line-no">251</span><span id="line-251">     * @throws JsonProcessingException </span>
+<span class="source-line-no">252</span><span id="line-252">     * @throws JsonMappingException </span>
+<span class="source-line-no">253</span><span id="line-253">     */</span>
+<span class="source-line-no">254</span><span id="line-254">    @Handler(channels = HttpClientChannel.class)</span>
+<span class="source-line-no">255</span><span id="line-255">    public void onDataInput(DataInput&lt;Map&lt;String, Object&gt;&gt; event,</span>
+<span class="source-line-no">256</span><span id="line-256">            IOSubchannel clientChannel)</span>
+<span class="source-line-no">257</span><span id="line-257">            throws MalformedURLException, URISyntaxException,</span>
+<span class="source-line-no">258</span><span id="line-258">            JsonMappingException, JsonProcessingException {</span>
+<span class="source-line-no">259</span><span id="line-259">        var optCtx = clientChannel.associated(this, Context.class);</span>
+<span class="source-line-no">260</span><span id="line-260">        if (optCtx.isEmpty()) {</span>
+<span class="source-line-no">261</span><span id="line-261">            return;</span>
+<span class="source-line-no">262</span><span id="line-262">        }</span>
+<span class="source-line-no">263</span><span id="line-263">        if (clientChannel.associated(Response.class)</span>
+<span class="source-line-no">264</span><span id="line-264">            .map(r -&gt; (HttpResponse) r.response())</span>
+<span class="source-line-no">265</span><span id="line-265">            .map(r -&gt; r.statusCode() != HttpURLConnection.HTTP_OK)</span>
+<span class="source-line-no">266</span><span id="line-266">            .orElse(true)) {</span>
+<span class="source-line-no">267</span><span id="line-267">            // Already handled in onResponse, log details</span>
+<span class="source-line-no">268</span><span id="line-268">            Response evt = clientChannel.associated(Response.class).get();</span>
+<span class="source-line-no">269</span><span id="line-269">            logger.finer(() -&gt; "Payload of failed event "</span>
+<span class="source-line-no">270</span><span id="line-270">                + Components.objectName(evt) + ": " + event.data().toString());</span>
+<span class="source-line-no">271</span><span id="line-271">            return;</span>
+<span class="source-line-no">272</span><span id="line-272">        }</span>
+<span class="source-line-no">273</span><span id="line-273">        var provider = optCtx.get().startEvent.provider();</span>
+<span class="source-line-no">274</span><span id="line-274">        // Dispatch based on information from the request URI</span>
+<span class="source-line-no">275</span><span id="line-275">        var reqUri</span>
+<span class="source-line-no">276</span><span id="line-276">            = clientChannel.associated(HttpRequest.class).get().requestUri();</span>
+<span class="source-line-no">277</span><span id="line-277">        if (reqUri.equals(provider.configurationEndpoint().toURI())) {</span>
+<span class="source-line-no">278</span><span id="line-278">            processConfigurationData(event, optCtx.get(), provider);</span>
+<span class="source-line-no">279</span><span id="line-279">        } else if (reqUri.equals(provider.tokenEndpoint().toURI())) {</span>
+<span class="source-line-no">280</span><span id="line-280">            processTokenResponse(event, optCtx.get(), provider);</span>
+<span class="source-line-no">281</span><span id="line-281">        }</span>
+<span class="source-line-no">282</span><span id="line-282">    }</span>
+<span class="source-line-no">283</span><span id="line-283"></span>
+<span class="source-line-no">284</span><span id="line-284">    private void processConfigurationData(DataInput&lt;Map&lt;String, Object&gt;&gt; event,</span>
+<span class="source-line-no">285</span><span id="line-285">            Context ctx, OidcProviderData provider)</span>
+<span class="source-line-no">286</span><span id="line-286">            throws MalformedURLException, URISyntaxException {</span>
+<span class="source-line-no">287</span><span id="line-287">        String aep = (String) event.data().get("authorization_endpoint");</span>
+<span class="source-line-no">288</span><span id="line-288">        if (aep != null) {</span>
+<span class="source-line-no">289</span><span id="line-289">            provider.setAuthorizationEndpoint(new URL(aep));</span>
+<span class="source-line-no">290</span><span id="line-290">        }</span>
+<span class="source-line-no">291</span><span id="line-291">        String tep = (String) event.data().get("token_endpoint");</span>
+<span class="source-line-no">292</span><span id="line-292">        if (tep != null) {</span>
+<span class="source-line-no">293</span><span id="line-293">            provider.setTokenEndpoint(new URL(tep));</span>
+<span class="source-line-no">294</span><span id="line-294">        }</span>
+<span class="source-line-no">295</span><span id="line-295">        String uiep = (String) event.data().get("userinfo_endpoint");</span>
+<span class="source-line-no">296</span><span id="line-296">        if (uiep != null) {</span>
+<span class="source-line-no">297</span><span id="line-297">            provider.setUserinfoEndpoint(new URL(uiep));</span>
+<span class="source-line-no">298</span><span id="line-298">        }</span>
+<span class="source-line-no">299</span><span id="line-299">        String issuer = (String) event.data().get("issuer");</span>
+<span class="source-line-no">300</span><span id="line-300">        if (issuer != null) {</span>
+<span class="source-line-no">301</span><span id="line-301">            provider.setIssuer(new URL(issuer));</span>
+<span class="source-line-no">302</span><span id="line-302">        }</span>
+<span class="source-line-no">303</span><span id="line-303"></span>
+<span class="source-line-no">304</span><span id="line-304">        // We only get the configuration information as part of a login</span>
+<span class="source-line-no">305</span><span id="line-305">        // process, so continue with the login now.</span>
+<span class="source-line-no">306</span><span id="line-306">        attemptAuthorization(ctx);</span>
+<span class="source-line-no">307</span><span id="line-307">    }</span>
+<span class="source-line-no">308</span><span id="line-308"></span>
+<span class="source-line-no">309</span><span id="line-309">    private void attemptAuthorization(Context ctx) throws URISyntaxException {</span>
+<span class="source-line-no">310</span><span id="line-310">        @SuppressWarnings("PMD.UseConcurrentHashMap")</span>
+<span class="source-line-no">311</span><span id="line-311">        Map&lt;String, String&gt; params = new TreeMap&lt;&gt;();</span>
+<span class="source-line-no">312</span><span id="line-312">        params.put("scope", "openid");</span>
+<span class="source-line-no">313</span><span id="line-313">        params.put("response_type", "code");</span>
+<span class="source-line-no">314</span><span id="line-314">        params.put("client_id", ctx.startEvent.provider().clientId());</span>
+<span class="source-line-no">315</span><span id="line-315">        params.put("redirect_uri", config.redirectUri);</span>
+<span class="source-line-no">316</span><span id="line-316">        params.put("prompt", "login");</span>
+<span class="source-line-no">317</span><span id="line-317">        if (ctx.startEvent.locales().length &gt; 0) {</span>
+<span class="source-line-no">318</span><span id="line-318">            params.put("ui_locales", Arrays.stream(ctx.startEvent.locales())</span>
+<span class="source-line-no">319</span><span id="line-319">                .map(Locale::toLanguageTag).collect(Collectors.joining(" ")));</span>
+<span class="source-line-no">320</span><span id="line-320">        }</span>
+<span class="source-line-no">321</span><span id="line-321">        var stateBytes = new byte[16];</span>
+<span class="source-line-no">322</span><span id="line-322">        secureRandom.nextBytes(stateBytes);</span>
+<span class="source-line-no">323</span><span id="line-323">        var state = Base64.getEncoder().encodeToString(stateBytes);</span>
+<span class="source-line-no">324</span><span id="line-324">        params.put("state", state);</span>
+<span class="source-line-no">325</span><span id="line-325">        var request = HttpRequest.replaceQuery(</span>
+<span class="source-line-no">326</span><span id="line-326">            ctx.startEvent.provider().authorizationEndpoint().toURI(),</span>
+<span class="source-line-no">327</span><span id="line-327">            HttpRequest.simpleWwwFormUrlencode(params));</span>
+<span class="source-line-no">328</span><span id="line-328">        logger.finer(() -&gt; "Getting " + request);</span>
+<span class="source-line-no">329</span><span id="line-329">        contexts.put(state, ctx);</span>
+<span class="source-line-no">330</span><span id="line-330">        fire(new OpenLoginWindow(ctx.startEvent, request));</span>
+<span class="source-line-no">331</span><span id="line-331">    }</span>
+<span class="source-line-no">332</span><span id="line-332"></span>
+<span class="source-line-no">333</span><span id="line-333">    /**</span>
+<span class="source-line-no">334</span><span id="line-334">     * On callback from the authorization request. (Path selector</span>
+<span class="source-line-no">335</span><span id="line-335">     * defined in constructor.)</span>
+<span class="source-line-no">336</span><span id="line-336">     *</span>
+<span class="source-line-no">337</span><span id="line-337">     * @param event the event</span>
+<span class="source-line-no">338</span><span id="line-338">     * @param channel the channel</span>
+<span class="source-line-no">339</span><span id="line-339">     */</span>
+<span class="source-line-no">340</span><span id="line-340">    @RequestHandler(channels = HttpServerChannel.class, dynamic = true)</span>
+<span class="source-line-no">341</span><span id="line-341">    public void onAuthCallback(Request.In.Get event, IOSubchannel channel) {</span>
+<span class="source-line-no">342</span><span id="line-342">        ResponseCreationSupport.sendStaticContent(event, channel,</span>
+<span class="source-line-no">343</span><span id="line-343">            path -&gt; getClass().getResource("CloseWindow.html"), null);</span>
+<span class="source-line-no">344</span><span id="line-344">        var query = event.httpRequest().queryData();</span>
+<span class="source-line-no">345</span><span id="line-345">        var state = Optional.ofNullable(query.get("state"))</span>
+<span class="source-line-no">346</span><span id="line-346">            .orElse(Collections.emptyList()).stream().findFirst().orElse(null);</span>
+<span class="source-line-no">347</span><span id="line-347">        var ctx = contexts.remove(state);</span>
+<span class="source-line-no">348</span><span id="line-348">        if (ctx == null) {</span>
+<span class="source-line-no">349</span><span id="line-349">            return;</span>
+<span class="source-line-no">350</span><span id="line-350">        }</span>
+<span class="source-line-no">351</span><span id="line-351">        ctx.code = query.get("code").get(0);</span>
+<span class="source-line-no">352</span><span id="line-352"></span>
+<span class="source-line-no">353</span><span id="line-353">        // Prepare token request</span>
+<span class="source-line-no">354</span><span id="line-354">        OidcProviderData provider = ctx.startEvent.provider();</span>
+<span class="source-line-no">355</span><span id="line-355">        Request.Out.Post post = new Request.Out.Post(provider.tokenEndpoint());</span>
+<span class="source-line-no">356</span><span id="line-356">        post.httpRequest().setField(HttpField.CONTENT_TYPE,</span>
+<span class="source-line-no">357</span><span id="line-357">            new MediaType("application", "x-www-form-urlencoded"));</span>
+<span class="source-line-no">358</span><span id="line-358">        post.httpRequest().setField(HttpField.AUTHORIZATION,</span>
+<span class="source-line-no">359</span><span id="line-359">            new ParameterizedValue&lt;&gt;("Basic "</span>
+<span class="source-line-no">360</span><span id="line-360">                + Base64.getEncoder().encodeToString(</span>
+<span class="source-line-no">361</span><span id="line-361">                    (provider.clientId() + ":" + provider.secret())</span>
+<span class="source-line-no">362</span><span id="line-362">                        .getBytes())));</span>
+<span class="source-line-no">363</span><span id="line-363">        post.httpRequest().setHasPayload(true);</span>
+<span class="source-line-no">364</span><span id="line-364"></span>
+<span class="source-line-no">365</span><span id="line-365">        // Prepare payload data</span>
+<span class="source-line-no">366</span><span id="line-366">        var params = new TreeMap&lt;String, String&gt;();</span>
+<span class="source-line-no">367</span><span id="line-367">        params.put("grant_type", "authorization_code");</span>
+<span class="source-line-no">368</span><span id="line-368">        params.put("code", ctx.code);</span>
+<span class="source-line-no">369</span><span id="line-369">        params.put("redirect_uri", config.redirectUri);</span>
+<span class="source-line-no">370</span><span id="line-370">        @SuppressWarnings("resource")</span>
+<span class="source-line-no">371</span><span id="line-371">        OutputSupplier body = (IOSubchannel c) -&gt; {</span>
+<span class="source-line-no">372</span><span id="line-372">            new CharBufferWriter(c, activeEventPipeline())</span>
+<span class="source-line-no">373</span><span id="line-373">                .append(HttpRequest.simpleWwwFormUrlencode(params)).close();</span>
+<span class="source-line-no">374</span><span id="line-374">        };</span>
+<span class="source-line-no">375</span><span id="line-375">        fire(post.setAssociated(OutputSupplier.class, body).setAssociated(this,</span>
+<span class="source-line-no">376</span><span id="line-376">            ctx), httpClientChannel);</span>
+<span class="source-line-no">377</span><span id="line-377">        event.setResult(true);</span>
+<span class="source-line-no">378</span><span id="line-378">        event.stop();</span>
+<span class="source-line-no">379</span><span id="line-379">    }</span>
+<span class="source-line-no">380</span><span id="line-380"></span>
+<span class="source-line-no">381</span><span id="line-381">    @SuppressWarnings("unchecked")</span>
+<span class="source-line-no">382</span><span id="line-382">    private void processTokenResponse(DataInput&lt;Map&lt;String, Object&gt;&gt; event,</span>
+<span class="source-line-no">383</span><span id="line-383">            Context ctx, OidcProviderData provider) {</span>
+<span class="source-line-no">384</span><span id="line-384">        ctx.idToken = JsonWebToken.parse((String) event.data().get("id_token"));</span>
+<span class="source-line-no">385</span><span id="line-385">        var idData = ctx.idToken.payload();</span>
+<span class="source-line-no">386</span><span id="line-386"></span>
+<span class="source-line-no">387</span><span id="line-387">        // Mandatory checks, see</span>
+<span class="source-line-no">388</span><span id="line-388">        // https://openid.net/specs/openid-connect-core-1_0.html#IDTokenValidation</span>
+<span class="source-line-no">389</span><span id="line-389">        if (provider.issuer() != null</span>
+<span class="source-line-no">390</span><span id="line-390">            &amp;&amp; !provider.issuer().toString().equals(idData.get("iss"))) {</span>
+<span class="source-line-no">391</span><span id="line-391">            fire(new OidcError(ctx.startEvent, "ID token has invalid issuer."));</span>
+<span class="source-line-no">392</span><span id="line-392">        }</span>
+<span class="source-line-no">393</span><span id="line-393">        if (idData.get("aud") instanceof List auds &amp;&amp; !auds.contains(</span>
+<span class="source-line-no">394</span><span id="line-394">            provider.clientId())</span>
+<span class="source-line-no">395</span><span id="line-395">            || idData.get("aud") instanceof String aud</span>
+<span class="source-line-no">396</span><span id="line-396">                &amp;&amp; !aud.equals(provider.clientId())) {</span>
+<span class="source-line-no">397</span><span id="line-397">            fire(new OidcError(ctx.startEvent,</span>
+<span class="source-line-no">398</span><span id="line-398">                "ID token has invalid audience."));</span>
+<span class="source-line-no">399</span><span id="line-399">        }</span>
+<span class="source-line-no">400</span><span id="line-400">        if (idData.get("exp") instanceof String exp</span>
+<span class="source-line-no">401</span><span id="line-401">            &amp;&amp; !Instant.now()</span>
+<span class="source-line-no">402</span><span id="line-402">                .isBefore(Instant.ofEpochSecond(Long.valueOf(exp)))) {</span>
+<span class="source-line-no">403</span><span id="line-403">            fire(new OidcError(ctx.startEvent, "ID token has expired."));</span>
+<span class="source-line-no">404</span><span id="line-404">        }</span>
+<span class="source-line-no">405</span><span id="line-405">        if (!idData.containsKey("preferred_username")) {</span>
+<span class="source-line-no">406</span><span id="line-406">            fire(new OidcError(ctx.startEvent,</span>
+<span class="source-line-no">407</span><span id="line-407">                "ID token does not contain preferred_username."));</span>
+<span class="source-line-no">408</span><span id="line-408">        }</span>
+<span class="source-line-no">409</span><span id="line-409"></span>
+<span class="source-line-no">410</span><span id="line-410">        // Success</span>
+<span class="source-line-no">411</span><span id="line-411">        var user = new ConsoleUser((String) idData.get("preferred_username"),</span>
+<span class="source-line-no">412</span><span id="line-412">            Optional.ofNullable((String) idData.get("name"))</span>
+<span class="source-line-no">413</span><span id="line-413">                .orElse((String) idData.get("preferred_username")));</span>
+<span class="source-line-no">414</span><span id="line-414">        var roles = new HashSet&lt;ConsoleRole&gt;();</span>
+<span class="source-line-no">415</span><span id="line-415">        for (var role : (List&lt;String&gt;) idData.get("roles")) {</span>
+<span class="source-line-no">416</span><span id="line-416">            roles.add(new ConsoleRole(role));</span>
+<span class="source-line-no">417</span><span id="line-417">        }</span>
+<span class="source-line-no">418</span><span id="line-418">        fire(new OidcUserAuthenticated(ctx.startEvent, user, roles));</span>
+<span class="source-line-no">419</span><span id="line-419">    }</span>
+<span class="source-line-no">420</span><span id="line-420"></span>
+<span class="source-line-no">421</span><span id="line-421">    /**</span>
+<span class="source-line-no">422</span><span id="line-422">     * The configuration information.</span>
+<span class="source-line-no">423</span><span id="line-423">     */</span>
+<span class="source-line-no">424</span><span id="line-424">    public static class Configuration {</span>
+<span class="source-line-no">425</span><span id="line-425">        public String redirectUri;</span>
+<span class="source-line-no">426</span><span id="line-426">    }</span>
+<span class="source-line-no">427</span><span id="line-427"></span>
+<span class="source-line-no">428</span><span id="line-428">    /**</span>
+<span class="source-line-no">429</span><span id="line-429">     * The context information.</span>
+<span class="source-line-no">430</span><span id="line-430">     */</span>
+<span class="source-line-no">431</span><span id="line-431">    private class Context {</span>
+<span class="source-line-no">432</span><span id="line-432">        public final StartOidcLogin startEvent;</span>
+<span class="source-line-no">433</span><span id="line-433">        public String code;</span>
+<span class="source-line-no">434</span><span id="line-434">        public JsonWebToken idToken;</span>
+<span class="source-line-no">435</span><span id="line-435"></span>
+<span class="source-line-no">436</span><span id="line-436">        /**</span>
+<span class="source-line-no">437</span><span id="line-437">         * Instantiates a new context.</span>
+<span class="source-line-no">438</span><span id="line-438">         *</span>
+<span class="source-line-no">439</span><span id="line-439">         * @param startEvent the start event</span>
+<span class="source-line-no">440</span><span id="line-440">         */</span>
+<span class="source-line-no">441</span><span id="line-441">        public Context(StartOidcLogin startEvent) {</span>
+<span class="source-line-no">442</span><span id="line-442">            super();</span>
+<span class="source-line-no">443</span><span id="line-443">            this.startEvent = startEvent;</span>
+<span class="source-line-no">444</span><span id="line-444">        }</span>
+<span class="source-line-no">445</span><span id="line-445">    }</span>
+<span class="source-line-no">446</span><span id="line-446"></span>
+<span class="source-line-no">447</span><span id="line-447">}</span>
 
 
 
