@@ -109,23 +109,23 @@
 <span class="source-line-no">096</span><span id="line-96">     * Sets the allowed conlet types based on user roles.</span>
 <span class="source-line-no">097</span><span id="line-97">     * </span>
 <span class="source-line-no">098</span><span id="line-98">     * By default, system components (e.g., policies) can add conlets,</span>
-<span class="source-line-no">099</span><span id="line-99">     * but users cannot. All added conlets are rendered (displayed).</span>
-<span class="source-line-no">100</span><span id="line-100">     * This method allows changing that behavior. The parameter is a </span>
-<span class="source-line-no">101</span><span id="line-101">     * `Map&lt;String, List&lt;String&gt;&gt;` where each role maps to a list of </span>
-<span class="source-line-no">102</span><span id="line-102">     * conlet types that authorized users with that role can add.</span>
+<span class="source-line-no">099</span><span id="line-99">     * but users cannot. This method allows changing that behavior.</span>
+<span class="source-line-no">100</span><span id="line-100">     * The parameter is a `Map&lt;String, List&lt;String&gt;&gt;` where each role</span>
+<span class="source-line-no">101</span><span id="line-101">     * maps to a list of conlet types that authorized users with that</span>
+<span class="source-line-no">102</span><span id="line-102">     * role can add.</span>
 <span class="source-line-no">103</span><span id="line-103">     * </span>
-<span class="source-line-no">104</span><span id="line-104">     * If a conlet type is prefixed with "--", it is excluded from </span>
-<span class="source-line-no">105</span><span id="line-105">     * rendering, meaning it will never be displayed, even if added</span>
-<span class="source-line-no">106</span><span id="line-106">     * by a system policy. Note that this exclusion must be specified</span>
-<span class="source-line-no">107</span><span id="line-107">     * for all roles a user has, as permissions from different roles</span>
-<span class="source-line-no">108</span><span id="line-108">     * are combined.</span>
+<span class="source-line-no">104</span><span id="line-104">     * If a conlet type is prefixed with double minus ("`--`"), it </span>
+<span class="source-line-no">105</span><span id="line-105">     * is also excluded from adding by system components, meaning </span>
+<span class="source-line-no">106</span><span id="line-106">     * it will never be displayed. Note that this exclusion must be</span>
+<span class="source-line-no">107</span><span id="line-107">     * specified for all roles a user has, as permissions from </span>
+<span class="source-line-no">108</span><span id="line-108">     * different roles are combined.</span>
 <span class="source-line-no">109</span><span id="line-109">     * </span>
 <span class="source-line-no">110</span><span id="line-110">     * Instead of listing specific conlet types, users can be allowed</span>
-<span class="source-line-no">111</span><span id="line-111">     * to add any type of conlet by including "*" in the list.</span>
-<span class="source-line-no">112</span><span id="line-112">     * Specific conlet types can be excluded by placing them before</span>
-<span class="source-line-no">113</span><span id="line-113">     * the "*" in the list and prefixing them with a minus ("-"), </span>
-<span class="source-line-no">114</span><span id="line-114">     * double minus ("--"), or an exclamation mark ("!") (the use </span>
-<span class="source-line-no">115</span><span id="line-115">     * of "!" is deprecated).</span>
+<span class="source-line-no">111</span><span id="line-111">     * to add any type of conlet by including "`*`" in the list.</span>
+<span class="source-line-no">112</span><span id="line-112">     * Specific conlet types can be excluded from the wildcard match</span>
+<span class="source-line-no">113</span><span id="line-113">     * by placing them before the "`*`" in the list and prefixing</span>
+<span class="source-line-no">114</span><span id="line-114">     * them with a minus ("`-`"), double minus ("`--`"), or an</span>
+<span class="source-line-no">115</span><span id="line-115">     * exclamation mark ("`!`") (the use of "`!`" is deprecated).</span>
 <span class="source-line-no">116</span><span id="line-116">     *</span>
 <span class="source-line-no">117</span><span id="line-117">     * @param acl the acl</span>
 <span class="source-line-no">118</span><span id="line-118">     * @return the user role conlet filter</span>
