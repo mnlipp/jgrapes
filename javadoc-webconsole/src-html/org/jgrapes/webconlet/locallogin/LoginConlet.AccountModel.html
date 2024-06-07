@@ -35,388 +35,367 @@
 <span class="source-line-no">022</span><span id="line-22">import freemarker.core.ParseException;</span>
 <span class="source-line-no">023</span><span id="line-23">import freemarker.template.MalformedTemplateNameException;</span>
 <span class="source-line-no">024</span><span id="line-24">import freemarker.template.Template;</span>
-<span class="source-line-no">025</span><span id="line-25">import freemarker.template.TemplateException;</span>
-<span class="source-line-no">026</span><span id="line-26">import freemarker.template.TemplateNotFoundException;</span>
-<span class="source-line-no">027</span><span id="line-27">import java.beans.ConstructorProperties;</span>
-<span class="source-line-no">028</span><span id="line-28">import java.io.IOException;</span>
-<span class="source-line-no">029</span><span id="line-29">import java.io.StringWriter;</span>
-<span class="source-line-no">030</span><span id="line-30">import java.util.Collections;</span>
-<span class="source-line-no">031</span><span id="line-31">import java.util.HashSet;</span>
-<span class="source-line-no">032</span><span id="line-32">import java.util.Map;</span>
-<span class="source-line-no">033</span><span id="line-33">import java.util.Optional;</span>
-<span class="source-line-no">034</span><span id="line-34">import java.util.Set;</span>
-<span class="source-line-no">035</span><span id="line-35">import java.util.concurrent.ConcurrentHashMap;</span>
-<span class="source-line-no">036</span><span id="line-36">import java.util.concurrent.Future;</span>
-<span class="source-line-no">037</span><span id="line-37">import javax.security.auth.Subject;</span>
-<span class="source-line-no">038</span><span id="line-38">import org.jgrapes.core.Channel;</span>
-<span class="source-line-no">039</span><span id="line-39">import org.jgrapes.core.Components;</span>
-<span class="source-line-no">040</span><span id="line-40">import org.jgrapes.core.Event;</span>
-<span class="source-line-no">041</span><span id="line-41">import org.jgrapes.core.EventPipeline;</span>
-<span class="source-line-no">042</span><span id="line-42">import org.jgrapes.core.Manager;</span>
-<span class="source-line-no">043</span><span id="line-43">import org.jgrapes.core.annotation.Handler;</span>
-<span class="source-line-no">044</span><span id="line-44">import org.jgrapes.http.events.DiscardSession;</span>
-<span class="source-line-no">045</span><span id="line-45">import org.jgrapes.io.events.Close;</span>
-<span class="source-line-no">046</span><span id="line-46">import org.jgrapes.util.events.ConfigurationUpdate;</span>
-<span class="source-line-no">047</span><span id="line-47">import org.jgrapes.webconsole.base.Conlet.RenderMode;</span>
-<span class="source-line-no">048</span><span id="line-48">import org.jgrapes.webconsole.base.ConletBaseModel;</span>
-<span class="source-line-no">049</span><span id="line-49">import org.jgrapes.webconsole.base.ConsoleConnection;</span>
-<span class="source-line-no">050</span><span id="line-50">import org.jgrapes.webconsole.base.ConsoleUser;</span>
-<span class="source-line-no">051</span><span id="line-51">import org.jgrapes.webconsole.base.WebConsoleUtils;</span>
-<span class="source-line-no">052</span><span id="line-52">import org.jgrapes.webconsole.base.events.AddConletRequest;</span>
-<span class="source-line-no">053</span><span id="line-53">import org.jgrapes.webconsole.base.events.AddConletType;</span>
-<span class="source-line-no">054</span><span id="line-54">import org.jgrapes.webconsole.base.events.AddPageResources.ScriptResource;</span>
-<span class="source-line-no">055</span><span id="line-55">import org.jgrapes.webconsole.base.events.CloseModalDialog;</span>
-<span class="source-line-no">056</span><span id="line-56">import org.jgrapes.webconsole.base.events.ConsolePrepared;</span>
-<span class="source-line-no">057</span><span id="line-57">import org.jgrapes.webconsole.base.events.ConsoleReady;</span>
-<span class="source-line-no">058</span><span id="line-58">import org.jgrapes.webconsole.base.events.NotifyConletModel;</span>
-<span class="source-line-no">059</span><span id="line-59">import org.jgrapes.webconsole.base.events.NotifyConletView;</span>
-<span class="source-line-no">060</span><span id="line-60">import org.jgrapes.webconsole.base.events.OpenModalDialog;</span>
-<span class="source-line-no">061</span><span id="line-61">import org.jgrapes.webconsole.base.events.RenderConlet;</span>
-<span class="source-line-no">062</span><span id="line-62">import org.jgrapes.webconsole.base.events.RenderConletRequestBase;</span>
-<span class="source-line-no">063</span><span id="line-63">import org.jgrapes.webconsole.base.events.SetLocale;</span>
-<span class="source-line-no">064</span><span id="line-64">import org.jgrapes.webconsole.base.events.SimpleConsoleCommand;</span>
-<span class="source-line-no">065</span><span id="line-65">import org.jgrapes.webconsole.base.events.UserAuthenticated;</span>
-<span class="source-line-no">066</span><span id="line-66">import org.jgrapes.webconsole.base.events.UserLoggedOut;</span>
-<span class="source-line-no">067</span><span id="line-67">import org.jgrapes.webconsole.base.freemarker.FreeMarkerConlet;</span>
-<span class="source-line-no">068</span><span id="line-68"></span>
-<span class="source-line-no">069</span><span id="line-69">/**</span>
-<span class="source-line-no">070</span><span id="line-70"> * As simple login conlet for password based logins. The users</span>
-<span class="source-line-no">071</span><span id="line-71"> * are configured as property "users" of the conlet:</span>
-<span class="source-line-no">072</span><span id="line-72"> * ```yaml</span>
-<span class="source-line-no">073</span><span id="line-73"> * "...":</span>
-<span class="source-line-no">074</span><span id="line-74"> *   "/LoginConlet":</span>
-<span class="source-line-no">075</span><span id="line-75"> *     users:</span>
-<span class="source-line-no">076</span><span id="line-76"> *       admin:</span>
-<span class="source-line-no">077</span><span id="line-77"> *         # Full name is optional</span>
-<span class="source-line-no">078</span><span id="line-78"> *         fullName: Administrator</span>
-<span class="source-line-no">079</span><span id="line-79"> *         password: "$2b$05$NiBd74ZGdplLC63ePZf1f.UtjMKkbQ23cQoO2OKOFalDBHWAOy21."</span>
-<span class="source-line-no">080</span><span id="line-80"> *       test:</span>
-<span class="source-line-no">081</span><span id="line-81"> *         fullName: Test Account</span>
-<span class="source-line-no">082</span><span id="line-82"> *         password: "$2b$05$hZaI/jToXf/d3BctZdT38Or7H7h6Pn2W3WiB49p5AyhDHFkkYCvo2"</span>
-<span class="source-line-no">083</span><span id="line-83"> *         </span>
-<span class="source-line-no">084</span><span id="line-84"> * ```</span>
-<span class="source-line-no">085</span><span id="line-85"> * </span>
-<span class="source-line-no">086</span><span id="line-86"> * Passwords are hashed using bcrypt.</span>
-<span class="source-line-no">087</span><span id="line-87"> */</span>
-<span class="source-line-no">088</span><span id="line-88">@SuppressWarnings("PMD.DataflowAnomalyAnalysis")</span>
-<span class="source-line-no">089</span><span id="line-89">public class LoginConlet extends FreeMarkerConlet&lt;LoginConlet.AccountModel&gt; {</span>
+<span class="source-line-no">025</span><span id="line-25">import freemarker.template.TemplateNotFoundException;</span>
+<span class="source-line-no">026</span><span id="line-26">import java.beans.ConstructorProperties;</span>
+<span class="source-line-no">027</span><span id="line-27">import java.io.IOException;</span>
+<span class="source-line-no">028</span><span id="line-28">import java.util.Collections;</span>
+<span class="source-line-no">029</span><span id="line-29">import java.util.HashSet;</span>
+<span class="source-line-no">030</span><span id="line-30">import java.util.Map;</span>
+<span class="source-line-no">031</span><span id="line-31">import java.util.Optional;</span>
+<span class="source-line-no">032</span><span id="line-32">import java.util.Set;</span>
+<span class="source-line-no">033</span><span id="line-33">import java.util.concurrent.ConcurrentHashMap;</span>
+<span class="source-line-no">034</span><span id="line-34">import javax.security.auth.Subject;</span>
+<span class="source-line-no">035</span><span id="line-35">import org.jgrapes.core.Channel;</span>
+<span class="source-line-no">036</span><span id="line-36">import org.jgrapes.core.Event;</span>
+<span class="source-line-no">037</span><span id="line-37">import org.jgrapes.core.Manager;</span>
+<span class="source-line-no">038</span><span id="line-38">import org.jgrapes.core.annotation.Handler;</span>
+<span class="source-line-no">039</span><span id="line-39">import org.jgrapes.http.events.DiscardSession;</span>
+<span class="source-line-no">040</span><span id="line-40">import org.jgrapes.io.events.Close;</span>
+<span class="source-line-no">041</span><span id="line-41">import org.jgrapes.util.events.ConfigurationUpdate;</span>
+<span class="source-line-no">042</span><span id="line-42">import org.jgrapes.webconsole.base.Conlet.RenderMode;</span>
+<span class="source-line-no">043</span><span id="line-43">import org.jgrapes.webconsole.base.ConletBaseModel;</span>
+<span class="source-line-no">044</span><span id="line-44">import org.jgrapes.webconsole.base.ConsoleConnection;</span>
+<span class="source-line-no">045</span><span id="line-45">import org.jgrapes.webconsole.base.ConsoleUser;</span>
+<span class="source-line-no">046</span><span id="line-46">import org.jgrapes.webconsole.base.WebConsoleUtils;</span>
+<span class="source-line-no">047</span><span id="line-47">import org.jgrapes.webconsole.base.events.AddConletRequest;</span>
+<span class="source-line-no">048</span><span id="line-48">import org.jgrapes.webconsole.base.events.AddConletType;</span>
+<span class="source-line-no">049</span><span id="line-49">import org.jgrapes.webconsole.base.events.AddPageResources.ScriptResource;</span>
+<span class="source-line-no">050</span><span id="line-50">import org.jgrapes.webconsole.base.events.CloseModalDialog;</span>
+<span class="source-line-no">051</span><span id="line-51">import org.jgrapes.webconsole.base.events.ConsolePrepared;</span>
+<span class="source-line-no">052</span><span id="line-52">import org.jgrapes.webconsole.base.events.ConsoleReady;</span>
+<span class="source-line-no">053</span><span id="line-53">import org.jgrapes.webconsole.base.events.NotifyConletModel;</span>
+<span class="source-line-no">054</span><span id="line-54">import org.jgrapes.webconsole.base.events.NotifyConletView;</span>
+<span class="source-line-no">055</span><span id="line-55">import org.jgrapes.webconsole.base.events.OpenModalDialog;</span>
+<span class="source-line-no">056</span><span id="line-56">import org.jgrapes.webconsole.base.events.RenderConlet;</span>
+<span class="source-line-no">057</span><span id="line-57">import org.jgrapes.webconsole.base.events.RenderConletRequestBase;</span>
+<span class="source-line-no">058</span><span id="line-58">import org.jgrapes.webconsole.base.events.SetLocale;</span>
+<span class="source-line-no">059</span><span id="line-59">import org.jgrapes.webconsole.base.events.SimpleConsoleCommand;</span>
+<span class="source-line-no">060</span><span id="line-60">import org.jgrapes.webconsole.base.events.UserAuthenticated;</span>
+<span class="source-line-no">061</span><span id="line-61">import org.jgrapes.webconsole.base.events.UserLoggedOut;</span>
+<span class="source-line-no">062</span><span id="line-62">import org.jgrapes.webconsole.base.freemarker.FreeMarkerConlet;</span>
+<span class="source-line-no">063</span><span id="line-63"></span>
+<span class="source-line-no">064</span><span id="line-64">/**</span>
+<span class="source-line-no">065</span><span id="line-65"> * As simple login conlet for password based logins. The users</span>
+<span class="source-line-no">066</span><span id="line-66"> * are configured as property "users" of the conlet:</span>
+<span class="source-line-no">067</span><span id="line-67"> * ```yaml</span>
+<span class="source-line-no">068</span><span id="line-68"> * "...":</span>
+<span class="source-line-no">069</span><span id="line-69"> *   "/LoginConlet":</span>
+<span class="source-line-no">070</span><span id="line-70"> *     users:</span>
+<span class="source-line-no">071</span><span id="line-71"> *       admin:</span>
+<span class="source-line-no">072</span><span id="line-72"> *         # Full name is optional</span>
+<span class="source-line-no">073</span><span id="line-73"> *         fullName: Administrator</span>
+<span class="source-line-no">074</span><span id="line-74"> *         password: "$2b$05$NiBd74ZGdplLC63ePZf1f.UtjMKkbQ23cQoO2OKOFalDBHWAOy21."</span>
+<span class="source-line-no">075</span><span id="line-75"> *       test:</span>
+<span class="source-line-no">076</span><span id="line-76"> *         fullName: Test Account</span>
+<span class="source-line-no">077</span><span id="line-77"> *         password: "$2b$05$hZaI/jToXf/d3BctZdT38Or7H7h6Pn2W3WiB49p5AyhDHFkkYCvo2"</span>
+<span class="source-line-no">078</span><span id="line-78"> *         </span>
+<span class="source-line-no">079</span><span id="line-79"> * ```</span>
+<span class="source-line-no">080</span><span id="line-80"> * </span>
+<span class="source-line-no">081</span><span id="line-81"> * Passwords are hashed using bcrypt.</span>
+<span class="source-line-no">082</span><span id="line-82"> */</span>
+<span class="source-line-no">083</span><span id="line-83">@SuppressWarnings("PMD.DataflowAnomalyAnalysis")</span>
+<span class="source-line-no">084</span><span id="line-84">public class LoginConlet extends FreeMarkerConlet&lt;LoginConlet.AccountModel&gt; {</span>
+<span class="source-line-no">085</span><span id="line-85"></span>
+<span class="source-line-no">086</span><span id="line-86">    private static final String PENDING_CONSOLE_PREPARED</span>
+<span class="source-line-no">087</span><span id="line-87">        = "pendingConsolePrepared";</span>
+<span class="source-line-no">088</span><span id="line-88">    private final Map&lt;String, Map&lt;String, String&gt;&gt; users</span>
+<span class="source-line-no">089</span><span id="line-89">        = new ConcurrentHashMap&lt;&gt;();</span>
 <span class="source-line-no">090</span><span id="line-90"></span>
-<span class="source-line-no">091</span><span id="line-91">    private static final String PENDING_CONSOLE_PREPARED</span>
-<span class="source-line-no">092</span><span id="line-92">        = "pendingConsolePrepared";</span>
-<span class="source-line-no">093</span><span id="line-93">    private final Map&lt;String, Map&lt;String, String&gt;&gt; users</span>
-<span class="source-line-no">094</span><span id="line-94">        = new ConcurrentHashMap&lt;&gt;();</span>
-<span class="source-line-no">095</span><span id="line-95"></span>
-<span class="source-line-no">096</span><span id="line-96">    /**</span>
-<span class="source-line-no">097</span><span id="line-97">     * Creates a new component with its channel set to the given channel.</span>
-<span class="source-line-no">098</span><span id="line-98">     * </span>
-<span class="source-line-no">099</span><span id="line-99">     * @param componentChannel the channel that the component's handlers listen</span>
-<span class="source-line-no">100</span><span id="line-100">     *            on by default and that {@link Manager#fire(Event, Channel...)}</span>
-<span class="source-line-no">101</span><span id="line-101">     *            sends the event to</span>
-<span class="source-line-no">102</span><span id="line-102">     */</span>
-<span class="source-line-no">103</span><span id="line-103">    public LoginConlet(Channel componentChannel) {</span>
-<span class="source-line-no">104</span><span id="line-104">        super(componentChannel);</span>
-<span class="source-line-no">105</span><span id="line-105">    }</span>
-<span class="source-line-no">106</span><span id="line-106"></span>
-<span class="source-line-no">107</span><span id="line-107">    @Override</span>
-<span class="source-line-no">108</span><span id="line-108">    protected String generateInstanceId(AddConletRequest event,</span>
-<span class="source-line-no">109</span><span id="line-109">            ConsoleConnection session) {</span>
-<span class="source-line-no">110</span><span id="line-110">        return "Singleton";</span>
-<span class="source-line-no">111</span><span id="line-111">    }</span>
-<span class="source-line-no">112</span><span id="line-112"></span>
-<span class="source-line-no">113</span><span id="line-113">    /**</span>
-<span class="source-line-no">114</span><span id="line-114">     * Register conlet.</span>
-<span class="source-line-no">115</span><span id="line-115">     *</span>
-<span class="source-line-no">116</span><span id="line-116">     * @param event the event</span>
-<span class="source-line-no">117</span><span id="line-117">     * @param channel the channel</span>
-<span class="source-line-no">118</span><span id="line-118">     * @throws TemplateNotFoundException the template not found exception</span>
-<span class="source-line-no">119</span><span id="line-119">     * @throws MalformedTemplateNameException the malformed template name exception</span>
-<span class="source-line-no">120</span><span id="line-120">     * @throws ParseException the parse exception</span>
-<span class="source-line-no">121</span><span id="line-121">     * @throws IOException Signals that an I/O exception has occurred.</span>
-<span class="source-line-no">122</span><span id="line-122">     */</span>
-<span class="source-line-no">123</span><span id="line-123">    @Handler</span>
-<span class="source-line-no">124</span><span id="line-124">    public void onConsoleReady(ConsoleReady event, ConsoleConnection channel)</span>
-<span class="source-line-no">125</span><span id="line-125">            throws TemplateNotFoundException, MalformedTemplateNameException,</span>
-<span class="source-line-no">126</span><span id="line-126">            ParseException, IOException {</span>
-<span class="source-line-no">127</span><span id="line-127">        // Add conlet resources to page</span>
-<span class="source-line-no">128</span><span id="line-128">        channel.respond(new AddConletType(type())</span>
-<span class="source-line-no">129</span><span id="line-129">            .addScript(new ScriptResource()</span>
-<span class="source-line-no">130</span><span id="line-130">                .setScriptUri(event.renderSupport().conletResource(</span>
-<span class="source-line-no">131</span><span id="line-131">                    type(), "Login-functions.js"))</span>
-<span class="source-line-no">132</span><span id="line-132">                .setScriptType("module"))</span>
-<span class="source-line-no">133</span><span id="line-133">            .addCss(event.renderSupport(), WebConsoleUtils.uriFromPath(</span>
-<span class="source-line-no">134</span><span id="line-134">                "Login-style.css"))</span>
-<span class="source-line-no">135</span><span id="line-135">            .addPageContent("headerIcons", Map.of("priority", "1000"))</span>
-<span class="source-line-no">136</span><span id="line-136">            .addRenderMode(RenderMode.Content));</span>
-<span class="source-line-no">137</span><span id="line-137">    }</span>
-<span class="source-line-no">138</span><span id="line-138"></span>
-<span class="source-line-no">139</span><span id="line-139">    /**</span>
-<span class="source-line-no">140</span><span id="line-140">     * As a model has already been created in {@link #doUpdateConletState},</span>
-<span class="source-line-no">141</span><span id="line-141">     * the "new" model may already exist in the session.</span>
-<span class="source-line-no">142</span><span id="line-142">     */</span>
-<span class="source-line-no">143</span><span id="line-143">    @Override</span>
-<span class="source-line-no">144</span><span id="line-144">    protected Optional&lt;AccountModel&gt; createNewState(AddConletRequest event,</span>
-<span class="source-line-no">145</span><span id="line-145">            ConsoleConnection session, String conletId) throws Exception {</span>
-<span class="source-line-no">146</span><span id="line-146">        Optional&lt;AccountModel&gt; model</span>
-<span class="source-line-no">147</span><span id="line-147">            = stateFromSession(session.session(), conletId);</span>
-<span class="source-line-no">148</span><span id="line-148">        if (model.isPresent()) {</span>
-<span class="source-line-no">149</span><span id="line-149">            return model;</span>
-<span class="source-line-no">150</span><span id="line-150">        }</span>
-<span class="source-line-no">151</span><span id="line-151">        return super.createNewState(event, session, conletId);</span>
-<span class="source-line-no">152</span><span id="line-152">    }</span>
-<span class="source-line-no">153</span><span id="line-153"></span>
-<span class="source-line-no">154</span><span id="line-154">    @Override</span>
-<span class="source-line-no">155</span><span id="line-155">    protected Optional&lt;AccountModel&gt; createStateRepresentation(Event&lt;?&gt; event,</span>
-<span class="source-line-no">156</span><span id="line-156">            ConsoleConnection channel, String conletId) throws IOException {</span>
-<span class="source-line-no">157</span><span id="line-157">        return Optional.of(new AccountModel(conletId));</span>
-<span class="source-line-no">158</span><span id="line-158">    }</span>
-<span class="source-line-no">159</span><span id="line-159"></span>
-<span class="source-line-no">160</span><span id="line-160">    /**</span>
-<span class="source-line-no">161</span><span id="line-161">     * The component can be configured with events that include</span>
-<span class="source-line-no">162</span><span id="line-162">     * a path (see @link {@link ConfigurationUpdate#paths()})</span>
-<span class="source-line-no">163</span><span id="line-163">     * that matches this components path (see {@link Manager#componentPath()}).</span>
+<span class="source-line-no">091</span><span id="line-91">    /**</span>
+<span class="source-line-no">092</span><span id="line-92">     * Creates a new component with its channel set to the given channel.</span>
+<span class="source-line-no">093</span><span id="line-93">     * </span>
+<span class="source-line-no">094</span><span id="line-94">     * @param componentChannel the channel that the component's handlers listen</span>
+<span class="source-line-no">095</span><span id="line-95">     *            on by default and that {@link Manager#fire(Event, Channel...)}</span>
+<span class="source-line-no">096</span><span id="line-96">     *            sends the event to</span>
+<span class="source-line-no">097</span><span id="line-97">     */</span>
+<span class="source-line-no">098</span><span id="line-98">    public LoginConlet(Channel componentChannel) {</span>
+<span class="source-line-no">099</span><span id="line-99">        super(componentChannel);</span>
+<span class="source-line-no">100</span><span id="line-100">    }</span>
+<span class="source-line-no">101</span><span id="line-101"></span>
+<span class="source-line-no">102</span><span id="line-102">    @Override</span>
+<span class="source-line-no">103</span><span id="line-103">    protected String generateInstanceId(AddConletRequest event,</span>
+<span class="source-line-no">104</span><span id="line-104">            ConsoleConnection session) {</span>
+<span class="source-line-no">105</span><span id="line-105">        return "Singleton";</span>
+<span class="source-line-no">106</span><span id="line-106">    }</span>
+<span class="source-line-no">107</span><span id="line-107"></span>
+<span class="source-line-no">108</span><span id="line-108">    /**</span>
+<span class="source-line-no">109</span><span id="line-109">     * Register conlet.</span>
+<span class="source-line-no">110</span><span id="line-110">     *</span>
+<span class="source-line-no">111</span><span id="line-111">     * @param event the event</span>
+<span class="source-line-no">112</span><span id="line-112">     * @param channel the channel</span>
+<span class="source-line-no">113</span><span id="line-113">     * @throws TemplateNotFoundException the template not found exception</span>
+<span class="source-line-no">114</span><span id="line-114">     * @throws MalformedTemplateNameException the malformed template name exception</span>
+<span class="source-line-no">115</span><span id="line-115">     * @throws ParseException the parse exception</span>
+<span class="source-line-no">116</span><span id="line-116">     * @throws IOException Signals that an I/O exception has occurred.</span>
+<span class="source-line-no">117</span><span id="line-117">     */</span>
+<span class="source-line-no">118</span><span id="line-118">    @Handler</span>
+<span class="source-line-no">119</span><span id="line-119">    public void onConsoleReady(ConsoleReady event, ConsoleConnection channel)</span>
+<span class="source-line-no">120</span><span id="line-120">            throws TemplateNotFoundException, MalformedTemplateNameException,</span>
+<span class="source-line-no">121</span><span id="line-121">            ParseException, IOException {</span>
+<span class="source-line-no">122</span><span id="line-122">        // Add conlet resources to page</span>
+<span class="source-line-no">123</span><span id="line-123">        channel.respond(new AddConletType(type())</span>
+<span class="source-line-no">124</span><span id="line-124">            .addScript(new ScriptResource()</span>
+<span class="source-line-no">125</span><span id="line-125">                .setScriptUri(event.renderSupport().conletResource(</span>
+<span class="source-line-no">126</span><span id="line-126">                    type(), "Login-functions.js"))</span>
+<span class="source-line-no">127</span><span id="line-127">                .setScriptType("module"))</span>
+<span class="source-line-no">128</span><span id="line-128">            .addCss(event.renderSupport(), WebConsoleUtils.uriFromPath(</span>
+<span class="source-line-no">129</span><span id="line-129">                "Login-style.css"))</span>
+<span class="source-line-no">130</span><span id="line-130">            .addPageContent("headerIcons", Map.of("priority", "1000"))</span>
+<span class="source-line-no">131</span><span id="line-131">            .addRenderMode(RenderMode.Content));</span>
+<span class="source-line-no">132</span><span id="line-132">    }</span>
+<span class="source-line-no">133</span><span id="line-133"></span>
+<span class="source-line-no">134</span><span id="line-134">    /**</span>
+<span class="source-line-no">135</span><span id="line-135">     * As a model has already been created in {@link #doUpdateConletState},</span>
+<span class="source-line-no">136</span><span id="line-136">     * the "new" model may already exist in the session.</span>
+<span class="source-line-no">137</span><span id="line-137">     */</span>
+<span class="source-line-no">138</span><span id="line-138">    @Override</span>
+<span class="source-line-no">139</span><span id="line-139">    protected Optional&lt;AccountModel&gt; createNewState(AddConletRequest event,</span>
+<span class="source-line-no">140</span><span id="line-140">            ConsoleConnection session, String conletId) throws Exception {</span>
+<span class="source-line-no">141</span><span id="line-141">        Optional&lt;AccountModel&gt; model</span>
+<span class="source-line-no">142</span><span id="line-142">            = stateFromSession(session.session(), conletId);</span>
+<span class="source-line-no">143</span><span id="line-143">        if (model.isPresent()) {</span>
+<span class="source-line-no">144</span><span id="line-144">            return model;</span>
+<span class="source-line-no">145</span><span id="line-145">        }</span>
+<span class="source-line-no">146</span><span id="line-146">        return super.createNewState(event, session, conletId);</span>
+<span class="source-line-no">147</span><span id="line-147">    }</span>
+<span class="source-line-no">148</span><span id="line-148"></span>
+<span class="source-line-no">149</span><span id="line-149">    @Override</span>
+<span class="source-line-no">150</span><span id="line-150">    protected Optional&lt;AccountModel&gt; createStateRepresentation(Event&lt;?&gt; event,</span>
+<span class="source-line-no">151</span><span id="line-151">            ConsoleConnection channel, String conletId) throws IOException {</span>
+<span class="source-line-no">152</span><span id="line-152">        return Optional.of(new AccountModel(conletId));</span>
+<span class="source-line-no">153</span><span id="line-153">    }</span>
+<span class="source-line-no">154</span><span id="line-154"></span>
+<span class="source-line-no">155</span><span id="line-155">    /**</span>
+<span class="source-line-no">156</span><span id="line-156">     * The component can be configured with events that include</span>
+<span class="source-line-no">157</span><span id="line-157">     * a path (see @link {@link ConfigurationUpdate#paths()})</span>
+<span class="source-line-no">158</span><span id="line-158">     * that matches this components path (see {@link Manager#componentPath()}).</span>
+<span class="source-line-no">159</span><span id="line-159">     * </span>
+<span class="source-line-no">160</span><span id="line-160">     * The following properties are recognized:</span>
+<span class="source-line-no">161</span><span id="line-161">     * </span>
+<span class="source-line-no">162</span><span id="line-162">     * `users`</span>
+<span class="source-line-no">163</span><span id="line-163">     * : See {@link LoginConlet}.</span>
 <span class="source-line-no">164</span><span id="line-164">     * </span>
-<span class="source-line-no">165</span><span id="line-165">     * The following properties are recognized:</span>
-<span class="source-line-no">166</span><span id="line-166">     * </span>
-<span class="source-line-no">167</span><span id="line-167">     * `users`</span>
-<span class="source-line-no">168</span><span id="line-168">     * : See {@link LoginConlet}.</span>
-<span class="source-line-no">169</span><span id="line-169">     * </span>
-<span class="source-line-no">170</span><span id="line-170">     * @param event the event</span>
-<span class="source-line-no">171</span><span id="line-171">     */</span>
-<span class="source-line-no">172</span><span id="line-172">    @SuppressWarnings("unchecked")</span>
-<span class="source-line-no">173</span><span id="line-173">    @Handler</span>
-<span class="source-line-no">174</span><span id="line-174">    public void onConfigUpdate(ConfigurationUpdate event) {</span>
-<span class="source-line-no">175</span><span id="line-175">        event.structured(componentPath())</span>
-<span class="source-line-no">176</span><span id="line-176">            .map(c -&gt; (Map&lt;String, Map&lt;String, String&gt;&gt;) c.get("users"))</span>
-<span class="source-line-no">177</span><span id="line-177">            .map(Map::entrySet).orElse(Collections.emptySet()).stream()</span>
-<span class="source-line-no">178</span><span id="line-178">            .forEach(e -&gt; {</span>
-<span class="source-line-no">179</span><span id="line-179">                var user = users.computeIfAbsent(e.getKey(),</span>
-<span class="source-line-no">180</span><span id="line-180">                    k -&gt; new ConcurrentHashMap&lt;&gt;());</span>
-<span class="source-line-no">181</span><span id="line-181">                user.putAll(e.getValue());</span>
-<span class="source-line-no">182</span><span id="line-182">            });</span>
-<span class="source-line-no">183</span><span id="line-183">    }</span>
-<span class="source-line-no">184</span><span id="line-184"></span>
-<span class="source-line-no">185</span><span id="line-185">    /**</span>
-<span class="source-line-no">186</span><span id="line-186">     * Handle web console page loaded.</span>
-<span class="source-line-no">187</span><span id="line-187">     *</span>
-<span class="source-line-no">188</span><span id="line-188">     * @param event the event</span>
-<span class="source-line-no">189</span><span id="line-189">     * @param channel the channel</span>
-<span class="source-line-no">190</span><span id="line-190">     * @throws IOException </span>
-<span class="source-line-no">191</span><span id="line-191">     * @throws ParseException </span>
-<span class="source-line-no">192</span><span id="line-192">     * @throws MalformedTemplateNameException </span>
-<span class="source-line-no">193</span><span id="line-193">     * @throws TemplateNotFoundException </span>
-<span class="source-line-no">194</span><span id="line-194">     */</span>
-<span class="source-line-no">195</span><span id="line-195">    @Handler(priority = 1000)</span>
-<span class="source-line-no">196</span><span id="line-196">    public void onConsolePrepared(ConsolePrepared event,</span>
-<span class="source-line-no">197</span><span id="line-197">            ConsoleConnection channel)</span>
-<span class="source-line-no">198</span><span id="line-198">            throws TemplateNotFoundException, MalformedTemplateNameException,</span>
-<span class="source-line-no">199</span><span id="line-199">            ParseException, IOException {</span>
-<span class="source-line-no">200</span><span id="line-200">        // If we are logged in, proceed</span>
-<span class="source-line-no">201</span><span id="line-201">        if (channel.session().containsKey(Subject.class)) {</span>
-<span class="source-line-no">202</span><span id="line-202">            return;</span>
-<span class="source-line-no">203</span><span id="line-203">        }</span>
-<span class="source-line-no">204</span><span id="line-204"></span>
-<span class="source-line-no">205</span><span id="line-205">        // Suspend handling and save event "in" channel.</span>
-<span class="source-line-no">206</span><span id="line-206">        event.suspendHandling();</span>
-<span class="source-line-no">207</span><span id="line-207">        channel.setAssociated(PENDING_CONSOLE_PREPARED, event);</span>
-<span class="source-line-no">208</span><span id="line-208"></span>
-<span class="source-line-no">209</span><span id="line-209">        // Create model and save in session.</span>
-<span class="source-line-no">210</span><span id="line-210">        String conletId = type() + TYPE_INSTANCE_SEPARATOR + "Singleton";</span>
-<span class="source-line-no">211</span><span id="line-211">        AccountModel accountModel = new AccountModel(conletId);</span>
-<span class="source-line-no">212</span><span id="line-212">        accountModel.setDialogOpen(true);</span>
-<span class="source-line-no">213</span><span id="line-213">        putInSession(channel.session(), conletId, accountModel);</span>
-<span class="source-line-no">214</span><span id="line-214"></span>
-<span class="source-line-no">215</span><span id="line-215">        // Render login dialog</span>
-<span class="source-line-no">216</span><span id="line-216">        Template tpl = freemarkerConfig().getTemplate("Login-dialog.ftl.html");</span>
-<span class="source-line-no">217</span><span id="line-217">        var bundle = resourceBundle(channel.locale());</span>
-<span class="source-line-no">218</span><span id="line-218">        channel.respond(new OpenModalDialog(type(), conletId,</span>
-<span class="source-line-no">219</span><span id="line-219">            processTemplate(event, tpl,</span>
-<span class="source-line-no">220</span><span id="line-220">                fmSessionModel(channel.session())))</span>
-<span class="source-line-no">221</span><span id="line-221">                    .addOption("title", bundle.getString("title"))</span>
-<span class="source-line-no">222</span><span id="line-222">                    .addOption("cancelable", false).addOption("okayLabel", "")</span>
-<span class="source-line-no">223</span><span id="line-223">                    .addOption("applyLabel", bundle.getString("Submit"))</span>
-<span class="source-line-no">224</span><span id="line-224">                    .addOption("useSubmit", true));</span>
-<span class="source-line-no">225</span><span id="line-225">    }</span>
-<span class="source-line-no">226</span><span id="line-226"></span>
-<span class="source-line-no">227</span><span id="line-227">    private Future&lt;String&gt; processTemplate(</span>
-<span class="source-line-no">228</span><span id="line-228">            Event&lt;?&gt; request, Template template,</span>
-<span class="source-line-no">229</span><span id="line-229">            Object dataModel) {</span>
-<span class="source-line-no">230</span><span id="line-230">        return request.processedBy().map(EventPipeline::executorService)</span>
-<span class="source-line-no">231</span><span id="line-231">            .orElse(Components.defaultExecutorService()).submit(() -&gt; {</span>
-<span class="source-line-no">232</span><span id="line-232">                StringWriter out = new StringWriter();</span>
-<span class="source-line-no">233</span><span id="line-233">                try {</span>
-<span class="source-line-no">234</span><span id="line-234">                    template.process(dataModel, out);</span>
-<span class="source-line-no">235</span><span id="line-235">                } catch (TemplateException | IOException e) {</span>
-<span class="source-line-no">236</span><span id="line-236">                    throw new IllegalArgumentException(e);</span>
-<span class="source-line-no">237</span><span id="line-237">                }</span>
-<span class="source-line-no">238</span><span id="line-238">                return out.toString();</span>
-<span class="source-line-no">239</span><span id="line-239"></span>
-<span class="source-line-no">240</span><span id="line-240">            });</span>
+<span class="source-line-no">165</span><span id="line-165">     * @param event the event</span>
+<span class="source-line-no">166</span><span id="line-166">     */</span>
+<span class="source-line-no">167</span><span id="line-167">    @SuppressWarnings("unchecked")</span>
+<span class="source-line-no">168</span><span id="line-168">    @Handler</span>
+<span class="source-line-no">169</span><span id="line-169">    public void onConfigUpdate(ConfigurationUpdate event) {</span>
+<span class="source-line-no">170</span><span id="line-170">        event.structured(componentPath())</span>
+<span class="source-line-no">171</span><span id="line-171">            .map(c -&gt; (Map&lt;String, Map&lt;String, String&gt;&gt;) c.get("users"))</span>
+<span class="source-line-no">172</span><span id="line-172">            .map(Map::entrySet).orElse(Collections.emptySet()).stream()</span>
+<span class="source-line-no">173</span><span id="line-173">            .forEach(e -&gt; {</span>
+<span class="source-line-no">174</span><span id="line-174">                var user = users.computeIfAbsent(e.getKey(),</span>
+<span class="source-line-no">175</span><span id="line-175">                    k -&gt; new ConcurrentHashMap&lt;&gt;());</span>
+<span class="source-line-no">176</span><span id="line-176">                user.putAll(e.getValue());</span>
+<span class="source-line-no">177</span><span id="line-177">            });</span>
+<span class="source-line-no">178</span><span id="line-178">    }</span>
+<span class="source-line-no">179</span><span id="line-179"></span>
+<span class="source-line-no">180</span><span id="line-180">    /**</span>
+<span class="source-line-no">181</span><span id="line-181">     * Handle web console page loaded.</span>
+<span class="source-line-no">182</span><span id="line-182">     *</span>
+<span class="source-line-no">183</span><span id="line-183">     * @param event the event</span>
+<span class="source-line-no">184</span><span id="line-184">     * @param channel the channel</span>
+<span class="source-line-no">185</span><span id="line-185">     * @throws IOException </span>
+<span class="source-line-no">186</span><span id="line-186">     * @throws ParseException </span>
+<span class="source-line-no">187</span><span id="line-187">     * @throws MalformedTemplateNameException </span>
+<span class="source-line-no">188</span><span id="line-188">     * @throws TemplateNotFoundException </span>
+<span class="source-line-no">189</span><span id="line-189">     */</span>
+<span class="source-line-no">190</span><span id="line-190">    @Handler(priority = 1000)</span>
+<span class="source-line-no">191</span><span id="line-191">    public void onConsolePrepared(ConsolePrepared event,</span>
+<span class="source-line-no">192</span><span id="line-192">            ConsoleConnection channel)</span>
+<span class="source-line-no">193</span><span id="line-193">            throws TemplateNotFoundException, MalformedTemplateNameException,</span>
+<span class="source-line-no">194</span><span id="line-194">            ParseException, IOException {</span>
+<span class="source-line-no">195</span><span id="line-195">        // If we are logged in, proceed</span>
+<span class="source-line-no">196</span><span id="line-196">        if (channel.session().containsKey(Subject.class)) {</span>
+<span class="source-line-no">197</span><span id="line-197">            return;</span>
+<span class="source-line-no">198</span><span id="line-198">        }</span>
+<span class="source-line-no">199</span><span id="line-199"></span>
+<span class="source-line-no">200</span><span id="line-200">        // Suspend handling and save event "in" channel.</span>
+<span class="source-line-no">201</span><span id="line-201">        event.suspendHandling();</span>
+<span class="source-line-no">202</span><span id="line-202">        channel.setAssociated(PENDING_CONSOLE_PREPARED, event);</span>
+<span class="source-line-no">203</span><span id="line-203"></span>
+<span class="source-line-no">204</span><span id="line-204">        // Create model and save in session.</span>
+<span class="source-line-no">205</span><span id="line-205">        String conletId = type() + TYPE_INSTANCE_SEPARATOR + "Singleton";</span>
+<span class="source-line-no">206</span><span id="line-206">        AccountModel accountModel = new AccountModel(conletId);</span>
+<span class="source-line-no">207</span><span id="line-207">        accountModel.setDialogOpen(true);</span>
+<span class="source-line-no">208</span><span id="line-208">        putInSession(channel.session(), conletId, accountModel);</span>
+<span class="source-line-no">209</span><span id="line-209"></span>
+<span class="source-line-no">210</span><span id="line-210">        // Render login dialog</span>
+<span class="source-line-no">211</span><span id="line-211">        Template tpl = freemarkerConfig().getTemplate("Login-dialog.ftl.html");</span>
+<span class="source-line-no">212</span><span id="line-212">        var bundle = resourceBundle(channel.locale());</span>
+<span class="source-line-no">213</span><span id="line-213">        channel.respond(new OpenModalDialog(type(), conletId,</span>
+<span class="source-line-no">214</span><span id="line-214">            processTemplate(event, tpl,</span>
+<span class="source-line-no">215</span><span id="line-215">                fmSessionModel(channel.session())))</span>
+<span class="source-line-no">216</span><span id="line-216">                    .addOption("title", bundle.getString("title"))</span>
+<span class="source-line-no">217</span><span id="line-217">                    .addOption("cancelable", false).addOption("okayLabel", "")</span>
+<span class="source-line-no">218</span><span id="line-218">                    .addOption("applyLabel", bundle.getString("Submit"))</span>
+<span class="source-line-no">219</span><span id="line-219">                    .addOption("useSubmit", true));</span>
+<span class="source-line-no">220</span><span id="line-220">    }</span>
+<span class="source-line-no">221</span><span id="line-221"></span>
+<span class="source-line-no">222</span><span id="line-222">    @Override</span>
+<span class="source-line-no">223</span><span id="line-223">    protected Set&lt;RenderMode&gt; doRenderConlet(RenderConletRequestBase&lt;?&gt; event,</span>
+<span class="source-line-no">224</span><span id="line-224">            ConsoleConnection channel, String conletId,</span>
+<span class="source-line-no">225</span><span id="line-225">            AccountModel model) throws Exception {</span>
+<span class="source-line-no">226</span><span id="line-226">        Set&lt;RenderMode&gt; renderedAs = new HashSet&lt;&gt;();</span>
+<span class="source-line-no">227</span><span id="line-227">        if (event.renderAs().contains(RenderMode.Content)) {</span>
+<span class="source-line-no">228</span><span id="line-228">            Template tpl</span>
+<span class="source-line-no">229</span><span id="line-229">                = freemarkerConfig().getTemplate("Login-status.ftl.html");</span>
+<span class="source-line-no">230</span><span id="line-230">            channel.respond(new RenderConlet(type(), conletId,</span>
+<span class="source-line-no">231</span><span id="line-231">                processTemplate(event, tpl,</span>
+<span class="source-line-no">232</span><span id="line-232">                    fmModel(event, channel, conletId, model)))</span>
+<span class="source-line-no">233</span><span id="line-233">                        .setRenderAs(RenderMode.Content));</span>
+<span class="source-line-no">234</span><span id="line-234">            channel.respond(new NotifyConletView(type(), conletId,</span>
+<span class="source-line-no">235</span><span id="line-235">                "updateUser",</span>
+<span class="source-line-no">236</span><span id="line-236">                WebConsoleUtils.userFromSession(channel.session())</span>
+<span class="source-line-no">237</span><span id="line-237">                    .map(ConsoleUser::getDisplayName).orElse(null)));</span>
+<span class="source-line-no">238</span><span id="line-238">            renderedAs.add(RenderMode.Content);</span>
+<span class="source-line-no">239</span><span id="line-239">        }</span>
+<span class="source-line-no">240</span><span id="line-240">        return renderedAs;</span>
 <span class="source-line-no">241</span><span id="line-241">    }</span>
 <span class="source-line-no">242</span><span id="line-242"></span>
 <span class="source-line-no">243</span><span id="line-243">    @Override</span>
-<span class="source-line-no">244</span><span id="line-244">    protected Set&lt;RenderMode&gt; doRenderConlet(RenderConletRequestBase&lt;?&gt; event,</span>
-<span class="source-line-no">245</span><span id="line-245">            ConsoleConnection channel, String conletId,</span>
-<span class="source-line-no">246</span><span id="line-246">            AccountModel model) throws Exception {</span>
-<span class="source-line-no">247</span><span id="line-247">        Set&lt;RenderMode&gt; renderedAs = new HashSet&lt;&gt;();</span>
-<span class="source-line-no">248</span><span id="line-248">        if (event.renderAs().contains(RenderMode.Content)) {</span>
-<span class="source-line-no">249</span><span id="line-249">            Template tpl</span>
-<span class="source-line-no">250</span><span id="line-250">                = freemarkerConfig().getTemplate("Login-status.ftl.html");</span>
-<span class="source-line-no">251</span><span id="line-251">            channel.respond(new RenderConlet(type(), conletId,</span>
-<span class="source-line-no">252</span><span id="line-252">                processTemplate(event, tpl,</span>
-<span class="source-line-no">253</span><span id="line-253">                    fmModel(event, channel, conletId, model)))</span>
-<span class="source-line-no">254</span><span id="line-254">                        .setRenderAs(RenderMode.Content));</span>
-<span class="source-line-no">255</span><span id="line-255">            channel.respond(new NotifyConletView(type(), conletId,</span>
-<span class="source-line-no">256</span><span id="line-256">                "updateUser",</span>
-<span class="source-line-no">257</span><span id="line-257">                WebConsoleUtils.userFromSession(channel.session())</span>
-<span class="source-line-no">258</span><span id="line-258">                    .map(ConsoleUser::getDisplayName).orElse(null)));</span>
-<span class="source-line-no">259</span><span id="line-259">            renderedAs.add(RenderMode.Content);</span>
-<span class="source-line-no">260</span><span id="line-260">        }</span>
-<span class="source-line-no">261</span><span id="line-261">        return renderedAs;</span>
-<span class="source-line-no">262</span><span id="line-262">    }</span>
-<span class="source-line-no">263</span><span id="line-263"></span>
-<span class="source-line-no">264</span><span id="line-264">    @Override</span>
-<span class="source-line-no">265</span><span id="line-265">    @SuppressWarnings("PMD.AvoidLiteralsInIfCondition")</span>
-<span class="source-line-no">266</span><span id="line-266">    protected void doUpdateConletState(NotifyConletModel event,</span>
-<span class="source-line-no">267</span><span id="line-267">            ConsoleConnection connection, AccountModel model) throws Exception {</span>
-<span class="source-line-no">268</span><span id="line-268">        var bundle = resourceBundle(connection.locale());</span>
-<span class="source-line-no">269</span><span id="line-269">        if ("loginData".equals(event.method())) {</span>
-<span class="source-line-no">270</span><span id="line-270">            String userName = event.params().asString(0);</span>
-<span class="source-line-no">271</span><span id="line-271">            if (userName == null || userName.isEmpty()) {</span>
-<span class="source-line-no">272</span><span id="line-272">                connection.respond(new NotifyConletView(type(),</span>
-<span class="source-line-no">273</span><span id="line-273">                    model.getConletId(), "setMessages",</span>
-<span class="source-line-no">274</span><span id="line-274">                    null, bundle.getString("emptyUserName")));</span>
-<span class="source-line-no">275</span><span id="line-275">                return;</span>
-<span class="source-line-no">276</span><span id="line-276">            }</span>
-<span class="source-line-no">277</span><span id="line-277">            var userData = users.get(userName);</span>
-<span class="source-line-no">278</span><span id="line-278">            String password = event.params().asString(1);</span>
-<span class="source-line-no">279</span><span id="line-279">            if (userData == null</span>
-<span class="source-line-no">280</span><span id="line-280">                || !BCrypt.verifyer().verify(password.getBytes(),</span>
-<span class="source-line-no">281</span><span id="line-281">                    userData.get("password").getBytes()).verified) {</span>
-<span class="source-line-no">282</span><span id="line-282">                connection.respond(new NotifyConletView(type(),</span>
-<span class="source-line-no">283</span><span id="line-283">                    model.getConletId(), "setMessages",</span>
-<span class="source-line-no">284</span><span id="line-284">                    null, bundle.getString("invalidCredentials")));</span>
-<span class="source-line-no">285</span><span id="line-285">                return;</span>
-<span class="source-line-no">286</span><span id="line-286">            }</span>
-<span class="source-line-no">287</span><span id="line-287">            Subject subject = new Subject();</span>
-<span class="source-line-no">288</span><span id="line-288">            subject.getPrincipals().add(new ConsoleUser(userName,</span>
-<span class="source-line-no">289</span><span id="line-289">                Optional.ofNullable(userData.get("fullName"))</span>
-<span class="source-line-no">290</span><span id="line-290">                    .orElse(userName)));</span>
-<span class="source-line-no">291</span><span id="line-291">            fire(new UserAuthenticated(event.setAssociated(this,</span>
-<span class="source-line-no">292</span><span id="line-292">                new LoginContext(connection, model)), subject)</span>
-<span class="source-line-no">293</span><span id="line-293">                    .by("Local Login"));</span>
-<span class="source-line-no">294</span><span id="line-294">            return;</span>
-<span class="source-line-no">295</span><span id="line-295">        }</span>
-<span class="source-line-no">296</span><span id="line-296">        if ("logout".equals(event.method())) {</span>
-<span class="source-line-no">297</span><span id="line-297">            Optional.ofNullable((Subject) connection.session()</span>
-<span class="source-line-no">298</span><span id="line-298">                .get(Subject.class)).map(UserLoggedOut::new).map(this::fire);</span>
-<span class="source-line-no">299</span><span id="line-299">            connection.responsePipeline()</span>
-<span class="source-line-no">300</span><span id="line-300">                .fire(new Close(), connection.upstreamChannel()).get();</span>
-<span class="source-line-no">301</span><span id="line-301">            connection.close();</span>
-<span class="source-line-no">302</span><span id="line-302">            connection.respond(new DiscardSession(connection.session(),</span>
-<span class="source-line-no">303</span><span id="line-303">                connection.webletChannel()));</span>
-<span class="source-line-no">304</span><span id="line-304">            // Alternative to sending Close (see above):</span>
-<span class="source-line-no">305</span><span id="line-305">            // channel.respond(new SimpleConsoleCommand("reload"));</span>
-<span class="source-line-no">306</span><span id="line-306">        }</span>
-<span class="source-line-no">307</span><span id="line-307">    }</span>
-<span class="source-line-no">308</span><span id="line-308"></span>
-<span class="source-line-no">309</span><span id="line-309">    /**</span>
-<span class="source-line-no">310</span><span id="line-310">     * Invoked when a user has been authenticated.</span>
-<span class="source-line-no">311</span><span id="line-311">     *</span>
-<span class="source-line-no">312</span><span id="line-312">     * @param event the event</span>
-<span class="source-line-no">313</span><span id="line-313">     * @param channel the channel</span>
-<span class="source-line-no">314</span><span id="line-314">     */</span>
-<span class="source-line-no">315</span><span id="line-315">    @Handler</span>
-<span class="source-line-no">316</span><span id="line-316">    public void onUserAuthenticated(UserAuthenticated event, Channel channel) {</span>
-<span class="source-line-no">317</span><span id="line-317">        var ctx = event.forLogin().associated(this, LoginContext.class)</span>
-<span class="source-line-no">318</span><span id="line-318">            .filter(c -&gt; c.conlet() == this).orElse(null);</span>
-<span class="source-line-no">319</span><span id="line-319">        if (ctx == null) {</span>
-<span class="source-line-no">320</span><span id="line-320">            return;</span>
-<span class="source-line-no">321</span><span id="line-321">        }</span>
-<span class="source-line-no">322</span><span id="line-322">        var model = ctx.model;</span>
-<span class="source-line-no">323</span><span id="line-323">        model.setDialogOpen(false);</span>
-<span class="source-line-no">324</span><span id="line-324">        var connection = ctx.connection;</span>
-<span class="source-line-no">325</span><span id="line-325">        connection.session().put(Subject.class, event.subject());</span>
-<span class="source-line-no">326</span><span id="line-326">        connection.respond(new CloseModalDialog(type(), model.getConletId()));</span>
-<span class="source-line-no">327</span><span id="line-327">        connection.associated(PENDING_CONSOLE_PREPARED, ConsolePrepared.class)</span>
-<span class="source-line-no">328</span><span id="line-328">            .ifPresentOrElse(ConsolePrepared::resumeHandling,</span>
-<span class="source-line-no">329</span><span id="line-329">                () -&gt; connection</span>
-<span class="source-line-no">330</span><span id="line-330">                    .respond(new SimpleConsoleCommand("reload")));</span>
-<span class="source-line-no">331</span><span id="line-331">    }</span>
-<span class="source-line-no">332</span><span id="line-332"></span>
-<span class="source-line-no">333</span><span id="line-333">    @Override</span>
-<span class="source-line-no">334</span><span id="line-334">    protected boolean doSetLocale(SetLocale event, ConsoleConnection channel,</span>
-<span class="source-line-no">335</span><span id="line-335">            String conletId) throws Exception {</span>
-<span class="source-line-no">336</span><span id="line-336">        return stateFromSession(channel.session(),</span>
-<span class="source-line-no">337</span><span id="line-337">            type() + TYPE_INSTANCE_SEPARATOR + "Singleton")</span>
-<span class="source-line-no">338</span><span id="line-338">                .map(model -&gt; !model.isDialogOpen()).orElse(true);</span>
-<span class="source-line-no">339</span><span id="line-339">    }</span>
-<span class="source-line-no">340</span><span id="line-340"></span>
-<span class="source-line-no">341</span><span id="line-341">    /**</span>
-<span class="source-line-no">342</span><span id="line-342">     * The context to preserve during the authentication process.</span>
-<span class="source-line-no">343</span><span id="line-343">     */</span>
-<span class="source-line-no">344</span><span id="line-344">    private class LoginContext {</span>
-<span class="source-line-no">345</span><span id="line-345">        public final ConsoleConnection connection;</span>
-<span class="source-line-no">346</span><span id="line-346">        public final AccountModel model;</span>
+<span class="source-line-no">244</span><span id="line-244">    @SuppressWarnings("PMD.AvoidLiteralsInIfCondition")</span>
+<span class="source-line-no">245</span><span id="line-245">    protected void doUpdateConletState(NotifyConletModel event,</span>
+<span class="source-line-no">246</span><span id="line-246">            ConsoleConnection connection, AccountModel model) throws Exception {</span>
+<span class="source-line-no">247</span><span id="line-247">        var bundle = resourceBundle(connection.locale());</span>
+<span class="source-line-no">248</span><span id="line-248">        if ("loginData".equals(event.method())) {</span>
+<span class="source-line-no">249</span><span id="line-249">            String userName = event.params().asString(0);</span>
+<span class="source-line-no">250</span><span id="line-250">            if (userName == null || userName.isEmpty()) {</span>
+<span class="source-line-no">251</span><span id="line-251">                connection.respond(new NotifyConletView(type(),</span>
+<span class="source-line-no">252</span><span id="line-252">                    model.getConletId(), "setMessages",</span>
+<span class="source-line-no">253</span><span id="line-253">                    null, bundle.getString("emptyUserName")));</span>
+<span class="source-line-no">254</span><span id="line-254">                return;</span>
+<span class="source-line-no">255</span><span id="line-255">            }</span>
+<span class="source-line-no">256</span><span id="line-256">            var userData = users.get(userName);</span>
+<span class="source-line-no">257</span><span id="line-257">            String password = event.params().asString(1);</span>
+<span class="source-line-no">258</span><span id="line-258">            if (userData == null</span>
+<span class="source-line-no">259</span><span id="line-259">                || !BCrypt.verifyer().verify(password.getBytes(),</span>
+<span class="source-line-no">260</span><span id="line-260">                    userData.get("password").getBytes()).verified) {</span>
+<span class="source-line-no">261</span><span id="line-261">                connection.respond(new NotifyConletView(type(),</span>
+<span class="source-line-no">262</span><span id="line-262">                    model.getConletId(), "setMessages",</span>
+<span class="source-line-no">263</span><span id="line-263">                    null, bundle.getString("invalidCredentials")));</span>
+<span class="source-line-no">264</span><span id="line-264">                return;</span>
+<span class="source-line-no">265</span><span id="line-265">            }</span>
+<span class="source-line-no">266</span><span id="line-266">            Subject subject = new Subject();</span>
+<span class="source-line-no">267</span><span id="line-267">            subject.getPrincipals().add(new ConsoleUser(userName,</span>
+<span class="source-line-no">268</span><span id="line-268">                Optional.ofNullable(userData.get("fullName"))</span>
+<span class="source-line-no">269</span><span id="line-269">                    .orElse(userName)));</span>
+<span class="source-line-no">270</span><span id="line-270">            fire(new UserAuthenticated(event.setAssociated(this,</span>
+<span class="source-line-no">271</span><span id="line-271">                new LoginContext(connection, model)), subject)</span>
+<span class="source-line-no">272</span><span id="line-272">                    .by("Local Login"));</span>
+<span class="source-line-no">273</span><span id="line-273">            return;</span>
+<span class="source-line-no">274</span><span id="line-274">        }</span>
+<span class="source-line-no">275</span><span id="line-275">        if ("logout".equals(event.method())) {</span>
+<span class="source-line-no">276</span><span id="line-276">            Optional.ofNullable((Subject) connection.session()</span>
+<span class="source-line-no">277</span><span id="line-277">                .get(Subject.class)).map(UserLoggedOut::new).map(this::fire);</span>
+<span class="source-line-no">278</span><span id="line-278">            connection.responsePipeline()</span>
+<span class="source-line-no">279</span><span id="line-279">                .fire(new Close(), connection.upstreamChannel()).get();</span>
+<span class="source-line-no">280</span><span id="line-280">            connection.close();</span>
+<span class="source-line-no">281</span><span id="line-281">            connection.respond(new DiscardSession(connection.session(),</span>
+<span class="source-line-no">282</span><span id="line-282">                connection.webletChannel()));</span>
+<span class="source-line-no">283</span><span id="line-283">            // Alternative to sending Close (see above):</span>
+<span class="source-line-no">284</span><span id="line-284">            // channel.respond(new SimpleConsoleCommand("reload"));</span>
+<span class="source-line-no">285</span><span id="line-285">        }</span>
+<span class="source-line-no">286</span><span id="line-286">    }</span>
+<span class="source-line-no">287</span><span id="line-287"></span>
+<span class="source-line-no">288</span><span id="line-288">    /**</span>
+<span class="source-line-no">289</span><span id="line-289">     * Invoked when a user has been authenticated.</span>
+<span class="source-line-no">290</span><span id="line-290">     *</span>
+<span class="source-line-no">291</span><span id="line-291">     * @param event the event</span>
+<span class="source-line-no">292</span><span id="line-292">     * @param channel the channel</span>
+<span class="source-line-no">293</span><span id="line-293">     */</span>
+<span class="source-line-no">294</span><span id="line-294">    @Handler</span>
+<span class="source-line-no">295</span><span id="line-295">    public void onUserAuthenticated(UserAuthenticated event, Channel channel) {</span>
+<span class="source-line-no">296</span><span id="line-296">        var ctx = event.forLogin().associated(this, LoginContext.class)</span>
+<span class="source-line-no">297</span><span id="line-297">            .filter(c -&gt; c.conlet() == this).orElse(null);</span>
+<span class="source-line-no">298</span><span id="line-298">        if (ctx == null) {</span>
+<span class="source-line-no">299</span><span id="line-299">            return;</span>
+<span class="source-line-no">300</span><span id="line-300">        }</span>
+<span class="source-line-no">301</span><span id="line-301">        var model = ctx.model;</span>
+<span class="source-line-no">302</span><span id="line-302">        model.setDialogOpen(false);</span>
+<span class="source-line-no">303</span><span id="line-303">        var connection = ctx.connection;</span>
+<span class="source-line-no">304</span><span id="line-304">        connection.session().put(Subject.class, event.subject());</span>
+<span class="source-line-no">305</span><span id="line-305">        connection.respond(new CloseModalDialog(type(), model.getConletId()));</span>
+<span class="source-line-no">306</span><span id="line-306">        connection.associated(PENDING_CONSOLE_PREPARED, ConsolePrepared.class)</span>
+<span class="source-line-no">307</span><span id="line-307">            .ifPresentOrElse(ConsolePrepared::resumeHandling,</span>
+<span class="source-line-no">308</span><span id="line-308">                () -&gt; connection</span>
+<span class="source-line-no">309</span><span id="line-309">                    .respond(new SimpleConsoleCommand("reload")));</span>
+<span class="source-line-no">310</span><span id="line-310">    }</span>
+<span class="source-line-no">311</span><span id="line-311"></span>
+<span class="source-line-no">312</span><span id="line-312">    @Override</span>
+<span class="source-line-no">313</span><span id="line-313">    protected boolean doSetLocale(SetLocale event, ConsoleConnection channel,</span>
+<span class="source-line-no">314</span><span id="line-314">            String conletId) throws Exception {</span>
+<span class="source-line-no">315</span><span id="line-315">        return stateFromSession(channel.session(),</span>
+<span class="source-line-no">316</span><span id="line-316">            type() + TYPE_INSTANCE_SEPARATOR + "Singleton")</span>
+<span class="source-line-no">317</span><span id="line-317">                .map(model -&gt; !model.isDialogOpen()).orElse(true);</span>
+<span class="source-line-no">318</span><span id="line-318">    }</span>
+<span class="source-line-no">319</span><span id="line-319"></span>
+<span class="source-line-no">320</span><span id="line-320">    /**</span>
+<span class="source-line-no">321</span><span id="line-321">     * The context to preserve during the authentication process.</span>
+<span class="source-line-no">322</span><span id="line-322">     */</span>
+<span class="source-line-no">323</span><span id="line-323">    private class LoginContext {</span>
+<span class="source-line-no">324</span><span id="line-324">        public final ConsoleConnection connection;</span>
+<span class="source-line-no">325</span><span id="line-325">        public final AccountModel model;</span>
+<span class="source-line-no">326</span><span id="line-326"></span>
+<span class="source-line-no">327</span><span id="line-327">        /**</span>
+<span class="source-line-no">328</span><span id="line-328">         * Instantiates a new oidc context.</span>
+<span class="source-line-no">329</span><span id="line-329">         *</span>
+<span class="source-line-no">330</span><span id="line-330">         * @param connection the connection</span>
+<span class="source-line-no">331</span><span id="line-331">         * @param model the model</span>
+<span class="source-line-no">332</span><span id="line-332">         */</span>
+<span class="source-line-no">333</span><span id="line-333">        public LoginContext(ConsoleConnection connection, AccountModel model) {</span>
+<span class="source-line-no">334</span><span id="line-334">            this.connection = connection;</span>
+<span class="source-line-no">335</span><span id="line-335">            this.model = model;</span>
+<span class="source-line-no">336</span><span id="line-336">        }</span>
+<span class="source-line-no">337</span><span id="line-337"></span>
+<span class="source-line-no">338</span><span id="line-338">        /**</span>
+<span class="source-line-no">339</span><span id="line-339">         * Returns the conlet (the outer class).</span>
+<span class="source-line-no">340</span><span id="line-340">         *</span>
+<span class="source-line-no">341</span><span id="line-341">         * @return the login conlet</span>
+<span class="source-line-no">342</span><span id="line-342">         */</span>
+<span class="source-line-no">343</span><span id="line-343">        public LoginConlet conlet() {</span>
+<span class="source-line-no">344</span><span id="line-344">            return LoginConlet.this;</span>
+<span class="source-line-no">345</span><span id="line-345">        }</span>
+<span class="source-line-no">346</span><span id="line-346">    }</span>
 <span class="source-line-no">347</span><span id="line-347"></span>
-<span class="source-line-no">348</span><span id="line-348">        /**</span>
-<span class="source-line-no">349</span><span id="line-349">         * Instantiates a new oidc context.</span>
-<span class="source-line-no">350</span><span id="line-350">         *</span>
-<span class="source-line-no">351</span><span id="line-351">         * @param connection the connection</span>
-<span class="source-line-no">352</span><span id="line-352">         * @param model the model</span>
-<span class="source-line-no">353</span><span id="line-353">         */</span>
-<span class="source-line-no">354</span><span id="line-354">        public LoginContext(ConsoleConnection connection, AccountModel model) {</span>
-<span class="source-line-no">355</span><span id="line-355">            this.connection = connection;</span>
-<span class="source-line-no">356</span><span id="line-356">            this.model = model;</span>
-<span class="source-line-no">357</span><span id="line-357">        }</span>
-<span class="source-line-no">358</span><span id="line-358"></span>
-<span class="source-line-no">359</span><span id="line-359">        /**</span>
-<span class="source-line-no">360</span><span id="line-360">         * Returns the conlet (the outer class).</span>
-<span class="source-line-no">361</span><span id="line-361">         *</span>
-<span class="source-line-no">362</span><span id="line-362">         * @return the login conlet</span>
-<span class="source-line-no">363</span><span id="line-363">         */</span>
-<span class="source-line-no">364</span><span id="line-364">        public LoginConlet conlet() {</span>
-<span class="source-line-no">365</span><span id="line-365">            return LoginConlet.this;</span>
-<span class="source-line-no">366</span><span id="line-366">        }</span>
-<span class="source-line-no">367</span><span id="line-367">    }</span>
-<span class="source-line-no">368</span><span id="line-368"></span>
-<span class="source-line-no">369</span><span id="line-369">    /**</span>
-<span class="source-line-no">370</span><span id="line-370">     * Model with account info.</span>
-<span class="source-line-no">371</span><span id="line-371">     */</span>
-<span class="source-line-no">372</span><span id="line-372">    public static class AccountModel extends ConletBaseModel {</span>
+<span class="source-line-no">348</span><span id="line-348">    /**</span>
+<span class="source-line-no">349</span><span id="line-349">     * Model with account info.</span>
+<span class="source-line-no">350</span><span id="line-350">     */</span>
+<span class="source-line-no">351</span><span id="line-351">    public static class AccountModel extends ConletBaseModel {</span>
+<span class="source-line-no">352</span><span id="line-352"></span>
+<span class="source-line-no">353</span><span id="line-353">        private boolean dialogOpen;</span>
+<span class="source-line-no">354</span><span id="line-354"></span>
+<span class="source-line-no">355</span><span id="line-355">        /**</span>
+<span class="source-line-no">356</span><span id="line-356">         * Creates a new model with the given type and id.</span>
+<span class="source-line-no">357</span><span id="line-357">         * </span>
+<span class="source-line-no">358</span><span id="line-358">         * @param conletId the web console component id</span>
+<span class="source-line-no">359</span><span id="line-359">         */</span>
+<span class="source-line-no">360</span><span id="line-360">        @ConstructorProperties({ "conletId" })</span>
+<span class="source-line-no">361</span><span id="line-361">        public AccountModel(String conletId) {</span>
+<span class="source-line-no">362</span><span id="line-362">            super(conletId);</span>
+<span class="source-line-no">363</span><span id="line-363">        }</span>
+<span class="source-line-no">364</span><span id="line-364"></span>
+<span class="source-line-no">365</span><span id="line-365">        /**</span>
+<span class="source-line-no">366</span><span id="line-366">         * Checks if is dialog open.</span>
+<span class="source-line-no">367</span><span id="line-367">         *</span>
+<span class="source-line-no">368</span><span id="line-368">         * @return true, if is dialog open</span>
+<span class="source-line-no">369</span><span id="line-369">         */</span>
+<span class="source-line-no">370</span><span id="line-370">        public boolean isDialogOpen() {</span>
+<span class="source-line-no">371</span><span id="line-371">            return dialogOpen;</span>
+<span class="source-line-no">372</span><span id="line-372">        }</span>
 <span class="source-line-no">373</span><span id="line-373"></span>
-<span class="source-line-no">374</span><span id="line-374">        private boolean dialogOpen;</span>
-<span class="source-line-no">375</span><span id="line-375"></span>
-<span class="source-line-no">376</span><span id="line-376">        /**</span>
-<span class="source-line-no">377</span><span id="line-377">         * Creates a new model with the given type and id.</span>
-<span class="source-line-no">378</span><span id="line-378">         * </span>
-<span class="source-line-no">379</span><span id="line-379">         * @param conletId the web console component id</span>
-<span class="source-line-no">380</span><span id="line-380">         */</span>
-<span class="source-line-no">381</span><span id="line-381">        @ConstructorProperties({ "conletId" })</span>
-<span class="source-line-no">382</span><span id="line-382">        public AccountModel(String conletId) {</span>
-<span class="source-line-no">383</span><span id="line-383">            super(conletId);</span>
-<span class="source-line-no">384</span><span id="line-384">        }</span>
-<span class="source-line-no">385</span><span id="line-385"></span>
-<span class="source-line-no">386</span><span id="line-386">        /**</span>
-<span class="source-line-no">387</span><span id="line-387">         * Checks if is dialog open.</span>
-<span class="source-line-no">388</span><span id="line-388">         *</span>
-<span class="source-line-no">389</span><span id="line-389">         * @return true, if is dialog open</span>
-<span class="source-line-no">390</span><span id="line-390">         */</span>
-<span class="source-line-no">391</span><span id="line-391">        public boolean isDialogOpen() {</span>
-<span class="source-line-no">392</span><span id="line-392">            return dialogOpen;</span>
-<span class="source-line-no">393</span><span id="line-393">        }</span>
-<span class="source-line-no">394</span><span id="line-394"></span>
-<span class="source-line-no">395</span><span id="line-395">        /**</span>
-<span class="source-line-no">396</span><span id="line-396">         * Sets the dialog open.</span>
-<span class="source-line-no">397</span><span id="line-397">         *</span>
-<span class="source-line-no">398</span><span id="line-398">         * @param dialogOpen the new dialog open</span>
-<span class="source-line-no">399</span><span id="line-399">         */</span>
-<span class="source-line-no">400</span><span id="line-400">        public void setDialogOpen(boolean dialogOpen) {</span>
-<span class="source-line-no">401</span><span id="line-401">            this.dialogOpen = dialogOpen;</span>
-<span class="source-line-no">402</span><span id="line-402">        }</span>
-<span class="source-line-no">403</span><span id="line-403"></span>
-<span class="source-line-no">404</span><span id="line-404">    }</span>
-<span class="source-line-no">405</span><span id="line-405"></span>
-<span class="source-line-no">406</span><span id="line-406">}</span>
+<span class="source-line-no">374</span><span id="line-374">        /**</span>
+<span class="source-line-no">375</span><span id="line-375">         * Sets the dialog open.</span>
+<span class="source-line-no">376</span><span id="line-376">         *</span>
+<span class="source-line-no">377</span><span id="line-377">         * @param dialogOpen the new dialog open</span>
+<span class="source-line-no">378</span><span id="line-378">         */</span>
+<span class="source-line-no">379</span><span id="line-379">        public void setDialogOpen(boolean dialogOpen) {</span>
+<span class="source-line-no">380</span><span id="line-380">            this.dialogOpen = dialogOpen;</span>
+<span class="source-line-no">381</span><span id="line-381">        }</span>
+<span class="source-line-no">382</span><span id="line-382"></span>
+<span class="source-line-no">383</span><span id="line-383">    }</span>
+<span class="source-line-no">384</span><span id="line-384"></span>
+<span class="source-line-no">385</span><span id="line-385">}</span>
 
 
 
