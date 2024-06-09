@@ -234,180 +234,182 @@
 <span class="source-line-no">221</span><span id="line-221">     * </span>
 <span class="source-line-no">222</span><span id="line-222">     * This model provides:</span>
 <span class="source-line-no">223</span><span id="line-223">     *  * The `event` property (of type {@link RenderConletRequest}).</span>
-<span class="source-line-no">224</span><span id="line-224">     *  * The `conletId` property (of type {@link String}).</span>
-<span class="source-line-no">225</span><span id="line-225">     *  * The `conlet` property with the conlet's state (if not `null`).</span>
-<span class="source-line-no">226</span><span id="line-226">     *  * The function `_Id(String base)` that creates a unique</span>
-<span class="source-line-no">227</span><span id="line-227">     *    id for an HTML element by appending the web console component </span>
-<span class="source-line-no">228</span><span id="line-228">     *    id to the provided base.</span>
-<span class="source-line-no">229</span><span id="line-229">     *  * The `conletProperties` which are the properties from </span>
-<span class="source-line-no">230</span><span id="line-230">     *    an {@link AddConletRequest}, or an empty map.</span>
-<span class="source-line-no">231</span><span id="line-231">     *</span>
-<span class="source-line-no">232</span><span id="line-232">     * @param event the event</span>
-<span class="source-line-no">233</span><span id="line-233">     * @param channel the channel</span>
-<span class="source-line-no">234</span><span id="line-234">     * @param conletId the conlet id</span>
-<span class="source-line-no">235</span><span id="line-235">     * @param conletState the conlet's state information</span>
-<span class="source-line-no">236</span><span id="line-236">     * @return the model</span>
-<span class="source-line-no">237</span><span id="line-237">     */</span>
-<span class="source-line-no">238</span><span id="line-238">    protected Map&lt;String, Object&gt; fmConletModel(Event&lt;?&gt; event,</span>
-<span class="source-line-no">239</span><span id="line-239">            IOSubchannel channel, String conletId, Object conletState) {</span>
-<span class="source-line-no">240</span><span id="line-240">        @SuppressWarnings("PMD.UseConcurrentHashMap")</span>
-<span class="source-line-no">241</span><span id="line-241">        final Map&lt;String, Object&gt; model = new HashMap&lt;&gt;();</span>
-<span class="source-line-no">242</span><span id="line-242">        model.put("event", event);</span>
-<span class="source-line-no">243</span><span id="line-243">        model.put("conletId", conletId);</span>
-<span class="source-line-no">244</span><span id="line-244">        if (conletState != null) {</span>
-<span class="source-line-no">245</span><span id="line-245">            model.put("conlet", conletState);</span>
-<span class="source-line-no">246</span><span id="line-246">        }</span>
-<span class="source-line-no">247</span><span id="line-247">        model.put("_id", new TemplateMethodModelEx() {</span>
-<span class="source-line-no">248</span><span id="line-248">            @Override</span>
-<span class="source-line-no">249</span><span id="line-249">            public Object exec(@SuppressWarnings("rawtypes") List arguments)</span>
-<span class="source-line-no">250</span><span id="line-250">                    throws TemplateModelException {</span>
-<span class="source-line-no">251</span><span id="line-251">                @SuppressWarnings("unchecked")</span>
-<span class="source-line-no">252</span><span id="line-252">                List&lt;TemplateModel&gt; args = (List&lt;TemplateModel&gt;) arguments;</span>
-<span class="source-line-no">253</span><span id="line-253">                if (!(args.get(0) instanceof SimpleScalar)) {</span>
-<span class="source-line-no">254</span><span id="line-254">                    throw new TemplateModelException("Not a string.");</span>
-<span class="source-line-no">255</span><span id="line-255">                }</span>
-<span class="source-line-no">256</span><span id="line-256">                return ((SimpleScalar) args.get(0)).getAsString()</span>
-<span class="source-line-no">257</span><span id="line-257">                    + "-" + conletId;</span>
-<span class="source-line-no">258</span><span id="line-258">            }</span>
-<span class="source-line-no">259</span><span id="line-259">        });</span>
-<span class="source-line-no">260</span><span id="line-260">        if (event instanceof AddConletRequest) {</span>
-<span class="source-line-no">261</span><span id="line-261">            model.put("conletProperties",</span>
-<span class="source-line-no">262</span><span id="line-262">                ((AddConletRequest) event).properties());</span>
-<span class="source-line-no">263</span><span id="line-263">        } else {</span>
-<span class="source-line-no">264</span><span id="line-264">            model.put("conletProperties", Collections.emptyMap());</span>
-<span class="source-line-no">265</span><span id="line-265">        }</span>
-<span class="source-line-no">266</span><span id="line-266">        return model;</span>
-<span class="source-line-no">267</span><span id="line-267">    }</span>
-<span class="source-line-no">268</span><span id="line-268"></span>
-<span class="source-line-no">269</span><span id="line-269">    /**</span>
-<span class="source-line-no">270</span><span id="line-270">     * Build a freemarker model that combines {@link #fmTypeModel},</span>
-<span class="source-line-no">271</span><span id="line-271">     * {@link #fmSessionModel} and {@link #fmConletModel}. </span>
-<span class="source-line-no">272</span><span id="line-272">     *</span>
-<span class="source-line-no">273</span><span id="line-273">     * @param event the event</span>
-<span class="source-line-no">274</span><span id="line-274">     * @param channel the channel</span>
-<span class="source-line-no">275</span><span id="line-275">     * @param conletId the conlet id</span>
-<span class="source-line-no">276</span><span id="line-276">     * @param conletState the conlet's state information</span>
-<span class="source-line-no">277</span><span id="line-277">     * @return the model</span>
-<span class="source-line-no">278</span><span id="line-278">     */</span>
-<span class="source-line-no">279</span><span id="line-279">    protected Map&lt;String, Object&gt; fmModel(RenderConletRequestBase&lt;?&gt; event,</span>
-<span class="source-line-no">280</span><span id="line-280">            ConsoleConnection channel, String conletId, Object conletState) {</span>
-<span class="source-line-no">281</span><span id="line-281">        return fmModel(event, event.renderSupport(), channel, conletId,</span>
-<span class="source-line-no">282</span><span id="line-282">            conletState);</span>
-<span class="source-line-no">283</span><span id="line-283">    }</span>
-<span class="source-line-no">284</span><span id="line-284"></span>
-<span class="source-line-no">285</span><span id="line-285">    /**</span>
-<span class="source-line-no">286</span><span id="line-286">     * Build a freemarker model that combines {@link #fmTypeModel},</span>
-<span class="source-line-no">287</span><span id="line-287">     * {@link #fmSessionModel} and {@link #fmConletModel}. </span>
-<span class="source-line-no">288</span><span id="line-288">     *</span>
-<span class="source-line-no">289</span><span id="line-289">     * @param event the event</span>
-<span class="source-line-no">290</span><span id="line-290">     * @param channel the channel</span>
-<span class="source-line-no">291</span><span id="line-291">     * @param conletId the conlet id</span>
-<span class="source-line-no">292</span><span id="line-292">     * @param conletState the conlet's state information</span>
-<span class="source-line-no">293</span><span id="line-293">     * @return the model</span>
-<span class="source-line-no">294</span><span id="line-294">     */</span>
-<span class="source-line-no">295</span><span id="line-295">    protected Map&lt;String, Object&gt; fmModel(NotifyConletModel event,</span>
-<span class="source-line-no">296</span><span id="line-296">            ConsoleConnection channel, String conletId, Object conletState) {</span>
-<span class="source-line-no">297</span><span id="line-297">        return fmModel(event, event.renderSupport(), channel, conletId,</span>
-<span class="source-line-no">298</span><span id="line-298">            conletState);</span>
-<span class="source-line-no">299</span><span id="line-299">    }</span>
-<span class="source-line-no">300</span><span id="line-300"></span>
-<span class="source-line-no">301</span><span id="line-301">    private Map&lt;String, Object&gt; fmModel(Event&lt;?&gt; event,</span>
-<span class="source-line-no">302</span><span id="line-302">            RenderSupport renderSupport, ConsoleConnection channel,</span>
-<span class="source-line-no">303</span><span id="line-303">            String conletId, Object conletState) {</span>
-<span class="source-line-no">304</span><span id="line-304">        final Map&lt;String, Object&gt; model</span>
-<span class="source-line-no">305</span><span id="line-305">            = fmSessionModel(channel.session());</span>
-<span class="source-line-no">306</span><span id="line-306">        model.put("locale", channel.locale());</span>
-<span class="source-line-no">307</span><span id="line-307">        model.putAll(fmTypeModel(renderSupport));</span>
-<span class="source-line-no">308</span><span id="line-308">        model.putAll(fmConletModel(event, channel, conletId, conletState));</span>
-<span class="source-line-no">309</span><span id="line-309">        return model;</span>
-<span class="source-line-no">310</span><span id="line-310">    }</span>
-<span class="source-line-no">311</span><span id="line-311"></span>
-<span class="source-line-no">312</span><span id="line-312">    /**</span>
-<span class="source-line-no">313</span><span id="line-313">     * Checks if the path of the requested resource ends with</span>
-<span class="source-line-no">314</span><span id="line-314">     * `*.ftl.*`. If so, processes the template with the</span>
-<span class="source-line-no">315</span><span id="line-315">     * {@link #fmTypeModel(RenderSupport)} and </span>
-<span class="source-line-no">316</span><span id="line-316">     * {@link #fmSessionModel(Session)} and</span>
-<span class="source-line-no">317</span><span id="line-317">     * sends the result. Else, invoke the super class' method. </span>
-<span class="source-line-no">318</span><span id="line-318">     * </span>
-<span class="source-line-no">319</span><span id="line-319">     * @param event the event. The result will be set to</span>
-<span class="source-line-no">320</span><span id="line-320">     * `true` on success</span>
-<span class="source-line-no">321</span><span id="line-321">     * @param channel the channel</span>
-<span class="source-line-no">322</span><span id="line-322">     */</span>
-<span class="source-line-no">323</span><span id="line-323">    @Override</span>
-<span class="source-line-no">324</span><span id="line-324">    protected void doGetResource(ConletResourceRequest event,</span>
-<span class="source-line-no">325</span><span id="line-325">            IOSubchannel channel) {</span>
-<span class="source-line-no">326</span><span id="line-326">        if (!templatePattern.matcher(event.resourceUri().getPath()).matches()) {</span>
-<span class="source-line-no">327</span><span id="line-327">            super.doGetResource(event, channel);</span>
-<span class="source-line-no">328</span><span id="line-328">            return;</span>
-<span class="source-line-no">329</span><span id="line-329">        }</span>
-<span class="source-line-no">330</span><span id="line-330">        try {</span>
-<span class="source-line-no">331</span><span id="line-331">            // Prepare template</span>
-<span class="source-line-no">332</span><span id="line-332">            final Template tpl = freemarkerConfig().getTemplate(</span>
-<span class="source-line-no">333</span><span id="line-333">                event.resourceUri().getPath());</span>
-<span class="source-line-no">334</span><span id="line-334">            Map&lt;String, Object&gt; model = fmSessionModel(event.session());</span>
-<span class="source-line-no">335</span><span id="line-335">            model.putAll(fmTypeModel(event.renderSupport()));</span>
-<span class="source-line-no">336</span><span id="line-336"></span>
-<span class="source-line-no">337</span><span id="line-337">            // Everything successfully prepared</span>
-<span class="source-line-no">338</span><span id="line-338">            event.setResult(new ResourceByProducer(event,</span>
-<span class="source-line-no">339</span><span id="line-339">                c -&gt; {</span>
-<span class="source-line-no">340</span><span id="line-340">                    try {</span>
-<span class="source-line-no">341</span><span id="line-341">                        tpl.process(model, new ByteBufferWriter(c));</span>
-<span class="source-line-no">342</span><span id="line-342">                    } catch (TemplateException e) {</span>
-<span class="source-line-no">343</span><span id="line-343">                        throw new IOException(e);</span>
-<span class="source-line-no">344</span><span id="line-344">                    }</span>
-<span class="source-line-no">345</span><span id="line-345">                }, HttpResponse.contentType(event.resourceUri()),</span>
-<span class="source-line-no">346</span><span id="line-346">                Instant.now(), 0));</span>
-<span class="source-line-no">347</span><span id="line-347">            event.stop();</span>
-<span class="source-line-no">348</span><span id="line-348">        } catch (IOException e) { // NOPMD</span>
-<span class="source-line-no">349</span><span id="line-349">            throw new IllegalArgumentException(e);</span>
-<span class="source-line-no">350</span><span id="line-350">        }</span>
-<span class="source-line-no">351</span><span id="line-351">    }</span>
-<span class="source-line-no">352</span><span id="line-352"></span>
-<span class="source-line-no">353</span><span id="line-353">    /**</span>
-<span class="source-line-no">354</span><span id="line-354">     * Returns a future string providing the result</span>
-<span class="source-line-no">355</span><span id="line-355">     * from processing the given template with the given data.</span>
-<span class="source-line-no">356</span><span id="line-356">     * </span>
-<span class="source-line-no">357</span><span id="line-357">     * The method delegates to</span>
-<span class="source-line-no">358</span><span id="line-358">     * {@link #processTemplate(Event, Template, Object)}. The version with</span>
-<span class="source-line-no">359</span><span id="line-359">     * this signature is kept for backward compatibility.</span>
-<span class="source-line-no">360</span><span id="line-360">     *</span>
-<span class="source-line-no">361</span><span id="line-361">     * @param request the request, used to obtain the</span>
-<span class="source-line-no">362</span><span id="line-362">     * {@link ExecutorService} service related with the request being</span>
-<span class="source-line-no">363</span><span id="line-363">     * processed</span>
-<span class="source-line-no">364</span><span id="line-364">     * @param template the template</span>
-<span class="source-line-no">365</span><span id="line-365">     * @param dataModel the data model</span>
-<span class="source-line-no">366</span><span id="line-366">     * @return the future</span>
-<span class="source-line-no">367</span><span id="line-367">     */</span>
-<span class="source-line-no">368</span><span id="line-368">    public Future&lt;String&gt; processTemplate(RenderConletRequestBase&lt;?&gt; request,</span>
-<span class="source-line-no">369</span><span id="line-369">            Template template, Object dataModel) {</span>
-<span class="source-line-no">370</span><span id="line-370">        return processTemplate((Event&lt;?&gt;) request, template, dataModel);</span>
-<span class="source-line-no">371</span><span id="line-371">    }</span>
-<span class="source-line-no">372</span><span id="line-372"></span>
-<span class="source-line-no">373</span><span id="line-373">    /**</span>
-<span class="source-line-no">374</span><span id="line-374">     * Returns a future string providing the result</span>
-<span class="source-line-no">375</span><span id="line-375">     * from processing the given template with the given data. </span>
-<span class="source-line-no">376</span><span id="line-376">     *</span>
-<span class="source-line-no">377</span><span id="line-377">     * @param request the request, used to obtain the</span>
-<span class="source-line-no">378</span><span id="line-378">     * {@link ExecutorService} service related with the request being</span>
-<span class="source-line-no">379</span><span id="line-379">     * processed</span>
-<span class="source-line-no">380</span><span id="line-380">     * @param template the template</span>
-<span class="source-line-no">381</span><span id="line-381">     * @param dataModel the data model</span>
-<span class="source-line-no">382</span><span id="line-382">     * @return the future</span>
-<span class="source-line-no">383</span><span id="line-383">     */</span>
-<span class="source-line-no">384</span><span id="line-384">    public Future&lt;String&gt; processTemplate(Event&lt;?&gt; request, Template template,</span>
-<span class="source-line-no">385</span><span id="line-385">            Object dataModel) {</span>
-<span class="source-line-no">386</span><span id="line-386">        return request.processedBy().map(EventPipeline::executorService)</span>
-<span class="source-line-no">387</span><span id="line-387">            .orElse(Components.defaultExecutorService()).submit(() -&gt; {</span>
-<span class="source-line-no">388</span><span id="line-388">                StringWriter out = new StringWriter();</span>
-<span class="source-line-no">389</span><span id="line-389">                try {</span>
-<span class="source-line-no">390</span><span id="line-390">                    template.process(dataModel, out);</span>
-<span class="source-line-no">391</span><span id="line-391">                } catch (TemplateException | IOException e) {</span>
-<span class="source-line-no">392</span><span id="line-392">                    throw new IllegalArgumentException(e);</span>
-<span class="source-line-no">393</span><span id="line-393">                }</span>
-<span class="source-line-no">394</span><span id="line-394">                return out.toString();</span>
-<span class="source-line-no">395</span><span id="line-395">            });</span>
-<span class="source-line-no">396</span><span id="line-396">    }</span>
-<span class="source-line-no">397</span><span id="line-397">}</span>
+<span class="source-line-no">224</span><span id="line-224">     *  * The `conletType` property (of type {@link String}).</span>
+<span class="source-line-no">225</span><span id="line-225">     *  * The `conletId` property (of type {@link String}).</span>
+<span class="source-line-no">226</span><span id="line-226">     *  * The `conlet` property with the conlet's state (if not `null`).</span>
+<span class="source-line-no">227</span><span id="line-227">     *  * The function `_Id(String base)` that creates a unique</span>
+<span class="source-line-no">228</span><span id="line-228">     *    id for an HTML element by appending the web console component </span>
+<span class="source-line-no">229</span><span id="line-229">     *    id to the provided base.</span>
+<span class="source-line-no">230</span><span id="line-230">     *  * The `conletProperties` which are the properties from </span>
+<span class="source-line-no">231</span><span id="line-231">     *    an {@link AddConletRequest}, or an empty map.</span>
+<span class="source-line-no">232</span><span id="line-232">     *</span>
+<span class="source-line-no">233</span><span id="line-233">     * @param event the event</span>
+<span class="source-line-no">234</span><span id="line-234">     * @param channel the channel</span>
+<span class="source-line-no">235</span><span id="line-235">     * @param conletId the conlet id</span>
+<span class="source-line-no">236</span><span id="line-236">     * @param conletState the conlet's state information</span>
+<span class="source-line-no">237</span><span id="line-237">     * @return the model</span>
+<span class="source-line-no">238</span><span id="line-238">     */</span>
+<span class="source-line-no">239</span><span id="line-239">    protected Map&lt;String, Object&gt; fmConletModel(Event&lt;?&gt; event,</span>
+<span class="source-line-no">240</span><span id="line-240">            IOSubchannel channel, String conletId, Object conletState) {</span>
+<span class="source-line-no">241</span><span id="line-241">        @SuppressWarnings("PMD.UseConcurrentHashMap")</span>
+<span class="source-line-no">242</span><span id="line-242">        final Map&lt;String, Object&gt; model = new HashMap&lt;&gt;();</span>
+<span class="source-line-no">243</span><span id="line-243">        model.put("event", event);</span>
+<span class="source-line-no">244</span><span id="line-244">        model.put("conletType", type());</span>
+<span class="source-line-no">245</span><span id="line-245">        model.put("conletId", conletId);</span>
+<span class="source-line-no">246</span><span id="line-246">        if (conletState != null) {</span>
+<span class="source-line-no">247</span><span id="line-247">            model.put("conlet", conletState);</span>
+<span class="source-line-no">248</span><span id="line-248">        }</span>
+<span class="source-line-no">249</span><span id="line-249">        model.put("_id", new TemplateMethodModelEx() {</span>
+<span class="source-line-no">250</span><span id="line-250">            @Override</span>
+<span class="source-line-no">251</span><span id="line-251">            public Object exec(@SuppressWarnings("rawtypes") List arguments)</span>
+<span class="source-line-no">252</span><span id="line-252">                    throws TemplateModelException {</span>
+<span class="source-line-no">253</span><span id="line-253">                @SuppressWarnings("unchecked")</span>
+<span class="source-line-no">254</span><span id="line-254">                List&lt;TemplateModel&gt; args = (List&lt;TemplateModel&gt;) arguments;</span>
+<span class="source-line-no">255</span><span id="line-255">                if (!(args.get(0) instanceof SimpleScalar)) {</span>
+<span class="source-line-no">256</span><span id="line-256">                    throw new TemplateModelException("Not a string.");</span>
+<span class="source-line-no">257</span><span id="line-257">                }</span>
+<span class="source-line-no">258</span><span id="line-258">                return ((SimpleScalar) args.get(0)).getAsString()</span>
+<span class="source-line-no">259</span><span id="line-259">                    + "-" + conletId;</span>
+<span class="source-line-no">260</span><span id="line-260">            }</span>
+<span class="source-line-no">261</span><span id="line-261">        });</span>
+<span class="source-line-no">262</span><span id="line-262">        if (event instanceof AddConletRequest) {</span>
+<span class="source-line-no">263</span><span id="line-263">            model.put("conletProperties",</span>
+<span class="source-line-no">264</span><span id="line-264">                ((AddConletRequest) event).properties());</span>
+<span class="source-line-no">265</span><span id="line-265">        } else {</span>
+<span class="source-line-no">266</span><span id="line-266">            model.put("conletProperties", Collections.emptyMap());</span>
+<span class="source-line-no">267</span><span id="line-267">        }</span>
+<span class="source-line-no">268</span><span id="line-268">        return model;</span>
+<span class="source-line-no">269</span><span id="line-269">    }</span>
+<span class="source-line-no">270</span><span id="line-270"></span>
+<span class="source-line-no">271</span><span id="line-271">    /**</span>
+<span class="source-line-no">272</span><span id="line-272">     * Build a freemarker model that combines {@link #fmTypeModel},</span>
+<span class="source-line-no">273</span><span id="line-273">     * {@link #fmSessionModel} and {@link #fmConletModel}. </span>
+<span class="source-line-no">274</span><span id="line-274">     *</span>
+<span class="source-line-no">275</span><span id="line-275">     * @param event the event</span>
+<span class="source-line-no">276</span><span id="line-276">     * @param channel the channel</span>
+<span class="source-line-no">277</span><span id="line-277">     * @param conletId the conlet id</span>
+<span class="source-line-no">278</span><span id="line-278">     * @param conletState the conlet's state information</span>
+<span class="source-line-no">279</span><span id="line-279">     * @return the model</span>
+<span class="source-line-no">280</span><span id="line-280">     */</span>
+<span class="source-line-no">281</span><span id="line-281">    protected Map&lt;String, Object&gt; fmModel(RenderConletRequestBase&lt;?&gt; event,</span>
+<span class="source-line-no">282</span><span id="line-282">            ConsoleConnection channel, String conletId, Object conletState) {</span>
+<span class="source-line-no">283</span><span id="line-283">        return fmModel(event, event.renderSupport(), channel, conletId,</span>
+<span class="source-line-no">284</span><span id="line-284">            conletState);</span>
+<span class="source-line-no">285</span><span id="line-285">    }</span>
+<span class="source-line-no">286</span><span id="line-286"></span>
+<span class="source-line-no">287</span><span id="line-287">    /**</span>
+<span class="source-line-no">288</span><span id="line-288">     * Build a freemarker model that combines {@link #fmTypeModel},</span>
+<span class="source-line-no">289</span><span id="line-289">     * {@link #fmSessionModel} and {@link #fmConletModel}. </span>
+<span class="source-line-no">290</span><span id="line-290">     *</span>
+<span class="source-line-no">291</span><span id="line-291">     * @param event the event</span>
+<span class="source-line-no">292</span><span id="line-292">     * @param channel the channel</span>
+<span class="source-line-no">293</span><span id="line-293">     * @param conletId the conlet id</span>
+<span class="source-line-no">294</span><span id="line-294">     * @param conletState the conlet's state information</span>
+<span class="source-line-no">295</span><span id="line-295">     * @return the model</span>
+<span class="source-line-no">296</span><span id="line-296">     */</span>
+<span class="source-line-no">297</span><span id="line-297">    protected Map&lt;String, Object&gt; fmModel(NotifyConletModel event,</span>
+<span class="source-line-no">298</span><span id="line-298">            ConsoleConnection channel, String conletId, Object conletState) {</span>
+<span class="source-line-no">299</span><span id="line-299">        return fmModel(event, event.renderSupport(), channel, conletId,</span>
+<span class="source-line-no">300</span><span id="line-300">            conletState);</span>
+<span class="source-line-no">301</span><span id="line-301">    }</span>
+<span class="source-line-no">302</span><span id="line-302"></span>
+<span class="source-line-no">303</span><span id="line-303">    private Map&lt;String, Object&gt; fmModel(Event&lt;?&gt; event,</span>
+<span class="source-line-no">304</span><span id="line-304">            RenderSupport renderSupport, ConsoleConnection channel,</span>
+<span class="source-line-no">305</span><span id="line-305">            String conletId, Object conletState) {</span>
+<span class="source-line-no">306</span><span id="line-306">        final Map&lt;String, Object&gt; model</span>
+<span class="source-line-no">307</span><span id="line-307">            = fmSessionModel(channel.session());</span>
+<span class="source-line-no">308</span><span id="line-308">        model.put("locale", channel.locale());</span>
+<span class="source-line-no">309</span><span id="line-309">        model.putAll(fmTypeModel(renderSupport));</span>
+<span class="source-line-no">310</span><span id="line-310">        model.putAll(fmConletModel(event, channel, conletId, conletState));</span>
+<span class="source-line-no">311</span><span id="line-311">        return model;</span>
+<span class="source-line-no">312</span><span id="line-312">    }</span>
+<span class="source-line-no">313</span><span id="line-313"></span>
+<span class="source-line-no">314</span><span id="line-314">    /**</span>
+<span class="source-line-no">315</span><span id="line-315">     * Checks if the path of the requested resource ends with</span>
+<span class="source-line-no">316</span><span id="line-316">     * `*.ftl.*`. If so, processes the template with the</span>
+<span class="source-line-no">317</span><span id="line-317">     * {@link #fmTypeModel(RenderSupport)} and </span>
+<span class="source-line-no">318</span><span id="line-318">     * {@link #fmSessionModel(Session)} and</span>
+<span class="source-line-no">319</span><span id="line-319">     * sends the result. Else, invoke the super class' method. </span>
+<span class="source-line-no">320</span><span id="line-320">     * </span>
+<span class="source-line-no">321</span><span id="line-321">     * @param event the event. The result will be set to</span>
+<span class="source-line-no">322</span><span id="line-322">     * `true` on success</span>
+<span class="source-line-no">323</span><span id="line-323">     * @param channel the channel</span>
+<span class="source-line-no">324</span><span id="line-324">     */</span>
+<span class="source-line-no">325</span><span id="line-325">    @Override</span>
+<span class="source-line-no">326</span><span id="line-326">    protected void doGetResource(ConletResourceRequest event,</span>
+<span class="source-line-no">327</span><span id="line-327">            IOSubchannel channel) {</span>
+<span class="source-line-no">328</span><span id="line-328">        if (!templatePattern.matcher(event.resourceUri().getPath()).matches()) {</span>
+<span class="source-line-no">329</span><span id="line-329">            super.doGetResource(event, channel);</span>
+<span class="source-line-no">330</span><span id="line-330">            return;</span>
+<span class="source-line-no">331</span><span id="line-331">        }</span>
+<span class="source-line-no">332</span><span id="line-332">        try {</span>
+<span class="source-line-no">333</span><span id="line-333">            // Prepare template</span>
+<span class="source-line-no">334</span><span id="line-334">            final Template tpl = freemarkerConfig().getTemplate(</span>
+<span class="source-line-no">335</span><span id="line-335">                event.resourceUri().getPath());</span>
+<span class="source-line-no">336</span><span id="line-336">            Map&lt;String, Object&gt; model = fmSessionModel(event.session());</span>
+<span class="source-line-no">337</span><span id="line-337">            model.putAll(fmTypeModel(event.renderSupport()));</span>
+<span class="source-line-no">338</span><span id="line-338"></span>
+<span class="source-line-no">339</span><span id="line-339">            // Everything successfully prepared</span>
+<span class="source-line-no">340</span><span id="line-340">            event.setResult(new ResourceByProducer(event,</span>
+<span class="source-line-no">341</span><span id="line-341">                c -&gt; {</span>
+<span class="source-line-no">342</span><span id="line-342">                    try {</span>
+<span class="source-line-no">343</span><span id="line-343">                        tpl.process(model, new ByteBufferWriter(c));</span>
+<span class="source-line-no">344</span><span id="line-344">                    } catch (TemplateException e) {</span>
+<span class="source-line-no">345</span><span id="line-345">                        throw new IOException(e);</span>
+<span class="source-line-no">346</span><span id="line-346">                    }</span>
+<span class="source-line-no">347</span><span id="line-347">                }, HttpResponse.contentType(event.resourceUri()),</span>
+<span class="source-line-no">348</span><span id="line-348">                Instant.now(), 0));</span>
+<span class="source-line-no">349</span><span id="line-349">            event.stop();</span>
+<span class="source-line-no">350</span><span id="line-350">        } catch (IOException e) { // NOPMD</span>
+<span class="source-line-no">351</span><span id="line-351">            throw new IllegalArgumentException(e);</span>
+<span class="source-line-no">352</span><span id="line-352">        }</span>
+<span class="source-line-no">353</span><span id="line-353">    }</span>
+<span class="source-line-no">354</span><span id="line-354"></span>
+<span class="source-line-no">355</span><span id="line-355">    /**</span>
+<span class="source-line-no">356</span><span id="line-356">     * Returns a future string providing the result</span>
+<span class="source-line-no">357</span><span id="line-357">     * from processing the given template with the given data.</span>
+<span class="source-line-no">358</span><span id="line-358">     * </span>
+<span class="source-line-no">359</span><span id="line-359">     * The method delegates to</span>
+<span class="source-line-no">360</span><span id="line-360">     * {@link #processTemplate(Event, Template, Object)}. The version with</span>
+<span class="source-line-no">361</span><span id="line-361">     * this signature is kept for backward compatibility.</span>
+<span class="source-line-no">362</span><span id="line-362">     *</span>
+<span class="source-line-no">363</span><span id="line-363">     * @param request the request, used to obtain the</span>
+<span class="source-line-no">364</span><span id="line-364">     * {@link ExecutorService} service related with the request being</span>
+<span class="source-line-no">365</span><span id="line-365">     * processed</span>
+<span class="source-line-no">366</span><span id="line-366">     * @param template the template</span>
+<span class="source-line-no">367</span><span id="line-367">     * @param dataModel the data model</span>
+<span class="source-line-no">368</span><span id="line-368">     * @return the future</span>
+<span class="source-line-no">369</span><span id="line-369">     */</span>
+<span class="source-line-no">370</span><span id="line-370">    public Future&lt;String&gt; processTemplate(RenderConletRequestBase&lt;?&gt; request,</span>
+<span class="source-line-no">371</span><span id="line-371">            Template template, Object dataModel) {</span>
+<span class="source-line-no">372</span><span id="line-372">        return processTemplate((Event&lt;?&gt;) request, template, dataModel);</span>
+<span class="source-line-no">373</span><span id="line-373">    }</span>
+<span class="source-line-no">374</span><span id="line-374"></span>
+<span class="source-line-no">375</span><span id="line-375">    /**</span>
+<span class="source-line-no">376</span><span id="line-376">     * Returns a future string providing the result</span>
+<span class="source-line-no">377</span><span id="line-377">     * from processing the given template with the given data. </span>
+<span class="source-line-no">378</span><span id="line-378">     *</span>
+<span class="source-line-no">379</span><span id="line-379">     * @param request the request, used to obtain the</span>
+<span class="source-line-no">380</span><span id="line-380">     * {@link ExecutorService} service related with the request being</span>
+<span class="source-line-no">381</span><span id="line-381">     * processed</span>
+<span class="source-line-no">382</span><span id="line-382">     * @param template the template</span>
+<span class="source-line-no">383</span><span id="line-383">     * @param dataModel the data model</span>
+<span class="source-line-no">384</span><span id="line-384">     * @return the future</span>
+<span class="source-line-no">385</span><span id="line-385">     */</span>
+<span class="source-line-no">386</span><span id="line-386">    public Future&lt;String&gt; processTemplate(Event&lt;?&gt; request, Template template,</span>
+<span class="source-line-no">387</span><span id="line-387">            Object dataModel) {</span>
+<span class="source-line-no">388</span><span id="line-388">        return request.processedBy().map(EventPipeline::executorService)</span>
+<span class="source-line-no">389</span><span id="line-389">            .orElse(Components.defaultExecutorService()).submit(() -&gt; {</span>
+<span class="source-line-no">390</span><span id="line-390">                StringWriter out = new StringWriter();</span>
+<span class="source-line-no">391</span><span id="line-391">                try {</span>
+<span class="source-line-no">392</span><span id="line-392">                    template.process(dataModel, out);</span>
+<span class="source-line-no">393</span><span id="line-393">                } catch (TemplateException | IOException e) {</span>
+<span class="source-line-no">394</span><span id="line-394">                    throw new IllegalArgumentException(e);</span>
+<span class="source-line-no">395</span><span id="line-395">                }</span>
+<span class="source-line-no">396</span><span id="line-396">                return out.toString();</span>
+<span class="source-line-no">397</span><span id="line-397">            });</span>
+<span class="source-line-no">398</span><span id="line-398">    }</span>
+<span class="source-line-no">399</span><span id="line-399">}</span>
 
 
 
