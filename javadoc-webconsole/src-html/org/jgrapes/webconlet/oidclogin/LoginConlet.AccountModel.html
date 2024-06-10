@@ -458,112 +458,121 @@
 <span class="source-line-no">445</span><span id="line-445">            return;</span>
 <span class="source-line-no">446</span><span id="line-446">        }</span>
 <span class="source-line-no">447</span><span id="line-447">        var connection = ctx.connection;</span>
-<span class="source-line-no">448</span><span id="line-448">        var msg = event.kind() == OidcError.Kind.ACCESS_DENIED</span>
-<span class="source-line-no">449</span><span id="line-449">            ? resourceBundle(connection.locale()).getString("accessDenied")</span>
-<span class="source-line-no">450</span><span id="line-450">            : resourceBundle(connection.locale()).getString("oidcError");</span>
-<span class="source-line-no">451</span><span id="line-451">        connection.respond(new DisplayNotification("&lt;span&gt;"</span>
-<span class="source-line-no">452</span><span id="line-452">            + msg + "&lt;/span&gt;").addOption("type", "Warning")</span>
-<span class="source-line-no">453</span><span id="line-453">                .addOption("autoClose", 5000));</span>
-<span class="source-line-no">454</span><span id="line-454">    }</span>
-<span class="source-line-no">455</span><span id="line-455"></span>
-<span class="source-line-no">456</span><span id="line-456">    /**</span>
-<span class="source-line-no">457</span><span id="line-457">     * Invoked when a user has been authenticated.</span>
-<span class="source-line-no">458</span><span id="line-458">     *</span>
-<span class="source-line-no">459</span><span id="line-459">     * @param event the event</span>
-<span class="source-line-no">460</span><span id="line-460">     * @param channel the channel</span>
-<span class="source-line-no">461</span><span id="line-461">     */</span>
-<span class="source-line-no">462</span><span id="line-462">    @Handler</span>
-<span class="source-line-no">463</span><span id="line-463">    public void onUserAuthenticated(UserAuthenticated event, Channel channel) {</span>
-<span class="source-line-no">464</span><span id="line-464">        var ctx = event.forLogin().associated(this, LoginContext.class)</span>
-<span class="source-line-no">465</span><span id="line-465">            .orElse(null);</span>
-<span class="source-line-no">466</span><span id="line-466">        if (ctx == null) {</span>
-<span class="source-line-no">467</span><span id="line-467">            return;</span>
-<span class="source-line-no">468</span><span id="line-468">        }</span>
-<span class="source-line-no">469</span><span id="line-469">        var connection = ctx.connection;</span>
-<span class="source-line-no">470</span><span id="line-470">        var model = ctx.model;</span>
-<span class="source-line-no">471</span><span id="line-471">        model.setDialogOpen(false);</span>
-<span class="source-line-no">472</span><span id="line-472">        connection.session().put(Subject.class, event.subject());</span>
-<span class="source-line-no">473</span><span id="line-473">        connection.respond(new CloseModalDialog(type(), model.getConletId()));</span>
-<span class="source-line-no">474</span><span id="line-474">        connection</span>
-<span class="source-line-no">475</span><span id="line-475">            .associated(PENDING_CONSOLE_PREPARED, ConsolePrepared.class)</span>
-<span class="source-line-no">476</span><span id="line-476">            .ifPresentOrElse(ConsolePrepared::resumeHandling,</span>
-<span class="source-line-no">477</span><span id="line-477">                () -&gt; connection</span>
-<span class="source-line-no">478</span><span id="line-478">                    .respond(new SimpleConsoleCommand("reload")));</span>
-<span class="source-line-no">479</span><span id="line-479">    }</span>
-<span class="source-line-no">480</span><span id="line-480"></span>
-<span class="source-line-no">481</span><span id="line-481">    /**</span>
-<span class="source-line-no">482</span><span id="line-482">     * Do set locale.</span>
-<span class="source-line-no">483</span><span id="line-483">     *</span>
-<span class="source-line-no">484</span><span id="line-484">     * @param event the event</span>
-<span class="source-line-no">485</span><span id="line-485">     * @param channel the channel</span>
-<span class="source-line-no">486</span><span id="line-486">     * @param conletId the conlet id</span>
-<span class="source-line-no">487</span><span id="line-487">     * @return true, if successful</span>
-<span class="source-line-no">488</span><span id="line-488">     * @throws Exception the exception</span>
-<span class="source-line-no">489</span><span id="line-489">     */</span>
-<span class="source-line-no">490</span><span id="line-490">    @Override</span>
-<span class="source-line-no">491</span><span id="line-491">    protected boolean doSetLocale(SetLocale event, ConsoleConnection channel,</span>
-<span class="source-line-no">492</span><span id="line-492">            String conletId) throws Exception {</span>
-<span class="source-line-no">493</span><span id="line-493">        return stateFromSession(channel.session(),</span>
-<span class="source-line-no">494</span><span id="line-494">            type() + TYPE_INSTANCE_SEPARATOR + "Singleton")</span>
-<span class="source-line-no">495</span><span id="line-495">                .map(model -&gt; !model.isDialogOpen()).orElse(true);</span>
-<span class="source-line-no">496</span><span id="line-496">    }</span>
-<span class="source-line-no">497</span><span id="line-497"></span>
-<span class="source-line-no">498</span><span id="line-498">    /**</span>
-<span class="source-line-no">499</span><span id="line-499">     * The context to preserve during the authentication process.</span>
-<span class="source-line-no">500</span><span id="line-500">     */</span>
-<span class="source-line-no">501</span><span id="line-501">    private class LoginContext {</span>
-<span class="source-line-no">502</span><span id="line-502">        public final ConsoleConnection connection;</span>
-<span class="source-line-no">503</span><span id="line-503">        public final AccountModel model;</span>
-<span class="source-line-no">504</span><span id="line-504"></span>
-<span class="source-line-no">505</span><span id="line-505">        /**</span>
-<span class="source-line-no">506</span><span id="line-506">         * Instantiates a new oidc context.</span>
-<span class="source-line-no">507</span><span id="line-507">         *</span>
-<span class="source-line-no">508</span><span id="line-508">         * @param connection the connection</span>
-<span class="source-line-no">509</span><span id="line-509">         * @param model the model</span>
-<span class="source-line-no">510</span><span id="line-510">         */</span>
-<span class="source-line-no">511</span><span id="line-511">        public LoginContext(ConsoleConnection connection, AccountModel model) {</span>
-<span class="source-line-no">512</span><span id="line-512">            this.connection = connection;</span>
-<span class="source-line-no">513</span><span id="line-513">            this.model = model;</span>
-<span class="source-line-no">514</span><span id="line-514">        }</span>
-<span class="source-line-no">515</span><span id="line-515">    }</span>
-<span class="source-line-no">516</span><span id="line-516"></span>
-<span class="source-line-no">517</span><span id="line-517">    /**</span>
-<span class="source-line-no">518</span><span id="line-518">     * Model with account info.</span>
-<span class="source-line-no">519</span><span id="line-519">     */</span>
-<span class="source-line-no">520</span><span id="line-520">    public static class AccountModel extends ConletBaseModel {</span>
-<span class="source-line-no">521</span><span id="line-521"></span>
-<span class="source-line-no">522</span><span id="line-522">        private boolean dialogOpen;</span>
-<span class="source-line-no">523</span><span id="line-523"></span>
-<span class="source-line-no">524</span><span id="line-524">        /**</span>
-<span class="source-line-no">525</span><span id="line-525">         * Creates a new model with the given type and id.</span>
-<span class="source-line-no">526</span><span id="line-526">         *</span>
-<span class="source-line-no">527</span><span id="line-527">         * @param conletId the conlet id</span>
-<span class="source-line-no">528</span><span id="line-528">         */</span>
-<span class="source-line-no">529</span><span id="line-529">        @ConstructorProperties({ "model" })</span>
-<span class="source-line-no">530</span><span id="line-530">        public AccountModel(String conletId) {</span>
-<span class="source-line-no">531</span><span id="line-531">            super(conletId);</span>
-<span class="source-line-no">532</span><span id="line-532">        }</span>
-<span class="source-line-no">533</span><span id="line-533"></span>
-<span class="source-line-no">534</span><span id="line-534">        /**</span>
-<span class="source-line-no">535</span><span id="line-535">         * Checks if is dialog open.</span>
-<span class="source-line-no">536</span><span id="line-536">         *</span>
-<span class="source-line-no">537</span><span id="line-537">         * @return true, if is dialog open</span>
-<span class="source-line-no">538</span><span id="line-538">         */</span>
-<span class="source-line-no">539</span><span id="line-539">        public boolean isDialogOpen() {</span>
-<span class="source-line-no">540</span><span id="line-540">            return dialogOpen;</span>
+<span class="source-line-no">448</span><span id="line-448">        String msg;</span>
+<span class="source-line-no">449</span><span id="line-449">        switch (event.kind()) {</span>
+<span class="source-line-no">450</span><span id="line-450">        case ACCESS_DENIED:</span>
+<span class="source-line-no">451</span><span id="line-451">            msg = resourceBundle(connection.locale()).getString("accessDenied");</span>
+<span class="source-line-no">452</span><span id="line-452">            break;</span>
+<span class="source-line-no">453</span><span id="line-453">        case INTERNAL_SERVER_ERROR:</span>
+<span class="source-line-no">454</span><span id="line-454">            msg = resourceBundle(connection.locale()).getString("serverError");</span>
+<span class="source-line-no">455</span><span id="line-455">            break;</span>
+<span class="source-line-no">456</span><span id="line-456">        default:</span>
+<span class="source-line-no">457</span><span id="line-457">            msg = resourceBundle(connection.locale()).getString("oidcError");</span>
+<span class="source-line-no">458</span><span id="line-458">            break;</span>
+<span class="source-line-no">459</span><span id="line-459">        }</span>
+<span class="source-line-no">460</span><span id="line-460">        connection.respond(new DisplayNotification("&lt;span&gt;"</span>
+<span class="source-line-no">461</span><span id="line-461">            + msg + "&lt;/span&gt;").addOption("type", "Warning")</span>
+<span class="source-line-no">462</span><span id="line-462">                .addOption("autoClose", 5000));</span>
+<span class="source-line-no">463</span><span id="line-463">    }</span>
+<span class="source-line-no">464</span><span id="line-464"></span>
+<span class="source-line-no">465</span><span id="line-465">    /**</span>
+<span class="source-line-no">466</span><span id="line-466">     * Invoked when a user has been authenticated.</span>
+<span class="source-line-no">467</span><span id="line-467">     *</span>
+<span class="source-line-no">468</span><span id="line-468">     * @param event the event</span>
+<span class="source-line-no">469</span><span id="line-469">     * @param channel the channel</span>
+<span class="source-line-no">470</span><span id="line-470">     */</span>
+<span class="source-line-no">471</span><span id="line-471">    @Handler</span>
+<span class="source-line-no">472</span><span id="line-472">    public void onUserAuthenticated(UserAuthenticated event, Channel channel) {</span>
+<span class="source-line-no">473</span><span id="line-473">        var ctx = event.forLogin().associated(this, LoginContext.class)</span>
+<span class="source-line-no">474</span><span id="line-474">            .orElse(null);</span>
+<span class="source-line-no">475</span><span id="line-475">        if (ctx == null) {</span>
+<span class="source-line-no">476</span><span id="line-476">            return;</span>
+<span class="source-line-no">477</span><span id="line-477">        }</span>
+<span class="source-line-no">478</span><span id="line-478">        var connection = ctx.connection;</span>
+<span class="source-line-no">479</span><span id="line-479">        var model = ctx.model;</span>
+<span class="source-line-no">480</span><span id="line-480">        model.setDialogOpen(false);</span>
+<span class="source-line-no">481</span><span id="line-481">        connection.session().put(Subject.class, event.subject());</span>
+<span class="source-line-no">482</span><span id="line-482">        connection.respond(new CloseModalDialog(type(), model.getConletId()));</span>
+<span class="source-line-no">483</span><span id="line-483">        connection</span>
+<span class="source-line-no">484</span><span id="line-484">            .associated(PENDING_CONSOLE_PREPARED, ConsolePrepared.class)</span>
+<span class="source-line-no">485</span><span id="line-485">            .ifPresentOrElse(ConsolePrepared::resumeHandling,</span>
+<span class="source-line-no">486</span><span id="line-486">                () -&gt; connection</span>
+<span class="source-line-no">487</span><span id="line-487">                    .respond(new SimpleConsoleCommand("reload")));</span>
+<span class="source-line-no">488</span><span id="line-488">    }</span>
+<span class="source-line-no">489</span><span id="line-489"></span>
+<span class="source-line-no">490</span><span id="line-490">    /**</span>
+<span class="source-line-no">491</span><span id="line-491">     * Do set locale.</span>
+<span class="source-line-no">492</span><span id="line-492">     *</span>
+<span class="source-line-no">493</span><span id="line-493">     * @param event the event</span>
+<span class="source-line-no">494</span><span id="line-494">     * @param channel the channel</span>
+<span class="source-line-no">495</span><span id="line-495">     * @param conletId the conlet id</span>
+<span class="source-line-no">496</span><span id="line-496">     * @return true, if successful</span>
+<span class="source-line-no">497</span><span id="line-497">     * @throws Exception the exception</span>
+<span class="source-line-no">498</span><span id="line-498">     */</span>
+<span class="source-line-no">499</span><span id="line-499">    @Override</span>
+<span class="source-line-no">500</span><span id="line-500">    protected boolean doSetLocale(SetLocale event, ConsoleConnection channel,</span>
+<span class="source-line-no">501</span><span id="line-501">            String conletId) throws Exception {</span>
+<span class="source-line-no">502</span><span id="line-502">        return stateFromSession(channel.session(),</span>
+<span class="source-line-no">503</span><span id="line-503">            type() + TYPE_INSTANCE_SEPARATOR + "Singleton")</span>
+<span class="source-line-no">504</span><span id="line-504">                .map(model -&gt; !model.isDialogOpen()).orElse(true);</span>
+<span class="source-line-no">505</span><span id="line-505">    }</span>
+<span class="source-line-no">506</span><span id="line-506"></span>
+<span class="source-line-no">507</span><span id="line-507">    /**</span>
+<span class="source-line-no">508</span><span id="line-508">     * The context to preserve during the authentication process.</span>
+<span class="source-line-no">509</span><span id="line-509">     */</span>
+<span class="source-line-no">510</span><span id="line-510">    private class LoginContext {</span>
+<span class="source-line-no">511</span><span id="line-511">        public final ConsoleConnection connection;</span>
+<span class="source-line-no">512</span><span id="line-512">        public final AccountModel model;</span>
+<span class="source-line-no">513</span><span id="line-513"></span>
+<span class="source-line-no">514</span><span id="line-514">        /**</span>
+<span class="source-line-no">515</span><span id="line-515">         * Instantiates a new oidc context.</span>
+<span class="source-line-no">516</span><span id="line-516">         *</span>
+<span class="source-line-no">517</span><span id="line-517">         * @param connection the connection</span>
+<span class="source-line-no">518</span><span id="line-518">         * @param model the model</span>
+<span class="source-line-no">519</span><span id="line-519">         */</span>
+<span class="source-line-no">520</span><span id="line-520">        public LoginContext(ConsoleConnection connection, AccountModel model) {</span>
+<span class="source-line-no">521</span><span id="line-521">            this.connection = connection;</span>
+<span class="source-line-no">522</span><span id="line-522">            this.model = model;</span>
+<span class="source-line-no">523</span><span id="line-523">        }</span>
+<span class="source-line-no">524</span><span id="line-524">    }</span>
+<span class="source-line-no">525</span><span id="line-525"></span>
+<span class="source-line-no">526</span><span id="line-526">    /**</span>
+<span class="source-line-no">527</span><span id="line-527">     * Model with account info.</span>
+<span class="source-line-no">528</span><span id="line-528">     */</span>
+<span class="source-line-no">529</span><span id="line-529">    public static class AccountModel extends ConletBaseModel {</span>
+<span class="source-line-no">530</span><span id="line-530"></span>
+<span class="source-line-no">531</span><span id="line-531">        private boolean dialogOpen;</span>
+<span class="source-line-no">532</span><span id="line-532"></span>
+<span class="source-line-no">533</span><span id="line-533">        /**</span>
+<span class="source-line-no">534</span><span id="line-534">         * Creates a new model with the given type and id.</span>
+<span class="source-line-no">535</span><span id="line-535">         *</span>
+<span class="source-line-no">536</span><span id="line-536">         * @param conletId the conlet id</span>
+<span class="source-line-no">537</span><span id="line-537">         */</span>
+<span class="source-line-no">538</span><span id="line-538">        @ConstructorProperties({ "model" })</span>
+<span class="source-line-no">539</span><span id="line-539">        public AccountModel(String conletId) {</span>
+<span class="source-line-no">540</span><span id="line-540">            super(conletId);</span>
 <span class="source-line-no">541</span><span id="line-541">        }</span>
 <span class="source-line-no">542</span><span id="line-542"></span>
 <span class="source-line-no">543</span><span id="line-543">        /**</span>
-<span class="source-line-no">544</span><span id="line-544">         * Sets the dialog open.</span>
+<span class="source-line-no">544</span><span id="line-544">         * Checks if is dialog open.</span>
 <span class="source-line-no">545</span><span id="line-545">         *</span>
-<span class="source-line-no">546</span><span id="line-546">         * @param dialogOpen the new dialog open</span>
+<span class="source-line-no">546</span><span id="line-546">         * @return true, if is dialog open</span>
 <span class="source-line-no">547</span><span id="line-547">         */</span>
-<span class="source-line-no">548</span><span id="line-548">        public void setDialogOpen(boolean dialogOpen) {</span>
-<span class="source-line-no">549</span><span id="line-549">            this.dialogOpen = dialogOpen;</span>
+<span class="source-line-no">548</span><span id="line-548">        public boolean isDialogOpen() {</span>
+<span class="source-line-no">549</span><span id="line-549">            return dialogOpen;</span>
 <span class="source-line-no">550</span><span id="line-550">        }</span>
-<span class="source-line-no">551</span><span id="line-551">    }</span>
-<span class="source-line-no">552</span><span id="line-552"></span>
-<span class="source-line-no">553</span><span id="line-553">}</span>
+<span class="source-line-no">551</span><span id="line-551"></span>
+<span class="source-line-no">552</span><span id="line-552">        /**</span>
+<span class="source-line-no">553</span><span id="line-553">         * Sets the dialog open.</span>
+<span class="source-line-no">554</span><span id="line-554">         *</span>
+<span class="source-line-no">555</span><span id="line-555">         * @param dialogOpen the new dialog open</span>
+<span class="source-line-no">556</span><span id="line-556">         */</span>
+<span class="source-line-no">557</span><span id="line-557">        public void setDialogOpen(boolean dialogOpen) {</span>
+<span class="source-line-no">558</span><span id="line-558">            this.dialogOpen = dialogOpen;</span>
+<span class="source-line-no">559</span><span id="line-559">        }</span>
+<span class="source-line-no">560</span><span id="line-560">    }</span>
+<span class="source-line-no">561</span><span id="line-561"></span>
+<span class="source-line-no">562</span><span id="line-562">}</span>
 
 
 
