@@ -442,7 +442,7 @@
 <span class="source-line-no">429</span><span id="line-429">        params.put("redirect_uri", config.redirectUri);</span>
 <span class="source-line-no">430</span><span id="line-430">        @SuppressWarnings("resource")</span>
 <span class="source-line-no">431</span><span id="line-431">        OutputSupplier body = (IOSubchannel c) -&gt; {</span>
-<span class="source-line-no">432</span><span id="line-432">            new CharBufferWriter(c, channel.responsePipeline())</span>
+<span class="source-line-no">432</span><span id="line-432">            new CharBufferWriter(c, c.responsePipeline())</span>
 <span class="source-line-no">433</span><span id="line-433">                .append(HttpRequest.simpleWwwFormUrlencode(params)).close();</span>
 <span class="source-line-no">434</span><span id="line-434">        };</span>
 <span class="source-line-no">435</span><span id="line-435">        fire(post.setAssociated(OutputSupplier.class, body).setAssociated(this,</span>
