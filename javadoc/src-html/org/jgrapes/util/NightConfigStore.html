@@ -64,345 +64,352 @@
 <span class="source-line-no">051</span><span id="line-51">        = Logger.getLogger(NightConfigStore.class.getName());</span>
 <span class="source-line-no">052</span><span id="line-52"></span>
 <span class="source-line-no">053</span><span id="line-53">    protected FileConfig config;</span>
-<span class="source-line-no">054</span><span id="line-54"></span>
-<span class="source-line-no">055</span><span id="line-55">    /**</span>
-<span class="source-line-no">056</span><span id="line-56">     * Creates a new component with its channel set to the given </span>
-<span class="source-line-no">057</span><span id="line-57">     * channel and the given file. The component handles</span>
-<span class="source-line-no">058</span><span id="line-58">     * {@link ConfigurationUpdate} events and {@link FileChanged}</span>
-<span class="source-line-no">059</span><span id="line-59">     * events for the configuration file (see</span>
-<span class="source-line-no">060</span><span id="line-60">     * @link #NightConfigStore(Channel, File, boolean, boolean)}</span>
-<span class="source-line-no">061</span><span id="line-61">     * </span>
-<span class="source-line-no">062</span><span id="line-62">     * @param componentChannel the channel </span>
-<span class="source-line-no">063</span><span id="line-63">     * @param file the file used to store the configuration</span>
-<span class="source-line-no">064</span><span id="line-64">     * @throws IOException</span>
-<span class="source-line-no">065</span><span id="line-65">     */</span>
-<span class="source-line-no">066</span><span id="line-66">    @Deprecated</span>
-<span class="source-line-no">067</span><span id="line-67">    public NightConfigStore(Channel componentChannel, File file)</span>
-<span class="source-line-no">068</span><span id="line-68">            throws IOException {</span>
-<span class="source-line-no">069</span><span id="line-69">        this(componentChannel, file, true, true);</span>
-<span class="source-line-no">070</span><span id="line-70">    }</span>
-<span class="source-line-no">071</span><span id="line-71"></span>
-<span class="source-line-no">072</span><span id="line-72">    /**</span>
-<span class="source-line-no">073</span><span id="line-73">     * Creates a new component with its channel set to the given </span>
-<span class="source-line-no">074</span><span id="line-74">     * channel and the given file. The component handles</span>
-<span class="source-line-no">075</span><span id="line-75">     * {@link FileChanged} events for the configuration file (see</span>
-<span class="source-line-no">076</span><span id="line-76">     * @link #NightConfigStore(Channel, File, boolean, boolean)}</span>
-<span class="source-line-no">077</span><span id="line-77">     * </span>
-<span class="source-line-no">078</span><span id="line-78">     * If `update` is `true`, the configuration file is updated</span>
-<span class="source-line-no">079</span><span id="line-79">     * when {@link ConfigurationUpdate} events are received.  </span>
-<span class="source-line-no">080</span><span id="line-80">     *</span>
-<span class="source-line-no">081</span><span id="line-81">     * @param componentChannel the channel</span>
-<span class="source-line-no">082</span><span id="line-82">     * @param file the file used to store the configuration</span>
-<span class="source-line-no">083</span><span id="line-83">     * @param update if the configuration file is to be updated</span>
-<span class="source-line-no">084</span><span id="line-84">     * @throws IOException Signals that an I/O exception has occurred.</span>
-<span class="source-line-no">085</span><span id="line-85">     */</span>
-<span class="source-line-no">086</span><span id="line-86">    @Deprecated</span>
-<span class="source-line-no">087</span><span id="line-87">    @SuppressWarnings("PMD.ShortVariable")</span>
-<span class="source-line-no">088</span><span id="line-88">    public NightConfigStore(Channel componentChannel, File file,</span>
-<span class="source-line-no">089</span><span id="line-89">            boolean update) throws IOException {</span>
-<span class="source-line-no">090</span><span id="line-90">        this(componentChannel, file, update, true);</span>
-<span class="source-line-no">091</span><span id="line-91">    }</span>
-<span class="source-line-no">092</span><span id="line-92"></span>
-<span class="source-line-no">093</span><span id="line-93">    /**</span>
-<span class="source-line-no">094</span><span id="line-94">     * Creates a new component with its channel set to the given </span>
-<span class="source-line-no">095</span><span id="line-95">     * channel and the given file.</span>
-<span class="source-line-no">096</span><span id="line-96">     * </span>
-<span class="source-line-no">097</span><span id="line-97">     * If `update` is `true`, the configuration file is updated</span>
-<span class="source-line-no">098</span><span id="line-98">     * when {@link ConfigurationUpdate} events are received.  </span>
-<span class="source-line-no">099</span><span id="line-99">     * </span>
-<span class="source-line-no">100</span><span id="line-100">     * If `watch` is `true`, {@link FileChanged} events are processed</span>
-<span class="source-line-no">101</span><span id="line-101">     * and the configuration file is reloaded when it changes. Note</span>
-<span class="source-line-no">102</span><span id="line-102">     * that the generation of the {@link FileChanged} events must</span>
-<span class="source-line-no">103</span><span id="line-103">     * be configured independently (see {@link FileSystemWatcher}).</span>
-<span class="source-line-no">104</span><span id="line-104">     *</span>
-<span class="source-line-no">105</span><span id="line-105">     * @param componentChannel the channel</span>
-<span class="source-line-no">106</span><span id="line-106">     * @param file the file used to store the configuration</span>
-<span class="source-line-no">107</span><span id="line-107">     * @param update if the configuration file is to be updated</span>
-<span class="source-line-no">108</span><span id="line-108">     * @param watch if {@link FileChanged} events are to be processed</span>
-<span class="source-line-no">109</span><span id="line-109">     * @throws IOException Signals that an I/O exception has occurred.</span>
-<span class="source-line-no">110</span><span id="line-110">     */</span>
-<span class="source-line-no">111</span><span id="line-111">    @SuppressWarnings("PMD.ShortVariable")</span>
-<span class="source-line-no">112</span><span id="line-112">    public NightConfigStore(Channel componentChannel, File file,</span>
-<span class="source-line-no">113</span><span id="line-113">            boolean update, boolean watch) throws IOException {</span>
-<span class="source-line-no">114</span><span id="line-114">        super(componentChannel);</span>
-<span class="source-line-no">115</span><span id="line-115">        if (update) {</span>
-<span class="source-line-no">116</span><span id="line-116">            Handler.Evaluator.add(this, "onConfigurationUpdate",</span>
-<span class="source-line-no">117</span><span id="line-117">                channel().defaultCriterion());</span>
-<span class="source-line-no">118</span><span id="line-118">        }</span>
-<span class="source-line-no">119</span><span id="line-119">        if (watch) {</span>
-<span class="source-line-no">120</span><span id="line-120">            Handler.Evaluator.add(this, "onFileChanged",</span>
-<span class="source-line-no">121</span><span id="line-121">                channel().defaultCriterion());</span>
-<span class="source-line-no">122</span><span id="line-122">        }</span>
-<span class="source-line-no">123</span><span id="line-123">        if (!file.exists()) {</span>
-<span class="source-line-no">124</span><span id="line-124">            file.createNewFile();</span>
-<span class="source-line-no">125</span><span id="line-125">        }</span>
-<span class="source-line-no">126</span><span id="line-126">    }</span>
-<span class="source-line-no">127</span><span id="line-127"></span>
-<span class="source-line-no">128</span><span id="line-128">    /**</span>
-<span class="source-line-no">129</span><span id="line-129">     * If watching the configuration file is enabled, fire</span>
-<span class="source-line-no">130</span><span id="line-130">     * a {@link ConfigurationUpdate} event with the complete</span>
-<span class="source-line-no">131</span><span id="line-131">     * configuration when the file changes.</span>
-<span class="source-line-no">132</span><span id="line-132">     *</span>
-<span class="source-line-no">133</span><span id="line-133">     * @param event the event</span>
-<span class="source-line-no">134</span><span id="line-134">     */</span>
-<span class="source-line-no">135</span><span id="line-135">    @Handler(dynamic = true)</span>
-<span class="source-line-no">136</span><span id="line-136">    public void onFileChanged(FileChanged event) {</span>
-<span class="source-line-no">137</span><span id="line-137">        if (config.getNioPath().equals(event.path())</span>
-<span class="source-line-no">138</span><span id="line-138">            &amp;&amp; event.change() == FileChanged.Kind.MODIFIED) {</span>
-<span class="source-line-no">139</span><span id="line-139">            config.load();</span>
-<span class="source-line-no">140</span><span id="line-140">            ConfigurationUpdate updEvt = new ConfigurationUpdate();</span>
-<span class="source-line-no">141</span><span id="line-141">            addPrefs(updEvt, "/", config);</span>
-<span class="source-line-no">142</span><span id="line-142">            fire(updEvt);</span>
-<span class="source-line-no">143</span><span id="line-143">        }</span>
-<span class="source-line-no">144</span><span id="line-144">    }</span>
-<span class="source-line-no">145</span><span id="line-145"></span>
-<span class="source-line-no">146</span><span id="line-146">    @Override</span>
-<span class="source-line-no">147</span><span id="line-147">    @SuppressWarnings({ "PMD.AvoidLiteralsInIfCondition",</span>
-<span class="source-line-no">148</span><span id="line-148">        "PMD.AvoidBranchingStatementAsLastInLoop" })</span>
-<span class="source-line-no">149</span><span id="line-149">    public Optional&lt;Map&lt;String, Object&gt;&gt; structured(String path) {</span>
-<span class="source-line-no">150</span><span id="line-150">        if (!path.startsWith("/")) {</span>
-<span class="source-line-no">151</span><span id="line-151">            throw new IllegalArgumentException("Path must start with \"/\".");</span>
-<span class="source-line-no">152</span><span id="line-152">        }</span>
-<span class="source-line-no">153</span><span id="line-153"></span>
-<span class="source-line-no">154</span><span id="line-154">        // Walk down to node.</span>
-<span class="source-line-no">155</span><span id="line-155">        var segs = new StringTokenizer(path, "/");</span>
-<span class="source-line-no">156</span><span id="line-156">        @SuppressWarnings("PMD.CloseResource")</span>
-<span class="source-line-no">157</span><span id="line-157">        Config cur = config;</span>
-<span class="source-line-no">158</span><span id="line-158">        while (segs.hasMoreTokens()) {</span>
-<span class="source-line-no">159</span><span id="line-159">            var nextSeg = segs.nextToken();</span>
-<span class="source-line-no">160</span><span id="line-160">            Object next = Optional.ofNullable(cur.get("_" + nextSeg))</span>
-<span class="source-line-no">161</span><span id="line-161">                .orElse(cur.get("/" + nextSeg));</span>
-<span class="source-line-no">162</span><span id="line-162">            if (next instanceof Config) {</span>
-<span class="source-line-no">163</span><span id="line-163">                cur = (Config) next;</span>
-<span class="source-line-no">164</span><span id="line-164">                continue;</span>
-<span class="source-line-no">165</span><span id="line-165">            }</span>
-<span class="source-line-no">166</span><span id="line-166">            return Optional.empty();</span>
-<span class="source-line-no">167</span><span id="line-167">        }</span>
-<span class="source-line-no">168</span><span id="line-168">        return Optional.of(toValueMap(cur));</span>
-<span class="source-line-no">169</span><span id="line-169">    }</span>
-<span class="source-line-no">170</span><span id="line-170"></span>
-<span class="source-line-no">171</span><span id="line-171">    private Map&lt;String, Object&gt; toValueMap(Config config) {</span>
-<span class="source-line-no">172</span><span id="line-172">        @SuppressWarnings("PMD.UseConcurrentHashMap")</span>
-<span class="source-line-no">173</span><span id="line-173">        Map&lt;String, Object&gt; result = new HashMap&lt;&gt;();</span>
-<span class="source-line-no">174</span><span id="line-174">        for (var entry : config.entrySet()) {</span>
-<span class="source-line-no">175</span><span id="line-175">            if (isNode(entry.getKey())) {</span>
-<span class="source-line-no">176</span><span id="line-176">                continue;</span>
-<span class="source-line-no">177</span><span id="line-177">            }</span>
-<span class="source-line-no">178</span><span id="line-178">            if (entry.getValue() instanceof Config) {</span>
-<span class="source-line-no">179</span><span id="line-179">                result.put(entry.getKey(), toValueMap(entry.getValue()));</span>
+<span class="source-line-no">054</span><span id="line-54">    protected Channel[] initialChannels;</span>
+<span class="source-line-no">055</span><span id="line-55"></span>
+<span class="source-line-no">056</span><span id="line-56">    /**</span>
+<span class="source-line-no">057</span><span id="line-57">     * Creates a new component with its channel set to the given </span>
+<span class="source-line-no">058</span><span id="line-58">     * channel and the given file. The component handles</span>
+<span class="source-line-no">059</span><span id="line-59">     * {@link ConfigurationUpdate} events and {@link FileChanged}</span>
+<span class="source-line-no">060</span><span id="line-60">     * events for the configuration file (see</span>
+<span class="source-line-no">061</span><span id="line-61">     * @link #NightConfigStore(Channel, File, boolean, boolean)}</span>
+<span class="source-line-no">062</span><span id="line-62">     * </span>
+<span class="source-line-no">063</span><span id="line-63">     * @param componentChannel the channel </span>
+<span class="source-line-no">064</span><span id="line-64">     * @param file the file used to store the configuration</span>
+<span class="source-line-no">065</span><span id="line-65">     * @throws IOException</span>
+<span class="source-line-no">066</span><span id="line-66">     */</span>
+<span class="source-line-no">067</span><span id="line-67">    @Deprecated</span>
+<span class="source-line-no">068</span><span id="line-68">    public NightConfigStore(Channel componentChannel, File file)</span>
+<span class="source-line-no">069</span><span id="line-69">            throws IOException {</span>
+<span class="source-line-no">070</span><span id="line-70">        this(componentChannel, file, true, true);</span>
+<span class="source-line-no">071</span><span id="line-71">    }</span>
+<span class="source-line-no">072</span><span id="line-72"></span>
+<span class="source-line-no">073</span><span id="line-73">    /**</span>
+<span class="source-line-no">074</span><span id="line-74">     * Creates a new component with its channel set to the given </span>
+<span class="source-line-no">075</span><span id="line-75">     * channel and the given file. The component handles</span>
+<span class="source-line-no">076</span><span id="line-76">     * {@link FileChanged} events for the configuration file (see</span>
+<span class="source-line-no">077</span><span id="line-77">     * @link #NightConfigStore(Channel, File, boolean, boolean)}</span>
+<span class="source-line-no">078</span><span id="line-78">     * </span>
+<span class="source-line-no">079</span><span id="line-79">     * If `update` is `true`, the configuration file is updated</span>
+<span class="source-line-no">080</span><span id="line-80">     * when {@link ConfigurationUpdate} events are received.  </span>
+<span class="source-line-no">081</span><span id="line-81">     *</span>
+<span class="source-line-no">082</span><span id="line-82">     * @param componentChannel the channel</span>
+<span class="source-line-no">083</span><span id="line-83">     * @param file the file used to store the configuration</span>
+<span class="source-line-no">084</span><span id="line-84">     * @param update if the configuration file is to be updated</span>
+<span class="source-line-no">085</span><span id="line-85">     * @throws IOException Signals that an I/O exception has occurred.</span>
+<span class="source-line-no">086</span><span id="line-86">     */</span>
+<span class="source-line-no">087</span><span id="line-87">    @Deprecated</span>
+<span class="source-line-no">088</span><span id="line-88">    @SuppressWarnings("PMD.ShortVariable")</span>
+<span class="source-line-no">089</span><span id="line-89">    public NightConfigStore(Channel componentChannel, File file,</span>
+<span class="source-line-no">090</span><span id="line-90">            boolean update) throws IOException {</span>
+<span class="source-line-no">091</span><span id="line-91">        this(componentChannel, file, update, true);</span>
+<span class="source-line-no">092</span><span id="line-92">    }</span>
+<span class="source-line-no">093</span><span id="line-93"></span>
+<span class="source-line-no">094</span><span id="line-94">    /**</span>
+<span class="source-line-no">095</span><span id="line-95">     * Creates a new component with its channel set to the given </span>
+<span class="source-line-no">096</span><span id="line-96">     * channel and the given file.</span>
+<span class="source-line-no">097</span><span id="line-97">     * </span>
+<span class="source-line-no">098</span><span id="line-98">     * If `update` is `true`, the configuration file is updated</span>
+<span class="source-line-no">099</span><span id="line-99">     * when {@link ConfigurationUpdate} events are received.  </span>
+<span class="source-line-no">100</span><span id="line-100">     * </span>
+<span class="source-line-no">101</span><span id="line-101">     * If `watch` is `true`, {@link FileChanged} events are processed</span>
+<span class="source-line-no">102</span><span id="line-102">     * and the configuration file is reloaded when it changes. Note</span>
+<span class="source-line-no">103</span><span id="line-103">     * that the generation of the {@link FileChanged} events must</span>
+<span class="source-line-no">104</span><span id="line-104">     * be configured independently (see {@link FileSystemWatcher}).</span>
+<span class="source-line-no">105</span><span id="line-105">     *</span>
+<span class="source-line-no">106</span><span id="line-106">     * @param componentChannel the channel</span>
+<span class="source-line-no">107</span><span id="line-107">     * @param file the file used to store the configuration</span>
+<span class="source-line-no">108</span><span id="line-108">     * @param update if the configuration file is to be updated</span>
+<span class="source-line-no">109</span><span id="line-109">     * @param watch if {@link FileChanged} events are to be processed</span>
+<span class="source-line-no">110</span><span id="line-110">     * @throws IOException Signals that an I/O exception has occurred.</span>
+<span class="source-line-no">111</span><span id="line-111">     */</span>
+<span class="source-line-no">112</span><span id="line-112">    @SuppressWarnings("PMD.ShortVariable")</span>
+<span class="source-line-no">113</span><span id="line-113">    public NightConfigStore(Channel componentChannel, File file,</span>
+<span class="source-line-no">114</span><span id="line-114">            boolean update, boolean watch) throws IOException {</span>
+<span class="source-line-no">115</span><span id="line-115">        super(componentChannel);</span>
+<span class="source-line-no">116</span><span id="line-116">        if (update) {</span>
+<span class="source-line-no">117</span><span id="line-117">            Handler.Evaluator.add(this, "onConfigurationUpdate",</span>
+<span class="source-line-no">118</span><span id="line-118">                channel().defaultCriterion());</span>
+<span class="source-line-no">119</span><span id="line-119">        }</span>
+<span class="source-line-no">120</span><span id="line-120">        if (watch) {</span>
+<span class="source-line-no">121</span><span id="line-121">            Handler.Evaluator.add(this, "onFileChanged",</span>
+<span class="source-line-no">122</span><span id="line-122">                channel().defaultCriterion());</span>
+<span class="source-line-no">123</span><span id="line-123">        }</span>
+<span class="source-line-no">124</span><span id="line-124">        if (!file.exists()) {</span>
+<span class="source-line-no">125</span><span id="line-125">            file.createNewFile();</span>
+<span class="source-line-no">126</span><span id="line-126">        }</span>
+<span class="source-line-no">127</span><span id="line-127">    }</span>
+<span class="source-line-no">128</span><span id="line-128"></span>
+<span class="source-line-no">129</span><span id="line-129">    /**</span>
+<span class="source-line-no">130</span><span id="line-130">     * If watching the configuration file is enabled, fire</span>
+<span class="source-line-no">131</span><span id="line-131">     * a {@link ConfigurationUpdate} event with the complete</span>
+<span class="source-line-no">132</span><span id="line-132">     * configuration when the file changes. The event is fired</span>
+<span class="source-line-no">133</span><span id="line-133">     * on the same channel(s) as the {@link InitialConfiguration}</span>
+<span class="source-line-no">134</span><span id="line-134">     * event.</span>
+<span class="source-line-no">135</span><span id="line-135">     *</span>
+<span class="source-line-no">136</span><span id="line-136">     * @param event the event</span>
+<span class="source-line-no">137</span><span id="line-137">     */</span>
+<span class="source-line-no">138</span><span id="line-138">    @Handler(dynamic = true)</span>
+<span class="source-line-no">139</span><span id="line-139">    public void onFileChanged(FileChanged event) {</span>
+<span class="source-line-no">140</span><span id="line-140">        if (config.getNioPath().equals(event.path())</span>
+<span class="source-line-no">141</span><span id="line-141">            &amp;&amp; event.change() == FileChanged.Kind.MODIFIED</span>
+<span class="source-line-no">142</span><span id="line-142">            &amp;&amp; initialChannels != null) {</span>
+<span class="source-line-no">143</span><span id="line-143">            config.load();</span>
+<span class="source-line-no">144</span><span id="line-144">            ConfigurationUpdate updEvt = new ConfigurationUpdate();</span>
+<span class="source-line-no">145</span><span id="line-145">            addPrefs(updEvt, "/", config);</span>
+<span class="source-line-no">146</span><span id="line-146">            fire(updEvt, initialChannels);</span>
+<span class="source-line-no">147</span><span id="line-147">        }</span>
+<span class="source-line-no">148</span><span id="line-148">    }</span>
+<span class="source-line-no">149</span><span id="line-149"></span>
+<span class="source-line-no">150</span><span id="line-150">    @Override</span>
+<span class="source-line-no">151</span><span id="line-151">    @SuppressWarnings({ "PMD.AvoidLiteralsInIfCondition",</span>
+<span class="source-line-no">152</span><span id="line-152">        "PMD.AvoidBranchingStatementAsLastInLoop", "PMD.CloseResource" })</span>
+<span class="source-line-no">153</span><span id="line-153">    public Optional&lt;Map&lt;String, Object&gt;&gt; structured(String path) {</span>
+<span class="source-line-no">154</span><span id="line-154">        if (!path.startsWith("/")) {</span>
+<span class="source-line-no">155</span><span id="line-155">            throw new IllegalArgumentException("Path must start with \"/\".");</span>
+<span class="source-line-no">156</span><span id="line-156">        }</span>
+<span class="source-line-no">157</span><span id="line-157"></span>
+<span class="source-line-no">158</span><span id="line-158">        // Walk down to node.</span>
+<span class="source-line-no">159</span><span id="line-159">        var segs = new StringTokenizer(path, "/");</span>
+<span class="source-line-no">160</span><span id="line-160">        @SuppressWarnings("PMD.CloseResource")</span>
+<span class="source-line-no">161</span><span id="line-161">        Config cur = config;</span>
+<span class="source-line-no">162</span><span id="line-162">        while (segs.hasMoreTokens()) {</span>
+<span class="source-line-no">163</span><span id="line-163">            var nextSeg = segs.nextToken();</span>
+<span class="source-line-no">164</span><span id="line-164">            Object next = Optional.ofNullable(cur.get("_" + nextSeg))</span>
+<span class="source-line-no">165</span><span id="line-165">                .orElse(cur.get("/" + nextSeg));</span>
+<span class="source-line-no">166</span><span id="line-166">            if (next instanceof Config) {</span>
+<span class="source-line-no">167</span><span id="line-167">                cur = (Config) next;</span>
+<span class="source-line-no">168</span><span id="line-168">                continue;</span>
+<span class="source-line-no">169</span><span id="line-169">            }</span>
+<span class="source-line-no">170</span><span id="line-170">            return Optional.empty();</span>
+<span class="source-line-no">171</span><span id="line-171">        }</span>
+<span class="source-line-no">172</span><span id="line-172">        return Optional.of(toValueMap(cur));</span>
+<span class="source-line-no">173</span><span id="line-173">    }</span>
+<span class="source-line-no">174</span><span id="line-174"></span>
+<span class="source-line-no">175</span><span id="line-175">    private Map&lt;String, Object&gt; toValueMap(Config config) {</span>
+<span class="source-line-no">176</span><span id="line-176">        @SuppressWarnings("PMD.UseConcurrentHashMap")</span>
+<span class="source-line-no">177</span><span id="line-177">        Map&lt;String, Object&gt; result = new HashMap&lt;&gt;();</span>
+<span class="source-line-no">178</span><span id="line-178">        for (var entry : config.entrySet()) {</span>
+<span class="source-line-no">179</span><span id="line-179">            if (isNode(entry.getKey())) {</span>
 <span class="source-line-no">180</span><span id="line-180">                continue;</span>
 <span class="source-line-no">181</span><span id="line-181">            }</span>
-<span class="source-line-no">182</span><span id="line-182">            if (entry.getValue() instanceof List&lt;?&gt; values) {</span>
-<span class="source-line-no">183</span><span id="line-183">                result.put(entry.getKey(), convertList(values));</span>
+<span class="source-line-no">182</span><span id="line-182">            if (entry.getValue() instanceof Config) {</span>
+<span class="source-line-no">183</span><span id="line-183">                result.put(entry.getKey(), toValueMap(entry.getValue()));</span>
 <span class="source-line-no">184</span><span id="line-184">                continue;</span>
 <span class="source-line-no">185</span><span id="line-185">            }</span>
-<span class="source-line-no">186</span><span id="line-186">            result.put(entry.getKey(), entry.getValue());</span>
-<span class="source-line-no">187</span><span id="line-187">        }</span>
-<span class="source-line-no">188</span><span id="line-188">        return result;</span>
-<span class="source-line-no">189</span><span id="line-189">    }</span>
-<span class="source-line-no">190</span><span id="line-190"></span>
-<span class="source-line-no">191</span><span id="line-191">    private List&lt;Object&gt; convertList(List&lt;?&gt; values) {</span>
-<span class="source-line-no">192</span><span id="line-192">        List&lt;Object&gt; copy = new ArrayList&lt;&gt;();</span>
-<span class="source-line-no">193</span><span id="line-193">        for (var element : values) {</span>
-<span class="source-line-no">194</span><span id="line-194">            if (element instanceof Config cfg) {</span>
-<span class="source-line-no">195</span><span id="line-195">                copy.add(toValueMap(cfg));</span>
-<span class="source-line-no">196</span><span id="line-196">                continue;</span>
-<span class="source-line-no">197</span><span id="line-197">            }</span>
-<span class="source-line-no">198</span><span id="line-198">            copy.add(element);</span>
-<span class="source-line-no">199</span><span id="line-199">        }</span>
-<span class="source-line-no">200</span><span id="line-200">        return copy;</span>
-<span class="source-line-no">201</span><span id="line-201">    }</span>
-<span class="source-line-no">202</span><span id="line-202"></span>
-<span class="source-line-no">203</span><span id="line-203">    /**</span>
-<span class="source-line-no">204</span><span id="line-204">     * Checks if the name is an entry for a node.</span>
-<span class="source-line-no">205</span><span id="line-205">     *</span>
-<span class="source-line-no">206</span><span id="line-206">     * @param name the name</span>
-<span class="source-line-no">207</span><span id="line-207">     * @return true, if is node</span>
-<span class="source-line-no">208</span><span id="line-208">     */</span>
-<span class="source-line-no">209</span><span id="line-209">    protected boolean isNode(String name) {</span>
-<span class="source-line-no">210</span><span id="line-210">        if (name == null || name.length() &lt; 1) {</span>
-<span class="source-line-no">211</span><span id="line-211">            return false;</span>
-<span class="source-line-no">212</span><span id="line-212">        }</span>
-<span class="source-line-no">213</span><span id="line-213">        char first = name.charAt(0);</span>
-<span class="source-line-no">214</span><span id="line-214">        return first == '_' || first == '/';</span>
-<span class="source-line-no">215</span><span id="line-215">    }</span>
-<span class="source-line-no">216</span><span id="line-216"></span>
-<span class="source-line-no">217</span><span id="line-217">    /**</span>
-<span class="source-line-no">218</span><span id="line-218">     * Intercepts the {@link Start} event and fires a</span>
-<span class="source-line-no">219</span><span id="line-219">     * {@link ConfigurationUpdate} event.</span>
-<span class="source-line-no">220</span><span id="line-220">     *</span>
-<span class="source-line-no">221</span><span id="line-221">     * @param event the event</span>
-<span class="source-line-no">222</span><span id="line-222">     * @throws BackingStoreException the backing store exception</span>
-<span class="source-line-no">223</span><span id="line-223">     * @throws InterruptedException the interrupted exception</span>
-<span class="source-line-no">224</span><span id="line-224">     */</span>
-<span class="source-line-no">225</span><span id="line-225">    @Handler(priority = 999_999, channels = Channel.class)</span>
-<span class="source-line-no">226</span><span id="line-226">    @SuppressWarnings("PMD.CognitiveComplexity")</span>
-<span class="source-line-no">227</span><span id="line-227">    public void onStart(Start event)</span>
-<span class="source-line-no">228</span><span id="line-228">            throws BackingStoreException, InterruptedException {</span>
-<span class="source-line-no">229</span><span id="line-229">        ConfigurationUpdate updEvt = new InitialConfiguration();</span>
-<span class="source-line-no">230</span><span id="line-230">        addPrefs(updEvt, "/", config);</span>
-<span class="source-line-no">231</span><span id="line-231">        newEventPipeline().fire(updEvt, event.channels()).get();</span>
-<span class="source-line-no">232</span><span id="line-232">    }</span>
-<span class="source-line-no">233</span><span id="line-233"></span>
-<span class="source-line-no">234</span><span id="line-234">    private void addPrefs(ConfigurationUpdate updEvt, String path,</span>
-<span class="source-line-no">235</span><span id="line-235">            Config config) {</span>
-<span class="source-line-no">236</span><span id="line-236">        @SuppressWarnings("PMD.UseConcurrentHashMap")</span>
-<span class="source-line-no">237</span><span id="line-237">        Map&lt;String, Object&gt; atPath = new HashMap&lt;&gt;();</span>
-<span class="source-line-no">238</span><span id="line-238">        for (var e : config.entrySet()) {</span>
-<span class="source-line-no">239</span><span id="line-239">            if (isNode(e.getKey()) &amp;&amp; e.getValue() instanceof Config) {</span>
-<span class="source-line-no">240</span><span id="line-240">                addPrefs(updEvt, ("/".equals(path) ? "" : path)</span>
-<span class="source-line-no">241</span><span id="line-241">                    + "/" + e.getKey().substring(1), e.getValue());</span>
-<span class="source-line-no">242</span><span id="line-242">                continue;</span>
-<span class="source-line-no">243</span><span id="line-243">            }</span>
-<span class="source-line-no">244</span><span id="line-244">            if (e.getValue() instanceof Config) {</span>
-<span class="source-line-no">245</span><span id="line-245">                atPath.put(e.getKey(), toValueMap(e.getValue()));</span>
-<span class="source-line-no">246</span><span id="line-246">            } else {</span>
-<span class="source-line-no">247</span><span id="line-247">                atPath.put(e.getKey(), e.getValue());</span>
+<span class="source-line-no">186</span><span id="line-186">            if (entry.getValue() instanceof List&lt;?&gt; values) {</span>
+<span class="source-line-no">187</span><span id="line-187">                result.put(entry.getKey(), convertList(values));</span>
+<span class="source-line-no">188</span><span id="line-188">                continue;</span>
+<span class="source-line-no">189</span><span id="line-189">            }</span>
+<span class="source-line-no">190</span><span id="line-190">            result.put(entry.getKey(), entry.getValue());</span>
+<span class="source-line-no">191</span><span id="line-191">        }</span>
+<span class="source-line-no">192</span><span id="line-192">        return result;</span>
+<span class="source-line-no">193</span><span id="line-193">    }</span>
+<span class="source-line-no">194</span><span id="line-194"></span>
+<span class="source-line-no">195</span><span id="line-195">    private List&lt;Object&gt; convertList(List&lt;?&gt; values) {</span>
+<span class="source-line-no">196</span><span id="line-196">        List&lt;Object&gt; copy = new ArrayList&lt;&gt;();</span>
+<span class="source-line-no">197</span><span id="line-197">        for (var element : values) {</span>
+<span class="source-line-no">198</span><span id="line-198">            if (element instanceof Config cfg) {</span>
+<span class="source-line-no">199</span><span id="line-199">                copy.add(toValueMap(cfg));</span>
+<span class="source-line-no">200</span><span id="line-200">                continue;</span>
+<span class="source-line-no">201</span><span id="line-201">            }</span>
+<span class="source-line-no">202</span><span id="line-202">            copy.add(element);</span>
+<span class="source-line-no">203</span><span id="line-203">        }</span>
+<span class="source-line-no">204</span><span id="line-204">        return copy;</span>
+<span class="source-line-no">205</span><span id="line-205">    }</span>
+<span class="source-line-no">206</span><span id="line-206"></span>
+<span class="source-line-no">207</span><span id="line-207">    /**</span>
+<span class="source-line-no">208</span><span id="line-208">     * Checks if the name is an entry for a node.</span>
+<span class="source-line-no">209</span><span id="line-209">     *</span>
+<span class="source-line-no">210</span><span id="line-210">     * @param name the name</span>
+<span class="source-line-no">211</span><span id="line-211">     * @return true, if is node</span>
+<span class="source-line-no">212</span><span id="line-212">     */</span>
+<span class="source-line-no">213</span><span id="line-213">    protected boolean isNode(String name) {</span>
+<span class="source-line-no">214</span><span id="line-214">        if (name == null || name.length() &lt; 1) {</span>
+<span class="source-line-no">215</span><span id="line-215">            return false;</span>
+<span class="source-line-no">216</span><span id="line-216">        }</span>
+<span class="source-line-no">217</span><span id="line-217">        char first = name.charAt(0);</span>
+<span class="source-line-no">218</span><span id="line-218">        return first == '_' || first == '/';</span>
+<span class="source-line-no">219</span><span id="line-219">    }</span>
+<span class="source-line-no">220</span><span id="line-220"></span>
+<span class="source-line-no">221</span><span id="line-221">    /**</span>
+<span class="source-line-no">222</span><span id="line-222">     * Intercepts the {@link Start} event and fires a</span>
+<span class="source-line-no">223</span><span id="line-223">     * {@link ConfigurationUpdate} event.</span>
+<span class="source-line-no">224</span><span id="line-224">     *</span>
+<span class="source-line-no">225</span><span id="line-225">     * @param event the event</span>
+<span class="source-line-no">226</span><span id="line-226">     * @throws BackingStoreException the backing store exception</span>
+<span class="source-line-no">227</span><span id="line-227">     * @throws InterruptedException the interrupted exception</span>
+<span class="source-line-no">228</span><span id="line-228">     */</span>
+<span class="source-line-no">229</span><span id="line-229">    @Handler(priority = 999_999, channels = Channel.class)</span>
+<span class="source-line-no">230</span><span id="line-230">    @SuppressWarnings("PMD.CognitiveComplexity")</span>
+<span class="source-line-no">231</span><span id="line-231">    public void onStart(Start event)</span>
+<span class="source-line-no">232</span><span id="line-232">            throws BackingStoreException, InterruptedException {</span>
+<span class="source-line-no">233</span><span id="line-233">        ConfigurationUpdate updEvt = new InitialConfiguration();</span>
+<span class="source-line-no">234</span><span id="line-234">        addPrefs(updEvt, "/", config);</span>
+<span class="source-line-no">235</span><span id="line-235">        initialChannels = event.channels();</span>
+<span class="source-line-no">236</span><span id="line-236">        newEventPipeline().fire(updEvt, initialChannels).get();</span>
+<span class="source-line-no">237</span><span id="line-237">    }</span>
+<span class="source-line-no">238</span><span id="line-238"></span>
+<span class="source-line-no">239</span><span id="line-239">    private void addPrefs(ConfigurationUpdate updEvt, String path,</span>
+<span class="source-line-no">240</span><span id="line-240">            Config config) {</span>
+<span class="source-line-no">241</span><span id="line-241">        @SuppressWarnings("PMD.UseConcurrentHashMap")</span>
+<span class="source-line-no">242</span><span id="line-242">        Map&lt;String, Object&gt; atPath = new HashMap&lt;&gt;();</span>
+<span class="source-line-no">243</span><span id="line-243">        for (var e : config.entrySet()) {</span>
+<span class="source-line-no">244</span><span id="line-244">            if (isNode(e.getKey()) &amp;&amp; e.getValue() instanceof Config) {</span>
+<span class="source-line-no">245</span><span id="line-245">                addPrefs(updEvt, ("/".equals(path) ? "" : path)</span>
+<span class="source-line-no">246</span><span id="line-246">                    + "/" + e.getKey().substring(1), e.getValue());</span>
+<span class="source-line-no">247</span><span id="line-247">                continue;</span>
 <span class="source-line-no">248</span><span id="line-248">            }</span>
-<span class="source-line-no">249</span><span id="line-249">        }</span>
-<span class="source-line-no">250</span><span id="line-250">        if (!atPath.isEmpty()) {</span>
-<span class="source-line-no">251</span><span id="line-251">            updEvt.set(path, atPath);</span>
-<span class="source-line-no">252</span><span id="line-252">        }</span>
-<span class="source-line-no">253</span><span id="line-253">    }</span>
-<span class="source-line-no">254</span><span id="line-254"></span>
-<span class="source-line-no">255</span><span id="line-255">    /**</span>
-<span class="source-line-no">256</span><span id="line-256">     * Merges and saves configuration updates.</span>
-<span class="source-line-no">257</span><span id="line-257">     *</span>
-<span class="source-line-no">258</span><span id="line-258">     * @param event the event</span>
-<span class="source-line-no">259</span><span id="line-259">     * @throws IOException Signals that an I/O exception has occurred.</span>
-<span class="source-line-no">260</span><span id="line-260">     */</span>
-<span class="source-line-no">261</span><span id="line-261">    @Handler(dynamic = true)</span>
-<span class="source-line-no">262</span><span id="line-262">    @SuppressWarnings({ "PMD.CognitiveComplexity", "PMD.NPathComplexity",</span>
-<span class="source-line-no">263</span><span id="line-263">        "PMD.AvoidLiteralsInIfCondition",</span>
-<span class="source-line-no">264</span><span id="line-264">        "PMD.AvoidInstantiatingObjectsInLoops" })</span>
-<span class="source-line-no">265</span><span id="line-265">    public void onConfigurationUpdate(ConfigurationUpdate event)</span>
-<span class="source-line-no">266</span><span id="line-266">            throws IOException {</span>
-<span class="source-line-no">267</span><span id="line-267">        if (event instanceof InitialConfiguration) {</span>
-<span class="source-line-no">268</span><span id="line-268">            return;</span>
-<span class="source-line-no">269</span><span id="line-269">        }</span>
-<span class="source-line-no">270</span><span id="line-270"></span>
-<span class="source-line-no">271</span><span id="line-271">        boolean changed = false;</span>
-<span class="source-line-no">272</span><span id="line-272">        for (String path : event.paths()) {</span>
-<span class="source-line-no">273</span><span id="line-273">            if ("/".equals(path) &amp;&amp; event.values(path).isEmpty()) {</span>
-<span class="source-line-no">274</span><span id="line-274">                // Special case, "remove root", i.e. all configuration data</span>
-<span class="source-line-no">275</span><span id="line-275">                config.clear();</span>
-<span class="source-line-no">276</span><span id="line-276">                changed = true;</span>
-<span class="source-line-no">277</span><span id="line-277">                continue;</span>
-<span class="source-line-no">278</span><span id="line-278">            }</span>
-<span class="source-line-no">279</span><span id="line-279">            if (handleSegment(config, new StringTokenizer(path, "/"),</span>
-<span class="source-line-no">280</span><span id="line-280">                event.structured(path).map(ConfigurationStore::flatten))) {</span>
-<span class="source-line-no">281</span><span id="line-281">                changed = true;</span>
-<span class="source-line-no">282</span><span id="line-282">            }</span>
-<span class="source-line-no">283</span><span id="line-283">        }</span>
-<span class="source-line-no">284</span><span id="line-284">        if (changed) {</span>
-<span class="source-line-no">285</span><span id="line-285">            config.save();</span>
-<span class="source-line-no">286</span><span id="line-286">        }</span>
-<span class="source-line-no">287</span><span id="line-287">    }</span>
-<span class="source-line-no">288</span><span id="line-288"></span>
-<span class="source-line-no">289</span><span id="line-289">    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")</span>
-<span class="source-line-no">290</span><span id="line-290">    private boolean handleSegment(Config config,</span>
-<span class="source-line-no">291</span><span id="line-291">            StringTokenizer tokenizer, Optional&lt;Map&lt;String, Object&gt;&gt; values) {</span>
-<span class="source-line-no">292</span><span id="line-292">        if (!tokenizer.hasMoreTokens()) {</span>
-<span class="source-line-no">293</span><span id="line-293">            // "Leaf" map</span>
-<span class="source-line-no">294</span><span id="line-294">            return mergeValues(config, values.get());</span>
-<span class="source-line-no">295</span><span id="line-295">        }</span>
-<span class="source-line-no">296</span><span id="line-296">        boolean changed = false;</span>
-<span class="source-line-no">297</span><span id="line-297">        var nextSeg = tokenizer.nextToken();</span>
-<span class="source-line-no">298</span><span id="line-298">        var usSel = List.of("_" + nextSeg);</span>
-<span class="source-line-no">299</span><span id="line-299">        var slashSel = List.of("/" + nextSeg);</span>
-<span class="source-line-no">300</span><span id="line-300">        if (!tokenizer.hasMoreTokens() &amp;&amp; values.isEmpty()) {</span>
-<span class="source-line-no">301</span><span id="line-301">            // Selected is last segment from path and we must remove</span>
-<span class="source-line-no">302</span><span id="line-302">            for (var sel : List.of(usSel, slashSel)) {</span>
-<span class="source-line-no">303</span><span id="line-303">                if (config.get(sel) != null) {</span>
-<span class="source-line-no">304</span><span id="line-304">                    // Delete sub-map.</span>
-<span class="source-line-no">305</span><span id="line-305">                    config.remove(sel);</span>
-<span class="source-line-no">306</span><span id="line-306">                    changed = true;</span>
-<span class="source-line-no">307</span><span id="line-307">                }</span>
-<span class="source-line-no">308</span><span id="line-308">            }</span>
-<span class="source-line-no">309</span><span id="line-309">            return changed;</span>
-<span class="source-line-no">310</span><span id="line-310">        }</span>
-<span class="source-line-no">311</span><span id="line-311">        // Check if sub config exists</span>
-<span class="source-line-no">312</span><span id="line-312">        Object subConfig = Optional.ofNullable(config.get(usSel))</span>
-<span class="source-line-no">313</span><span id="line-313">            .orElse(config.get(slashSel));</span>
-<span class="source-line-no">314</span><span id="line-314">        if (!(subConfig instanceof Config)) {</span>
-<span class="source-line-no">315</span><span id="line-315">            // Doesn't exist or is of wrong type, new sub-map</span>
-<span class="source-line-no">316</span><span id="line-316">            changed = true;</span>
-<span class="source-line-no">317</span><span id="line-317">            subConfig = config.createSubConfig();</span>
-<span class="source-line-no">318</span><span id="line-318">            config.set(usSel, subConfig);</span>
-<span class="source-line-no">319</span><span id="line-319">        }</span>
-<span class="source-line-no">320</span><span id="line-320">        // Continue with sub-map</span>
-<span class="source-line-no">321</span><span id="line-321">        return handleSegment((Config) subConfig, tokenizer, values) || changed;</span>
-<span class="source-line-no">322</span><span id="line-322">    }</span>
-<span class="source-line-no">323</span><span id="line-323"></span>
-<span class="source-line-no">324</span><span id="line-324">    @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",</span>
-<span class="source-line-no">325</span><span id="line-325">        "PMD.CognitiveComplexity" })</span>
-<span class="source-line-no">326</span><span id="line-326">    private boolean mergeValues(Config config, Map&lt;String, Object&gt; values) {</span>
-<span class="source-line-no">327</span><span id="line-327">        boolean changed = false;</span>
-<span class="source-line-no">328</span><span id="line-328">        Map&lt;String, Object&gt; curValues = flatten(toValueMap(config));</span>
-<span class="source-line-no">329</span><span id="line-329">        for (var e : values.entrySet()) {</span>
-<span class="source-line-no">330</span><span id="line-330">            if (e.getValue() == null) {</span>
-<span class="source-line-no">331</span><span id="line-331">                // Delete from map (and config)</span>
-<span class="source-line-no">332</span><span id="line-332">                if (curValues.containsKey(e.getKey())) {</span>
-<span class="source-line-no">333</span><span id="line-333">                    curValues.remove(e.getKey());</span>
-<span class="source-line-no">334</span><span id="line-334">                    changed = true;</span>
-<span class="source-line-no">335</span><span id="line-335">                }</span>
-<span class="source-line-no">336</span><span id="line-336">                continue;</span>
-<span class="source-line-no">337</span><span id="line-337">            }</span>
-<span class="source-line-no">338</span><span id="line-338">            Object oldValue = curValues.get(e.getKey());</span>
-<span class="source-line-no">339</span><span id="line-339">            if (oldValue == null || !e.getValue().equals(oldValue)) {</span>
-<span class="source-line-no">340</span><span id="line-340">                curValues.put(e.getKey(), e.getValue());</span>
-<span class="source-line-no">341</span><span id="line-341">                changed = true;</span>
-<span class="source-line-no">342</span><span id="line-342">            }</span>
-<span class="source-line-no">343</span><span id="line-343">        }</span>
-<span class="source-line-no">344</span><span id="line-344">        if (changed) {</span>
-<span class="source-line-no">345</span><span id="line-345">            for (var itr = config.entrySet().iterator(); itr.hasNext();) {</span>
-<span class="source-line-no">346</span><span id="line-346">                if (!isNode(itr.next().getKey())) {</span>
-<span class="source-line-no">347</span><span id="line-347">                    itr.remove();</span>
-<span class="source-line-no">348</span><span id="line-348">                }</span>
+<span class="source-line-no">249</span><span id="line-249">            if (e.getValue() instanceof Config) {</span>
+<span class="source-line-no">250</span><span id="line-250">                atPath.put(e.getKey(), toValueMap(e.getValue()));</span>
+<span class="source-line-no">251</span><span id="line-251">            } else if (e.getValue() instanceof List&lt;?&gt; values) {</span>
+<span class="source-line-no">252</span><span id="line-252">                atPath.put(e.getKey(), convertList(values));</span>
+<span class="source-line-no">253</span><span id="line-253">            } else {</span>
+<span class="source-line-no">254</span><span id="line-254">                atPath.put(e.getKey(), e.getValue());</span>
+<span class="source-line-no">255</span><span id="line-255">            }</span>
+<span class="source-line-no">256</span><span id="line-256">        }</span>
+<span class="source-line-no">257</span><span id="line-257">        if (!atPath.isEmpty()) {</span>
+<span class="source-line-no">258</span><span id="line-258">            updEvt.set(path, atPath);</span>
+<span class="source-line-no">259</span><span id="line-259">        }</span>
+<span class="source-line-no">260</span><span id="line-260">    }</span>
+<span class="source-line-no">261</span><span id="line-261"></span>
+<span class="source-line-no">262</span><span id="line-262">    /**</span>
+<span class="source-line-no">263</span><span id="line-263">     * Merges and saves configuration updates.</span>
+<span class="source-line-no">264</span><span id="line-264">     *</span>
+<span class="source-line-no">265</span><span id="line-265">     * @param event the event</span>
+<span class="source-line-no">266</span><span id="line-266">     * @throws IOException Signals that an I/O exception has occurred.</span>
+<span class="source-line-no">267</span><span id="line-267">     */</span>
+<span class="source-line-no">268</span><span id="line-268">    @Handler(dynamic = true)</span>
+<span class="source-line-no">269</span><span id="line-269">    @SuppressWarnings({ "PMD.CognitiveComplexity", "PMD.NPathComplexity",</span>
+<span class="source-line-no">270</span><span id="line-270">        "PMD.AvoidLiteralsInIfCondition",</span>
+<span class="source-line-no">271</span><span id="line-271">        "PMD.AvoidInstantiatingObjectsInLoops" })</span>
+<span class="source-line-no">272</span><span id="line-272">    public void onConfigurationUpdate(ConfigurationUpdate event)</span>
+<span class="source-line-no">273</span><span id="line-273">            throws IOException {</span>
+<span class="source-line-no">274</span><span id="line-274">        if (event instanceof InitialConfiguration) {</span>
+<span class="source-line-no">275</span><span id="line-275">            return;</span>
+<span class="source-line-no">276</span><span id="line-276">        }</span>
+<span class="source-line-no">277</span><span id="line-277"></span>
+<span class="source-line-no">278</span><span id="line-278">        boolean changed = false;</span>
+<span class="source-line-no">279</span><span id="line-279">        for (String path : event.paths()) {</span>
+<span class="source-line-no">280</span><span id="line-280">            if ("/".equals(path) &amp;&amp; event.values(path).isEmpty()) {</span>
+<span class="source-line-no">281</span><span id="line-281">                // Special case, "remove root", i.e. all configuration data</span>
+<span class="source-line-no">282</span><span id="line-282">                config.clear();</span>
+<span class="source-line-no">283</span><span id="line-283">                changed = true;</span>
+<span class="source-line-no">284</span><span id="line-284">                continue;</span>
+<span class="source-line-no">285</span><span id="line-285">            }</span>
+<span class="source-line-no">286</span><span id="line-286">            if (handleSegment(config, new StringTokenizer(path, "/"),</span>
+<span class="source-line-no">287</span><span id="line-287">                event.structured(path).map(ConfigurationStore::flatten))) {</span>
+<span class="source-line-no">288</span><span id="line-288">                changed = true;</span>
+<span class="source-line-no">289</span><span id="line-289">            }</span>
+<span class="source-line-no">290</span><span id="line-290">        }</span>
+<span class="source-line-no">291</span><span id="line-291">        if (changed) {</span>
+<span class="source-line-no">292</span><span id="line-292">            config.save();</span>
+<span class="source-line-no">293</span><span id="line-293">        }</span>
+<span class="source-line-no">294</span><span id="line-294">    }</span>
+<span class="source-line-no">295</span><span id="line-295"></span>
+<span class="source-line-no">296</span><span id="line-296">    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")</span>
+<span class="source-line-no">297</span><span id="line-297">    private boolean handleSegment(Config config,</span>
+<span class="source-line-no">298</span><span id="line-298">            StringTokenizer tokenizer, Optional&lt;Map&lt;String, Object&gt;&gt; values) {</span>
+<span class="source-line-no">299</span><span id="line-299">        if (!tokenizer.hasMoreTokens()) {</span>
+<span class="source-line-no">300</span><span id="line-300">            // "Leaf" map</span>
+<span class="source-line-no">301</span><span id="line-301">            return mergeValues(config, values.get());</span>
+<span class="source-line-no">302</span><span id="line-302">        }</span>
+<span class="source-line-no">303</span><span id="line-303">        boolean changed = false;</span>
+<span class="source-line-no">304</span><span id="line-304">        var nextSeg = tokenizer.nextToken();</span>
+<span class="source-line-no">305</span><span id="line-305">        var usSel = List.of("_" + nextSeg);</span>
+<span class="source-line-no">306</span><span id="line-306">        var slashSel = List.of("/" + nextSeg);</span>
+<span class="source-line-no">307</span><span id="line-307">        if (!tokenizer.hasMoreTokens() &amp;&amp; values.isEmpty()) {</span>
+<span class="source-line-no">308</span><span id="line-308">            // Selected is last segment from path and we must remove</span>
+<span class="source-line-no">309</span><span id="line-309">            for (var sel : List.of(usSel, slashSel)) {</span>
+<span class="source-line-no">310</span><span id="line-310">                if (config.get(sel) != null) {</span>
+<span class="source-line-no">311</span><span id="line-311">                    // Delete sub-map.</span>
+<span class="source-line-no">312</span><span id="line-312">                    config.remove(sel);</span>
+<span class="source-line-no">313</span><span id="line-313">                    changed = true;</span>
+<span class="source-line-no">314</span><span id="line-314">                }</span>
+<span class="source-line-no">315</span><span id="line-315">            }</span>
+<span class="source-line-no">316</span><span id="line-316">            return changed;</span>
+<span class="source-line-no">317</span><span id="line-317">        }</span>
+<span class="source-line-no">318</span><span id="line-318">        // Check if sub config exists</span>
+<span class="source-line-no">319</span><span id="line-319">        Object subConfig = Optional.ofNullable(config.get(usSel))</span>
+<span class="source-line-no">320</span><span id="line-320">            .orElse(config.get(slashSel));</span>
+<span class="source-line-no">321</span><span id="line-321">        if (!(subConfig instanceof Config)) {</span>
+<span class="source-line-no">322</span><span id="line-322">            // Doesn't exist or is of wrong type, new sub-map</span>
+<span class="source-line-no">323</span><span id="line-323">            changed = true;</span>
+<span class="source-line-no">324</span><span id="line-324">            subConfig = config.createSubConfig();</span>
+<span class="source-line-no">325</span><span id="line-325">            config.set(usSel, subConfig);</span>
+<span class="source-line-no">326</span><span id="line-326">        }</span>
+<span class="source-line-no">327</span><span id="line-327">        // Continue with sub-map</span>
+<span class="source-line-no">328</span><span id="line-328">        return handleSegment((Config) subConfig, tokenizer, values) || changed;</span>
+<span class="source-line-no">329</span><span id="line-329">    }</span>
+<span class="source-line-no">330</span><span id="line-330"></span>
+<span class="source-line-no">331</span><span id="line-331">    @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",</span>
+<span class="source-line-no">332</span><span id="line-332">        "PMD.CognitiveComplexity" })</span>
+<span class="source-line-no">333</span><span id="line-333">    private boolean mergeValues(Config config, Map&lt;String, Object&gt; values) {</span>
+<span class="source-line-no">334</span><span id="line-334">        boolean changed = false;</span>
+<span class="source-line-no">335</span><span id="line-335">        Map&lt;String, Object&gt; curValues = flatten(toValueMap(config));</span>
+<span class="source-line-no">336</span><span id="line-336">        for (var e : values.entrySet()) {</span>
+<span class="source-line-no">337</span><span id="line-337">            if (e.getValue() == null) {</span>
+<span class="source-line-no">338</span><span id="line-338">                // Delete from map (and config)</span>
+<span class="source-line-no">339</span><span id="line-339">                if (curValues.containsKey(e.getKey())) {</span>
+<span class="source-line-no">340</span><span id="line-340">                    curValues.remove(e.getKey());</span>
+<span class="source-line-no">341</span><span id="line-341">                    changed = true;</span>
+<span class="source-line-no">342</span><span id="line-342">                }</span>
+<span class="source-line-no">343</span><span id="line-343">                continue;</span>
+<span class="source-line-no">344</span><span id="line-344">            }</span>
+<span class="source-line-no">345</span><span id="line-345">            Object oldValue = curValues.get(e.getKey());</span>
+<span class="source-line-no">346</span><span id="line-346">            if (oldValue == null || !e.getValue().equals(oldValue)) {</span>
+<span class="source-line-no">347</span><span id="line-347">                curValues.put(e.getKey(), e.getValue());</span>
+<span class="source-line-no">348</span><span id="line-348">                changed = true;</span>
 <span class="source-line-no">349</span><span id="line-349">            }</span>
-<span class="source-line-no">350</span><span id="line-350">            addToConfig(config, structure(curValues));</span>
-<span class="source-line-no">351</span><span id="line-351">        }</span>
-<span class="source-line-no">352</span><span id="line-352">        return changed;</span>
-<span class="source-line-no">353</span><span id="line-353">    }</span>
-<span class="source-line-no">354</span><span id="line-354"></span>
-<span class="source-line-no">355</span><span id="line-355">    @SuppressWarnings("unchecked")</span>
-<span class="source-line-no">356</span><span id="line-356">    private void addToConfig(Config config, Map&lt;String, Object&gt; map) {</span>
-<span class="source-line-no">357</span><span id="line-357">        for (var e : map.entrySet()) {</span>
-<span class="source-line-no">358</span><span id="line-358">            var selector = List.of(e.getKey());</span>
-<span class="source-line-no">359</span><span id="line-359">            if (e.getValue() instanceof Map) {</span>
-<span class="source-line-no">360</span><span id="line-360">                Config subConfig = config.get(selector);</span>
-<span class="source-line-no">361</span><span id="line-361">                if (subConfig == null) {</span>
-<span class="source-line-no">362</span><span id="line-362">                    subConfig = config.createSubConfig();</span>
-<span class="source-line-no">363</span><span id="line-363">                    config.set(selector, subConfig);</span>
-<span class="source-line-no">364</span><span id="line-364">                }</span>
-<span class="source-line-no">365</span><span id="line-365">                addToConfig(subConfig, (Map&lt;String, Object&gt;) e.getValue());</span>
-<span class="source-line-no">366</span><span id="line-366">            } else if (e.getValue() instanceof Collection) {</span>
-<span class="source-line-no">367</span><span id="line-367">                config.set(selector,</span>
-<span class="source-line-no">368</span><span id="line-368">                    checkCollection((Collection&lt;?&gt;) e.getValue()));</span>
-<span class="source-line-no">369</span><span id="line-369">            } else {</span>
-<span class="source-line-no">370</span><span id="line-370">                config.set(selector, e.getValue());</span>
-<span class="source-line-no">371</span><span id="line-371">            }</span>
-<span class="source-line-no">372</span><span id="line-372">        }</span>
-<span class="source-line-no">373</span><span id="line-373">    }</span>
-<span class="source-line-no">374</span><span id="line-374"></span>
-<span class="source-line-no">375</span><span id="line-375">    @SuppressWarnings("unchecked")</span>
-<span class="source-line-no">376</span><span id="line-376">    private Collection&lt;Object&gt; checkCollection(Collection&lt;?&gt; items) {</span>
-<span class="source-line-no">377</span><span id="line-377">        var checked = new ArrayList&lt;&gt;();</span>
-<span class="source-line-no">378</span><span id="line-378">        for (var item : items) {</span>
-<span class="source-line-no">379</span><span id="line-379">            if (item instanceof Map) {</span>
-<span class="source-line-no">380</span><span id="line-380">                Config subConfig = config.createSubConfig();</span>
-<span class="source-line-no">381</span><span id="line-381">                addToConfig(subConfig, (Map&lt;String, Object&gt;) item);</span>
-<span class="source-line-no">382</span><span id="line-382">                checked.add(subConfig);</span>
-<span class="source-line-no">383</span><span id="line-383">            } else if (item instanceof Collection) {</span>
-<span class="source-line-no">384</span><span id="line-384">                checked.add(checkCollection((Collection&lt;?&gt;) item));</span>
-<span class="source-line-no">385</span><span id="line-385">            } else {</span>
-<span class="source-line-no">386</span><span id="line-386">                checked.add(item);</span>
-<span class="source-line-no">387</span><span id="line-387">            }</span>
-<span class="source-line-no">388</span><span id="line-388">        }</span>
-<span class="source-line-no">389</span><span id="line-389">        return checked;</span>
-<span class="source-line-no">390</span><span id="line-390">    }</span>
-<span class="source-line-no">391</span><span id="line-391"></span>
-<span class="source-line-no">392</span><span id="line-392">}</span>
+<span class="source-line-no">350</span><span id="line-350">        }</span>
+<span class="source-line-no">351</span><span id="line-351">        if (changed) {</span>
+<span class="source-line-no">352</span><span id="line-352">            for (var itr = config.entrySet().iterator(); itr.hasNext();) {</span>
+<span class="source-line-no">353</span><span id="line-353">                if (!isNode(itr.next().getKey())) {</span>
+<span class="source-line-no">354</span><span id="line-354">                    itr.remove();</span>
+<span class="source-line-no">355</span><span id="line-355">                }</span>
+<span class="source-line-no">356</span><span id="line-356">            }</span>
+<span class="source-line-no">357</span><span id="line-357">            addToConfig(config, structure(curValues));</span>
+<span class="source-line-no">358</span><span id="line-358">        }</span>
+<span class="source-line-no">359</span><span id="line-359">        return changed;</span>
+<span class="source-line-no">360</span><span id="line-360">    }</span>
+<span class="source-line-no">361</span><span id="line-361"></span>
+<span class="source-line-no">362</span><span id="line-362">    @SuppressWarnings("unchecked")</span>
+<span class="source-line-no">363</span><span id="line-363">    private void addToConfig(Config config, Map&lt;String, Object&gt; map) {</span>
+<span class="source-line-no">364</span><span id="line-364">        for (var e : map.entrySet()) {</span>
+<span class="source-line-no">365</span><span id="line-365">            var selector = List.of(e.getKey());</span>
+<span class="source-line-no">366</span><span id="line-366">            if (e.getValue() instanceof Map) {</span>
+<span class="source-line-no">367</span><span id="line-367">                Config subConfig = config.get(selector);</span>
+<span class="source-line-no">368</span><span id="line-368">                if (subConfig == null) {</span>
+<span class="source-line-no">369</span><span id="line-369">                    subConfig = config.createSubConfig();</span>
+<span class="source-line-no">370</span><span id="line-370">                    config.set(selector, subConfig);</span>
+<span class="source-line-no">371</span><span id="line-371">                }</span>
+<span class="source-line-no">372</span><span id="line-372">                addToConfig(subConfig, (Map&lt;String, Object&gt;) e.getValue());</span>
+<span class="source-line-no">373</span><span id="line-373">            } else if (e.getValue() instanceof Collection) {</span>
+<span class="source-line-no">374</span><span id="line-374">                config.set(selector,</span>
+<span class="source-line-no">375</span><span id="line-375">                    checkCollection((Collection&lt;?&gt;) e.getValue()));</span>
+<span class="source-line-no">376</span><span id="line-376">            } else {</span>
+<span class="source-line-no">377</span><span id="line-377">                config.set(selector, e.getValue());</span>
+<span class="source-line-no">378</span><span id="line-378">            }</span>
+<span class="source-line-no">379</span><span id="line-379">        }</span>
+<span class="source-line-no">380</span><span id="line-380">    }</span>
+<span class="source-line-no">381</span><span id="line-381"></span>
+<span class="source-line-no">382</span><span id="line-382">    @SuppressWarnings("unchecked")</span>
+<span class="source-line-no">383</span><span id="line-383">    private Collection&lt;Object&gt; checkCollection(Collection&lt;?&gt; items) {</span>
+<span class="source-line-no">384</span><span id="line-384">        var checked = new ArrayList&lt;&gt;();</span>
+<span class="source-line-no">385</span><span id="line-385">        for (var item : items) {</span>
+<span class="source-line-no">386</span><span id="line-386">            if (item instanceof Map) {</span>
+<span class="source-line-no">387</span><span id="line-387">                Config subConfig = config.createSubConfig();</span>
+<span class="source-line-no">388</span><span id="line-388">                addToConfig(subConfig, (Map&lt;String, Object&gt;) item);</span>
+<span class="source-line-no">389</span><span id="line-389">                checked.add(subConfig);</span>
+<span class="source-line-no">390</span><span id="line-390">            } else if (item instanceof Collection) {</span>
+<span class="source-line-no">391</span><span id="line-391">                checked.add(checkCollection((Collection&lt;?&gt;) item));</span>
+<span class="source-line-no">392</span><span id="line-392">            } else {</span>
+<span class="source-line-no">393</span><span id="line-393">                checked.add(item);</span>
+<span class="source-line-no">394</span><span id="line-394">            }</span>
+<span class="source-line-no">395</span><span id="line-395">        }</span>
+<span class="source-line-no">396</span><span id="line-396">        return checked;</span>
+<span class="source-line-no">397</span><span id="line-397">    }</span>
+<span class="source-line-no">398</span><span id="line-398"></span>
+<span class="source-line-no">399</span><span id="line-399">}</span>
 
 
 

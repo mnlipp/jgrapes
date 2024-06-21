@@ -131,7 +131,7 @@
 <span class="source-line-no">118</span><span id="line-118">         * @param by the "name"</span>
 <span class="source-line-no">119</span><span id="line-119">         * @param with the object to be associated</span>
 <span class="source-line-no">120</span><span id="line-120">         */</span>
-<span class="source-line-no">121</span><span id="line-121">        @SuppressWarnings("PMD.ShortVariable")</span>
+<span class="source-line-no">121</span><span id="line-121">        @SuppressWarnings({ "PMD.ShortVariable", "unchecked" })</span>
 <span class="source-line-no">122</span><span id="line-122">        public DefaultSubchannel setAssociated(Object by, Object with) {</span>
 <span class="source-line-no">123</span><span id="line-123">            if (contextData == null) {</span>
 <span class="source-line-no">124</span><span id="line-124">                contextData = new ConcurrentHashMap&lt;&gt;();</span>
@@ -162,7 +162,7 @@
 <span class="source-line-no">149</span><span id="line-149">            }</span>
 <span class="source-line-no">150</span><span id="line-150">            return Optional.ofNullable(contextData.get(by))</span>
 <span class="source-line-no">151</span><span id="line-151">                .filter(found -&gt; type.isAssignableFrom(found.getClass()))</span>
-<span class="source-line-no">152</span><span id="line-152">                .map(match -&gt; type.cast(match));</span>
+<span class="source-line-no">152</span><span id="line-152">                .map(type::cast);</span>
 <span class="source-line-no">153</span><span id="line-153">        }</span>
 <span class="source-line-no">154</span><span id="line-154"></span>
 <span class="source-line-no">155</span><span id="line-155">        /*</span>

@@ -46,89 +46,90 @@
 <span class="source-line-no">033</span><span id="line-33">     * parameter `name`, it does not necessarily have to be a string.</span>
 <span class="source-line-no">034</span><span id="line-34">     * </span>
 <span class="source-line-no">035</span><span id="line-35">     * Passing `null` as parameter `with` clears the association.</span>
-<span class="source-line-no">036</span><span id="line-36">     * </span>
-<span class="source-line-no">037</span><span id="line-37">     * @param by the "name"</span>
-<span class="source-line-no">038</span><span id="line-38">     * @param with the object to be associated</span>
-<span class="source-line-no">039</span><span id="line-39">     * @return the sub channel for easy chaining</span>
-<span class="source-line-no">040</span><span id="line-40">     */</span>
-<span class="source-line-no">041</span><span id="line-41">    @SuppressWarnings({ "PMD.ShortVariable", "PMD.AvoidDuplicateLiterals" })</span>
-<span class="source-line-no">042</span><span id="line-42">    Associator setAssociated(Object by, Object with);</span>
-<span class="source-line-no">043</span><span id="line-43"></span>
-<span class="source-line-no">044</span><span id="line-44">    /**</span>
-<span class="source-line-no">045</span><span id="line-45">     * Retrieves the associated object following the association </span>
-<span class="source-line-no">046</span><span id="line-46">     * with the given "name". This general version of the method</span>
-<span class="source-line-no">047</span><span id="line-47">     * supports the retrieval of values of arbitrary types</span>
-<span class="source-line-no">048</span><span id="line-48">     * associated by any "name" types. </span>
-<span class="source-line-no">049</span><span id="line-49">     * </span>
-<span class="source-line-no">050</span><span id="line-50">     * @param by the "name"</span>
-<span class="source-line-no">051</span><span id="line-51">     * @param type the type of the value to be retrieved</span>
-<span class="source-line-no">052</span><span id="line-52">     * @param &lt;V&gt; the type of the value to be retrieved</span>
-<span class="source-line-no">053</span><span id="line-53">     * @return the associate with the given type, if any</span>
-<span class="source-line-no">054</span><span id="line-54">     */</span>
-<span class="source-line-no">055</span><span id="line-55">    @SuppressWarnings("PMD.ShortVariable")</span>
-<span class="source-line-no">056</span><span id="line-56">    &lt;V&gt; Optional&lt;V&gt; associated(Object by, Class&lt;V&gt; type);</span>
-<span class="source-line-no">057</span><span id="line-57"></span>
-<span class="source-line-no">058</span><span id="line-58">    /**</span>
-<span class="source-line-no">059</span><span id="line-59">     * Retrieves the associated object following the association </span>
-<span class="source-line-no">060</span><span id="line-60">     * with the given "name". If no association exists, the</span>
-<span class="source-line-no">061</span><span id="line-61">     * object is created and the association is established.  </span>
-<span class="source-line-no">062</span><span id="line-62">     * </span>
-<span class="source-line-no">063</span><span id="line-63">     * @param by the "name"</span>
-<span class="source-line-no">064</span><span id="line-64">     * @param supplier the supplier</span>
-<span class="source-line-no">065</span><span id="line-65">     * @param &lt;V&gt; the type of the value to be retrieved</span>
-<span class="source-line-no">066</span><span id="line-66">     * @return the associate, if any</span>
-<span class="source-line-no">067</span><span id="line-67">     */</span>
-<span class="source-line-no">068</span><span id="line-68">    @SuppressWarnings({ "unchecked", "PMD.ShortVariable" })</span>
-<span class="source-line-no">069</span><span id="line-69">    default &lt;V&gt; V associated(Object by, Supplier&lt;V&gt; supplier) {</span>
-<span class="source-line-no">070</span><span id="line-70">        return (V) associated(by, Object.class).orElseGet(() -&gt; {</span>
-<span class="source-line-no">071</span><span id="line-71">            V associated = supplier.get();</span>
-<span class="source-line-no">072</span><span id="line-72">            setAssociated(by, associated);</span>
-<span class="source-line-no">073</span><span id="line-73">            return associated;</span>
-<span class="source-line-no">074</span><span id="line-74">        });</span>
-<span class="source-line-no">075</span><span id="line-75">    }</span>
-<span class="source-line-no">076</span><span id="line-76"></span>
-<span class="source-line-no">077</span><span id="line-77">    /**</span>
-<span class="source-line-no">078</span><span id="line-78">     * Retrieves the associated object following the association </span>
-<span class="source-line-no">079</span><span id="line-79">     * with the given name. This convenience methods simplifies the</span>
-<span class="source-line-no">080</span><span id="line-80">     * retrieval of String values associated by a (real) name.</span>
-<span class="source-line-no">081</span><span id="line-81">     * </span>
-<span class="source-line-no">082</span><span id="line-82">     * @param by the name</span>
-<span class="source-line-no">083</span><span id="line-83">     * @return the associate, if any</span>
-<span class="source-line-no">084</span><span id="line-84">     */</span>
-<span class="source-line-no">085</span><span id="line-85">    @SuppressWarnings("PMD.ShortVariable")</span>
-<span class="source-line-no">086</span><span id="line-86">    default Optional&lt;String&gt; associated(String by) {</span>
-<span class="source-line-no">087</span><span id="line-87">        return associated(by, String.class);</span>
-<span class="source-line-no">088</span><span id="line-88">    }</span>
-<span class="source-line-no">089</span><span id="line-89"></span>
-<span class="source-line-no">090</span><span id="line-90">    /**</span>
-<span class="source-line-no">091</span><span id="line-91">     * Retrieves the associated object following the association </span>
-<span class="source-line-no">092</span><span id="line-92">     * with the given class. The associated object must be an instance</span>
-<span class="source-line-no">093</span><span id="line-93">     * of the given class.</span>
-<span class="source-line-no">094</span><span id="line-94">     * </span>
-<span class="source-line-no">095</span><span id="line-95">     * @param &lt;V&gt; the type of the value</span>
-<span class="source-line-no">096</span><span id="line-96">     * @param by the name</span>
-<span class="source-line-no">097</span><span id="line-97">     * @return the associate, if any</span>
-<span class="source-line-no">098</span><span id="line-98">     */</span>
-<span class="source-line-no">099</span><span id="line-99">    @SuppressWarnings("PMD.ShortVariable")</span>
-<span class="source-line-no">100</span><span id="line-100">    default &lt;V&gt; Optional&lt;V&gt; associated(Class&lt;V&gt; by) {</span>
-<span class="source-line-no">101</span><span id="line-101">        return associated(by, by);</span>
-<span class="source-line-no">102</span><span id="line-102">    }</span>
-<span class="source-line-no">103</span><span id="line-103"></span>
-<span class="source-line-no">104</span><span id="line-104">    /**</span>
-<span class="source-line-no">105</span><span id="line-105">     * Assumes the associated object to be of type</span>
-<span class="source-line-no">106</span><span id="line-106">     * `Supplier&lt;Optional&lt;V&gt;&gt;`. Invokes the supplier and returns the</span>
-<span class="source-line-no">107</span><span id="line-107">     * result.</span>
-<span class="source-line-no">108</span><span id="line-108">     * </span>
-<span class="source-line-no">109</span><span id="line-109">     * @param &lt;V&gt; the type of the value</span>
-<span class="source-line-no">110</span><span id="line-110">     * @param by the name</span>
-<span class="source-line-no">111</span><span id="line-111">     * @return the associate, if any</span>
-<span class="source-line-no">112</span><span id="line-112">     */</span>
-<span class="source-line-no">113</span><span id="line-113">    @SuppressWarnings({ "unchecked", "PMD.ShortVariable" })</span>
-<span class="source-line-no">114</span><span id="line-114">    default &lt;V&gt; Optional&lt;V&gt; associatedGet(Class&lt;V&gt; by) {</span>
-<span class="source-line-no">115</span><span id="line-115">        return associated(by, Supplier.class)</span>
-<span class="source-line-no">116</span><span id="line-116">            .flatMap(s -&gt; ((Supplier&lt;Optional&lt;V&gt;&gt;) s).get());</span>
-<span class="source-line-no">117</span><span id="line-117">    }</span>
-<span class="source-line-no">118</span><span id="line-118">}</span>
+<span class="source-line-no">036</span><span id="line-36">     *</span>
+<span class="source-line-no">037</span><span id="line-37">     * @param &lt;A&gt; the associator's type</span>
+<span class="source-line-no">038</span><span id="line-38">     * @param by the "name"</span>
+<span class="source-line-no">039</span><span id="line-39">     * @param with the object to be associated</span>
+<span class="source-line-no">040</span><span id="line-40">     * @return the sub channel for easy chaining</span>
+<span class="source-line-no">041</span><span id="line-41">     */</span>
+<span class="source-line-no">042</span><span id="line-42">    @SuppressWarnings({ "PMD.ShortVariable", "PMD.AvoidDuplicateLiterals" })</span>
+<span class="source-line-no">043</span><span id="line-43">    &lt;A extends Associator&gt; A setAssociated(Object by, Object with);</span>
+<span class="source-line-no">044</span><span id="line-44"></span>
+<span class="source-line-no">045</span><span id="line-45">    /**</span>
+<span class="source-line-no">046</span><span id="line-46">     * Retrieves the associated object following the association </span>
+<span class="source-line-no">047</span><span id="line-47">     * with the given "name". This general version of the method</span>
+<span class="source-line-no">048</span><span id="line-48">     * supports the retrieval of values of arbitrary types</span>
+<span class="source-line-no">049</span><span id="line-49">     * associated by any "name" types. </span>
+<span class="source-line-no">050</span><span id="line-50">     * </span>
+<span class="source-line-no">051</span><span id="line-51">     * @param by the "name"</span>
+<span class="source-line-no">052</span><span id="line-52">     * @param type the type of the value to be retrieved</span>
+<span class="source-line-no">053</span><span id="line-53">     * @param &lt;V&gt; the type of the value to be retrieved</span>
+<span class="source-line-no">054</span><span id="line-54">     * @return the associate with the given type, if any</span>
+<span class="source-line-no">055</span><span id="line-55">     */</span>
+<span class="source-line-no">056</span><span id="line-56">    @SuppressWarnings("PMD.ShortVariable")</span>
+<span class="source-line-no">057</span><span id="line-57">    &lt;V&gt; Optional&lt;V&gt; associated(Object by, Class&lt;V&gt; type);</span>
+<span class="source-line-no">058</span><span id="line-58"></span>
+<span class="source-line-no">059</span><span id="line-59">    /**</span>
+<span class="source-line-no">060</span><span id="line-60">     * Retrieves the associated object following the association </span>
+<span class="source-line-no">061</span><span id="line-61">     * with the given "name". If no association exists, the</span>
+<span class="source-line-no">062</span><span id="line-62">     * object is created and the association is established.  </span>
+<span class="source-line-no">063</span><span id="line-63">     * </span>
+<span class="source-line-no">064</span><span id="line-64">     * @param by the "name"</span>
+<span class="source-line-no">065</span><span id="line-65">     * @param supplier the supplier</span>
+<span class="source-line-no">066</span><span id="line-66">     * @param &lt;V&gt; the type of the value to be retrieved</span>
+<span class="source-line-no">067</span><span id="line-67">     * @return the associate, if any</span>
+<span class="source-line-no">068</span><span id="line-68">     */</span>
+<span class="source-line-no">069</span><span id="line-69">    @SuppressWarnings({ "unchecked", "PMD.ShortVariable" })</span>
+<span class="source-line-no">070</span><span id="line-70">    default &lt;V&gt; V associated(Object by, Supplier&lt;V&gt; supplier) {</span>
+<span class="source-line-no">071</span><span id="line-71">        return (V) associated(by, Object.class).orElseGet(() -&gt; {</span>
+<span class="source-line-no">072</span><span id="line-72">            V associated = supplier.get();</span>
+<span class="source-line-no">073</span><span id="line-73">            setAssociated(by, associated);</span>
+<span class="source-line-no">074</span><span id="line-74">            return associated;</span>
+<span class="source-line-no">075</span><span id="line-75">        });</span>
+<span class="source-line-no">076</span><span id="line-76">    }</span>
+<span class="source-line-no">077</span><span id="line-77"></span>
+<span class="source-line-no">078</span><span id="line-78">    /**</span>
+<span class="source-line-no">079</span><span id="line-79">     * Retrieves the associated object following the association </span>
+<span class="source-line-no">080</span><span id="line-80">     * with the given name. This convenience methods simplifies the</span>
+<span class="source-line-no">081</span><span id="line-81">     * retrieval of String values associated by a (real) name.</span>
+<span class="source-line-no">082</span><span id="line-82">     * </span>
+<span class="source-line-no">083</span><span id="line-83">     * @param by the name</span>
+<span class="source-line-no">084</span><span id="line-84">     * @return the associate, if any</span>
+<span class="source-line-no">085</span><span id="line-85">     */</span>
+<span class="source-line-no">086</span><span id="line-86">    @SuppressWarnings("PMD.ShortVariable")</span>
+<span class="source-line-no">087</span><span id="line-87">    default Optional&lt;String&gt; associated(String by) {</span>
+<span class="source-line-no">088</span><span id="line-88">        return associated(by, String.class);</span>
+<span class="source-line-no">089</span><span id="line-89">    }</span>
+<span class="source-line-no">090</span><span id="line-90"></span>
+<span class="source-line-no">091</span><span id="line-91">    /**</span>
+<span class="source-line-no">092</span><span id="line-92">     * Retrieves the associated object following the association </span>
+<span class="source-line-no">093</span><span id="line-93">     * with the given class. The associated object must be an instance</span>
+<span class="source-line-no">094</span><span id="line-94">     * of the given class.</span>
+<span class="source-line-no">095</span><span id="line-95">     * </span>
+<span class="source-line-no">096</span><span id="line-96">     * @param &lt;V&gt; the type of the value</span>
+<span class="source-line-no">097</span><span id="line-97">     * @param by the name</span>
+<span class="source-line-no">098</span><span id="line-98">     * @return the associate, if any</span>
+<span class="source-line-no">099</span><span id="line-99">     */</span>
+<span class="source-line-no">100</span><span id="line-100">    @SuppressWarnings("PMD.ShortVariable")</span>
+<span class="source-line-no">101</span><span id="line-101">    default &lt;V&gt; Optional&lt;V&gt; associated(Class&lt;V&gt; by) {</span>
+<span class="source-line-no">102</span><span id="line-102">        return associated(by, by);</span>
+<span class="source-line-no">103</span><span id="line-103">    }</span>
+<span class="source-line-no">104</span><span id="line-104"></span>
+<span class="source-line-no">105</span><span id="line-105">    /**</span>
+<span class="source-line-no">106</span><span id="line-106">     * Assumes the associated object to be of type</span>
+<span class="source-line-no">107</span><span id="line-107">     * `Supplier&lt;Optional&lt;V&gt;&gt;`. Invokes the supplier and returns the</span>
+<span class="source-line-no">108</span><span id="line-108">     * result.</span>
+<span class="source-line-no">109</span><span id="line-109">     * </span>
+<span class="source-line-no">110</span><span id="line-110">     * @param &lt;V&gt; the type of the value</span>
+<span class="source-line-no">111</span><span id="line-111">     * @param by the name</span>
+<span class="source-line-no">112</span><span id="line-112">     * @return the associate, if any</span>
+<span class="source-line-no">113</span><span id="line-113">     */</span>
+<span class="source-line-no">114</span><span id="line-114">    @SuppressWarnings({ "unchecked", "PMD.ShortVariable" })</span>
+<span class="source-line-no">115</span><span id="line-115">    default &lt;V&gt; Optional&lt;V&gt; associatedGet(Class&lt;V&gt; by) {</span>
+<span class="source-line-no">116</span><span id="line-116">        return associated(by, Supplier.class)</span>
+<span class="source-line-no">117</span><span id="line-117">            .flatMap(s -&gt; ((Supplier&lt;Optional&lt;V&gt;&gt;) s).get());</span>
+<span class="source-line-no">118</span><span id="line-118">    }</span>
+<span class="source-line-no">119</span><span id="line-119">}</span>
 
 
 

@@ -34,104 +34,104 @@
 <span class="source-line-no">021</span><span id="line-21">import java.io.IOException;</span>
 <span class="source-line-no">022</span><span id="line-22">import java.io.InterruptedIOException;</span>
 <span class="source-line-no">023</span><span id="line-23">import java.io.Reader;</span>
-<span class="source-line-no">024</span><span id="line-24">import java.nio.Buffer;</span>
-<span class="source-line-no">025</span><span id="line-25">import java.nio.ByteBuffer;</span>
-<span class="source-line-no">026</span><span id="line-26">import java.nio.CharBuffer;</span>
-<span class="source-line-no">027</span><span id="line-27">import java.nio.charset.Charset;</span>
-<span class="source-line-no">028</span><span id="line-28">import java.nio.charset.CharsetDecoder;</span>
-<span class="source-line-no">029</span><span id="line-29">import java.nio.charset.StandardCharsets;</span>
-<span class="source-line-no">030</span><span id="line-30">import java.util.Objects;</span>
-<span class="source-line-no">031</span><span id="line-31"></span>
-<span class="source-line-no">032</span><span id="line-32">/**</span>
-<span class="source-line-no">033</span><span id="line-33"> * A {@link Reader} that provides the data from the {@link ManagedBuffer}s</span>
-<span class="source-line-no">034</span><span id="line-34"> * fed to it to a consumer. This class is intended to be used as a pipe </span>
-<span class="source-line-no">035</span><span id="line-35"> * between two threads.  </span>
-<span class="source-line-no">036</span><span id="line-36"> */</span>
-<span class="source-line-no">037</span><span id="line-37">public class ManagedBufferReader extends Reader {</span>
-<span class="source-line-no">038</span><span id="line-38"></span>
-<span class="source-line-no">039</span><span id="line-39">    private boolean isEndOfFeed;</span>
-<span class="source-line-no">040</span><span id="line-40">    private boolean isOpen = true;</span>
-<span class="source-line-no">041</span><span id="line-41">    private ManagedBuffer&lt;? extends Buffer&gt; current;</span>
-<span class="source-line-no">042</span><span id="line-42">    private CharsetDecoder decoder;</span>
-<span class="source-line-no">043</span><span id="line-43">    private CharBuffer decoded;</span>
-<span class="source-line-no">044</span><span id="line-44">    private Charset charset = StandardCharsets.UTF_8;</span>
-<span class="source-line-no">045</span><span id="line-45"></span>
-<span class="source-line-no">046</span><span id="line-46">    /**</span>
-<span class="source-line-no">047</span><span id="line-47">     * Sets the charset to be used if {@link #feed(ManagedBuffer)}</span>
-<span class="source-line-no">048</span><span id="line-48">     * is invoked with `ManagedBuffer&lt;ByteBuffer&gt;`. Defaults to UTF-8. </span>
-<span class="source-line-no">049</span><span id="line-49">     * Must be set before the first invocation of </span>
-<span class="source-line-no">050</span><span id="line-50">     * {@link #feed(ManagedBuffer)}.  </span>
-<span class="source-line-no">051</span><span id="line-51">     *</span>
-<span class="source-line-no">052</span><span id="line-52">     * @param charset the charset</span>
-<span class="source-line-no">053</span><span id="line-53">     * @return the managed buffer reader</span>
-<span class="source-line-no">054</span><span id="line-54">     */</span>
-<span class="source-line-no">055</span><span id="line-55">    public ManagedBufferReader charset(Charset charset) {</span>
-<span class="source-line-no">056</span><span id="line-56">        if (decoder != null) {</span>
-<span class="source-line-no">057</span><span id="line-57">            throw new IllegalStateException("Charset cannot be changed.");</span>
-<span class="source-line-no">058</span><span id="line-58">        }</span>
-<span class="source-line-no">059</span><span id="line-59">        this.charset = charset;</span>
-<span class="source-line-no">060</span><span id="line-60">        return this;</span>
-<span class="source-line-no">061</span><span id="line-61">    }</span>
-<span class="source-line-no">062</span><span id="line-62"></span>
-<span class="source-line-no">063</span><span id="line-63">    /**</span>
-<span class="source-line-no">064</span><span id="line-64">     * Sets the charset to be used if {@link #feed(ManagedBuffer)}</span>
-<span class="source-line-no">065</span><span id="line-65">     * is invoked with `ManagedBuffer&lt;ByteBuffer&gt;`. Defaults to UTF-8. </span>
-<span class="source-line-no">066</span><span id="line-66">     * Must be set before the first invocation of </span>
-<span class="source-line-no">067</span><span id="line-67">     * {@link #feed(ManagedBuffer)}.  </span>
-<span class="source-line-no">068</span><span id="line-68">     *</span>
-<span class="source-line-no">069</span><span id="line-69">     * @param charset the charset</span>
-<span class="source-line-no">070</span><span id="line-70">     * @return the managed buffer reader</span>
-<span class="source-line-no">071</span><span id="line-71">     * @deprecated Use {@link #charset(Charset)} instead</span>
-<span class="source-line-no">072</span><span id="line-72">     */</span>
-<span class="source-line-no">073</span><span id="line-73">    @Deprecated</span>
-<span class="source-line-no">074</span><span id="line-74">    public ManagedBufferReader setCharset(Charset charset) {</span>
-<span class="source-line-no">075</span><span id="line-75">        return charset(charset);</span>
-<span class="source-line-no">076</span><span id="line-76">    }</span>
-<span class="source-line-no">077</span><span id="line-77"></span>
-<span class="source-line-no">078</span><span id="line-78">    /**</span>
-<span class="source-line-no">079</span><span id="line-79">     * Sets the charset to be used if {@link #feed(ManagedBuffer)}</span>
-<span class="source-line-no">080</span><span id="line-80">     * is invoked with `ManagedBuffer&lt;ByteBuffer&gt;` to the charset</span>
-<span class="source-line-no">081</span><span id="line-81">     * specified as system property `native.encoding`. If this</span>
-<span class="source-line-no">082</span><span id="line-82">     * property does not specify a valid charset, </span>
-<span class="source-line-no">083</span><span id="line-83">     * {@link Charset#defaultCharset()} is used.</span>
-<span class="source-line-no">084</span><span id="line-84">     *  </span>
-<span class="source-line-no">085</span><span id="line-85">     * Must be invoked before the first invocation of </span>
-<span class="source-line-no">086</span><span id="line-86">     * {@link #feed(ManagedBuffer)}.  </span>
-<span class="source-line-no">087</span><span id="line-87">     *</span>
-<span class="source-line-no">088</span><span id="line-88">     * @return the managed buffer reader</span>
-<span class="source-line-no">089</span><span id="line-89">     */</span>
-<span class="source-line-no">090</span><span id="line-90">    @SuppressWarnings({ "PMD.AvoidCatchingGenericException",</span>
-<span class="source-line-no">091</span><span id="line-91">        "PMD.EmptyCatchBlock", "PMD.DataflowAnomalyAnalysis" })</span>
-<span class="source-line-no">092</span><span id="line-92">    public ManagedBufferReader nativeCharset() {</span>
-<span class="source-line-no">093</span><span id="line-93">        Charset toSet = Charset.defaultCharset();</span>
-<span class="source-line-no">094</span><span id="line-94">        var toCheck = System.getProperty("native.encoding");</span>
-<span class="source-line-no">095</span><span id="line-95">        if (toCheck != null) {</span>
-<span class="source-line-no">096</span><span id="line-96">            try {</span>
-<span class="source-line-no">097</span><span id="line-97">                toSet = Charset.forName(toCheck);</span>
-<span class="source-line-no">098</span><span id="line-98">            } catch (Exception e) {</span>
-<span class="source-line-no">099</span><span id="line-99">                // If this fails, simply use default</span>
-<span class="source-line-no">100</span><span id="line-100">            }</span>
-<span class="source-line-no">101</span><span id="line-101">        }</span>
-<span class="source-line-no">102</span><span id="line-102">        charset(toSet);</span>
-<span class="source-line-no">103</span><span id="line-103">        return this;</span>
-<span class="source-line-no">104</span><span id="line-104">    }</span>
-<span class="source-line-no">105</span><span id="line-105"></span>
-<span class="source-line-no">106</span><span id="line-106">    /**</span>
-<span class="source-line-no">107</span><span id="line-107">     * Feed data to the reader. The call blocks while data from a previous</span>
-<span class="source-line-no">108</span><span id="line-108">     * invocation has not been fully read. The buffer passed as argument</span>
-<span class="source-line-no">109</span><span id="line-109">     * is locked (see {@link ManagedBuffer#lockBuffer()}) until all</span>
-<span class="source-line-no">110</span><span id="line-110">     * data has been read.</span>
-<span class="source-line-no">111</span><span id="line-111">     * </span>
-<span class="source-line-no">112</span><span id="line-112">     * Calling this method with `null` as argument closes the feed.</span>
-<span class="source-line-no">113</span><span id="line-113">     * After consuming any data still available from a previous</span>
-<span class="source-line-no">114</span><span id="line-114">     * invocation, further calls to {@link #read} therefore return -1.</span>
-<span class="source-line-no">115</span><span id="line-115">     *</span>
-<span class="source-line-no">116</span><span id="line-116">     * @param buffer the buffer</span>
-<span class="source-line-no">117</span><span id="line-117">     * @throws IOException Signals that an I/O exception has occurred.</span>
-<span class="source-line-no">118</span><span id="line-118">     */</span>
-<span class="source-line-no">119</span><span id="line-119">    @SuppressWarnings({ "PMD.PreserveStackTrace" })</span>
-<span class="source-line-no">120</span><span id="line-120">    public &lt;W extends Buffer&gt; void feed(ManagedBuffer&lt;W&gt; buffer)</span>
-<span class="source-line-no">121</span><span id="line-121">            throws IOException {</span>
+<span class="source-line-no">024</span><span id="line-24">import java.io.UncheckedIOException;</span>
+<span class="source-line-no">025</span><span id="line-25">import java.nio.Buffer;</span>
+<span class="source-line-no">026</span><span id="line-26">import java.nio.ByteBuffer;</span>
+<span class="source-line-no">027</span><span id="line-27">import java.nio.CharBuffer;</span>
+<span class="source-line-no">028</span><span id="line-28">import java.nio.charset.Charset;</span>
+<span class="source-line-no">029</span><span id="line-29">import java.nio.charset.CharsetDecoder;</span>
+<span class="source-line-no">030</span><span id="line-30">import java.nio.charset.StandardCharsets;</span>
+<span class="source-line-no">031</span><span id="line-31">import java.util.Objects;</span>
+<span class="source-line-no">032</span><span id="line-32"></span>
+<span class="source-line-no">033</span><span id="line-33">/**</span>
+<span class="source-line-no">034</span><span id="line-34"> * A {@link Reader} that provides the data from the {@link ManagedBuffer}s</span>
+<span class="source-line-no">035</span><span id="line-35"> * fed to it to a consumer. This class is intended to be used as a pipe </span>
+<span class="source-line-no">036</span><span id="line-36"> * between two threads.  </span>
+<span class="source-line-no">037</span><span id="line-37"> */</span>
+<span class="source-line-no">038</span><span id="line-38">public class ManagedBufferReader extends Reader implements InputConsumer {</span>
+<span class="source-line-no">039</span><span id="line-39"></span>
+<span class="source-line-no">040</span><span id="line-40">    private boolean isEndOfFeed;</span>
+<span class="source-line-no">041</span><span id="line-41">    private boolean isOpen = true;</span>
+<span class="source-line-no">042</span><span id="line-42">    private ManagedBuffer&lt;? extends Buffer&gt; current;</span>
+<span class="source-line-no">043</span><span id="line-43">    private CharsetDecoder decoder;</span>
+<span class="source-line-no">044</span><span id="line-44">    private CharBuffer decoded;</span>
+<span class="source-line-no">045</span><span id="line-45">    private Charset charset = StandardCharsets.UTF_8;</span>
+<span class="source-line-no">046</span><span id="line-46"></span>
+<span class="source-line-no">047</span><span id="line-47">    /**</span>
+<span class="source-line-no">048</span><span id="line-48">     * Sets the charset to be used if {@link #feed(ManagedBuffer)}</span>
+<span class="source-line-no">049</span><span id="line-49">     * is invoked with `ManagedBuffer&lt;ByteBuffer&gt;`. Defaults to UTF-8. </span>
+<span class="source-line-no">050</span><span id="line-50">     * Must be set before the first invocation of </span>
+<span class="source-line-no">051</span><span id="line-51">     * {@link #feed(ManagedBuffer)}.  </span>
+<span class="source-line-no">052</span><span id="line-52">     *</span>
+<span class="source-line-no">053</span><span id="line-53">     * @param charset the charset</span>
+<span class="source-line-no">054</span><span id="line-54">     * @return the managed buffer reader</span>
+<span class="source-line-no">055</span><span id="line-55">     */</span>
+<span class="source-line-no">056</span><span id="line-56">    public ManagedBufferReader charset(Charset charset) {</span>
+<span class="source-line-no">057</span><span id="line-57">        if (decoder != null) {</span>
+<span class="source-line-no">058</span><span id="line-58">            throw new IllegalStateException("Charset cannot be changed.");</span>
+<span class="source-line-no">059</span><span id="line-59">        }</span>
+<span class="source-line-no">060</span><span id="line-60">        this.charset = charset;</span>
+<span class="source-line-no">061</span><span id="line-61">        return this;</span>
+<span class="source-line-no">062</span><span id="line-62">    }</span>
+<span class="source-line-no">063</span><span id="line-63"></span>
+<span class="source-line-no">064</span><span id="line-64">    /**</span>
+<span class="source-line-no">065</span><span id="line-65">     * Sets the charset to be used if {@link #feed(ManagedBuffer)}</span>
+<span class="source-line-no">066</span><span id="line-66">     * is invoked with `ManagedBuffer&lt;ByteBuffer&gt;`. Defaults to UTF-8. </span>
+<span class="source-line-no">067</span><span id="line-67">     * Must be set before the first invocation of </span>
+<span class="source-line-no">068</span><span id="line-68">     * {@link #feed(ManagedBuffer)}.  </span>
+<span class="source-line-no">069</span><span id="line-69">     *</span>
+<span class="source-line-no">070</span><span id="line-70">     * @param charset the charset</span>
+<span class="source-line-no">071</span><span id="line-71">     * @return the managed buffer reader</span>
+<span class="source-line-no">072</span><span id="line-72">     * @deprecated Use {@link #charset(Charset)} instead</span>
+<span class="source-line-no">073</span><span id="line-73">     */</span>
+<span class="source-line-no">074</span><span id="line-74">    @Deprecated</span>
+<span class="source-line-no">075</span><span id="line-75">    public ManagedBufferReader setCharset(Charset charset) {</span>
+<span class="source-line-no">076</span><span id="line-76">        return charset(charset);</span>
+<span class="source-line-no">077</span><span id="line-77">    }</span>
+<span class="source-line-no">078</span><span id="line-78"></span>
+<span class="source-line-no">079</span><span id="line-79">    /**</span>
+<span class="source-line-no">080</span><span id="line-80">     * Sets the charset to be used if {@link #feed(ManagedBuffer)}</span>
+<span class="source-line-no">081</span><span id="line-81">     * is invoked with `ManagedBuffer&lt;ByteBuffer&gt;` to the charset</span>
+<span class="source-line-no">082</span><span id="line-82">     * specified as system property `native.encoding`. If this</span>
+<span class="source-line-no">083</span><span id="line-83">     * property does not specify a valid charset, </span>
+<span class="source-line-no">084</span><span id="line-84">     * {@link Charset#defaultCharset()} is used.</span>
+<span class="source-line-no">085</span><span id="line-85">     *  </span>
+<span class="source-line-no">086</span><span id="line-86">     * Must be invoked before the first invocation of </span>
+<span class="source-line-no">087</span><span id="line-87">     * {@link #feed(ManagedBuffer)}.  </span>
+<span class="source-line-no">088</span><span id="line-88">     *</span>
+<span class="source-line-no">089</span><span id="line-89">     * @return the managed buffer reader</span>
+<span class="source-line-no">090</span><span id="line-90">     */</span>
+<span class="source-line-no">091</span><span id="line-91">    @SuppressWarnings({ "PMD.AvoidCatchingGenericException",</span>
+<span class="source-line-no">092</span><span id="line-92">        "PMD.EmptyCatchBlock", "PMD.DataflowAnomalyAnalysis" })</span>
+<span class="source-line-no">093</span><span id="line-93">    public ManagedBufferReader nativeCharset() {</span>
+<span class="source-line-no">094</span><span id="line-94">        Charset toSet = Charset.defaultCharset();</span>
+<span class="source-line-no">095</span><span id="line-95">        var toCheck = System.getProperty("native.encoding");</span>
+<span class="source-line-no">096</span><span id="line-96">        if (toCheck != null) {</span>
+<span class="source-line-no">097</span><span id="line-97">            try {</span>
+<span class="source-line-no">098</span><span id="line-98">                toSet = Charset.forName(toCheck);</span>
+<span class="source-line-no">099</span><span id="line-99">            } catch (Exception e) {</span>
+<span class="source-line-no">100</span><span id="line-100">                // If this fails, simply use default</span>
+<span class="source-line-no">101</span><span id="line-101">            }</span>
+<span class="source-line-no">102</span><span id="line-102">        }</span>
+<span class="source-line-no">103</span><span id="line-103">        charset(toSet);</span>
+<span class="source-line-no">104</span><span id="line-104">        return this;</span>
+<span class="source-line-no">105</span><span id="line-105">    }</span>
+<span class="source-line-no">106</span><span id="line-106"></span>
+<span class="source-line-no">107</span><span id="line-107">    /**</span>
+<span class="source-line-no">108</span><span id="line-108">     * Feed data to the reader. The call blocks while data from a previous</span>
+<span class="source-line-no">109</span><span id="line-109">     * invocation has not been fully read. The buffer passed as argument</span>
+<span class="source-line-no">110</span><span id="line-110">     * is locked (see {@link ManagedBuffer#lockBuffer()}) until all</span>
+<span class="source-line-no">111</span><span id="line-111">     * data has been read.</span>
+<span class="source-line-no">112</span><span id="line-112">     * </span>
+<span class="source-line-no">113</span><span id="line-113">     * Calling this method with `null` as argument closes the feed.</span>
+<span class="source-line-no">114</span><span id="line-114">     * After consuming any data still available from a previous</span>
+<span class="source-line-no">115</span><span id="line-115">     * invocation, further calls to {@link #read} therefore return -1.</span>
+<span class="source-line-no">116</span><span id="line-116">     *</span>
+<span class="source-line-no">117</span><span id="line-117">     * @param buffer the buffer</span>
+<span class="source-line-no">118</span><span id="line-118">     * @throws IOException Signals that an I/O exception has occurred.</span>
+<span class="source-line-no">119</span><span id="line-119">     */</span>
+<span class="source-line-no">120</span><span id="line-120">    @SuppressWarnings({ "PMD.PreserveStackTrace" })</span>
+<span class="source-line-no">121</span><span id="line-121">    public &lt;W extends Buffer&gt; void feed(ManagedBuffer&lt;W&gt; buffer) {</span>
 <span class="source-line-no">122</span><span id="line-122">        synchronized (lock) {</span>
 <span class="source-line-no">123</span><span id="line-123">            if (buffer == null) {</span>
 <span class="source-line-no">124</span><span id="line-124">                isEndOfFeed = true;</span>
@@ -148,7 +148,7 @@
 <span class="source-line-no">135</span><span id="line-135">                    @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")</span>
 <span class="source-line-no">136</span><span id="line-136">                    var exc = new InterruptedIOException(e.getMessage());</span>
 <span class="source-line-no">137</span><span id="line-137">                    exc.setStackTrace(e.getStackTrace());</span>
-<span class="source-line-no">138</span><span id="line-138">                    throw exc;</span>
+<span class="source-line-no">138</span><span id="line-138">                    throw new UncheckedIOException(exc);</span>
 <span class="source-line-no">139</span><span id="line-139">                }</span>
 <span class="source-line-no">140</span><span id="line-140">            }</span>
 <span class="source-line-no">141</span><span id="line-141">            current = buffer;</span>

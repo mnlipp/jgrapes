@@ -141,13 +141,12 @@
 <span class="source-line-no">128</span><span id="line-128">        // Avoid problem with concurrency</span>
 <span class="source-line-no">129</span><span id="line-129">        var bufd = buffered;</span>
 <span class="source-line-no">130</span><span id="line-130">        if (bufd != null) {</span>
-<span class="source-line-no">131</span><span id="line-131">            builder.append("buffered=");</span>
-<span class="source-line-no">132</span><span id="line-132">            builder.append(bufd);</span>
-<span class="source-line-no">133</span><span id="line-133">        }</span>
-<span class="source-line-no">134</span><span id="line-134">        builder.append(']');</span>
-<span class="source-line-no">135</span><span id="line-135">        return builder.toString();</span>
-<span class="source-line-no">136</span><span id="line-136">    }</span>
-<span class="source-line-no">137</span><span id="line-137">}</span>
+<span class="source-line-no">131</span><span id="line-131">            builder.append("buffered=").append(bufd);</span>
+<span class="source-line-no">132</span><span id="line-132">        }</span>
+<span class="source-line-no">133</span><span id="line-133">        builder.append(']');</span>
+<span class="source-line-no">134</span><span id="line-134">        return builder.toString();</span>
+<span class="source-line-no">135</span><span id="line-135">    }</span>
+<span class="source-line-no">136</span><span id="line-136">}</span>
 
 
 

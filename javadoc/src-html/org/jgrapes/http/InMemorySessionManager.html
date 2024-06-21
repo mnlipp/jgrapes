@@ -86,8 +86,8 @@
 <span class="source-line-no">073</span><span id="line-73"></span>
 <span class="source-line-no">074</span><span id="line-74">    /**</span>
 <span class="source-line-no">075</span><span id="line-75">     * Creates a new session manager with its channel set to</span>
-<span class="source-line-no">076</span><span id="line-76">     * the given channel and the path to "/". The manager handles</span>
-<span class="source-line-no">077</span><span id="line-77">     * all {@link Request} events.</span>
+<span class="source-line-no">076</span><span id="line-76">     * the given channel, the path to "/" and the handler's priority </span>
+<span class="source-line-no">077</span><span id="line-77">     * to 1000. The manager handles all {@link Request} events.</span>
 <span class="source-line-no">078</span><span id="line-78">     * </span>
 <span class="source-line-no">079</span><span id="line-79">     * @param componentChannel the component channel</span>
 <span class="source-line-no">080</span><span id="line-80">     */</span>
@@ -99,7 +99,7 @@
 <span class="source-line-no">086</span><span id="line-86">     * Creates a new session manager with the given channel and path.</span>
 <span class="source-line-no">087</span><span id="line-87">     * The manager handles all requests that match the given path, using</span>
 <span class="source-line-no">088</span><span id="line-88">     * the same rules as browsers do for selecting the cookies that</span>
-<span class="source-line-no">089</span><span id="line-89">     * are to be sent.</span>
+<span class="source-line-no">089</span><span id="line-89">     * are to be sent. The request handler's priority is set to 1000.</span>
 <span class="source-line-no">090</span><span id="line-90">     *  </span>
 <span class="source-line-no">091</span><span id="line-91">     * @param componentChannel the component channel</span>
 <span class="source-line-no">092</span><span id="line-92">     * @param path the path</span>

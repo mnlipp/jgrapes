@@ -6,6 +6,7 @@ org.jgrapes.webconlet.locallogin
 org.jgrapes.webconlet.logviewer
 org.jgrapes.webconlet.markdowndisplay
 org.jgrapes.webconlet.messagebox
+org.jgrapes.webconlet.oidclogin
 org.jgrapes.webconlet.sysinfo
 org.jgrapes.webconsole.base
 org.jgrapes.webconsole.base.events

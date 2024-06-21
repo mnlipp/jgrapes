@@ -46,147 +46,139 @@
 <span class="source-line-no">033</span><span id="line-33">import org.jgrapes.core.Manager;</span>
 <span class="source-line-no">034</span><span id="line-34">import org.jgrapes.core.annotation.Handler;</span>
 <span class="source-line-no">035</span><span id="line-35">import org.jgrapes.util.events.ConfigurationUpdate;</span>
-<span class="source-line-no">036</span><span id="line-36">import org.jgrapes.webconsole.base.ConsoleConnection;</span>
-<span class="source-line-no">037</span><span id="line-37">import org.jgrapes.webconsole.base.ConsoleRole;</span>
-<span class="source-line-no">038</span><span id="line-38">import org.jgrapes.webconsole.base.ConsoleUser;</span>
-<span class="source-line-no">039</span><span id="line-39">import org.jgrapes.webconsole.base.WebConsoleUtils;</span>
-<span class="source-line-no">040</span><span id="line-40">import org.jgrapes.webconsole.base.events.ConsolePrepared;</span>
-<span class="source-line-no">041</span><span id="line-41"></span>
-<span class="source-line-no">042</span><span id="line-42">/**</span>
-<span class="source-line-no">043</span><span id="line-43"> * Configures roles (of type {@link ConsoleRole)} </span>
-<span class="source-line-no">044</span><span id="line-44"> * for the user currently logged in.</span>
-<span class="source-line-no">045</span><span id="line-45"> */</span>
-<span class="source-line-no">046</span><span id="line-46">public class RoleConfigurator extends Component {</span>
-<span class="source-line-no">047</span><span id="line-47"></span>
-<span class="source-line-no">048</span><span id="line-48">    @SuppressWarnings("PMD.UseConcurrentHashMap")</span>
-<span class="source-line-no">049</span><span id="line-49">    private final Map&lt;String, Set&lt;String&gt;&gt; roles = new HashMap&lt;&gt;();</span>
-<span class="source-line-no">050</span><span id="line-50">    private boolean replace;</span>
-<span class="source-line-no">051</span><span id="line-51"></span>
-<span class="source-line-no">052</span><span id="line-52">    /**</span>
-<span class="source-line-no">053</span><span id="line-53">     * Creates a new component with its channel set to the given </span>
-<span class="source-line-no">054</span><span id="line-54">     * channel.</span>
-<span class="source-line-no">055</span><span id="line-55">     *</span>
-<span class="source-line-no">056</span><span id="line-56">     * @param componentChannel the channel that the component's</span>
-<span class="source-line-no">057</span><span id="line-57">     * handlers listen on by default and that </span>
-<span class="source-line-no">058</span><span id="line-58">     * {@link Manager#fire(Event, Channel...)} sends the event to</span>
-<span class="source-line-no">059</span><span id="line-59">     */</span>
-<span class="source-line-no">060</span><span id="line-60">    public RoleConfigurator(Channel componentChannel) {</span>
-<span class="source-line-no">061</span><span id="line-61">        super(componentChannel);</span>
-<span class="source-line-no">062</span><span id="line-62">    }</span>
-<span class="source-line-no">063</span><span id="line-63"></span>
-<span class="source-line-no">064</span><span id="line-64">    /**</span>
-<span class="source-line-no">065</span><span id="line-65">     * Creates a new component with its channel set to the given </span>
-<span class="source-line-no">066</span><span id="line-66">     * channel.</span>
-<span class="source-line-no">067</span><span id="line-67">     *</span>
-<span class="source-line-no">068</span><span id="line-68">     * Supported properties are:</span>
-<span class="source-line-no">069</span><span id="line-69">     * </span>
-<span class="source-line-no">070</span><span id="line-70">     *  * *rolesByUser*: see {@link #setRolesByUser(Map)}.</span>
-<span class="source-line-no">071</span><span id="line-71">     *</span>
-<span class="source-line-no">072</span><span id="line-72">     * @param componentChannel the channel that the component's</span>
-<span class="source-line-no">073</span><span id="line-73">     * handlers listen on by default and that </span>
-<span class="source-line-no">074</span><span id="line-74">     * {@link Manager#fire(Event, Channel...)} sends the event to</span>
-<span class="source-line-no">075</span><span id="line-75">     * @param properties the properties used to configure the component</span>
-<span class="source-line-no">076</span><span id="line-76">     */</span>
-<span class="source-line-no">077</span><span id="line-77">    @SuppressWarnings({ "unchecked", "PMD.ConstructorCallsOverridableMethod" })</span>
-<span class="source-line-no">078</span><span id="line-78">    public RoleConfigurator(Channel componentChannel,</span>
-<span class="source-line-no">079</span><span id="line-79">            Map&lt;?, ?&gt; properties) {</span>
-<span class="source-line-no">080</span><span id="line-80">        super(componentChannel);</span>
-<span class="source-line-no">081</span><span id="line-81">        setRolesByUser((Map&lt;String, Set&lt;String&gt;&gt;) properties</span>
-<span class="source-line-no">082</span><span id="line-82">            .get("rolesByUser"));</span>
-<span class="source-line-no">083</span><span id="line-83">    }</span>
-<span class="source-line-no">084</span><span id="line-84"></span>
-<span class="source-line-no">085</span><span id="line-85">    /**</span>
-<span class="source-line-no">086</span><span id="line-86">     * Sets the roles associated with a user. The parameter</span>
-<span class="source-line-no">087</span><span id="line-87">     * is a Map&lt;String, Set&lt;String&gt;&gt; holding the roles to be  </span>
-<span class="source-line-no">088</span><span id="line-88">     * associated with a given user. The special key "*" may</span>
-<span class="source-line-no">089</span><span id="line-89">     * be used to specify roles that are to be added to any user.</span>
-<span class="source-line-no">090</span><span id="line-90">     *</span>
-<span class="source-line-no">091</span><span id="line-91">     * @param roles the roles</span>
-<span class="source-line-no">092</span><span id="line-92">     * @return the user role conlet filter</span>
-<span class="source-line-no">093</span><span id="line-93">     */</span>
-<span class="source-line-no">094</span><span id="line-94">    @SuppressWarnings({ "PMD.LinguisticNaming",</span>
-<span class="source-line-no">095</span><span id="line-95">        "PMD.AvoidInstantiatingObjectsInLoops" })</span>
-<span class="source-line-no">096</span><span id="line-96">    public RoleConfigurator setRolesByUser(Map&lt;String, Set&lt;String&gt;&gt; roles) {</span>
-<span class="source-line-no">097</span><span id="line-97">        this.roles.clear();</span>
-<span class="source-line-no">098</span><span id="line-98">        this.roles.putAll(roles);</span>
-<span class="source-line-no">099</span><span id="line-99">        for (var e : this.roles.entrySet()) {</span>
-<span class="source-line-no">100</span><span id="line-100">            e.setValue(new HashSet&lt;&gt;(e.getValue()));</span>
-<span class="source-line-no">101</span><span id="line-101">        }</span>
-<span class="source-line-no">102</span><span id="line-102">        return this;</span>
-<span class="source-line-no">103</span><span id="line-103">    }</span>
-<span class="source-line-no">104</span><span id="line-104"></span>
-<span class="source-line-no">105</span><span id="line-105">    /**</span>
-<span class="source-line-no">106</span><span id="line-106">     * Control whether the component replaces all {@link ConsoleRole}s</span>
-<span class="source-line-no">107</span><span id="line-107">     * or adds to the existing roles (default).</span>
-<span class="source-line-no">108</span><span id="line-108">     *</span>
-<span class="source-line-no">109</span><span id="line-109">     * @param replace the replace</span>
-<span class="source-line-no">110</span><span id="line-110">     * @return the role configurator</span>
-<span class="source-line-no">111</span><span id="line-111">     */</span>
-<span class="source-line-no">112</span><span id="line-112">    @SuppressWarnings("PMD.LinguisticNaming")</span>
-<span class="source-line-no">113</span><span id="line-113">    public RoleConfigurator setReplace(boolean replace) {</span>
-<span class="source-line-no">114</span><span id="line-114">        this.replace = replace;</span>
-<span class="source-line-no">115</span><span id="line-115">        return this;</span>
-<span class="source-line-no">116</span><span id="line-116">    }</span>
-<span class="source-line-no">117</span><span id="line-117"></span>
-<span class="source-line-no">118</span><span id="line-118">    /**</span>
-<span class="source-line-no">119</span><span id="line-119">     * The component can be configured with events that include</span>
-<span class="source-line-no">120</span><span id="line-120">     * a path (see @link {@link ConfigurationUpdate#paths()})</span>
-<span class="source-line-no">121</span><span id="line-121">     * that matches this components path (see {@link Manager#componentPath()}).</span>
+<span class="source-line-no">036</span><span id="line-36">import org.jgrapes.webconsole.base.ConsoleRole;</span>
+<span class="source-line-no">037</span><span id="line-37">import org.jgrapes.webconsole.base.ConsoleUser;</span>
+<span class="source-line-no">038</span><span id="line-38">import org.jgrapes.webconsole.base.events.UserAuthenticated;</span>
+<span class="source-line-no">039</span><span id="line-39"></span>
+<span class="source-line-no">040</span><span id="line-40">/**</span>
+<span class="source-line-no">041</span><span id="line-41"> * Configures roles (of type {@link ConsoleRole)} </span>
+<span class="source-line-no">042</span><span id="line-42"> * for the user currently logged in.</span>
+<span class="source-line-no">043</span><span id="line-43"> */</span>
+<span class="source-line-no">044</span><span id="line-44">public class RoleConfigurator extends Component {</span>
+<span class="source-line-no">045</span><span id="line-45"></span>
+<span class="source-line-no">046</span><span id="line-46">    @SuppressWarnings("PMD.UseConcurrentHashMap")</span>
+<span class="source-line-no">047</span><span id="line-47">    private final Map&lt;String, Set&lt;String&gt;&gt; roles = new HashMap&lt;&gt;();</span>
+<span class="source-line-no">048</span><span id="line-48">    private boolean replace;</span>
+<span class="source-line-no">049</span><span id="line-49"></span>
+<span class="source-line-no">050</span><span id="line-50">    /**</span>
+<span class="source-line-no">051</span><span id="line-51">     * Creates a new component with its channel set to the given </span>
+<span class="source-line-no">052</span><span id="line-52">     * channel.</span>
+<span class="source-line-no">053</span><span id="line-53">     *</span>
+<span class="source-line-no">054</span><span id="line-54">     * @param componentChannel the channel that the component's</span>
+<span class="source-line-no">055</span><span id="line-55">     * handlers listen on by default and that </span>
+<span class="source-line-no">056</span><span id="line-56">     * {@link Manager#fire(Event, Channel...)} sends the event to</span>
+<span class="source-line-no">057</span><span id="line-57">     */</span>
+<span class="source-line-no">058</span><span id="line-58">    public RoleConfigurator(Channel componentChannel) {</span>
+<span class="source-line-no">059</span><span id="line-59">        super(componentChannel);</span>
+<span class="source-line-no">060</span><span id="line-60">    }</span>
+<span class="source-line-no">061</span><span id="line-61"></span>
+<span class="source-line-no">062</span><span id="line-62">    /**</span>
+<span class="source-line-no">063</span><span id="line-63">     * Creates a new component with its channel set to the given </span>
+<span class="source-line-no">064</span><span id="line-64">     * channel.</span>
+<span class="source-line-no">065</span><span id="line-65">     *</span>
+<span class="source-line-no">066</span><span id="line-66">     * Supported properties are:</span>
+<span class="source-line-no">067</span><span id="line-67">     * </span>
+<span class="source-line-no">068</span><span id="line-68">     *  * *rolesByUser*: see {@link #setRolesByUser(Map)}.</span>
+<span class="source-line-no">069</span><span id="line-69">     *</span>
+<span class="source-line-no">070</span><span id="line-70">     * @param componentChannel the channel that the component's</span>
+<span class="source-line-no">071</span><span id="line-71">     * handlers listen on by default and that </span>
+<span class="source-line-no">072</span><span id="line-72">     * {@link Manager#fire(Event, Channel...)} sends the event to</span>
+<span class="source-line-no">073</span><span id="line-73">     * @param properties the properties used to configure the component</span>
+<span class="source-line-no">074</span><span id="line-74">     */</span>
+<span class="source-line-no">075</span><span id="line-75">    @SuppressWarnings({ "unchecked", "PMD.ConstructorCallsOverridableMethod" })</span>
+<span class="source-line-no">076</span><span id="line-76">    public RoleConfigurator(Channel componentChannel,</span>
+<span class="source-line-no">077</span><span id="line-77">            Map&lt;?, ?&gt; properties) {</span>
+<span class="source-line-no">078</span><span id="line-78">        super(componentChannel);</span>
+<span class="source-line-no">079</span><span id="line-79">        setRolesByUser((Map&lt;String, Set&lt;String&gt;&gt;) properties</span>
+<span class="source-line-no">080</span><span id="line-80">            .get("rolesByUser"));</span>
+<span class="source-line-no">081</span><span id="line-81">    }</span>
+<span class="source-line-no">082</span><span id="line-82"></span>
+<span class="source-line-no">083</span><span id="line-83">    /**</span>
+<span class="source-line-no">084</span><span id="line-84">     * Sets the roles associated with a user. The parameter</span>
+<span class="source-line-no">085</span><span id="line-85">     * is a Map&lt;String, Set&lt;String&gt;&gt; holding the roles to be  </span>
+<span class="source-line-no">086</span><span id="line-86">     * associated with a given user. The special key "*" may</span>
+<span class="source-line-no">087</span><span id="line-87">     * be used to specify roles that are to be added to any user.</span>
+<span class="source-line-no">088</span><span id="line-88">     *</span>
+<span class="source-line-no">089</span><span id="line-89">     * @param roles the roles</span>
+<span class="source-line-no">090</span><span id="line-90">     * @return the user role conlet filter</span>
+<span class="source-line-no">091</span><span id="line-91">     */</span>
+<span class="source-line-no">092</span><span id="line-92">    @SuppressWarnings({ "PMD.LinguisticNaming",</span>
+<span class="source-line-no">093</span><span id="line-93">        "PMD.AvoidInstantiatingObjectsInLoops" })</span>
+<span class="source-line-no">094</span><span id="line-94">    public RoleConfigurator setRolesByUser(Map&lt;String, Set&lt;String&gt;&gt; roles) {</span>
+<span class="source-line-no">095</span><span id="line-95">        this.roles.clear();</span>
+<span class="source-line-no">096</span><span id="line-96">        this.roles.putAll(roles);</span>
+<span class="source-line-no">097</span><span id="line-97">        for (var e : this.roles.entrySet()) {</span>
+<span class="source-line-no">098</span><span id="line-98">            e.setValue(new HashSet&lt;&gt;(e.getValue()));</span>
+<span class="source-line-no">099</span><span id="line-99">        }</span>
+<span class="source-line-no">100</span><span id="line-100">        return this;</span>
+<span class="source-line-no">101</span><span id="line-101">    }</span>
+<span class="source-line-no">102</span><span id="line-102"></span>
+<span class="source-line-no">103</span><span id="line-103">    /**</span>
+<span class="source-line-no">104</span><span id="line-104">     * Control whether the component replaces all {@link ConsoleRole}s</span>
+<span class="source-line-no">105</span><span id="line-105">     * or adds to the existing roles (default).</span>
+<span class="source-line-no">106</span><span id="line-106">     *</span>
+<span class="source-line-no">107</span><span id="line-107">     * @param replace the replace</span>
+<span class="source-line-no">108</span><span id="line-108">     * @return the role configurator</span>
+<span class="source-line-no">109</span><span id="line-109">     */</span>
+<span class="source-line-no">110</span><span id="line-110">    @SuppressWarnings("PMD.LinguisticNaming")</span>
+<span class="source-line-no">111</span><span id="line-111">    public RoleConfigurator setReplace(boolean replace) {</span>
+<span class="source-line-no">112</span><span id="line-112">        this.replace = replace;</span>
+<span class="source-line-no">113</span><span id="line-113">        return this;</span>
+<span class="source-line-no">114</span><span id="line-114">    }</span>
+<span class="source-line-no">115</span><span id="line-115"></span>
+<span class="source-line-no">116</span><span id="line-116">    /**</span>
+<span class="source-line-no">117</span><span id="line-117">     * The component can be configured with events that include</span>
+<span class="source-line-no">118</span><span id="line-118">     * a path (see @link {@link ConfigurationUpdate#paths()})</span>
+<span class="source-line-no">119</span><span id="line-119">     * that matches this components path (see {@link Manager#componentPath()}).</span>
+<span class="source-line-no">120</span><span id="line-120">     * </span>
+<span class="source-line-no">121</span><span id="line-121">     * The following properties are recognized:</span>
 <span class="source-line-no">122</span><span id="line-122">     * </span>
-<span class="source-line-no">123</span><span id="line-123">     * The following properties are recognized:</span>
-<span class="source-line-no">124</span><span id="line-124">     * </span>
-<span class="source-line-no">125</span><span id="line-125">     * `rolesByUser`</span>
-<span class="source-line-no">126</span><span id="line-126">     * : Invokes {@link #setRolesByUser(Map)} with the given values.</span>
-<span class="source-line-no">127</span><span id="line-127">     *</span>
-<span class="source-line-no">128</span><span id="line-128">     * `replace`</span>
-<span class="source-line-no">129</span><span id="line-129">     * : Invokes {@link #setReplace(boolean)} with the given value.</span>
-<span class="source-line-no">130</span><span id="line-130">     * </span>
-<span class="source-line-no">131</span><span id="line-131">     * @param event the event</span>
-<span class="source-line-no">132</span><span id="line-132">     */</span>
-<span class="source-line-no">133</span><span id="line-133">    @SuppressWarnings("unchecked")</span>
-<span class="source-line-no">134</span><span id="line-134">    @Handler</span>
-<span class="source-line-no">135</span><span id="line-135">    public void onConfigUpdate(ConfigurationUpdate event) {</span>
-<span class="source-line-no">136</span><span id="line-136">        event.structured(componentPath())</span>
-<span class="source-line-no">137</span><span id="line-137">            .map(c -&gt; (Map&lt;String, Collection&lt;String&gt;&gt;) c.get("rolesByUser"))</span>
-<span class="source-line-no">138</span><span id="line-138">            .map(m -&gt; m.entrySet().stream()</span>
-<span class="source-line-no">139</span><span id="line-139">                .collect(Collectors.toMap(Map.Entry::getKey,</span>
-<span class="source-line-no">140</span><span id="line-140">                    e -&gt; e.getValue().stream().collect(Collectors.toSet()))))</span>
-<span class="source-line-no">141</span><span id="line-141">            .ifPresent(this::setRolesByUser);</span>
-<span class="source-line-no">142</span><span id="line-142">        event.value(componentPath(), "replace").map(Boolean::valueOf)</span>
-<span class="source-line-no">143</span><span id="line-143">            .ifPresent(this::setReplace);</span>
-<span class="source-line-no">144</span><span id="line-144">    }</span>
-<span class="source-line-no">145</span><span id="line-145"></span>
-<span class="source-line-no">146</span><span id="line-146">    /**</span>
-<span class="source-line-no">147</span><span id="line-147">     * Sets the roles in the session's subject. The current user is </span>
-<span class="source-line-no">148</span><span id="line-148">     * obtained from </span>
-<span class="source-line-no">149</span><span id="line-149">     * {@link WebConsoleUtils#userFromSession(org.jgrapes.http.Session)}.</span>
-<span class="source-line-no">150</span><span id="line-150">     *</span>
-<span class="source-line-no">151</span><span id="line-151">     * @param event the event</span>
-<span class="source-line-no">152</span><span id="line-152">     * @param channel the channel</span>
-<span class="source-line-no">153</span><span id="line-153">     */</span>
-<span class="source-line-no">154</span><span id="line-154">    @Handler(priority = 900)</span>
-<span class="source-line-no">155</span><span id="line-155">    @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")</span>
-<span class="source-line-no">156</span><span id="line-156">    public void onConsolePrepared(ConsolePrepared event,</span>
-<span class="source-line-no">157</span><span id="line-157">            ConsoleConnection channel) {</span>
-<span class="source-line-no">158</span><span id="line-158">        Subject subject = (Subject) channel.session().get(Subject.class);</span>
-<span class="source-line-no">159</span><span id="line-159">        if (subject == null) {</span>
-<span class="source-line-no">160</span><span id="line-160">            return;</span>
-<span class="source-line-no">161</span><span id="line-161">        }</span>
-<span class="source-line-no">162</span><span id="line-162">        if (replace) {</span>
-<span class="source-line-no">163</span><span id="line-163">            for (var itr = subject.getPrincipals().iterator(); itr.hasNext();) {</span>
-<span class="source-line-no">164</span><span id="line-164">                if (itr.next() instanceof ConsoleRole) {</span>
-<span class="source-line-no">165</span><span id="line-165">                    itr.remove();</span>
-<span class="source-line-no">166</span><span id="line-166">                }</span>
-<span class="source-line-no">167</span><span id="line-167">            }</span>
-<span class="source-line-no">168</span><span id="line-168">        }</span>
-<span class="source-line-no">169</span><span id="line-169">        Stream.concat(</span>
-<span class="source-line-no">170</span><span id="line-170">            WebConsoleUtils.userFromSession(channel.session())</span>
-<span class="source-line-no">171</span><span id="line-171">                .map(ConsoleUser::getName).stream(),</span>
-<span class="source-line-no">172</span><span id="line-172">            Stream.of("*")).map(roles::get).filter(Objects::nonNull)</span>
-<span class="source-line-no">173</span><span id="line-173">            .flatMap(Set::stream).map(ConsoleRole::new)</span>
-<span class="source-line-no">174</span><span id="line-174">            .forEach(p -&gt; subject.getPrincipals().add(p));</span>
-<span class="source-line-no">175</span><span id="line-175">    }</span>
-<span class="source-line-no">176</span><span id="line-176">}</span>
+<span class="source-line-no">123</span><span id="line-123">     * `rolesByUser`</span>
+<span class="source-line-no">124</span><span id="line-124">     * : Invokes {@link #setRolesByUser(Map)} with the given values.</span>
+<span class="source-line-no">125</span><span id="line-125">     *</span>
+<span class="source-line-no">126</span><span id="line-126">     * `replace`</span>
+<span class="source-line-no">127</span><span id="line-127">     * : Invokes {@link #setReplace(boolean)} with the given value.</span>
+<span class="source-line-no">128</span><span id="line-128">     * </span>
+<span class="source-line-no">129</span><span id="line-129">     * @param event the event</span>
+<span class="source-line-no">130</span><span id="line-130">     */</span>
+<span class="source-line-no">131</span><span id="line-131">    @SuppressWarnings("unchecked")</span>
+<span class="source-line-no">132</span><span id="line-132">    @Handler</span>
+<span class="source-line-no">133</span><span id="line-133">    public void onConfigUpdate(ConfigurationUpdate event) {</span>
+<span class="source-line-no">134</span><span id="line-134">        event.structured(componentPath())</span>
+<span class="source-line-no">135</span><span id="line-135">            .map(c -&gt; (Map&lt;String, Collection&lt;String&gt;&gt;) c.get("rolesByUser"))</span>
+<span class="source-line-no">136</span><span id="line-136">            .map(m -&gt; m.entrySet().stream()</span>
+<span class="source-line-no">137</span><span id="line-137">                .collect(Collectors.toMap(Map.Entry::getKey,</span>
+<span class="source-line-no">138</span><span id="line-138">                    e -&gt; e.getValue().stream().collect(Collectors.toSet()))))</span>
+<span class="source-line-no">139</span><span id="line-139">            .ifPresent(this::setRolesByUser);</span>
+<span class="source-line-no">140</span><span id="line-140">        event.value(componentPath(), "replace").map(Boolean::valueOf)</span>
+<span class="source-line-no">141</span><span id="line-141">            .ifPresent(this::setReplace);</span>
+<span class="source-line-no">142</span><span id="line-142">    }</span>
+<span class="source-line-no">143</span><span id="line-143"></span>
+<span class="source-line-no">144</span><span id="line-144">    /**</span>
+<span class="source-line-no">145</span><span id="line-145">     * Sets the roles in the subject with the authenticated user.</span>
+<span class="source-line-no">146</span><span id="line-146">     *</span>
+<span class="source-line-no">147</span><span id="line-147">     * @param event the event</span>
+<span class="source-line-no">148</span><span id="line-148">     * @param channel the channel</span>
+<span class="source-line-no">149</span><span id="line-149">     */</span>
+<span class="source-line-no">150</span><span id="line-150">    @Handler(priority = 900)</span>
+<span class="source-line-no">151</span><span id="line-151">    public void onUserAuthenticated(UserAuthenticated event, Channel channel) {</span>
+<span class="source-line-no">152</span><span id="line-152">        Subject subject = event.subject();</span>
+<span class="source-line-no">153</span><span id="line-153">        if (replace) {</span>
+<span class="source-line-no">154</span><span id="line-154">            for (var itr = subject.getPrincipals().iterator(); itr.hasNext();) {</span>
+<span class="source-line-no">155</span><span id="line-155">                if (itr.next() instanceof ConsoleRole) {</span>
+<span class="source-line-no">156</span><span id="line-156">                    itr.remove();</span>
+<span class="source-line-no">157</span><span id="line-157">                }</span>
+<span class="source-line-no">158</span><span id="line-158">            }</span>
+<span class="source-line-no">159</span><span id="line-159">        }</span>
+<span class="source-line-no">160</span><span id="line-160">        Stream.concat(</span>
+<span class="source-line-no">161</span><span id="line-161">            subject.getPrincipals(ConsoleUser.class).stream()</span>
+<span class="source-line-no">162</span><span id="line-162">                .findFirst().map(ConsoleUser::getName).stream(),</span>
+<span class="source-line-no">163</span><span id="line-163">            Stream.of("*")).map(roles::get).filter(Objects::nonNull)</span>
+<span class="source-line-no">164</span><span id="line-164">            .flatMap(Set::stream).map(ConsoleRole::new)</span>
+<span class="source-line-no">165</span><span id="line-165">            .forEach(p -&gt; subject.getPrincipals().add(p));</span>
+<span class="source-line-no">166</span><span id="line-166">        event.by("Role Configurator");</span>
+<span class="source-line-no">167</span><span id="line-167">    }</span>
+<span class="source-line-no">168</span><span id="line-168">}</span>
 
 
 
