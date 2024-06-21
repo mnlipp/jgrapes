@@ -1,3 +1,6 @@
+url: "https://jgrapes.org"
+baseurl: ""
+
 plugins:
   - jekyll-seo-tag
 
