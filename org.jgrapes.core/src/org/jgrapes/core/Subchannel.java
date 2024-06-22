@@ -119,7 +119,7 @@ public interface Subchannel extends Channel, Associator {
          * @param with the object to be associated
          */
         @SuppressWarnings({ "PMD.ShortVariable", "unchecked" })
-        public DefaultSubchannel setAssociated(Object by, Object with) {
+        public <A extends Associator> A setAssociated(Object by, Object with) {
             if (contextData == null) {
                 contextData = new ConcurrentHashMap<>();
             }
@@ -128,7 +128,7 @@ public interface Subchannel extends Channel, Associator {
             } else {
                 contextData.put(by, with);
             }
-            return this;
+            return (A) this;
         }
 
         /**
