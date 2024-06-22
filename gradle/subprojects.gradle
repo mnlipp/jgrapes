@@ -66,12 +66,22 @@ if (project.name.startsWith("org.jgrapes") || project.name == "examples") {
     dependencies {
         compileOnly 'org.osgi:org.osgi.annotation:6.0.0'
         testImplementation 'net.jodah:concurrentunit:0.4.2'
-        testImplementation "org.apache.groovy:groovy-all:4.0.4"
-        testImplementation "org.spockframework:spock-core:2.2-M3-groovy-4.0"
-        testImplementation 'org.junit.jupiter:junit-jupiter:5.7.2'
+        testImplementation "org.apache.groovy:groovy-all:4.0.21"
+        testImplementation "org.spockframework:spock-core:2.3-groovy-4.0"
+        testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
         testRuntimeOnly 'org.junit.vintage:junit-vintage-engine'
     }
     
+/*    testing {
+        suites {
+            // Configure the built-in test suite
+            test {
+                // Use JUnit Jupiter test framework
+                useJUnitPlatform('5.10.2')
+            }
+        }
+    }
+*/
     test {
     //    if (!rootProject.isCiBuild) {
     //        jvmArgs '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=18888'
