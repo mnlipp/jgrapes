@@ -20,8 +20,8 @@ plugins {
 nexusPublishing {
     repositories {
         sonatype {
-            username = project.properties['sonatypeUsername'] ?: "nouser"
-            password = project.properties['sonatypePassword'] ?: "nopass"
+            username = project.properties['sonatypeTokenKey'] ?: "nouser"
+            password = project.properties['sonatypeTokenSecret'] ?: "nopass"
         }
     }
 }

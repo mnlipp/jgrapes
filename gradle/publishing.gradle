@@ -27,16 +27,16 @@ publishing {
             name "snapshot"
             url "https://oss.sonatype.org/content/repositories/snapshots/"
             credentials {
-                username project.properties['sonatypeUsername'] ?: "nouser"
-                password project.properties['sonatypePassword'] ?: "nopass"
+                username project.properties['sonatypeTokenKey'] ?: "nouser"
+                password project.properties['sonatypeTokenSecret'] ?: "nopass"
             }
         }
         maven {
             name "release"
             url "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
             credentials {
-                username project.properties['sonatypeUsername'] ?: "nouser"
-                password project.properties['sonatypePassword'] ?: "nopass"
+                username project.properties['sonatypeTokenKey'] ?: "nouser"
+                password project.properties['sonatypeTokenSecret'] ?: "nopass"
             }
         }
     }
