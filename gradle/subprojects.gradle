@@ -72,16 +72,6 @@ if (project.name.startsWith("org.jgrapes") || project.name == "examples") {
         testRuntimeOnly 'org.junit.vintage:junit-vintage-engine'
     }
     
-/*    testing {
-        suites {
-            // Configure the built-in test suite
-            test {
-                // Use JUnit Jupiter test framework
-                useJUnitPlatform('5.10.2')
-            }
-        }
-    }
-*/
     test {
     //    if (!rootProject.isCiBuild) {
     //        jvmArgs '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=18888'
@@ -108,11 +98,6 @@ if (project.name.startsWith("org.jgrapes") || project.name == "examples") {
             maxHeapSize = '768m'
         } else {
             maxHeapSize = '2048m'
-        }
-        
-        // https://bugs.openjdk.java.net/browse/JDK-8213202
-        if (JavaVersion.current().isJava11()) {
-            jvmArgs '-Dhttps.protocols=TLSv1,TLSv1.1,TLSv1.2'
         }
     }
 }
