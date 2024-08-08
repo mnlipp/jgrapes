@@ -20,6 +20,8 @@ package org.jgrapes.http.test;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.concurrent.ExecutionException;
@@ -59,9 +61,11 @@ public class NotFoundTests {
 
     @Test(timeout = 1500)
     public void testGetRoot()
-            throws IOException, InterruptedException, ExecutionException {
+            throws IOException, InterruptedException, ExecutionException,
+            URISyntaxException {
         try {
-            URL url = new URL("http", "localhost", server.getPort(), "/");
+            URL url = new URI("http", null, "localhost", server.getPort(), "/",
+                null, null).toURL();
             URLConnection conn = url.openConnection();
             conn.setConnectTimeout(1000);
             conn.setReadTimeout(1000);

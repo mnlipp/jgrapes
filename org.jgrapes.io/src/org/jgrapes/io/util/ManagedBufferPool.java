@@ -798,8 +798,7 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 
         private static Set<ManagedBufferPool<?, ?>> allPools
             = Collections.synchronizedSet(
-                Collections.newSetFromMap(
-                    new WeakHashMap<ManagedBufferPool<?, ?>, Boolean>()));
+                Collections.newSetFromMap(new WeakHashMap<>()));
 
         /**
          * Adds the pool.

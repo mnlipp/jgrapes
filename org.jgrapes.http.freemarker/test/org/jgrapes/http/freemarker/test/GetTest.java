@@ -22,6 +22,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.text.ParseException;
@@ -82,11 +83,12 @@ public class GetTest {
 
     @Test(timeout = 5000)
     public void testGetSimpleWithoutPrefix()
-            throws IOException, InterruptedException, ExecutionException {
+            throws IOException, InterruptedException, ExecutionException,
+            URISyntaxException {
         server.attach(new ContentProvider(server.channel(),
             GetTest.class.getClassLoader(), "templates", URI.create("/")));
-        URL url = new URL("http", "localhost", server.getPort(),
-            "/simple.ftl.html");
+        URL url = new URI("http", null, "localhost", server.getPort(),
+            "/simple.ftl.html", null, null).toURL();
         URLConnection conn = url.openConnection();
         conn.setConnectTimeout(4000);
         conn.setReadTimeout(4000);
@@ -101,11 +103,12 @@ public class GetTest {
 
     @Test(timeout = 5000)
     public void testGetStaticWithoutPrefix()
-            throws IOException, InterruptedException, ExecutionException {
+            throws IOException, InterruptedException, ExecutionException,
+            URISyntaxException {
         server.attach(new ContentProvider(server.channel(),
             GetTest.class.getClassLoader(), "templates", URI.create("/")));
-        URL url = new URL("http", "localhost", server.getPort(),
-            "/Readme.txt");
+        URL url = new URI("http", null, "localhost", server.getPort(),
+            "/Readme.txt", null, null).toURL();
         URLConnection conn = url.openConnection();
         conn.setConnectTimeout(4000);
         conn.setReadTimeout(4000);
@@ -120,12 +123,13 @@ public class GetTest {
 
     @Test(timeout = 5000)
     public void testGetSimpleWithPrefix()
-            throws IOException, InterruptedException, ExecutionException {
+            throws IOException, InterruptedException, ExecutionException,
+            URISyntaxException {
         server.attach(new ContentProvider(server.channel(),
             GetTest.class.getClassLoader(), "templates",
             URI.create("/generated/")));
-        URL url = new URL("http", "localhost", server.getPort(),
-            "/generated/simple.ftl.html");
+        URL url = new URI("http", null, "localhost", server.getPort(),
+            "/generated/simple.ftl.html", null, null).toURL();
         URLConnection conn = url.openConnection();
         conn.setConnectTimeout(4000);
         conn.setReadTimeout(4000);
@@ -140,12 +144,13 @@ public class GetTest {
 
     @Test(timeout = 5000)
     public void testGetStaticWithPrefix()
-            throws IOException, InterruptedException, ExecutionException {
+            throws IOException, InterruptedException, ExecutionException,
+            URISyntaxException {
         server.attach(new ContentProvider(server.channel(),
             GetTest.class.getClassLoader(), "templates",
             URI.create("/generated/")));
-        URL url = new URL("http", "localhost", server.getPort(),
-            "/generated/Readme.txt");
+        URL url = new URI("http", null, "localhost", server.getPort(),
+            "/generated/Readme.txt", null, null).toURL();
         URLConnection conn = url.openConnection();
         conn.setConnectTimeout(4000);
         conn.setReadTimeout(4000);
