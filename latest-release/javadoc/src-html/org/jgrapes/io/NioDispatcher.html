@@ -77,8 +77,8 @@
 <span class="source-line-no">063</span><span id="line-63">            if (runner != null &amp;&amp; !runner.isInterrupted()) {</span>
 <span class="source-line-no">064</span><span id="line-64">                return;</span>
 <span class="source-line-no">065</span><span id="line-65">            }</span>
-<span class="source-line-no">066</span><span id="line-66">            runner = new Thread(this, Components.simpleObjectName(this));</span>
-<span class="source-line-no">067</span><span id="line-67">            runner.start();</span>
+<span class="source-line-no">066</span><span id="line-66">            runner = Thread.ofVirtual().name(Components.simpleObjectName(this))</span>
+<span class="source-line-no">067</span><span id="line-67">                .start(this);</span>
 <span class="source-line-no">068</span><span id="line-68">        }</span>
 <span class="source-line-no">069</span><span id="line-69">    }</span>
 <span class="source-line-no">070</span><span id="line-70"></span>

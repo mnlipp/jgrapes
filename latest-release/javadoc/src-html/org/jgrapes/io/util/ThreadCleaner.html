@@ -85,34 +85,31 @@
 <span class="source-line-no">071</span><span id="line-71">    }</span>
 <span class="source-line-no">072</span><span id="line-72"></span>
 <span class="source-line-no">073</span><span id="line-73">    static {</span>
-<span class="source-line-no">074</span><span id="line-74">        Thread watchdog = new Thread(() -&gt; {</span>
-<span class="source-line-no">075</span><span id="line-75">            Thread.currentThread().setName("ThreadCleaner");</span>
-<span class="source-line-no">076</span><span id="line-76">            while (true) {</span>
-<span class="source-line-no">077</span><span id="line-77">                try {</span>
-<span class="source-line-no">078</span><span id="line-78">                    ThreadCleaner.RefWithThread ref</span>
-<span class="source-line-no">079</span><span id="line-79">                        = (ThreadCleaner.RefWithThread) abandoned.remove();</span>
-<span class="source-line-no">080</span><span id="line-80">                    ref.watched.interrupt();</span>
-<span class="source-line-no">081</span><span id="line-81">                    watched.remove(ref);</span>
-<span class="source-line-no">082</span><span id="line-82">                } catch (InterruptedException e) { // NOPMD</span>
-<span class="source-line-no">083</span><span id="line-83">                    // Nothing to do</span>
-<span class="source-line-no">084</span><span id="line-84">                }</span>
-<span class="source-line-no">085</span><span id="line-85">            }</span>
-<span class="source-line-no">086</span><span id="line-86">        });</span>
-<span class="source-line-no">087</span><span id="line-87">        watchdog.setDaemon(true);</span>
-<span class="source-line-no">088</span><span id="line-88">        watchdog.start();</span>
-<span class="source-line-no">089</span><span id="line-89">    }</span>
-<span class="source-line-no">090</span><span id="line-90"></span>
-<span class="source-line-no">091</span><span id="line-91">    /**</span>
-<span class="source-line-no">092</span><span id="line-92">     * Watch the referent and terminate the thread if it is</span>
-<span class="source-line-no">093</span><span id="line-93">     * garbage collected.</span>
-<span class="source-line-no">094</span><span id="line-94">     *</span>
-<span class="source-line-no">095</span><span id="line-95">     * @param referent the referent</span>
-<span class="source-line-no">096</span><span id="line-96">     * @param thread the thread</span>
-<span class="source-line-no">097</span><span id="line-97">     */</span>
-<span class="source-line-no">098</span><span id="line-98">    public static void watch(Object referent, Thread thread) {</span>
-<span class="source-line-no">099</span><span id="line-99">        watched.add(new RefWithThread(referent, thread));</span>
-<span class="source-line-no">100</span><span id="line-100">    }</span>
-<span class="source-line-no">101</span><span id="line-101">}</span>
+<span class="source-line-no">074</span><span id="line-74">        Thread.ofVirtual().name("ThreadCleaner").start(() -&gt; {</span>
+<span class="source-line-no">075</span><span id="line-75">            while (true) {</span>
+<span class="source-line-no">076</span><span id="line-76">                try {</span>
+<span class="source-line-no">077</span><span id="line-77">                    ThreadCleaner.RefWithThread ref</span>
+<span class="source-line-no">078</span><span id="line-78">                        = (ThreadCleaner.RefWithThread) abandoned.remove();</span>
+<span class="source-line-no">079</span><span id="line-79">                    ref.watched.interrupt();</span>
+<span class="source-line-no">080</span><span id="line-80">                    watched.remove(ref);</span>
+<span class="source-line-no">081</span><span id="line-81">                } catch (InterruptedException e) { // NOPMD</span>
+<span class="source-line-no">082</span><span id="line-82">                    // Nothing to do</span>
+<span class="source-line-no">083</span><span id="line-83">                }</span>
+<span class="source-line-no">084</span><span id="line-84">            }</span>
+<span class="source-line-no">085</span><span id="line-85">        });</span>
+<span class="source-line-no">086</span><span id="line-86">    }</span>
+<span class="source-line-no">087</span><span id="line-87"></span>
+<span class="source-line-no">088</span><span id="line-88">    /**</span>
+<span class="source-line-no">089</span><span id="line-89">     * Watch the referent and terminate the thread if it is</span>
+<span class="source-line-no">090</span><span id="line-90">     * garbage collected.</span>
+<span class="source-line-no">091</span><span id="line-91">     *</span>
+<span class="source-line-no">092</span><span id="line-92">     * @param referent the referent</span>
+<span class="source-line-no">093</span><span id="line-93">     * @param thread the thread</span>
+<span class="source-line-no">094</span><span id="line-94">     */</span>
+<span class="source-line-no">095</span><span id="line-95">    public static void watch(Object referent, Thread thread) {</span>
+<span class="source-line-no">096</span><span id="line-96">        watched.add(new RefWithThread(referent, thread));</span>
+<span class="source-line-no">097</span><span id="line-97">    }</span>
+<span class="source-line-no">098</span><span id="line-98">}</span>
 
 
 
