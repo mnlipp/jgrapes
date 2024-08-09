@@ -63,8 +63,8 @@ public class NioDispatcher extends Component implements Runnable {
             if (runner != null && !runner.isInterrupted()) {
                 return;
             }
-            runner = new Thread(this, Components.simpleObjectName(this));
-            runner.start();
+            runner = Thread.ofVirtual().name(Components.simpleObjectName(this))
+                .start(this);
         }
     }
 

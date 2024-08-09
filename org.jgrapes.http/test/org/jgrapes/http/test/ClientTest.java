@@ -20,6 +20,8 @@ package org.jgrapes.http.test;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.CharBuffer;
 import java.text.ParseException;
@@ -250,8 +252,10 @@ public class ClientTest {
 
     @Test(timeout = 1500)
     public void testUnknownHost()
-            throws IOException, InterruptedException, ExecutionException {
-        URL url = new URL(protocol, "never.ever.known", srvPort(), "/");
+            throws IOException, InterruptedException, ExecutionException,
+            URISyntaxException {
+        URL url = new URI(protocol, null, "never.ever.known", srvPort(), "/",
+            null, null).toURL();
         WaitForTests<ErrorReceived> doneWaiter = new WaitForTests<>(clntApp,
             ErrorReceived.class, clntApp.defaultCriterion());
         clntApp.startRequest(new Request.Out.Get(url), channel -> {
@@ -262,9 +266,11 @@ public class ClientTest {
 
     @Test(timeout = 1500)
     public void testConnectionRefused()
-            throws IOException, InterruptedException, ExecutionException {
+            throws IOException, InterruptedException, ExecutionException,
+            URISyntaxException {
         // Though not impossible, it's highly unlikely to have a server here
-        URL url = new URL(protocol, "localhost", srvPort() + 1, "/top");
+        URL url = new URI(protocol, null, "localhost", srvPort() + 1, "/top",
+            null, null).toURL();
         WaitForTests<ErrorReceived> doneWaiter = new WaitForTests<>(clntApp,
             ErrorReceived.class, clntApp.defaultCriterion());
         clntApp.startRequest(new Request.Out.Get(url), channel -> {
@@ -275,8 +281,10 @@ public class ClientTest {
 
     @Test(timeout = 1500)
     public void testGetMatchTop()
-            throws IOException, InterruptedException, ExecutionException {
-        URL url = new URL(protocol, "localhost", srvPort(), "/top");
+            throws IOException, InterruptedException, ExecutionException,
+            URISyntaxException {
+        URL url = new URI(protocol, null, "localhost", srvPort(), "/top",
+            null, null).toURL();
         WaitForTests<InputReceived> done = new WaitForTests<>(clntApp,
             InputReceived.class, clntApp.defaultCriterion());
         clntApp.startRequest(new Request.Out.Get(url), channel -> {
@@ -291,8 +299,10 @@ public class ClientTest {
 
     @Test(timeout = 1500)
     public void testPost()
-            throws IOException, InterruptedException, ExecutionException {
-        URL url = new URL(protocol, "localhost", srvPort(), "/reflect");
+            throws IOException, InterruptedException, ExecutionException,
+            URISyntaxException {
+        URL url = new URI(protocol, null, "localhost", srvPort(), "/reflect",
+            null, null).toURL();
         Request.Out.Post post = new Request.Out.Post(url);
         post.httpRequest().setField("Content-Type",
             "text/plain; charset=utf-8");
@@ -318,9 +328,10 @@ public class ClientTest {
 
     @Test(timeout = 1500)
     public void testWsEcho()
-            throws IOException, InterruptedException, ExecutionException {
-        URL url
-            = new URL(protocol, "localhost", srvPort(), "/ws/echo?store=42");
+            throws IOException, InterruptedException, ExecutionException,
+            URISyntaxException {
+        URL url = new URI(protocol, null, "localhost", srvPort(),
+            "/ws/echo", "store=42", null).toURL();
         Request.Out.Get upgrade = new Request.Out.Get(url);
         upgrade.httpRequest().setField(HttpField.UPGRADE,
             new StringList("websocket"));
@@ -366,8 +377,10 @@ public class ClientTest {
 
     @Test(timeout = 1500)
     public void testWsClientClose()
-            throws IOException, InterruptedException, ExecutionException {
-        URL url = new URL(protocol, "localhost", srvPort(), "/ws/echo");
+            throws IOException, InterruptedException, ExecutionException,
+            URISyntaxException {
+        URL url = new URI(protocol, null, "localhost", srvPort(), "/ws/echo",
+            null, null).toURL();
         Request.Out.Get upgrade = new Request.Out.Get(url);
         upgrade.httpRequest().setField(HttpField.UPGRADE,
             new StringList("websocket"));

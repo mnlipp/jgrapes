@@ -185,33 +185,29 @@ public class FileSystemWatcher extends Component {
      */
     private final class Watcher {
         private final WatchService watchService;
-        private final Thread thread;
 
         private Watcher(FileSystem fileSystem) throws IOException {
             watchService = fileSystem.newWatchService();
-            thread = new Thread(() -> {
-                while (true) {
-                    try {
-                        WatchKey key = watchService.take();
-                        // Events have to be consumed
-                        key.pollEvents();
-                        if (!(key.watchable() instanceof Path)) {
+            Thread.ofVirtual().name(fileSystem.toString() + " watcher")
+                .start(() -> {
+                    while (true) {
+                        try {
+                            WatchKey key = watchService.take();
+                            // Events have to be consumed
+                            key.pollEvents();
+                            if (!(key.watchable() instanceof Path)) {
+                                key.reset();
+                                continue;
+                            }
+                            handleWatchEvent((Path) key.watchable());
                             key.reset();
-                            continue;
+                        } catch (InterruptedException e) {
+                            logger.log(Level.WARNING, e,
+                                () -> "No WatchKey: " + e.getMessage());
                         }
-                        handleWatchEvent((Path) key.watchable());
-                        key.reset();
-                    } catch (InterruptedException e) {
-                        logger.log(Level.WARNING, e,
-                            () -> "No WatchKey: " + e.getMessage());
                     }
-                }
-            });
-            thread.setDaemon(true);
-            thread.setName(fileSystem.toString() + " watcher");
-            thread.start();
+                });
         }
-
     }
 
     /**

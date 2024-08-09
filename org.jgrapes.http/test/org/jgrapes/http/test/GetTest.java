@@ -24,6 +24,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLConnection;
@@ -172,9 +174,11 @@ public class GetTest {
 
     @Test(timeout = 1500)
     public void testNoGetRoot()
-            throws IOException, InterruptedException, ExecutionException {
+            throws IOException, InterruptedException, ExecutionException,
+            URISyntaxException {
         try {
-            URL url = new URL("http", "localhost", server.getPort(), "/");
+            URL url = new URI("http", null, "localhost", server.getPort(), "/",
+                null, null).toURL();
             URLConnection conn = url.openConnection();
             conn.setConnectTimeout(1000);
             conn.setReadTimeout(1000);
@@ -188,10 +192,11 @@ public class GetTest {
 
     @Test(timeout = 1500)
     public void testNotFoundStatusOnly()
-            throws IOException, InterruptedException, ExecutionException {
+            throws IOException, InterruptedException, ExecutionException,
+            URISyntaxException {
         try {
-            URL url = new URL("http", "localhost", server.getPort(),
-                "/not-found-status-only");
+            URL url = new URI("http", null, "localhost", server.getPort(),
+                "/not-found-status-only", null, null).toURL();
             URLConnection conn = url.openConnection();
             conn.setConnectTimeout(1000);
             conn.setReadTimeout(1000);
@@ -205,8 +210,10 @@ public class GetTest {
 
     @Test(timeout = 1500)
     public void testGetMatchTop()
-            throws IOException, InterruptedException, ExecutionException {
-        URL url = new URL("http", "localhost", server.getPort(), "/top");
+            throws IOException, InterruptedException, ExecutionException,
+            URISyntaxException {
+        URL url = new URI("http", null, "localhost", server.getPort(), "/top",
+            null, null).toURL();
         URLConnection conn = url.openConnection();
         conn.setConnectTimeout(1000);
         conn.setReadTimeout(1000);
@@ -220,8 +227,10 @@ public class GetTest {
 
     @Test(timeout = 1500)
     public void testGetMatchTopPlus()
-            throws IOException, InterruptedException, ExecutionException {
-        URL url = new URL("http", "localhost", server.getPort(), "/top/plus");
+            throws IOException, InterruptedException, ExecutionException,
+            URISyntaxException {
+        URL url = new URI("http", null, "localhost", server.getPort(),
+            "/top/plus", null, null).toURL();
         URLConnection conn = url.openConnection();
         conn.setConnectTimeout(1000);
         conn.setReadTimeout(1000);
@@ -231,8 +240,10 @@ public class GetTest {
 
     @Test(timeout = 1500)
     public void testGetMatchDynamic()
-            throws IOException, InterruptedException, ExecutionException {
-        URL url = new URL("http", "localhost", server.getPort(), "/dynamic");
+            throws IOException, InterruptedException, ExecutionException,
+            URISyntaxException {
+        URL url = new URI("http", null, "localhost", server.getPort(),
+            "/dynamic", null, null).toURL();
         URLConnection conn = url.openConnection();
         conn.setConnectTimeout(1000);
         conn.setReadTimeout(1000);
@@ -246,9 +257,10 @@ public class GetTest {
 
     @Test(timeout = 2500)
     public void testGetUnversionedStatic()
-            throws IOException, InterruptedException, ExecutionException {
-        URL url = new URL("http", "localhost", server.getPort(),
-            "/static-content/index.html");
+            throws IOException, InterruptedException, ExecutionException,
+            URISyntaxException {
+        URL url = new URI("http", null, "localhost", server.getPort(),
+            "/static-content/index.html", null, null).toURL();
         URLConnection conn = url.openConnection();
         conn.setConnectTimeout(2000);
         conn.setReadTimeout(2000);
@@ -262,9 +274,10 @@ public class GetTest {
 
     @Test(timeout = 2500)
     public void testGetVersionedStatic()
-            throws IOException, InterruptedException, ExecutionException {
-        URL url = new URL("http", "localhost", server.getPort(),
-            "/static-content/versioned-1.0.0.html");
+            throws IOException, InterruptedException, ExecutionException,
+            URISyntaxException {
+        URL url = new URI("http", null, "localhost", server.getPort(),
+            "/static-content/versioned-1.0.0.html", null, null).toURL();
         URLConnection conn = url.openConnection();
         conn.setConnectTimeout(2000);
         conn.setReadTimeout(2000);
@@ -278,9 +291,10 @@ public class GetTest {
 
     @Test(timeout = 2500)
     public void testGetFromJar()
-            throws IOException, InterruptedException, ExecutionException {
-        URL url = new URL("http", "localhost", server.getPort(),
-            "/from-jar/static-content/index.html");
+            throws IOException, InterruptedException, ExecutionException,
+            URISyntaxException {
+        URL url = new URI("http", null, "localhost", server.getPort(),
+            "/from-jar/static-content/index.html", null, null).toURL();
         // Unconditional fetch
         URLConnection conn = url.openConnection();
         conn.setConnectTimeout(2000);

@@ -42,10 +42,9 @@ public class ManagedBufferStreamer implements InputConsumer {
      * @param processor the processor
      */
     public ManagedBufferStreamer(Consumer<Reader> processor) {
-        Thread thread = new Thread(() -> {
+        Thread thread = Thread.ofVirtual().start(() -> {
             processor.accept(reader);
         });
-        thread.start();
         ThreadCleaner.watch(this, thread);
     }
 

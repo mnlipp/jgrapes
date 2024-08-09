@@ -24,6 +24,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Paths;
 import java.security.KeyManagementException;
@@ -199,17 +201,13 @@ public class ServerTest {
     @Test
     public void testConcurrentGetRoot()
             throws IOException, InterruptedException, ExecutionException,
-            TimeoutException {
+            TimeoutException, URISyntaxException {
         Waiter waiter = new Waiter();
 
-        URL url = new URL("https", "localhost", server.getPort(), "/");
+        URL url = new URI("https", null, "localhost", server.getPort(), "/",
+            null, null).toURL();
 
         int threadCount = 1000;
-        if (Boolean.parseBoolean(
-            System.getenv().getOrDefault("CI", "false"))) {
-            threadCount = 100;
-        }
-
         final List<Thread> threads = new ArrayList<>();
         AtomicInteger pending = new AtomicInteger(0);
         for (int i = 0; i < threadCount; i++) {

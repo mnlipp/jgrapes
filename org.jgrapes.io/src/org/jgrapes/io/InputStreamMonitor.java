@@ -144,11 +144,8 @@ public class InputStreamMonitor extends Component implements Runnable {
                 () -> {
                     return ByteBuffer.allocateDirect(bufferSize);
                 }, 2);
-            runner = new Thread(this, Components.simpleObjectName(this));
-            // Because this cannot reliably be stopped, it doesn't prevent
-            // shutdown.
-            runner.setDaemon(true);
-            runner.start();
+            runner = Thread.ofVirtual().name(Components.simpleObjectName(this))
+                .start(this);
         }
     }
 

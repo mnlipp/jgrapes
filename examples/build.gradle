@@ -58,9 +58,6 @@ eclipse {
     project {
        natures += 'bndtools.core.bndnature'
     }
-    jdt {
-        javaRuntimeName = "JavaSE-17"
-    }
 }
 
 tasks.eclipse.dependsOn(cleanEclipse)

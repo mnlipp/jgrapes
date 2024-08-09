@@ -23,6 +23,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.concurrent.ExecutionException;
 import org.jgrapes.core.Channel;
@@ -69,8 +71,10 @@ public class PostTest {
 
     @Test(timeout = 1500)
     public void testPost()
-            throws IOException, InterruptedException, ExecutionException {
-        URL url = new URL("http", "localhost", server.getPort(), "/reflect");
+            throws IOException, InterruptedException, ExecutionException,
+            URISyntaxException {
+        URL url = new URI("http", null, "localhost", server.getPort(),
+            "/reflect", null, null).toURL();
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setConnectTimeout(1000);
         conn.setReadTimeout(1000);
