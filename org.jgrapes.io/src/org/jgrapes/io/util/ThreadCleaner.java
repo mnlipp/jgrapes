@@ -71,8 +71,7 @@ public final class ThreadCleaner {
     }
 
     static {
-        Thread watchdog = new Thread(() -> {
-            Thread.currentThread().setName("ThreadCleaner");
+        Thread.ofVirtual().name("ThreadCleaner").start(() -> {
             while (true) {
                 try {
                     ThreadCleaner.RefWithThread ref
@@ -84,8 +83,6 @@ public final class ThreadCleaner {
                 }
             }
         });
-        watchdog.setDaemon(true);
-        watchdog.start();
     }
 
     /**

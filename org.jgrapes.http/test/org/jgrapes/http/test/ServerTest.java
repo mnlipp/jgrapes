@@ -208,11 +208,6 @@ public class ServerTest {
             null, null).toURL();
 
         int threadCount = 1000;
-        if (Boolean.parseBoolean(
-            System.getenv().getOrDefault("CI", "false"))) {
-            threadCount = 100;
-        }
-
         final List<Thread> threads = new ArrayList<>();
         AtomicInteger pending = new AtomicInteger(0);
         for (int i = 0; i < threadCount; i++) {

@@ -50,7 +50,7 @@ public class Password {
     public Password(char[] password) {
         synchronized (Password.class) {
             if (purger == null) {
-                purger = new Thread(() -> {
+                purger = Thread.ofVirtual().name("PasswordPurger").start(() -> {
                     while (true) {
                         try {
                             Reference<? extends Password> passwordRef
@@ -63,9 +63,6 @@ public class Password {
                         }
                     }
                 });
-                purger.setName("PasswordPurger");
-                purger.setDaemon(true);
-                purger.start();
             }
         }
         this.password = password;

@@ -34,7 +34,6 @@ import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import org.jgrapes.core.annotation.ComponentManager;
@@ -54,17 +53,7 @@ import org.jgrapes.core.internal.GeneratorRegistry;
 public class Components {
 
     private static ExecutorService defaultExecutorService
-        = Executors.newCachedThreadPool(
-            new ThreadFactory() {
-                @SuppressWarnings({ "PMD.CommentRequired",
-                    "PMD.MissingOverride" })
-                public Thread newThread(Runnable runnable) {
-                    Thread thread
-                        = Executors.defaultThreadFactory().newThread(runnable);
-                    thread.setDaemon(true);
-                    return thread;
-                }
-            });
+        = Executors.newVirtualThreadPerTaskExecutor();
 
     private static ExecutorService timerExecutorService
         = defaultExecutorService;
@@ -463,9 +452,7 @@ public class Components {
          */
         @SuppressWarnings("PMD.ConstructorCallsOverridableMethod")
         public Scheduler() {
-            setName("Components.Scheduler");
-            setDaemon(true);
-            start();
+            ofVirtual().name("Components.Scheduler").start(this);
         }
 
         /**

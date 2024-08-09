@@ -112,7 +112,7 @@ public class SocketServer extends SocketConnectionManager
     private PermitsPool connLimiter;
     private Registration registration;
     @SuppressWarnings("PMD.SingularField")
-    private Purger purger;
+    private Thread purger;
     private long minimumPurgeableTime;
 
     /**
@@ -127,7 +127,6 @@ public class SocketServer extends SocketConnectionManager
          */
         public Purger() {
             setName(Components.simpleObjectName(this));
-            setDaemon(true);
         }
 
         @Override
@@ -418,8 +417,7 @@ public class SocketServer extends SocketConnectionManager
                 return;
             }
             registration = event.event().get();
-            purger = new Purger();
-            purger.start();
+            purger = Thread.ofVirtual().start(new Purger());
             fire(new Ready(serverSocketChannel.getLocalAddress()));
             return;
         }
