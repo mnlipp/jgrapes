@@ -49,8 +49,10 @@ detailed description of the framework.
 Running
 -------
 
-JGrapes requires Java 17 SE or newer. Binaries are currently made
-available at Maven Central.
+Starting with versions core-1.21.0, util-1.36.0, io-2.11.0, http-3.5.0,
+http.freemarker-1.17.0, JGrapes makes use of virtual threads and therefore
+requires Java 21 SE or newer. Binaries are currently made available at
+Maven Central.
 
 ```gradle
 repositories {
