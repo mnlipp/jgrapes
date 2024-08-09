@@ -10,8 +10,8 @@ configurations {
 }
 
 dependencies {
-    markdownDoclet "org.jdrupes.mdoclet:doclet:4.0.0"
-    javadocTaglets "org.jdrupes.taglets:plantuml-taglet:3.0.0"
+    markdownDoclet "org.jdrupes.mdoclet:doclet:4.2.0"
+    javadocTaglets "org.jdrupes.taglets:plantuml-taglet:3.1.0"
 }
 
 task javadocResources(type: Copy) {
