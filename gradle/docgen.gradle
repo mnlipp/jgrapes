@@ -14,18 +14,9 @@ dependencies {
     javadocTaglets "org.jdrupes.taglets:plantuml-taglet:3.1.0"
 }
 
-task javadocResources(type: Copy) {
-    into file(docDestinationDir)
-    from ("${rootProject.rootDir}/misc") {
-        include '*.woff2'
-    }
-}
-
 task apidocs(type: JavaExec) {
     // Does not work on JitPack, no /usr/bin/dot
     enabled = JavaVersion.current() == JavaVersion.VERSION_21 && !isJitPackBuild
-
-    dependsOn javadocResources
 
     // Make sure that other projects' compileClasspaths are resolved
     rootProject.subprojects
