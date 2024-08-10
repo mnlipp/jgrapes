@@ -18,6 +18,7 @@
 
 package org.jgrapes.util;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.nio.file.FileSystem;
@@ -36,6 +37,8 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Event;
@@ -188,7 +191,11 @@ public class FileSystemWatcher extends Component {
 
         private Watcher(FileSystem fileSystem) throws IOException {
             watchService = fileSystem.newWatchService();
-            Thread.ofVirtual().name(fileSystem.toString() + " watcher")
+            var roots = StreamSupport
+                .stream(fileSystem.getRootDirectories().spliterator(), false)
+                .map(Path::toString)
+                .collect(Collectors.joining(File.pathSeparator));
+            Thread.ofVirtual().name(roots + " watcher")
                 .start(() -> {
                     while (true) {
                         try {
