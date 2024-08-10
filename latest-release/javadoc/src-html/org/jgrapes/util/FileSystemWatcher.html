@@ -32,394 +32,401 @@
 <span class="source-line-no">018</span><span id="line-18"></span>
 <span class="source-line-no">019</span><span id="line-19">package org.jgrapes.util;</span>
 <span class="source-line-no">020</span><span id="line-20"></span>
-<span class="source-line-no">021</span><span id="line-21">import java.io.IOException;</span>
-<span class="source-line-no">022</span><span id="line-22">import java.lang.ref.WeakReference;</span>
-<span class="source-line-no">023</span><span id="line-23">import java.nio.file.FileSystem;</span>
-<span class="source-line-no">024</span><span id="line-24">import java.nio.file.Files;</span>
-<span class="source-line-no">025</span><span id="line-25">import java.nio.file.NoSuchFileException;</span>
-<span class="source-line-no">026</span><span id="line-26">import java.nio.file.Path;</span>
-<span class="source-line-no">027</span><span id="line-27">import static java.nio.file.StandardWatchEventKinds.*;</span>
-<span class="source-line-no">028</span><span id="line-28">import java.nio.file.WatchKey;</span>
-<span class="source-line-no">029</span><span id="line-29">import java.nio.file.WatchService;</span>
-<span class="source-line-no">030</span><span id="line-30">import java.time.Instant;</span>
-<span class="source-line-no">031</span><span id="line-31">import java.util.ArrayList;</span>
-<span class="source-line-no">032</span><span id="line-32">import java.util.Collections;</span>
-<span class="source-line-no">033</span><span id="line-33">import java.util.List;</span>
-<span class="source-line-no">034</span><span id="line-34">import java.util.Map;</span>
-<span class="source-line-no">035</span><span id="line-35">import java.util.Optional;</span>
-<span class="source-line-no">036</span><span id="line-36">import java.util.concurrent.ConcurrentHashMap;</span>
-<span class="source-line-no">037</span><span id="line-37">import java.util.logging.Level;</span>
-<span class="source-line-no">038</span><span id="line-38">import java.util.logging.Logger;</span>
-<span class="source-line-no">039</span><span id="line-39">import org.jgrapes.core.Channel;</span>
-<span class="source-line-no">040</span><span id="line-40">import org.jgrapes.core.Component;</span>
-<span class="source-line-no">041</span><span id="line-41">import org.jgrapes.core.Event;</span>
-<span class="source-line-no">042</span><span id="line-42">import org.jgrapes.core.Manager;</span>
-<span class="source-line-no">043</span><span id="line-43">import org.jgrapes.core.annotation.Handler;</span>
-<span class="source-line-no">044</span><span id="line-44">import org.jgrapes.util.events.FileChanged;</span>
-<span class="source-line-no">045</span><span id="line-45">import org.jgrapes.util.events.WatchFile;</span>
-<span class="source-line-no">046</span><span id="line-46"></span>
-<span class="source-line-no">047</span><span id="line-47">/**</span>
-<span class="source-line-no">048</span><span id="line-48"> * A component that watches paths in the file system for changes</span>
-<span class="source-line-no">049</span><span id="line-49"> * and sends events if such changes occur. </span>
-<span class="source-line-no">050</span><span id="line-50"> */</span>
-<span class="source-line-no">051</span><span id="line-51">@SuppressWarnings("PMD.DataflowAnomalyAnalysis")</span>
-<span class="source-line-no">052</span><span id="line-52">public class FileSystemWatcher extends Component {</span>
-<span class="source-line-no">053</span><span id="line-53"></span>
-<span class="source-line-no">054</span><span id="line-54">    @SuppressWarnings("PMD.FieldNamingConventions")</span>
-<span class="source-line-no">055</span><span id="line-55">    protected static final Logger logger</span>
-<span class="source-line-no">056</span><span id="line-56">        = Logger.getLogger(FileSystemWatcher.class.getName());</span>
-<span class="source-line-no">057</span><span id="line-57"></span>
-<span class="source-line-no">058</span><span id="line-58">    private final WatcherRegistry watcherRegistry = new WatcherRegistry();</span>
-<span class="source-line-no">059</span><span id="line-59">    private final Map&lt;Path, DirectorySubscription&gt; subscriptions</span>
-<span class="source-line-no">060</span><span id="line-60">        = new ConcurrentHashMap&lt;&gt;();</span>
-<span class="source-line-no">061</span><span id="line-61"></span>
-<span class="source-line-no">062</span><span id="line-62">    /**</span>
-<span class="source-line-no">063</span><span id="line-63">     * Creates a new component base with its channel set to</span>
-<span class="source-line-no">064</span><span id="line-64">     * itself.</span>
-<span class="source-line-no">065</span><span id="line-65">     */</span>
-<span class="source-line-no">066</span><span id="line-66">    public FileSystemWatcher() {</span>
-<span class="source-line-no">067</span><span id="line-67">        super();</span>
-<span class="source-line-no">068</span><span id="line-68">    }</span>
-<span class="source-line-no">069</span><span id="line-69"></span>
-<span class="source-line-no">070</span><span id="line-70">    /**</span>
-<span class="source-line-no">071</span><span id="line-71">     * Creates a new component base with its channel set to the given </span>
-<span class="source-line-no">072</span><span id="line-72">     * channel. As a special case {@link Channel#SELF} can be</span>
-<span class="source-line-no">073</span><span id="line-73">     * passed to the constructor to make the component use itself</span>
-<span class="source-line-no">074</span><span id="line-74">     * as channel. The special value is necessary as you </span>
-<span class="source-line-no">075</span><span id="line-75">     * obviously cannot pass an object to be constructed to its </span>
-<span class="source-line-no">076</span><span id="line-76">     * constructor.</span>
-<span class="source-line-no">077</span><span id="line-77">     *</span>
-<span class="source-line-no">078</span><span id="line-78">     * @param componentChannel the channel that the component's</span>
-<span class="source-line-no">079</span><span id="line-79">     * handlers listen on by default and that </span>
-<span class="source-line-no">080</span><span id="line-80">     * {@link Manager#fire(Event, Channel...)} sends the event to</span>
-<span class="source-line-no">081</span><span id="line-81">     */</span>
-<span class="source-line-no">082</span><span id="line-82">    public FileSystemWatcher(Channel componentChannel) {</span>
-<span class="source-line-no">083</span><span id="line-83">        super(componentChannel);</span>
-<span class="source-line-no">084</span><span id="line-84">    }</span>
-<span class="source-line-no">085</span><span id="line-85"></span>
-<span class="source-line-no">086</span><span id="line-86">    /**</span>
-<span class="source-line-no">087</span><span id="line-87">     * Register a path to wath. Subsequent {@link FileChanged} </span>
-<span class="source-line-no">088</span><span id="line-88">     * events will be fire on the channel(s) on which the</span>
-<span class="source-line-no">089</span><span id="line-89">     * {@link WatchFile} event was fired.</span>
-<span class="source-line-no">090</span><span id="line-90">     * </span>
-<span class="source-line-no">091</span><span id="line-91">     * The channel is stored using a weak reference, so no explicit</span>
-<span class="source-line-no">092</span><span id="line-92">     * "clear watch" is required.</span>
-<span class="source-line-no">093</span><span id="line-93">     *</span>
-<span class="source-line-no">094</span><span id="line-94">     * @param event the event</span>
-<span class="source-line-no">095</span><span id="line-95">     * @param channel the channel</span>
-<span class="source-line-no">096</span><span id="line-96">     * @throws IOException if an I/O exception occurs</span>
-<span class="source-line-no">097</span><span id="line-97">     */</span>
-<span class="source-line-no">098</span><span id="line-98">    @Handler</span>
-<span class="source-line-no">099</span><span id="line-99">    public void onWatchFile(WatchFile event, Channel channel)</span>
-<span class="source-line-no">100</span><span id="line-100">            throws IOException {</span>
-<span class="source-line-no">101</span><span id="line-101">        final Path path = event.path().toAbsolutePath();</span>
-<span class="source-line-no">102</span><span id="line-102">        synchronized (subscriptions) {</span>
-<span class="source-line-no">103</span><span id="line-103">            addSubscription(path, channel);</span>
-<span class="source-line-no">104</span><span id="line-104">        }</span>
-<span class="source-line-no">105</span><span id="line-105">    }</span>
-<span class="source-line-no">106</span><span id="line-106"></span>
-<span class="source-line-no">107</span><span id="line-107">    private Subscription addSubscription(Path watched, Channel channel) {</span>
-<span class="source-line-no">108</span><span id="line-108">        var subs = new Subscription(watched, channel);</span>
-<span class="source-line-no">109</span><span id="line-109">        try {</span>
-<span class="source-line-no">110</span><span id="line-110">            // Using computeIfAbsent causes recursive update</span>
-<span class="source-line-no">111</span><span id="line-111">            var watcher = subscriptions.get(watched.getParent());</span>
-<span class="source-line-no">112</span><span id="line-112">            if (watcher == null) {</span>
-<span class="source-line-no">113</span><span id="line-113">                watcher = watcherRegistry.register(watched.getParent());</span>
-<span class="source-line-no">114</span><span id="line-114">            }</span>
-<span class="source-line-no">115</span><span id="line-115">            watcher.add(subs);</span>
-<span class="source-line-no">116</span><span id="line-116">            if (Files.exists(watched)) {</span>
-<span class="source-line-no">117</span><span id="line-117">                Path real = watched.toRealPath();</span>
-<span class="source-line-no">118</span><span id="line-118">                if (!real.equals(watched)) {</span>
-<span class="source-line-no">119</span><span id="line-119">                    addSubscription(real, channel).linkedFrom(subs);</span>
-<span class="source-line-no">120</span><span id="line-120">                }</span>
-<span class="source-line-no">121</span><span id="line-121">            }</span>
-<span class="source-line-no">122</span><span id="line-122">        } catch (IOException e) {</span>
-<span class="source-line-no">123</span><span id="line-123">            logger.log(Level.WARNING, e,</span>
-<span class="source-line-no">124</span><span id="line-124">                () -&gt; "Cannot watch: " + e.getMessage());</span>
-<span class="source-line-no">125</span><span id="line-125">        }</span>
-<span class="source-line-no">126</span><span id="line-126">        return subs;</span>
-<span class="source-line-no">127</span><span id="line-127">    }</span>
-<span class="source-line-no">128</span><span id="line-128"></span>
-<span class="source-line-no">129</span><span id="line-129">    private void handleWatchEvent(Path directory) {</span>
-<span class="source-line-no">130</span><span id="line-130">        Optional.ofNullable(subscriptions.get(directory))</span>
-<span class="source-line-no">131</span><span id="line-131">            .ifPresent(DirectorySubscription::directoryChanged);</span>
-<span class="source-line-no">132</span><span id="line-132">    }</span>
-<span class="source-line-no">133</span><span id="line-133"></span>
-<span class="source-line-no">134</span><span id="line-134">    /**</span>
-<span class="source-line-no">135</span><span id="line-135">     * The Class WatcherRegistry.</span>
-<span class="source-line-no">136</span><span id="line-136">     */</span>
-<span class="source-line-no">137</span><span id="line-137">    private final class WatcherRegistry {</span>
-<span class="source-line-no">138</span><span id="line-138">        private final Map&lt;FileSystem, Watcher&gt; watchers</span>
-<span class="source-line-no">139</span><span id="line-139">            = new ConcurrentHashMap&lt;&gt;();</span>
-<span class="source-line-no">140</span><span id="line-140"></span>
-<span class="source-line-no">141</span><span id="line-141">        private Watcher watcher(Path path) {</span>
-<span class="source-line-no">142</span><span id="line-142">            @SuppressWarnings("PMD.CloseResource")</span>
-<span class="source-line-no">143</span><span id="line-143">            Watcher watcher = watchers.get(path.getFileSystem());</span>
-<span class="source-line-no">144</span><span id="line-144">            if (watcher == null) {</span>
-<span class="source-line-no">145</span><span id="line-145">                try {</span>
-<span class="source-line-no">146</span><span id="line-146">                    watcher = new Watcher(path.getFileSystem());</span>
-<span class="source-line-no">147</span><span id="line-147">                    watchers.put(path.getFileSystem(), watcher);</span>
-<span class="source-line-no">148</span><span id="line-148">                } catch (IOException e) {</span>
-<span class="source-line-no">149</span><span id="line-149">                    logger.log(Level.WARNING, e,</span>
-<span class="source-line-no">150</span><span id="line-150">                        () -&gt; "Cannot get watch service: " + e.getMessage());</span>
-<span class="source-line-no">151</span><span id="line-151">                    return null;</span>
-<span class="source-line-no">152</span><span id="line-152">                }</span>
-<span class="source-line-no">153</span><span id="line-153">            }</span>
-<span class="source-line-no">154</span><span id="line-154">            return watcher;</span>
-<span class="source-line-no">155</span><span id="line-155">        }</span>
-<span class="source-line-no">156</span><span id="line-156"></span>
-<span class="source-line-no">157</span><span id="line-157">        /**</span>
-<span class="source-line-no">158</span><span id="line-158">         * Register.</span>
-<span class="source-line-no">159</span><span id="line-159">         *</span>
-<span class="source-line-no">160</span><span id="line-160">         * @param toWatch the to watch</span>
-<span class="source-line-no">161</span><span id="line-161">         * @return the directory subscription</span>
-<span class="source-line-no">162</span><span id="line-162">         */</span>
-<span class="source-line-no">163</span><span id="line-163">        public DirectorySubscription register(Path toWatch) {</span>
-<span class="source-line-no">164</span><span id="line-164">            Watcher watcher = watcher(toWatch);</span>
-<span class="source-line-no">165</span><span id="line-165">            if (watcher == null) {</span>
-<span class="source-line-no">166</span><span id="line-166">                return null;</span>
-<span class="source-line-no">167</span><span id="line-167">            }</span>
-<span class="source-line-no">168</span><span id="line-168">            try {</span>
-<span class="source-line-no">169</span><span id="line-169">                var watcherRef = new DirectorySubscription(</span>
-<span class="source-line-no">170</span><span id="line-170">                    toWatch.register(watcher.watchService,</span>
-<span class="source-line-no">171</span><span id="line-171">                        ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY));</span>
-<span class="source-line-no">172</span><span id="line-172">                subscriptions.put(toWatch, watcherRef);</span>
-<span class="source-line-no">173</span><span id="line-173">                return watcherRef;</span>
-<span class="source-line-no">174</span><span id="line-174">            } catch (IOException e) {</span>
-<span class="source-line-no">175</span><span id="line-175">                logger.log(Level.WARNING, e,</span>
-<span class="source-line-no">176</span><span id="line-176">                    () -&gt; "Cannot watch: " + e.getMessage());</span>
-<span class="source-line-no">177</span><span id="line-177">            }</span>
-<span class="source-line-no">178</span><span id="line-178">            return null;</span>
-<span class="source-line-no">179</span><span id="line-179">        }</span>
-<span class="source-line-no">180</span><span id="line-180"></span>
-<span class="source-line-no">181</span><span id="line-181">    }</span>
-<span class="source-line-no">182</span><span id="line-182"></span>
-<span class="source-line-no">183</span><span id="line-183">    /**</span>
-<span class="source-line-no">184</span><span id="line-184">     * The Class Watcher.</span>
-<span class="source-line-no">185</span><span id="line-185">     */</span>
-<span class="source-line-no">186</span><span id="line-186">    private final class Watcher {</span>
-<span class="source-line-no">187</span><span id="line-187">        private final WatchService watchService;</span>
-<span class="source-line-no">188</span><span id="line-188"></span>
-<span class="source-line-no">189</span><span id="line-189">        private Watcher(FileSystem fileSystem) throws IOException {</span>
-<span class="source-line-no">190</span><span id="line-190">            watchService = fileSystem.newWatchService();</span>
-<span class="source-line-no">191</span><span id="line-191">            Thread.ofVirtual().name(fileSystem.toString() + " watcher")</span>
-<span class="source-line-no">192</span><span id="line-192">                .start(() -&gt; {</span>
-<span class="source-line-no">193</span><span id="line-193">                    while (true) {</span>
-<span class="source-line-no">194</span><span id="line-194">                        try {</span>
-<span class="source-line-no">195</span><span id="line-195">                            WatchKey key = watchService.take();</span>
-<span class="source-line-no">196</span><span id="line-196">                            // Events have to be consumed</span>
-<span class="source-line-no">197</span><span id="line-197">                            key.pollEvents();</span>
-<span class="source-line-no">198</span><span id="line-198">                            if (!(key.watchable() instanceof Path)) {</span>
-<span class="source-line-no">199</span><span id="line-199">                                key.reset();</span>
-<span class="source-line-no">200</span><span id="line-200">                                continue;</span>
-<span class="source-line-no">201</span><span id="line-201">                            }</span>
-<span class="source-line-no">202</span><span id="line-202">                            handleWatchEvent((Path) key.watchable());</span>
-<span class="source-line-no">203</span><span id="line-203">                            key.reset();</span>
-<span class="source-line-no">204</span><span id="line-204">                        } catch (InterruptedException e) {</span>
-<span class="source-line-no">205</span><span id="line-205">                            logger.log(Level.WARNING, e,</span>
-<span class="source-line-no">206</span><span id="line-206">                                () -&gt; "No WatchKey: " + e.getMessage());</span>
-<span class="source-line-no">207</span><span id="line-207">                        }</span>
-<span class="source-line-no">208</span><span id="line-208">                    }</span>
-<span class="source-line-no">209</span><span id="line-209">                });</span>
-<span class="source-line-no">210</span><span id="line-210">        }</span>
-<span class="source-line-no">211</span><span id="line-211">    }</span>
-<span class="source-line-no">212</span><span id="line-212"></span>
-<span class="source-line-no">213</span><span id="line-213">    /**</span>
-<span class="source-line-no">214</span><span id="line-214">     * The Class DirectorySubscription.</span>
-<span class="source-line-no">215</span><span id="line-215">     */</span>
-<span class="source-line-no">216</span><span id="line-216">    private class DirectorySubscription {</span>
-<span class="source-line-no">217</span><span id="line-217">        private final WatchKey watchKey;</span>
-<span class="source-line-no">218</span><span id="line-218">        private final List&lt;Subscription&gt; watched;</span>
+<span class="source-line-no">021</span><span id="line-21">import java.io.File;</span>
+<span class="source-line-no">022</span><span id="line-22">import java.io.IOException;</span>
+<span class="source-line-no">023</span><span id="line-23">import java.lang.ref.WeakReference;</span>
+<span class="source-line-no">024</span><span id="line-24">import java.nio.file.FileSystem;</span>
+<span class="source-line-no">025</span><span id="line-25">import java.nio.file.Files;</span>
+<span class="source-line-no">026</span><span id="line-26">import java.nio.file.NoSuchFileException;</span>
+<span class="source-line-no">027</span><span id="line-27">import java.nio.file.Path;</span>
+<span class="source-line-no">028</span><span id="line-28">import static java.nio.file.StandardWatchEventKinds.*;</span>
+<span class="source-line-no">029</span><span id="line-29">import java.nio.file.WatchKey;</span>
+<span class="source-line-no">030</span><span id="line-30">import java.nio.file.WatchService;</span>
+<span class="source-line-no">031</span><span id="line-31">import java.time.Instant;</span>
+<span class="source-line-no">032</span><span id="line-32">import java.util.ArrayList;</span>
+<span class="source-line-no">033</span><span id="line-33">import java.util.Collections;</span>
+<span class="source-line-no">034</span><span id="line-34">import java.util.List;</span>
+<span class="source-line-no">035</span><span id="line-35">import java.util.Map;</span>
+<span class="source-line-no">036</span><span id="line-36">import java.util.Optional;</span>
+<span class="source-line-no">037</span><span id="line-37">import java.util.concurrent.ConcurrentHashMap;</span>
+<span class="source-line-no">038</span><span id="line-38">import java.util.logging.Level;</span>
+<span class="source-line-no">039</span><span id="line-39">import java.util.logging.Logger;</span>
+<span class="source-line-no">040</span><span id="line-40">import java.util.stream.Collectors;</span>
+<span class="source-line-no">041</span><span id="line-41">import java.util.stream.StreamSupport;</span>
+<span class="source-line-no">042</span><span id="line-42">import org.jgrapes.core.Channel;</span>
+<span class="source-line-no">043</span><span id="line-43">import org.jgrapes.core.Component;</span>
+<span class="source-line-no">044</span><span id="line-44">import org.jgrapes.core.Event;</span>
+<span class="source-line-no">045</span><span id="line-45">import org.jgrapes.core.Manager;</span>
+<span class="source-line-no">046</span><span id="line-46">import org.jgrapes.core.annotation.Handler;</span>
+<span class="source-line-no">047</span><span id="line-47">import org.jgrapes.util.events.FileChanged;</span>
+<span class="source-line-no">048</span><span id="line-48">import org.jgrapes.util.events.WatchFile;</span>
+<span class="source-line-no">049</span><span id="line-49"></span>
+<span class="source-line-no">050</span><span id="line-50">/**</span>
+<span class="source-line-no">051</span><span id="line-51"> * A component that watches paths in the file system for changes</span>
+<span class="source-line-no">052</span><span id="line-52"> * and sends events if such changes occur. </span>
+<span class="source-line-no">053</span><span id="line-53"> */</span>
+<span class="source-line-no">054</span><span id="line-54">@SuppressWarnings("PMD.DataflowAnomalyAnalysis")</span>
+<span class="source-line-no">055</span><span id="line-55">public class FileSystemWatcher extends Component {</span>
+<span class="source-line-no">056</span><span id="line-56"></span>
+<span class="source-line-no">057</span><span id="line-57">    @SuppressWarnings("PMD.FieldNamingConventions")</span>
+<span class="source-line-no">058</span><span id="line-58">    protected static final Logger logger</span>
+<span class="source-line-no">059</span><span id="line-59">        = Logger.getLogger(FileSystemWatcher.class.getName());</span>
+<span class="source-line-no">060</span><span id="line-60"></span>
+<span class="source-line-no">061</span><span id="line-61">    private final WatcherRegistry watcherRegistry = new WatcherRegistry();</span>
+<span class="source-line-no">062</span><span id="line-62">    private final Map&lt;Path, DirectorySubscription&gt; subscriptions</span>
+<span class="source-line-no">063</span><span id="line-63">        = new ConcurrentHashMap&lt;&gt;();</span>
+<span class="source-line-no">064</span><span id="line-64"></span>
+<span class="source-line-no">065</span><span id="line-65">    /**</span>
+<span class="source-line-no">066</span><span id="line-66">     * Creates a new component base with its channel set to</span>
+<span class="source-line-no">067</span><span id="line-67">     * itself.</span>
+<span class="source-line-no">068</span><span id="line-68">     */</span>
+<span class="source-line-no">069</span><span id="line-69">    public FileSystemWatcher() {</span>
+<span class="source-line-no">070</span><span id="line-70">        super();</span>
+<span class="source-line-no">071</span><span id="line-71">    }</span>
+<span class="source-line-no">072</span><span id="line-72"></span>
+<span class="source-line-no">073</span><span id="line-73">    /**</span>
+<span class="source-line-no">074</span><span id="line-74">     * Creates a new component base with its channel set to the given </span>
+<span class="source-line-no">075</span><span id="line-75">     * channel. As a special case {@link Channel#SELF} can be</span>
+<span class="source-line-no">076</span><span id="line-76">     * passed to the constructor to make the component use itself</span>
+<span class="source-line-no">077</span><span id="line-77">     * as channel. The special value is necessary as you </span>
+<span class="source-line-no">078</span><span id="line-78">     * obviously cannot pass an object to be constructed to its </span>
+<span class="source-line-no">079</span><span id="line-79">     * constructor.</span>
+<span class="source-line-no">080</span><span id="line-80">     *</span>
+<span class="source-line-no">081</span><span id="line-81">     * @param componentChannel the channel that the component's</span>
+<span class="source-line-no">082</span><span id="line-82">     * handlers listen on by default and that </span>
+<span class="source-line-no">083</span><span id="line-83">     * {@link Manager#fire(Event, Channel...)} sends the event to</span>
+<span class="source-line-no">084</span><span id="line-84">     */</span>
+<span class="source-line-no">085</span><span id="line-85">    public FileSystemWatcher(Channel componentChannel) {</span>
+<span class="source-line-no">086</span><span id="line-86">        super(componentChannel);</span>
+<span class="source-line-no">087</span><span id="line-87">    }</span>
+<span class="source-line-no">088</span><span id="line-88"></span>
+<span class="source-line-no">089</span><span id="line-89">    /**</span>
+<span class="source-line-no">090</span><span id="line-90">     * Register a path to wath. Subsequent {@link FileChanged} </span>
+<span class="source-line-no">091</span><span id="line-91">     * events will be fire on the channel(s) on which the</span>
+<span class="source-line-no">092</span><span id="line-92">     * {@link WatchFile} event was fired.</span>
+<span class="source-line-no">093</span><span id="line-93">     * </span>
+<span class="source-line-no">094</span><span id="line-94">     * The channel is stored using a weak reference, so no explicit</span>
+<span class="source-line-no">095</span><span id="line-95">     * "clear watch" is required.</span>
+<span class="source-line-no">096</span><span id="line-96">     *</span>
+<span class="source-line-no">097</span><span id="line-97">     * @param event the event</span>
+<span class="source-line-no">098</span><span id="line-98">     * @param channel the channel</span>
+<span class="source-line-no">099</span><span id="line-99">     * @throws IOException if an I/O exception occurs</span>
+<span class="source-line-no">100</span><span id="line-100">     */</span>
+<span class="source-line-no">101</span><span id="line-101">    @Handler</span>
+<span class="source-line-no">102</span><span id="line-102">    public void onWatchFile(WatchFile event, Channel channel)</span>
+<span class="source-line-no">103</span><span id="line-103">            throws IOException {</span>
+<span class="source-line-no">104</span><span id="line-104">        final Path path = event.path().toAbsolutePath();</span>
+<span class="source-line-no">105</span><span id="line-105">        synchronized (subscriptions) {</span>
+<span class="source-line-no">106</span><span id="line-106">            addSubscription(path, channel);</span>
+<span class="source-line-no">107</span><span id="line-107">        }</span>
+<span class="source-line-no">108</span><span id="line-108">    }</span>
+<span class="source-line-no">109</span><span id="line-109"></span>
+<span class="source-line-no">110</span><span id="line-110">    private Subscription addSubscription(Path watched, Channel channel) {</span>
+<span class="source-line-no">111</span><span id="line-111">        var subs = new Subscription(watched, channel);</span>
+<span class="source-line-no">112</span><span id="line-112">        try {</span>
+<span class="source-line-no">113</span><span id="line-113">            // Using computeIfAbsent causes recursive update</span>
+<span class="source-line-no">114</span><span id="line-114">            var watcher = subscriptions.get(watched.getParent());</span>
+<span class="source-line-no">115</span><span id="line-115">            if (watcher == null) {</span>
+<span class="source-line-no">116</span><span id="line-116">                watcher = watcherRegistry.register(watched.getParent());</span>
+<span class="source-line-no">117</span><span id="line-117">            }</span>
+<span class="source-line-no">118</span><span id="line-118">            watcher.add(subs);</span>
+<span class="source-line-no">119</span><span id="line-119">            if (Files.exists(watched)) {</span>
+<span class="source-line-no">120</span><span id="line-120">                Path real = watched.toRealPath();</span>
+<span class="source-line-no">121</span><span id="line-121">                if (!real.equals(watched)) {</span>
+<span class="source-line-no">122</span><span id="line-122">                    addSubscription(real, channel).linkedFrom(subs);</span>
+<span class="source-line-no">123</span><span id="line-123">                }</span>
+<span class="source-line-no">124</span><span id="line-124">            }</span>
+<span class="source-line-no">125</span><span id="line-125">        } catch (IOException e) {</span>
+<span class="source-line-no">126</span><span id="line-126">            logger.log(Level.WARNING, e,</span>
+<span class="source-line-no">127</span><span id="line-127">                () -&gt; "Cannot watch: " + e.getMessage());</span>
+<span class="source-line-no">128</span><span id="line-128">        }</span>
+<span class="source-line-no">129</span><span id="line-129">        return subs;</span>
+<span class="source-line-no">130</span><span id="line-130">    }</span>
+<span class="source-line-no">131</span><span id="line-131"></span>
+<span class="source-line-no">132</span><span id="line-132">    private void handleWatchEvent(Path directory) {</span>
+<span class="source-line-no">133</span><span id="line-133">        Optional.ofNullable(subscriptions.get(directory))</span>
+<span class="source-line-no">134</span><span id="line-134">            .ifPresent(DirectorySubscription::directoryChanged);</span>
+<span class="source-line-no">135</span><span id="line-135">    }</span>
+<span class="source-line-no">136</span><span id="line-136"></span>
+<span class="source-line-no">137</span><span id="line-137">    /**</span>
+<span class="source-line-no">138</span><span id="line-138">     * The Class WatcherRegistry.</span>
+<span class="source-line-no">139</span><span id="line-139">     */</span>
+<span class="source-line-no">140</span><span id="line-140">    private final class WatcherRegistry {</span>
+<span class="source-line-no">141</span><span id="line-141">        private final Map&lt;FileSystem, Watcher&gt; watchers</span>
+<span class="source-line-no">142</span><span id="line-142">            = new ConcurrentHashMap&lt;&gt;();</span>
+<span class="source-line-no">143</span><span id="line-143"></span>
+<span class="source-line-no">144</span><span id="line-144">        private Watcher watcher(Path path) {</span>
+<span class="source-line-no">145</span><span id="line-145">            @SuppressWarnings("PMD.CloseResource")</span>
+<span class="source-line-no">146</span><span id="line-146">            Watcher watcher = watchers.get(path.getFileSystem());</span>
+<span class="source-line-no">147</span><span id="line-147">            if (watcher == null) {</span>
+<span class="source-line-no">148</span><span id="line-148">                try {</span>
+<span class="source-line-no">149</span><span id="line-149">                    watcher = new Watcher(path.getFileSystem());</span>
+<span class="source-line-no">150</span><span id="line-150">                    watchers.put(path.getFileSystem(), watcher);</span>
+<span class="source-line-no">151</span><span id="line-151">                } catch (IOException e) {</span>
+<span class="source-line-no">152</span><span id="line-152">                    logger.log(Level.WARNING, e,</span>
+<span class="source-line-no">153</span><span id="line-153">                        () -&gt; "Cannot get watch service: " + e.getMessage());</span>
+<span class="source-line-no">154</span><span id="line-154">                    return null;</span>
+<span class="source-line-no">155</span><span id="line-155">                }</span>
+<span class="source-line-no">156</span><span id="line-156">            }</span>
+<span class="source-line-no">157</span><span id="line-157">            return watcher;</span>
+<span class="source-line-no">158</span><span id="line-158">        }</span>
+<span class="source-line-no">159</span><span id="line-159"></span>
+<span class="source-line-no">160</span><span id="line-160">        /**</span>
+<span class="source-line-no">161</span><span id="line-161">         * Register.</span>
+<span class="source-line-no">162</span><span id="line-162">         *</span>
+<span class="source-line-no">163</span><span id="line-163">         * @param toWatch the to watch</span>
+<span class="source-line-no">164</span><span id="line-164">         * @return the directory subscription</span>
+<span class="source-line-no">165</span><span id="line-165">         */</span>
+<span class="source-line-no">166</span><span id="line-166">        public DirectorySubscription register(Path toWatch) {</span>
+<span class="source-line-no">167</span><span id="line-167">            Watcher watcher = watcher(toWatch);</span>
+<span class="source-line-no">168</span><span id="line-168">            if (watcher == null) {</span>
+<span class="source-line-no">169</span><span id="line-169">                return null;</span>
+<span class="source-line-no">170</span><span id="line-170">            }</span>
+<span class="source-line-no">171</span><span id="line-171">            try {</span>
+<span class="source-line-no">172</span><span id="line-172">                var watcherRef = new DirectorySubscription(</span>
+<span class="source-line-no">173</span><span id="line-173">                    toWatch.register(watcher.watchService,</span>
+<span class="source-line-no">174</span><span id="line-174">                        ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY));</span>
+<span class="source-line-no">175</span><span id="line-175">                subscriptions.put(toWatch, watcherRef);</span>
+<span class="source-line-no">176</span><span id="line-176">                return watcherRef;</span>
+<span class="source-line-no">177</span><span id="line-177">            } catch (IOException e) {</span>
+<span class="source-line-no">178</span><span id="line-178">                logger.log(Level.WARNING, e,</span>
+<span class="source-line-no">179</span><span id="line-179">                    () -&gt; "Cannot watch: " + e.getMessage());</span>
+<span class="source-line-no">180</span><span id="line-180">            }</span>
+<span class="source-line-no">181</span><span id="line-181">            return null;</span>
+<span class="source-line-no">182</span><span id="line-182">        }</span>
+<span class="source-line-no">183</span><span id="line-183"></span>
+<span class="source-line-no">184</span><span id="line-184">    }</span>
+<span class="source-line-no">185</span><span id="line-185"></span>
+<span class="source-line-no">186</span><span id="line-186">    /**</span>
+<span class="source-line-no">187</span><span id="line-187">     * The Class Watcher.</span>
+<span class="source-line-no">188</span><span id="line-188">     */</span>
+<span class="source-line-no">189</span><span id="line-189">    private final class Watcher {</span>
+<span class="source-line-no">190</span><span id="line-190">        private final WatchService watchService;</span>
+<span class="source-line-no">191</span><span id="line-191"></span>
+<span class="source-line-no">192</span><span id="line-192">        private Watcher(FileSystem fileSystem) throws IOException {</span>
+<span class="source-line-no">193</span><span id="line-193">            watchService = fileSystem.newWatchService();</span>
+<span class="source-line-no">194</span><span id="line-194">            var roots = StreamSupport</span>
+<span class="source-line-no">195</span><span id="line-195">                .stream(fileSystem.getRootDirectories().spliterator(), false)</span>
+<span class="source-line-no">196</span><span id="line-196">                .map(Path::toString)</span>
+<span class="source-line-no">197</span><span id="line-197">                .collect(Collectors.joining(File.pathSeparator));</span>
+<span class="source-line-no">198</span><span id="line-198">            Thread.ofVirtual().name(roots + " watcher")</span>
+<span class="source-line-no">199</span><span id="line-199">                .start(() -&gt; {</span>
+<span class="source-line-no">200</span><span id="line-200">                    while (true) {</span>
+<span class="source-line-no">201</span><span id="line-201">                        try {</span>
+<span class="source-line-no">202</span><span id="line-202">                            WatchKey key = watchService.take();</span>
+<span class="source-line-no">203</span><span id="line-203">                            // Events have to be consumed</span>
+<span class="source-line-no">204</span><span id="line-204">                            key.pollEvents();</span>
+<span class="source-line-no">205</span><span id="line-205">                            if (!(key.watchable() instanceof Path)) {</span>
+<span class="source-line-no">206</span><span id="line-206">                                key.reset();</span>
+<span class="source-line-no">207</span><span id="line-207">                                continue;</span>
+<span class="source-line-no">208</span><span id="line-208">                            }</span>
+<span class="source-line-no">209</span><span id="line-209">                            handleWatchEvent((Path) key.watchable());</span>
+<span class="source-line-no">210</span><span id="line-210">                            key.reset();</span>
+<span class="source-line-no">211</span><span id="line-211">                        } catch (InterruptedException e) {</span>
+<span class="source-line-no">212</span><span id="line-212">                            logger.log(Level.WARNING, e,</span>
+<span class="source-line-no">213</span><span id="line-213">                                () -&gt; "No WatchKey: " + e.getMessage());</span>
+<span class="source-line-no">214</span><span id="line-214">                        }</span>
+<span class="source-line-no">215</span><span id="line-215">                    }</span>
+<span class="source-line-no">216</span><span id="line-216">                });</span>
+<span class="source-line-no">217</span><span id="line-217">        }</span>
+<span class="source-line-no">218</span><span id="line-218">    }</span>
 <span class="source-line-no">219</span><span id="line-219"></span>
-<span class="source-line-no">220</span><span id="line-220">        /**</span>
-<span class="source-line-no">221</span><span id="line-221">         * Instantiates a new directory watcher.</span>
-<span class="source-line-no">222</span><span id="line-222">         *</span>
-<span class="source-line-no">223</span><span id="line-223">         * @param watchKey the watch key</span>
-<span class="source-line-no">224</span><span id="line-224">         */</span>
-<span class="source-line-no">225</span><span id="line-225">        public DirectorySubscription(WatchKey watchKey) {</span>
-<span class="source-line-no">226</span><span id="line-226">            this.watchKey = watchKey;</span>
-<span class="source-line-no">227</span><span id="line-227">            watched = Collections.synchronizedList(new ArrayList&lt;&gt;());</span>
-<span class="source-line-no">228</span><span id="line-228">        }</span>
-<span class="source-line-no">229</span><span id="line-229"></span>
-<span class="source-line-no">230</span><span id="line-230">        /**</span>
-<span class="source-line-no">231</span><span id="line-231">         * Adds the subscription.</span>
-<span class="source-line-no">232</span><span id="line-232">         *</span>
-<span class="source-line-no">233</span><span id="line-233">         * @param subs the subs</span>
-<span class="source-line-no">234</span><span id="line-234">         */</span>
-<span class="source-line-no">235</span><span id="line-235">        public void add(Subscription subs) {</span>
-<span class="source-line-no">236</span><span id="line-236">            watched.add(subs);</span>
-<span class="source-line-no">237</span><span id="line-237">        }</span>
-<span class="source-line-no">238</span><span id="line-238"></span>
-<span class="source-line-no">239</span><span id="line-239">        /**</span>
-<span class="source-line-no">240</span><span id="line-240">         * Removes the subscription.</span>
-<span class="source-line-no">241</span><span id="line-241">         *</span>
-<span class="source-line-no">242</span><span id="line-242">         * @param subs the subs</span>
-<span class="source-line-no">243</span><span id="line-243">         */</span>
-<span class="source-line-no">244</span><span id="line-244">        public void remove(Subscription subs) {</span>
-<span class="source-line-no">245</span><span id="line-245">            watched.remove(subs);</span>
-<span class="source-line-no">246</span><span id="line-246">            if (watched.isEmpty()) {</span>
-<span class="source-line-no">247</span><span id="line-247">                subscriptions.remove(subs.directory());</span>
-<span class="source-line-no">248</span><span id="line-248">                watchKey.cancel();</span>
-<span class="source-line-no">249</span><span id="line-249">            }</span>
-<span class="source-line-no">250</span><span id="line-250"></span>
-<span class="source-line-no">251</span><span id="line-251">        }</span>
-<span class="source-line-no">252</span><span id="line-252"></span>
-<span class="source-line-no">253</span><span id="line-253">        /**</span>
-<span class="source-line-no">254</span><span id="line-254">         * Directory changed.</span>
-<span class="source-line-no">255</span><span id="line-255">         */</span>
-<span class="source-line-no">256</span><span id="line-256">        public void directoryChanged() {</span>
-<span class="source-line-no">257</span><span id="line-257">            // Prevent concurrent modification exception</span>
-<span class="source-line-no">258</span><span id="line-258">            List.copyOf(watched).forEach(Subscription::handleChange);</span>
-<span class="source-line-no">259</span><span id="line-259">        }</span>
-<span class="source-line-no">260</span><span id="line-260">    }</span>
-<span class="source-line-no">261</span><span id="line-261"></span>
-<span class="source-line-no">262</span><span id="line-262">    /**</span>
-<span class="source-line-no">263</span><span id="line-263">     * The Class Registree.</span>
-<span class="source-line-no">264</span><span id="line-264">     */</span>
-<span class="source-line-no">265</span><span id="line-265">    private class Subscription {</span>
-<span class="source-line-no">266</span><span id="line-266">        private WeakReference&lt;Channel&gt; notifyOn;</span>
-<span class="source-line-no">267</span><span id="line-267">        private final Path path;</span>
-<span class="source-line-no">268</span><span id="line-268">        private Subscription linkedFrom;</span>
-<span class="source-line-no">269</span><span id="line-269">        private Subscription linksTo;</span>
-<span class="source-line-no">270</span><span id="line-270">        private Instant lastModified;</span>
-<span class="source-line-no">271</span><span id="line-271"></span>
-<span class="source-line-no">272</span><span id="line-272">        /**</span>
-<span class="source-line-no">273</span><span id="line-273">         * Instantiates a new subscription.</span>
-<span class="source-line-no">274</span><span id="line-274">         *</span>
-<span class="source-line-no">275</span><span id="line-275">         * @param path the path</span>
-<span class="source-line-no">276</span><span id="line-276">         * @param notifyOn the notify on</span>
-<span class="source-line-no">277</span><span id="line-277">         */</span>
-<span class="source-line-no">278</span><span id="line-278">        @SuppressWarnings("PMD.UseVarargs")</span>
-<span class="source-line-no">279</span><span id="line-279">        public Subscription(Path path, Channel notifyOn) {</span>
-<span class="source-line-no">280</span><span id="line-280">            this.notifyOn = new WeakReference&lt;&gt;(notifyOn);</span>
-<span class="source-line-no">281</span><span id="line-281">            this.path = path;</span>
-<span class="source-line-no">282</span><span id="line-282">            updateLastModified();</span>
-<span class="source-line-no">283</span><span id="line-283">        }</span>
-<span class="source-line-no">284</span><span id="line-284"></span>
-<span class="source-line-no">285</span><span id="line-285">        /**</span>
-<span class="source-line-no">286</span><span id="line-286">         * Return the directoy of this subscription's path.</span>
-<span class="source-line-no">287</span><span id="line-287">         *</span>
-<span class="source-line-no">288</span><span id="line-288">         * @return the path</span>
-<span class="source-line-no">289</span><span id="line-289">         */</span>
-<span class="source-line-no">290</span><span id="line-290">        public Path directory() {</span>
-<span class="source-line-no">291</span><span id="line-291">            return path.getParent();</span>
-<span class="source-line-no">292</span><span id="line-292">        }</span>
-<span class="source-line-no">293</span><span id="line-293"></span>
-<span class="source-line-no">294</span><span id="line-294">        /**</span>
-<span class="source-line-no">295</span><span id="line-295">         * Linked from.</span>
-<span class="source-line-no">296</span><span id="line-296">         *</span>
-<span class="source-line-no">297</span><span id="line-297">         * @param symLinkSubs the sym link subs</span>
-<span class="source-line-no">298</span><span id="line-298">         * @return the subscription</span>
-<span class="source-line-no">299</span><span id="line-299">         */</span>
-<span class="source-line-no">300</span><span id="line-300">        public Subscription linkedFrom(Subscription symLinkSubs) {</span>
-<span class="source-line-no">301</span><span id="line-301">            linkedFrom = symLinkSubs;</span>
-<span class="source-line-no">302</span><span id="line-302">            symLinkSubs.linksTo = this;</span>
-<span class="source-line-no">303</span><span id="line-303">            notifyOn = null;</span>
-<span class="source-line-no">304</span><span id="line-304">            return this;</span>
-<span class="source-line-no">305</span><span id="line-305">        }</span>
-<span class="source-line-no">306</span><span id="line-306"></span>
-<span class="source-line-no">307</span><span id="line-307">        /**</span>
-<span class="source-line-no">308</span><span id="line-308">         * Removes the subscription.</span>
-<span class="source-line-no">309</span><span id="line-309">         */</span>
-<span class="source-line-no">310</span><span id="line-310">        public void remove() {</span>
-<span class="source-line-no">311</span><span id="line-311">            synchronized (subscriptions) {</span>
-<span class="source-line-no">312</span><span id="line-312">                if (linksTo != null) {</span>
-<span class="source-line-no">313</span><span id="line-313">                    linksTo.remove();</span>
-<span class="source-line-no">314</span><span id="line-314">                }</span>
-<span class="source-line-no">315</span><span id="line-315">                var directory = path.getParent();</span>
-<span class="source-line-no">316</span><span id="line-316">                var watchInfo = subscriptions.get(directory);</span>
-<span class="source-line-no">317</span><span id="line-317">                if (watchInfo == null) {</span>
-<span class="source-line-no">318</span><span id="line-318">                    // Shouldn't happen, but...</span>
-<span class="source-line-no">319</span><span id="line-319">                    return;</span>
-<span class="source-line-no">320</span><span id="line-320">                }</span>
-<span class="source-line-no">321</span><span id="line-321">                watchInfo.remove(this);</span>
-<span class="source-line-no">322</span><span id="line-322">            }</span>
-<span class="source-line-no">323</span><span id="line-323">        }</span>
-<span class="source-line-no">324</span><span id="line-324"></span>
-<span class="source-line-no">325</span><span id="line-325">        private void updateLastModified() {</span>
-<span class="source-line-no">326</span><span id="line-326">            try {</span>
-<span class="source-line-no">327</span><span id="line-327">                if (!Files.exists(path)) {</span>
-<span class="source-line-no">328</span><span id="line-328">                    lastModified = null;</span>
-<span class="source-line-no">329</span><span id="line-329">                    return;</span>
-<span class="source-line-no">330</span><span id="line-330">                }</span>
-<span class="source-line-no">331</span><span id="line-331">                lastModified = Files.getLastModifiedTime(path).toInstant();</span>
-<span class="source-line-no">332</span><span id="line-332">            } catch (NoSuchFileException e) {</span>
-<span class="source-line-no">333</span><span id="line-333">                // There's a race condition here.</span>
-<span class="source-line-no">334</span><span id="line-334">                lastModified = null;</span>
-<span class="source-line-no">335</span><span id="line-335">            } catch (IOException e) {</span>
-<span class="source-line-no">336</span><span id="line-336">                logger.log(Level.WARNING, e,</span>
-<span class="source-line-no">337</span><span id="line-337">                    () -&gt; "Cannot get modified time: " + e.getMessage());</span>
-<span class="source-line-no">338</span><span id="line-338">            }</span>
-<span class="source-line-no">339</span><span id="line-339">        }</span>
-<span class="source-line-no">340</span><span id="line-340"></span>
-<span class="source-line-no">341</span><span id="line-341">        /**</span>
-<span class="source-line-no">342</span><span id="line-342">         * Handle change.</span>
-<span class="source-line-no">343</span><span id="line-343">         */</span>
-<span class="source-line-no">344</span><span id="line-344">        private void handleChange() {</span>
-<span class="source-line-no">345</span><span id="line-345">            Subscription watched = Optional.ofNullable(linkedFrom).orElse(this);</span>
-<span class="source-line-no">346</span><span id="line-346"></span>
-<span class="source-line-no">347</span><span id="line-347">            // Check if channel is still valid</span>
-<span class="source-line-no">348</span><span id="line-348">            Channel channel = watched.notifyOn.get();</span>
-<span class="source-line-no">349</span><span id="line-349">            if (channel == null) {</span>
-<span class="source-line-no">350</span><span id="line-350">                watched.remove();</span>
-<span class="source-line-no">351</span><span id="line-351">                return;</span>
-<span class="source-line-no">352</span><span id="line-352">            }</span>
+<span class="source-line-no">220</span><span id="line-220">    /**</span>
+<span class="source-line-no">221</span><span id="line-221">     * The Class DirectorySubscription.</span>
+<span class="source-line-no">222</span><span id="line-222">     */</span>
+<span class="source-line-no">223</span><span id="line-223">    private class DirectorySubscription {</span>
+<span class="source-line-no">224</span><span id="line-224">        private final WatchKey watchKey;</span>
+<span class="source-line-no">225</span><span id="line-225">        private final List&lt;Subscription&gt; watched;</span>
+<span class="source-line-no">226</span><span id="line-226"></span>
+<span class="source-line-no">227</span><span id="line-227">        /**</span>
+<span class="source-line-no">228</span><span id="line-228">         * Instantiates a new directory watcher.</span>
+<span class="source-line-no">229</span><span id="line-229">         *</span>
+<span class="source-line-no">230</span><span id="line-230">         * @param watchKey the watch key</span>
+<span class="source-line-no">231</span><span id="line-231">         */</span>
+<span class="source-line-no">232</span><span id="line-232">        public DirectorySubscription(WatchKey watchKey) {</span>
+<span class="source-line-no">233</span><span id="line-233">            this.watchKey = watchKey;</span>
+<span class="source-line-no">234</span><span id="line-234">            watched = Collections.synchronizedList(new ArrayList&lt;&gt;());</span>
+<span class="source-line-no">235</span><span id="line-235">        }</span>
+<span class="source-line-no">236</span><span id="line-236"></span>
+<span class="source-line-no">237</span><span id="line-237">        /**</span>
+<span class="source-line-no">238</span><span id="line-238">         * Adds the subscription.</span>
+<span class="source-line-no">239</span><span id="line-239">         *</span>
+<span class="source-line-no">240</span><span id="line-240">         * @param subs the subs</span>
+<span class="source-line-no">241</span><span id="line-241">         */</span>
+<span class="source-line-no">242</span><span id="line-242">        public void add(Subscription subs) {</span>
+<span class="source-line-no">243</span><span id="line-243">            watched.add(subs);</span>
+<span class="source-line-no">244</span><span id="line-244">        }</span>
+<span class="source-line-no">245</span><span id="line-245"></span>
+<span class="source-line-no">246</span><span id="line-246">        /**</span>
+<span class="source-line-no">247</span><span id="line-247">         * Removes the subscription.</span>
+<span class="source-line-no">248</span><span id="line-248">         *</span>
+<span class="source-line-no">249</span><span id="line-249">         * @param subs the subs</span>
+<span class="source-line-no">250</span><span id="line-250">         */</span>
+<span class="source-line-no">251</span><span id="line-251">        public void remove(Subscription subs) {</span>
+<span class="source-line-no">252</span><span id="line-252">            watched.remove(subs);</span>
+<span class="source-line-no">253</span><span id="line-253">            if (watched.isEmpty()) {</span>
+<span class="source-line-no">254</span><span id="line-254">                subscriptions.remove(subs.directory());</span>
+<span class="source-line-no">255</span><span id="line-255">                watchKey.cancel();</span>
+<span class="source-line-no">256</span><span id="line-256">            }</span>
+<span class="source-line-no">257</span><span id="line-257"></span>
+<span class="source-line-no">258</span><span id="line-258">        }</span>
+<span class="source-line-no">259</span><span id="line-259"></span>
+<span class="source-line-no">260</span><span id="line-260">        /**</span>
+<span class="source-line-no">261</span><span id="line-261">         * Directory changed.</span>
+<span class="source-line-no">262</span><span id="line-262">         */</span>
+<span class="source-line-no">263</span><span id="line-263">        public void directoryChanged() {</span>
+<span class="source-line-no">264</span><span id="line-264">            // Prevent concurrent modification exception</span>
+<span class="source-line-no">265</span><span id="line-265">            List.copyOf(watched).forEach(Subscription::handleChange);</span>
+<span class="source-line-no">266</span><span id="line-266">        }</span>
+<span class="source-line-no">267</span><span id="line-267">    }</span>
+<span class="source-line-no">268</span><span id="line-268"></span>
+<span class="source-line-no">269</span><span id="line-269">    /**</span>
+<span class="source-line-no">270</span><span id="line-270">     * The Class Registree.</span>
+<span class="source-line-no">271</span><span id="line-271">     */</span>
+<span class="source-line-no">272</span><span id="line-272">    private class Subscription {</span>
+<span class="source-line-no">273</span><span id="line-273">        private WeakReference&lt;Channel&gt; notifyOn;</span>
+<span class="source-line-no">274</span><span id="line-274">        private final Path path;</span>
+<span class="source-line-no">275</span><span id="line-275">        private Subscription linkedFrom;</span>
+<span class="source-line-no">276</span><span id="line-276">        private Subscription linksTo;</span>
+<span class="source-line-no">277</span><span id="line-277">        private Instant lastModified;</span>
+<span class="source-line-no">278</span><span id="line-278"></span>
+<span class="source-line-no">279</span><span id="line-279">        /**</span>
+<span class="source-line-no">280</span><span id="line-280">         * Instantiates a new subscription.</span>
+<span class="source-line-no">281</span><span id="line-281">         *</span>
+<span class="source-line-no">282</span><span id="line-282">         * @param path the path</span>
+<span class="source-line-no">283</span><span id="line-283">         * @param notifyOn the notify on</span>
+<span class="source-line-no">284</span><span id="line-284">         */</span>
+<span class="source-line-no">285</span><span id="line-285">        @SuppressWarnings("PMD.UseVarargs")</span>
+<span class="source-line-no">286</span><span id="line-286">        public Subscription(Path path, Channel notifyOn) {</span>
+<span class="source-line-no">287</span><span id="line-287">            this.notifyOn = new WeakReference&lt;&gt;(notifyOn);</span>
+<span class="source-line-no">288</span><span id="line-288">            this.path = path;</span>
+<span class="source-line-no">289</span><span id="line-289">            updateLastModified();</span>
+<span class="source-line-no">290</span><span id="line-290">        }</span>
+<span class="source-line-no">291</span><span id="line-291"></span>
+<span class="source-line-no">292</span><span id="line-292">        /**</span>
+<span class="source-line-no">293</span><span id="line-293">         * Return the directoy of this subscription's path.</span>
+<span class="source-line-no">294</span><span id="line-294">         *</span>
+<span class="source-line-no">295</span><span id="line-295">         * @return the path</span>
+<span class="source-line-no">296</span><span id="line-296">         */</span>
+<span class="source-line-no">297</span><span id="line-297">        public Path directory() {</span>
+<span class="source-line-no">298</span><span id="line-298">            return path.getParent();</span>
+<span class="source-line-no">299</span><span id="line-299">        }</span>
+<span class="source-line-no">300</span><span id="line-300"></span>
+<span class="source-line-no">301</span><span id="line-301">        /**</span>
+<span class="source-line-no">302</span><span id="line-302">         * Linked from.</span>
+<span class="source-line-no">303</span><span id="line-303">         *</span>
+<span class="source-line-no">304</span><span id="line-304">         * @param symLinkSubs the sym link subs</span>
+<span class="source-line-no">305</span><span id="line-305">         * @return the subscription</span>
+<span class="source-line-no">306</span><span id="line-306">         */</span>
+<span class="source-line-no">307</span><span id="line-307">        public Subscription linkedFrom(Subscription symLinkSubs) {</span>
+<span class="source-line-no">308</span><span id="line-308">            linkedFrom = symLinkSubs;</span>
+<span class="source-line-no">309</span><span id="line-309">            symLinkSubs.linksTo = this;</span>
+<span class="source-line-no">310</span><span id="line-310">            notifyOn = null;</span>
+<span class="source-line-no">311</span><span id="line-311">            return this;</span>
+<span class="source-line-no">312</span><span id="line-312">        }</span>
+<span class="source-line-no">313</span><span id="line-313"></span>
+<span class="source-line-no">314</span><span id="line-314">        /**</span>
+<span class="source-line-no">315</span><span id="line-315">         * Removes the subscription.</span>
+<span class="source-line-no">316</span><span id="line-316">         */</span>
+<span class="source-line-no">317</span><span id="line-317">        public void remove() {</span>
+<span class="source-line-no">318</span><span id="line-318">            synchronized (subscriptions) {</span>
+<span class="source-line-no">319</span><span id="line-319">                if (linksTo != null) {</span>
+<span class="source-line-no">320</span><span id="line-320">                    linksTo.remove();</span>
+<span class="source-line-no">321</span><span id="line-321">                }</span>
+<span class="source-line-no">322</span><span id="line-322">                var directory = path.getParent();</span>
+<span class="source-line-no">323</span><span id="line-323">                var watchInfo = subscriptions.get(directory);</span>
+<span class="source-line-no">324</span><span id="line-324">                if (watchInfo == null) {</span>
+<span class="source-line-no">325</span><span id="line-325">                    // Shouldn't happen, but...</span>
+<span class="source-line-no">326</span><span id="line-326">                    return;</span>
+<span class="source-line-no">327</span><span id="line-327">                }</span>
+<span class="source-line-no">328</span><span id="line-328">                watchInfo.remove(this);</span>
+<span class="source-line-no">329</span><span id="line-329">            }</span>
+<span class="source-line-no">330</span><span id="line-330">        }</span>
+<span class="source-line-no">331</span><span id="line-331"></span>
+<span class="source-line-no">332</span><span id="line-332">        private void updateLastModified() {</span>
+<span class="source-line-no">333</span><span id="line-333">            try {</span>
+<span class="source-line-no">334</span><span id="line-334">                if (!Files.exists(path)) {</span>
+<span class="source-line-no">335</span><span id="line-335">                    lastModified = null;</span>
+<span class="source-line-no">336</span><span id="line-336">                    return;</span>
+<span class="source-line-no">337</span><span id="line-337">                }</span>
+<span class="source-line-no">338</span><span id="line-338">                lastModified = Files.getLastModifiedTime(path).toInstant();</span>
+<span class="source-line-no">339</span><span id="line-339">            } catch (NoSuchFileException e) {</span>
+<span class="source-line-no">340</span><span id="line-340">                // There's a race condition here.</span>
+<span class="source-line-no">341</span><span id="line-341">                lastModified = null;</span>
+<span class="source-line-no">342</span><span id="line-342">            } catch (IOException e) {</span>
+<span class="source-line-no">343</span><span id="line-343">                logger.log(Level.WARNING, e,</span>
+<span class="source-line-no">344</span><span id="line-344">                    () -&gt; "Cannot get modified time: " + e.getMessage());</span>
+<span class="source-line-no">345</span><span id="line-345">            }</span>
+<span class="source-line-no">346</span><span id="line-346">        }</span>
+<span class="source-line-no">347</span><span id="line-347"></span>
+<span class="source-line-no">348</span><span id="line-348">        /**</span>
+<span class="source-line-no">349</span><span id="line-349">         * Handle change.</span>
+<span class="source-line-no">350</span><span id="line-350">         */</span>
+<span class="source-line-no">351</span><span id="line-351">        private void handleChange() {</span>
+<span class="source-line-no">352</span><span id="line-352">            Subscription watched = Optional.ofNullable(linkedFrom).orElse(this);</span>
 <span class="source-line-no">353</span><span id="line-353"></span>
-<span class="source-line-no">354</span><span id="line-354">            // Evaluate change from the perspective of "watched"</span>
-<span class="source-line-no">355</span><span id="line-355">            Instant prevModified = watched.lastModified;</span>
-<span class="source-line-no">356</span><span id="line-356">            watched.updateLastModified();</span>
-<span class="source-line-no">357</span><span id="line-357">            if (prevModified == null) {</span>
-<span class="source-line-no">358</span><span id="line-358">                // Check if created</span>
-<span class="source-line-no">359</span><span id="line-359">                if (watched.lastModified != null) {</span>
-<span class="source-line-no">360</span><span id="line-360">                    // Yes, created.</span>
-<span class="source-line-no">361</span><span id="line-361">                    fire(new FileChanged(watched.path,</span>
-<span class="source-line-no">362</span><span id="line-362">                        FileChanged.Kind.CREATED), channel);</span>
-<span class="source-line-no">363</span><span id="line-363">                    checkLink(watched, channel);</span>
-<span class="source-line-no">364</span><span id="line-364">                }</span>
-<span class="source-line-no">365</span><span id="line-365">                return;</span>
-<span class="source-line-no">366</span><span id="line-366">            }</span>
-<span class="source-line-no">367</span><span id="line-367"></span>
-<span class="source-line-no">368</span><span id="line-368">            // File has existed (prevModified != null)</span>
-<span class="source-line-no">369</span><span id="line-369">            if (watched.lastModified == null) {</span>
-<span class="source-line-no">370</span><span id="line-370">                // ... but is now deleted</span>
-<span class="source-line-no">371</span><span id="line-371">                if (watched.linksTo != null) {</span>
-<span class="source-line-no">372</span><span id="line-372">                    watched.linksTo.remove();</span>
-<span class="source-line-no">373</span><span id="line-373">                }</span>
-<span class="source-line-no">374</span><span id="line-374">                fire(new FileChanged(watched.path, FileChanged.Kind.DELETED),</span>
-<span class="source-line-no">375</span><span id="line-375">                    channel);</span>
-<span class="source-line-no">376</span><span id="line-376">                return;</span>
-<span class="source-line-no">377</span><span id="line-377">            }</span>
-<span class="source-line-no">378</span><span id="line-378"></span>
-<span class="source-line-no">379</span><span id="line-379">            // Check if modified</span>
-<span class="source-line-no">380</span><span id="line-380">            if (!prevModified.equals(watched.lastModified)) {</span>
-<span class="source-line-no">381</span><span id="line-381">                fire(new FileChanged(watched.path, FileChanged.Kind.MODIFIED),</span>
+<span class="source-line-no">354</span><span id="line-354">            // Check if channel is still valid</span>
+<span class="source-line-no">355</span><span id="line-355">            Channel channel = watched.notifyOn.get();</span>
+<span class="source-line-no">356</span><span id="line-356">            if (channel == null) {</span>
+<span class="source-line-no">357</span><span id="line-357">                watched.remove();</span>
+<span class="source-line-no">358</span><span id="line-358">                return;</span>
+<span class="source-line-no">359</span><span id="line-359">            }</span>
+<span class="source-line-no">360</span><span id="line-360"></span>
+<span class="source-line-no">361</span><span id="line-361">            // Evaluate change from the perspective of "watched"</span>
+<span class="source-line-no">362</span><span id="line-362">            Instant prevModified = watched.lastModified;</span>
+<span class="source-line-no">363</span><span id="line-363">            watched.updateLastModified();</span>
+<span class="source-line-no">364</span><span id="line-364">            if (prevModified == null) {</span>
+<span class="source-line-no">365</span><span id="line-365">                // Check if created</span>
+<span class="source-line-no">366</span><span id="line-366">                if (watched.lastModified != null) {</span>
+<span class="source-line-no">367</span><span id="line-367">                    // Yes, created.</span>
+<span class="source-line-no">368</span><span id="line-368">                    fire(new FileChanged(watched.path,</span>
+<span class="source-line-no">369</span><span id="line-369">                        FileChanged.Kind.CREATED), channel);</span>
+<span class="source-line-no">370</span><span id="line-370">                    checkLink(watched, channel);</span>
+<span class="source-line-no">371</span><span id="line-371">                }</span>
+<span class="source-line-no">372</span><span id="line-372">                return;</span>
+<span class="source-line-no">373</span><span id="line-373">            }</span>
+<span class="source-line-no">374</span><span id="line-374"></span>
+<span class="source-line-no">375</span><span id="line-375">            // File has existed (prevModified != null)</span>
+<span class="source-line-no">376</span><span id="line-376">            if (watched.lastModified == null) {</span>
+<span class="source-line-no">377</span><span id="line-377">                // ... but is now deleted</span>
+<span class="source-line-no">378</span><span id="line-378">                if (watched.linksTo != null) {</span>
+<span class="source-line-no">379</span><span id="line-379">                    watched.linksTo.remove();</span>
+<span class="source-line-no">380</span><span id="line-380">                }</span>
+<span class="source-line-no">381</span><span id="line-381">                fire(new FileChanged(watched.path, FileChanged.Kind.DELETED),</span>
 <span class="source-line-no">382</span><span id="line-382">                    channel);</span>
-<span class="source-line-no">383</span><span id="line-383">                checkLink(watched, channel);</span>
+<span class="source-line-no">383</span><span id="line-383">                return;</span>
 <span class="source-line-no">384</span><span id="line-384">            }</span>
-<span class="source-line-no">385</span><span id="line-385">        }</span>
-<span class="source-line-no">386</span><span id="line-386"></span>
-<span class="source-line-no">387</span><span id="line-387">        private void checkLink(Subscription watched, Channel channel) {</span>
-<span class="source-line-no">388</span><span id="line-388">            try {</span>
-<span class="source-line-no">389</span><span id="line-389">                Path curTarget = watched.path.toRealPath();</span>
-<span class="source-line-no">390</span><span id="line-390">                if (!curTarget.equals(watched.path)) {</span>
-<span class="source-line-no">391</span><span id="line-391">                    // watched is symbolic link</span>
-<span class="source-line-no">392</span><span id="line-392">                    if (watched.linksTo == null) {</span>
-<span class="source-line-no">393</span><span id="line-393">                        addSubscription(curTarget, channel).linkedFrom(watched);</span>
-<span class="source-line-no">394</span><span id="line-394">                        return;</span>
-<span class="source-line-no">395</span><span id="line-395">                    }</span>
-<span class="source-line-no">396</span><span id="line-396">                    if (!watched.linksTo.path.equals(curTarget)) {</span>
-<span class="source-line-no">397</span><span id="line-397">                        // Link target has changed</span>
-<span class="source-line-no">398</span><span id="line-398">                        watched.linksTo.remove();</span>
-<span class="source-line-no">399</span><span id="line-399">                        addSubscription(curTarget, channel).linkedFrom(watched);</span>
-<span class="source-line-no">400</span><span id="line-400">                    }</span>
-<span class="source-line-no">401</span><span id="line-401"></span>
-<span class="source-line-no">402</span><span id="line-402">                }</span>
-<span class="source-line-no">403</span><span id="line-403">            } catch (IOException e) { // NOPMD</span>
-<span class="source-line-no">404</span><span id="line-404">                // Race condition, target deleted?</span>
-<span class="source-line-no">405</span><span id="line-405">            }</span>
-<span class="source-line-no">406</span><span id="line-406">        }</span>
-<span class="source-line-no">407</span><span id="line-407">    }</span>
-<span class="source-line-no">408</span><span id="line-408">}</span>
+<span class="source-line-no">385</span><span id="line-385"></span>
+<span class="source-line-no">386</span><span id="line-386">            // Check if modified</span>
+<span class="source-line-no">387</span><span id="line-387">            if (!prevModified.equals(watched.lastModified)) {</span>
+<span class="source-line-no">388</span><span id="line-388">                fire(new FileChanged(watched.path, FileChanged.Kind.MODIFIED),</span>
+<span class="source-line-no">389</span><span id="line-389">                    channel);</span>
+<span class="source-line-no">390</span><span id="line-390">                checkLink(watched, channel);</span>
+<span class="source-line-no">391</span><span id="line-391">            }</span>
+<span class="source-line-no">392</span><span id="line-392">        }</span>
+<span class="source-line-no">393</span><span id="line-393"></span>
+<span class="source-line-no">394</span><span id="line-394">        private void checkLink(Subscription watched, Channel channel) {</span>
+<span class="source-line-no">395</span><span id="line-395">            try {</span>
+<span class="source-line-no">396</span><span id="line-396">                Path curTarget = watched.path.toRealPath();</span>
+<span class="source-line-no">397</span><span id="line-397">                if (!curTarget.equals(watched.path)) {</span>
+<span class="source-line-no">398</span><span id="line-398">                    // watched is symbolic link</span>
+<span class="source-line-no">399</span><span id="line-399">                    if (watched.linksTo == null) {</span>
+<span class="source-line-no">400</span><span id="line-400">                        addSubscription(curTarget, channel).linkedFrom(watched);</span>
+<span class="source-line-no">401</span><span id="line-401">                        return;</span>
+<span class="source-line-no">402</span><span id="line-402">                    }</span>
+<span class="source-line-no">403</span><span id="line-403">                    if (!watched.linksTo.path.equals(curTarget)) {</span>
+<span class="source-line-no">404</span><span id="line-404">                        // Link target has changed</span>
+<span class="source-line-no">405</span><span id="line-405">                        watched.linksTo.remove();</span>
+<span class="source-line-no">406</span><span id="line-406">                        addSubscription(curTarget, channel).linkedFrom(watched);</span>
+<span class="source-line-no">407</span><span id="line-407">                    }</span>
+<span class="source-line-no">408</span><span id="line-408"></span>
+<span class="source-line-no">409</span><span id="line-409">                }</span>
+<span class="source-line-no">410</span><span id="line-410">            } catch (IOException e) { // NOPMD</span>
+<span class="source-line-no">411</span><span id="line-411">                // Race condition, target deleted?</span>
+<span class="source-line-no">412</span><span id="line-412">            }</span>
+<span class="source-line-no">413</span><span id="line-413">        }</span>
+<span class="source-line-no">414</span><span id="line-414">    }</span>
+<span class="source-line-no">415</span><span id="line-415">}</span>
 
 
 
