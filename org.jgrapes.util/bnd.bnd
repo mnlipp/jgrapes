@@ -9,16 +9,15 @@ Export-Package: \
 	org.jgrapes.util;version="${api_version}",\
 	org.jgrapes.util.events;version="${api_version}"
 
--privatepackage: \
-    com.electronwill.nightconfig.core,\
-    com.electronwill.nightconfig.core.conversion,\
-    com.electronwill.nightconfig.core.file,\
-    com.electronwill.nightconfig.core.io,\
-    com.electronwill.nightconfig.core.utils,\
-    com.electronwill.nightconfig.json,\
-    com.electronwill.nightconfig.toml,\
-    com.electronwill.nightconfig.yaml
-    
+# Restrict nightconfig versions. Starting with 3.7, OSGi is no
+# longer supported.  
+Import-Package: com.electronwill.nightconfig.core;version="[3.6.7,3.7.0)",\
+    com.electronwill.nightconfig.core.file;version="[3.6.7,3.7.0)",\
+    com.electronwill.nightconfig.json;version="[3.6.7,3.7.0)",\
+    com.electronwill.nightconfig.toml;version="[3.6.7,3.7.0)",\
+    com.electronwill.nightconfig.yaml;version="[3.6.7,3.7.0)",\
+    *
+
 -sources: true
 
 -dsannotations: 
