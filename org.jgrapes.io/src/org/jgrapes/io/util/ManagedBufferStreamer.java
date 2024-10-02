@@ -23,6 +23,8 @@ import java.io.Reader;
 import java.nio.Buffer;
 import java.nio.charset.Charset;
 import java.util.function.Consumer;
+
+import org.jgrapes.core.Components;
 import org.jgrapes.io.events.Input;
 
 /**
@@ -42,9 +44,10 @@ public class ManagedBufferStreamer implements InputConsumer {
      * @param processor the processor
      */
     public ManagedBufferStreamer(Consumer<Reader> processor) {
-        Thread thread = Thread.ofVirtual().start(() -> {
-            processor.accept(reader);
-        });
+        Thread thread = (Components.useVirtualThreads() ? Thread.ofVirtual()
+            : Thread.ofPlatform()).start(() -> {
+                processor.accept(reader);
+            });
         ThreadCleaner.watch(this, thread);
     }
 

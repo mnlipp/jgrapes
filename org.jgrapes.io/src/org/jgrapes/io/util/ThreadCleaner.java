@@ -23,6 +23,8 @@ import java.lang.ref.WeakReference;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.jgrapes.core.Components;
+
 /**
  * Cleans up threads if some object has been garbage collected.
  * 
@@ -71,18 +73,19 @@ public final class ThreadCleaner {
     }
 
     static {
-        Thread.ofVirtual().name("ThreadCleaner").start(() -> {
-            while (true) {
-                try {
-                    ThreadCleaner.RefWithThread ref
-                        = (ThreadCleaner.RefWithThread) abandoned.remove();
-                    ref.watched.interrupt();
-                    watched.remove(ref);
-                } catch (InterruptedException e) { // NOPMD
-                    // Nothing to do
+        (Components.useVirtualThreads() ? Thread.ofVirtual()
+            : Thread.ofPlatform()).name("ThreadCleaner").start(() -> {
+                while (true) {
+                    try {
+                        ThreadCleaner.RefWithThread ref
+                            = (ThreadCleaner.RefWithThread) abandoned.remove();
+                        ref.watched.interrupt();
+                        watched.remove(ref);
+                    } catch (InterruptedException e) { // NOPMD
+                        // Nothing to do
+                    }
                 }
-            }
-        });
+            });
     }
 
     /**

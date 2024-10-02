@@ -417,7 +417,8 @@ public class SocketServer extends SocketConnectionManager
                 return;
             }
             registration = event.event().get();
-            purger = Thread.ofVirtual().start(new Purger());
+            purger = (Components.useVirtualThreads() ? Thread.ofVirtual()
+                : Thread.ofPlatform()).start(new Purger());
             fire(new Ready(serverSocketChannel.getLocalAddress()));
             return;
         }

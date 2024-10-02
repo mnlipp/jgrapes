@@ -24,6 +24,8 @@ import java.lang.ref.WeakReference;
 import java.util.Arrays;
 import java.util.Optional;
 
+import org.jgrapes.core.Components;
+
 /**
  * Stores a password in such a way that it can be cleared. Automatically 
  * clears the storage if an object of this type becomes weakly reachable.
@@ -50,19 +52,20 @@ public class Password {
     public Password(char[] password) {
         synchronized (Password.class) {
             if (purger == null) {
-                purger = Thread.ofVirtual().name("PasswordPurger").start(() -> {
-                    while (true) {
-                        try {
-                            Reference<? extends Password> passwordRef
-                                = toBeCleared.remove();
-                            Optional.ofNullable(passwordRef.get())
-                                .ifPresent(Password::clear);
-                            passwordRef.clear();
-                        } catch (InterruptedException e) {
-                            break;
+                purger = (Components.useVirtualThreads() ? Thread.ofVirtual()
+                    : Thread.ofPlatform()).name("PasswordPurger").start(() -> {
+                        while (true) {
+                            try {
+                                Reference<? extends Password> passwordRef
+                                    = toBeCleared.remove();
+                                Optional.ofNullable(passwordRef.get())
+                                    .ifPresent(Password::clear);
+                                passwordRef.clear();
+                            } catch (InterruptedException e) {
+                                break;
+                            }
                         }
-                    }
-                });
+                    });
             }
         }
         this.password = password;

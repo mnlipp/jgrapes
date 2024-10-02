@@ -41,6 +41,7 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
+import org.jgrapes.core.Components;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.Manager;
 import org.jgrapes.core.annotation.Handler;
@@ -195,25 +196,26 @@ public class FileSystemWatcher extends Component {
                 .stream(fileSystem.getRootDirectories().spliterator(), false)
                 .map(Path::toString)
                 .collect(Collectors.joining(File.pathSeparator));
-            Thread.ofVirtual().name(roots + " watcher")
-                .start(() -> {
-                    while (true) {
-                        try {
-                            WatchKey key = watchService.take();
-                            // Events have to be consumed
-                            key.pollEvents();
-                            if (!(key.watchable() instanceof Path)) {
+            (Components.useVirtualThreads() ? Thread.ofVirtual()
+                : Thread.ofPlatform()).name(roots + " watcher")
+                    .start(() -> {
+                        while (true) {
+                            try {
+                                WatchKey key = watchService.take();
+                                // Events have to be consumed
+                                key.pollEvents();
+                                if (!(key.watchable() instanceof Path)) {
+                                    key.reset();
+                                    continue;
+                                }
+                                handleWatchEvent((Path) key.watchable());
                                 key.reset();
-                                continue;
+                            } catch (InterruptedException e) {
+                                logger.log(Level.WARNING, e,
+                                    () -> "No WatchKey: " + e.getMessage());
                             }
-                            handleWatchEvent((Path) key.watchable());
-                            key.reset();
-                        } catch (InterruptedException e) {
-                            logger.log(Level.WARNING, e,
-                                () -> "No WatchKey: " + e.getMessage());
                         }
-                    }
-                });
+                    });
         }
     }
 
