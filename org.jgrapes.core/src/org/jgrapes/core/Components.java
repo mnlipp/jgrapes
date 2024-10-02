@@ -34,6 +34,7 @@ import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import org.jgrapes.core.annotation.ComponentManager;
@@ -53,10 +54,36 @@ import org.jgrapes.core.internal.GeneratorRegistry;
 public class Components {
 
     private static ExecutorService defaultExecutorService
-        = Executors.newVirtualThreadPerTaskExecutor();
+        = useVirtualThreads() ? Executors.newVirtualThreadPerTaskExecutor()
+            : Executors.newCachedThreadPool(
+                new ThreadFactory() {
+                    @SuppressWarnings({ "PMD.CommentRequired",
+                        "PMD.MissingOverride" })
+                    public Thread newThread(Runnable runnable) {
+                        Thread thread
+                            = Executors.defaultThreadFactory()
+                                .newThread(runnable);
+                        thread.setDaemon(true);
+                        return thread;
+                    }
+                });
 
     private static ExecutorService timerExecutorService
         = defaultExecutorService;
+
+    /**
+     * JGrapes uses virtual thread by default. However, as of
+     * 2024, some debuggers still have problems with virtual
+     * threads. Therefore it is possible to switch back to
+     * platform threads by starting the JVM with property
+     * `-Djgrapes.useVirtualThreads=false`.
+     *
+     * @return true, if successful
+     */
+    public static boolean useVirtualThreads() {
+        return Boolean.parseBoolean(
+            System.getProperty("jgrapes.useVirtualThreads", "true"));
+    }
 
     private Components() {
     }
@@ -452,7 +479,8 @@ public class Components {
          */
         @SuppressWarnings("PMD.ConstructorCallsOverridableMethod")
         public Scheduler() {
-            ofVirtual().name("Components.Scheduler").start(this);
+            (useVirtualThreads() ? ofVirtual() : ofPlatform())
+                .name("Components.Scheduler").start(this);
         }
 
         /**
