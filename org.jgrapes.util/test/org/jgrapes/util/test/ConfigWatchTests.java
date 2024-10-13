@@ -24,7 +24,6 @@ import java.io.UnsupportedEncodingException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.prefs.BackingStoreException;
-import org.jdrupes.json.JsonDecodeException;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
@@ -50,7 +49,7 @@ public class ConfigWatchTests {
     @Test
     public void testChange() throws InterruptedException,
             UnsupportedEncodingException, FileNotFoundException, IOException,
-            JsonDecodeException, BackingStoreException {
+            BackingStoreException {
 
         // Create app and initial file
         Tracker app = new Tracker();

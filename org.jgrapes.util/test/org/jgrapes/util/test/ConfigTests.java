@@ -18,6 +18,8 @@
 
 package org.jgrapes.util.test;
 
+import jakarta.json.bind.Jsonb;
+import jakarta.json.bind.JsonbBuilder;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -35,8 +37,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
-import org.jdrupes.json.JsonBeanDecoder;
-import org.jdrupes.json.JsonDecodeException;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.Event;
@@ -113,7 +113,7 @@ public class ConfigTests {
     @ValueSource(strings = { "prefs", "json", "toml", "yaml" })
     public void testMisc(String format) throws InterruptedException,
             UnsupportedEncodingException, FileNotFoundException, IOException,
-            JsonDecodeException, BackingStoreException {
+            BackingStoreException {
 
         // Create app and initial file
         App app = new App();
@@ -313,12 +313,13 @@ public class ConfigTests {
     }
 
     @SuppressWarnings("unchecked")
-    private void jsonFindUpdated(File file) throws JsonDecodeException,
-            IOException, UnsupportedEncodingException, FileNotFoundException {
+    private void jsonFindUpdated(File file) throws IOException,
+            UnsupportedEncodingException, FileNotFoundException {
         Map<String, Object> root;
         try (Reader input
             = new InputStreamReader(new FileInputStream(file), "utf-8")) {
-            root = JsonBeanDecoder.create(input).readObject(HashMap.class);
+            Jsonb jsonb = JsonbBuilder.create();
+            root = jsonb.fromJson(input, HashMap.class);
         }
 
         // File must have been updated
@@ -346,12 +347,13 @@ public class ConfigTests {
     }
 
     @SuppressWarnings("unchecked")
-    private void jsonCheckRemove(File file) throws JsonDecodeException,
-            IOException, UnsupportedEncodingException, FileNotFoundException {
+    private void jsonCheckRemove(File file) throws IOException,
+            UnsupportedEncodingException, FileNotFoundException {
         Map<String, Object> root;
         try (Reader input
             = new InputStreamReader(new FileInputStream(file), "utf-8")) {
-            root = JsonBeanDecoder.create(input).readObject(HashMap.class);
+            Jsonb jsonb = JsonbBuilder.create();
+            root = jsonb.fromJson(input, HashMap.class);
         }
 
         // Sub tree must have been removed in file
@@ -381,20 +383,21 @@ public class ConfigTests {
     }
 
     @SuppressWarnings("unchecked")
-    private void jsonCheckRemoveAll(File file) throws JsonDecodeException,
-            IOException, UnsupportedEncodingException, FileNotFoundException {
+    private void jsonCheckRemoveAll(File file) throws IOException,
+            UnsupportedEncodingException, FileNotFoundException {
         Map<String, Object> root;
         try (Reader input
             = new InputStreamReader(new FileInputStream(file), "utf-8")) {
-            root = JsonBeanDecoder.create(input).readObject(HashMap.class);
+            Jsonb jsonb = JsonbBuilder.create();
+            root = jsonb.fromJson(input, HashMap.class);
         }
 
         // Data must have been removed
         assertTrue(root.isEmpty());
     }
 
-    private void checkEmpty(File file) throws JsonDecodeException,
-            IOException, UnsupportedEncodingException, FileNotFoundException {
+    private void checkEmpty(File file) throws IOException,
+            UnsupportedEncodingException, FileNotFoundException {
         boolean found = false;
         try (BufferedReader input = new BufferedReader(
             new InputStreamReader(new FileInputStream(file), "utf-8"))) {
