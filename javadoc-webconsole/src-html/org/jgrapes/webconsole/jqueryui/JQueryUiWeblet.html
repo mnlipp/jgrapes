@@ -41,312 +41,311 @@
 <span class="source-line-no">027</span><span id="line-27">import java.util.UUID;</span>
 <span class="source-line-no">028</span><span id="line-28">import java.util.function.BiFunction;</span>
 <span class="source-line-no">029</span><span id="line-29">import java.util.stream.StreamSupport;</span>
-<span class="source-line-no">030</span><span id="line-30">import org.jdrupes.json.JsonArray;</span>
-<span class="source-line-no">031</span><span id="line-31">import org.jgrapes.core.Channel;</span>
-<span class="source-line-no">032</span><span id="line-32">import org.jgrapes.core.annotation.Handler;</span>
-<span class="source-line-no">033</span><span id="line-33">import org.jgrapes.http.ResourcePattern;</span>
-<span class="source-line-no">034</span><span id="line-34">import org.jgrapes.http.ResponseCreationSupport;</span>
-<span class="source-line-no">035</span><span id="line-35">import org.jgrapes.http.Session;</span>
-<span class="source-line-no">036</span><span id="line-36">import org.jgrapes.http.events.Request;</span>
-<span class="source-line-no">037</span><span id="line-37">import org.jgrapes.http.events.Response;</span>
-<span class="source-line-no">038</span><span id="line-38">import org.jgrapes.io.IOSubchannel;</span>
-<span class="source-line-no">039</span><span id="line-39">import org.jgrapes.util.events.KeyValueStoreUpdate;</span>
-<span class="source-line-no">040</span><span id="line-40">import org.jgrapes.webconsole.base.ConsoleConnection;</span>
-<span class="source-line-no">041</span><span id="line-41">import org.jgrapes.webconsole.base.ConsoleUser;</span>
-<span class="source-line-no">042</span><span id="line-42">import org.jgrapes.webconsole.base.ResourceNotFoundException;</span>
-<span class="source-line-no">043</span><span id="line-43">import org.jgrapes.webconsole.base.WebConsole;</span>
-<span class="source-line-no">044</span><span id="line-44">import org.jgrapes.webconsole.base.WebConsoleUtils;</span>
-<span class="source-line-no">045</span><span id="line-45">import org.jgrapes.webconsole.base.events.JsonInput;</span>
-<span class="source-line-no">046</span><span id="line-46">import org.jgrapes.webconsole.base.events.SimpleConsoleCommand;</span>
-<span class="source-line-no">047</span><span id="line-47">import org.jgrapes.webconsole.base.freemarker.FreeMarkerConsoleWeblet;</span>
-<span class="source-line-no">048</span><span id="line-48">import org.jgrapes.webconsole.jqueryui.events.SetTheme;</span>
-<span class="source-line-no">049</span><span id="line-49">import org.jgrapes.webconsole.jqueryui.themes.base.Provider;</span>
-<span class="source-line-no">050</span><span id="line-50"></span>
-<span class="source-line-no">051</span><span id="line-51">/**</span>
-<span class="source-line-no">052</span><span id="line-52"> * Provides resources using {@link Request}/{@link Response}</span>
-<span class="source-line-no">053</span><span id="line-53"> * events. Some resource requests (page resource, conlet resource)</span>
-<span class="source-line-no">054</span><span id="line-54"> * are forwarded via the {@link WebConsole} component to the </span>
-<span class="source-line-no">055</span><span id="line-55"> * web console components.</span>
-<span class="source-line-no">056</span><span id="line-56"> */</span>
-<span class="source-line-no">057</span><span id="line-57">@SuppressWarnings({ "PMD.ExcessiveImports", "PMD.NcssCount",</span>
-<span class="source-line-no">058</span><span id="line-58">    "PMD.TooManyMethods", "PMD.LinguisticNaming" })</span>
-<span class="source-line-no">059</span><span id="line-59">public class JQueryUiWeblet extends FreeMarkerConsoleWeblet {</span>
-<span class="source-line-no">060</span><span id="line-60"></span>
-<span class="source-line-no">061</span><span id="line-61">    private ServiceLoader&lt;ThemeProvider&gt; themeLoader;</span>
-<span class="source-line-no">062</span><span id="line-62">    private final ThemeProvider baseTheme;</span>
-<span class="source-line-no">063</span><span id="line-63">    private BiFunction&lt;ThemeProvider, String, URL&gt; fallbackResourceSupplier</span>
-<span class="source-line-no">064</span><span id="line-64">        = (themeProvider, resource) -&gt; {</span>
-<span class="source-line-no">065</span><span id="line-65">            return null;</span>
-<span class="source-line-no">066</span><span id="line-66">        };</span>
-<span class="source-line-no">067</span><span id="line-67"></span>
-<span class="source-line-no">068</span><span id="line-68">    /**</span>
-<span class="source-line-no">069</span><span id="line-69">     * Instantiates a new jQuery UI weblet.</span>
-<span class="source-line-no">070</span><span id="line-70">     *</span>
-<span class="source-line-no">071</span><span id="line-71">     * @param webletChannel the weblet channel</span>
-<span class="source-line-no">072</span><span id="line-72">     * @param consoleChannel the web console channel</span>
-<span class="source-line-no">073</span><span id="line-73">     * @param consolePrefix the web console prefix</span>
-<span class="source-line-no">074</span><span id="line-74">     */</span>
-<span class="source-line-no">075</span><span id="line-75">    public JQueryUiWeblet(Channel webletChannel, Channel consoleChannel,</span>
-<span class="source-line-no">076</span><span id="line-76">            URI consolePrefix) {</span>
-<span class="source-line-no">077</span><span id="line-77">        super(webletChannel, consoleChannel, consolePrefix);</span>
-<span class="source-line-no">078</span><span id="line-78">        baseTheme = new Provider();</span>
-<span class="source-line-no">079</span><span id="line-79">    }</span>
-<span class="source-line-no">080</span><span id="line-80"></span>
-<span class="source-line-no">081</span><span id="line-81">    @Override</span>
-<span class="source-line-no">082</span><span id="line-82">    public String styling() {</span>
-<span class="source-line-no">083</span><span id="line-83">        return "jqueryui";</span>
-<span class="source-line-no">084</span><span id="line-84">    }</span>
-<span class="source-line-no">085</span><span id="line-85"></span>
-<span class="source-line-no">086</span><span id="line-86">    /**</span>
-<span class="source-line-no">087</span><span id="line-87">     * The service loader must be created lazily, else the OSGi</span>
-<span class="source-line-no">088</span><span id="line-88">     * service mediator doesn't work properly.</span>
-<span class="source-line-no">089</span><span id="line-89">     * </span>
-<span class="source-line-no">090</span><span id="line-90">     * @return</span>
-<span class="source-line-no">091</span><span id="line-91">     */</span>
-<span class="source-line-no">092</span><span id="line-92">    private ServiceLoader&lt;ThemeProvider&gt; themeLoader() {</span>
-<span class="source-line-no">093</span><span id="line-93">        if (themeLoader != null) {</span>
-<span class="source-line-no">094</span><span id="line-94">            return themeLoader;</span>
-<span class="source-line-no">095</span><span id="line-95">        }</span>
-<span class="source-line-no">096</span><span id="line-96">        return themeLoader = ServiceLoader.load(ThemeProvider.class);</span>
-<span class="source-line-no">097</span><span id="line-97">    }</span>
-<span class="source-line-no">098</span><span id="line-98"></span>
-<span class="source-line-no">099</span><span id="line-99">    @Override</span>
-<span class="source-line-no">100</span><span id="line-100">    protected Map&lt;String, Object&gt; createConsoleBaseModel() {</span>
-<span class="source-line-no">101</span><span id="line-101">        Map&lt;String, Object&gt; model = super.createConsoleBaseModel();</span>
-<span class="source-line-no">102</span><span id="line-102">        model.put("themeInfos",</span>
-<span class="source-line-no">103</span><span id="line-103">            StreamSupport.stream(themeLoader().spliterator(), false)</span>
-<span class="source-line-no">104</span><span id="line-104">                .map(thi -&gt; new ThemeInfo(thi.themeId(), thi.themeName()))</span>
-<span class="source-line-no">105</span><span id="line-105">                .sorted().toArray(size -&gt; new ThemeInfo[size]));</span>
-<span class="source-line-no">106</span><span id="line-106">        return model;</span>
-<span class="source-line-no">107</span><span id="line-107">    }</span>
-<span class="source-line-no">108</span><span id="line-108"></span>
-<span class="source-line-no">109</span><span id="line-109">    /**</span>
-<span class="source-line-no">110</span><span id="line-110">     * Sets a function for obtaining a fallback resource bundle for</span>
-<span class="source-line-no">111</span><span id="line-111">     * a given theme provider and locale.</span>
-<span class="source-line-no">112</span><span id="line-112">     * </span>
-<span class="source-line-no">113</span><span id="line-113">     * @param supplier the function</span>
-<span class="source-line-no">114</span><span id="line-114">     * @return the web console fo reasy chaining</span>
-<span class="source-line-no">115</span><span id="line-115">     */</span>
-<span class="source-line-no">116</span><span id="line-116">    public JQueryUiWeblet setFallbackResourceSupplier(</span>
-<span class="source-line-no">117</span><span id="line-117">            BiFunction&lt;ThemeProvider, String, URL&gt; supplier) {</span>
-<span class="source-line-no">118</span><span id="line-118">        fallbackResourceSupplier = supplier;</span>
-<span class="source-line-no">119</span><span id="line-119">        return this;</span>
-<span class="source-line-no">120</span><span id="line-120">    }</span>
-<span class="source-line-no">121</span><span id="line-121"></span>
-<span class="source-line-no">122</span><span id="line-122">    @Override</span>
-<span class="source-line-no">123</span><span id="line-123">    protected void renderConsole(Request.In.Get event, IOSubchannel channel,</span>
-<span class="source-line-no">124</span><span id="line-124">            UUID consoleConnectionId) throws IOException, InterruptedException {</span>
-<span class="source-line-no">125</span><span id="line-125">        // Reloading themes on every reload allows themes</span>
-<span class="source-line-no">126</span><span id="line-126">        // to be added dynamically. Note that we must load again</span>
-<span class="source-line-no">127</span><span id="line-127">        // (not reload) in order for this to work in an OSGi environment.</span>
-<span class="source-line-no">128</span><span id="line-128">        themeLoader = null;</span>
-<span class="source-line-no">129</span><span id="line-129">        super.renderConsole(event, channel, consoleConnectionId);</span>
-<span class="source-line-no">130</span><span id="line-130">    }</span>
-<span class="source-line-no">131</span><span id="line-131"></span>
-<span class="source-line-no">132</span><span id="line-132">    @Override</span>
-<span class="source-line-no">133</span><span id="line-133">    @SuppressWarnings("PMD.AvoidLiteralsInIfCondition")</span>
-<span class="source-line-no">134</span><span id="line-134">    protected void provideConsoleResource(Request.In.Get event,</span>
-<span class="source-line-no">135</span><span id="line-135">            String requestPath, IOSubchannel channel) {</span>
-<span class="source-line-no">136</span><span id="line-136">        String[] requestParts = ResourcePattern.split(requestPath, 1);</span>
-<span class="source-line-no">137</span><span id="line-137">        if (requestParts.length == 2 &amp;&amp; "theme".equals(requestParts[0])) {</span>
-<span class="source-line-no">138</span><span id="line-138">            sendThemeResource(event, channel, requestParts[1]);</span>
-<span class="source-line-no">139</span><span id="line-139">            return;</span>
-<span class="source-line-no">140</span><span id="line-140">        }</span>
-<span class="source-line-no">141</span><span id="line-141">        super.provideConsoleResource(event, requestPath, channel);</span>
-<span class="source-line-no">142</span><span id="line-142">    }</span>
-<span class="source-line-no">143</span><span id="line-143"></span>
-<span class="source-line-no">144</span><span id="line-144">    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")</span>
-<span class="source-line-no">145</span><span id="line-145">    private void sendThemeResource(Request.In.Get event, IOSubchannel channel,</span>
-<span class="source-line-no">146</span><span id="line-146">            String resource) {</span>
-<span class="source-line-no">147</span><span id="line-147">        // Get resource</span>
-<span class="source-line-no">148</span><span id="line-148">        ThemeProvider themeProvider</span>
-<span class="source-line-no">149</span><span id="line-149">            = Optional.ofNullable(Session.from(event).get("themeProvider"))</span>
-<span class="source-line-no">150</span><span id="line-150">                .flatMap(themeId -&gt; StreamSupport</span>
-<span class="source-line-no">151</span><span id="line-151">                    .stream(themeLoader().spliterator(), false)</span>
-<span class="source-line-no">152</span><span id="line-152">                    .filter(thi -&gt; thi.themeId().equals(themeId))</span>
-<span class="source-line-no">153</span><span id="line-153">                    .findFirst())</span>
-<span class="source-line-no">154</span><span id="line-154">                .orElse(baseTheme);</span>
-<span class="source-line-no">155</span><span id="line-155">        // Get resource</span>
-<span class="source-line-no">156</span><span id="line-156">        URL resourceUrl;</span>
-<span class="source-line-no">157</span><span id="line-157">        try {</span>
-<span class="source-line-no">158</span><span id="line-158">            resourceUrl = themeProvider.getResource(resource);</span>
-<span class="source-line-no">159</span><span id="line-159">        } catch (ResourceNotFoundException e) {</span>
-<span class="source-line-no">160</span><span id="line-160">            try {</span>
-<span class="source-line-no">161</span><span id="line-161">                resourceUrl = baseTheme.getResource(resource);</span>
-<span class="source-line-no">162</span><span id="line-162">            } catch (ResourceNotFoundException e1) {</span>
-<span class="source-line-no">163</span><span id="line-163">                resourceUrl</span>
-<span class="source-line-no">164</span><span id="line-164">                    = fallbackResourceSupplier.apply(themeProvider, resource);</span>
-<span class="source-line-no">165</span><span id="line-165">                if (resourceUrl == null) {</span>
-<span class="source-line-no">166</span><span id="line-166">                    return;</span>
-<span class="source-line-no">167</span><span id="line-167">                }</span>
-<span class="source-line-no">168</span><span id="line-168">            }</span>
-<span class="source-line-no">169</span><span id="line-169">        }</span>
-<span class="source-line-no">170</span><span id="line-170">        final URL resUrl = resourceUrl;</span>
-<span class="source-line-no">171</span><span id="line-171">        ResponseCreationSupport.sendStaticContent(event, channel,</span>
-<span class="source-line-no">172</span><span id="line-172">            path -&gt; resUrl, null);</span>
-<span class="source-line-no">173</span><span id="line-173">    }</span>
-<span class="source-line-no">174</span><span id="line-174"></span>
-<span class="source-line-no">175</span><span id="line-175">    /**</span>
-<span class="source-line-no">176</span><span id="line-176">     * Handle JSON input.</span>
-<span class="source-line-no">177</span><span id="line-177">     *</span>
-<span class="source-line-no">178</span><span id="line-178">     * @param event the event</span>
-<span class="source-line-no">179</span><span id="line-179">     * @param channel the channel</span>
-<span class="source-line-no">180</span><span id="line-180">     * @throws InterruptedException the interrupted exception</span>
-<span class="source-line-no">181</span><span id="line-181">     * @throws IOException Signals that an I/O exception has occurred.</span>
-<span class="source-line-no">182</span><span id="line-182">     */</span>
-<span class="source-line-no">183</span><span id="line-183">    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")</span>
-<span class="source-line-no">184</span><span id="line-184">    @Handler(channels = ConsoleChannel.class)</span>
-<span class="source-line-no">185</span><span id="line-185">    public void onJsonInput(JsonInput event, ConsoleConnection channel)</span>
-<span class="source-line-no">186</span><span id="line-186">            throws InterruptedException, IOException {</span>
-<span class="source-line-no">187</span><span id="line-187">        // Send events to conlets on web console's channel</span>
-<span class="source-line-no">188</span><span id="line-188">        JsonArray params = event.request().params();</span>
-<span class="source-line-no">189</span><span id="line-189">        switch (event.request().method()) { // NOPMD</span>
-<span class="source-line-no">190</span><span id="line-190">        case "setTheme": {</span>
-<span class="source-line-no">191</span><span id="line-191">            fire(new SetTheme(params.asString(0)), channel);</span>
-<span class="source-line-no">192</span><span id="line-192">            break;</span>
-<span class="source-line-no">193</span><span id="line-193">        }</span>
-<span class="source-line-no">194</span><span id="line-194">        default:</span>
-<span class="source-line-no">195</span><span id="line-195">            // Ignore unknown</span>
-<span class="source-line-no">196</span><span id="line-196">            break;</span>
-<span class="source-line-no">197</span><span id="line-197">        }</span>
-<span class="source-line-no">198</span><span id="line-198">    }</span>
-<span class="source-line-no">199</span><span id="line-199"></span>
-<span class="source-line-no">200</span><span id="line-200">    /**</span>
-<span class="source-line-no">201</span><span id="line-201">     * Handles a change of theme.</span>
-<span class="source-line-no">202</span><span id="line-202">     *</span>
-<span class="source-line-no">203</span><span id="line-203">     * @param event the event</span>
-<span class="source-line-no">204</span><span id="line-204">     * @param channel the channel</span>
-<span class="source-line-no">205</span><span id="line-205">     * @throws InterruptedException the interrupted exception</span>
-<span class="source-line-no">206</span><span id="line-206">     * @throws IOException Signals that an I/O exception has occurred.</span>
-<span class="source-line-no">207</span><span id="line-207">     */</span>
-<span class="source-line-no">208</span><span id="line-208">    @Handler(channels = ConsoleChannel.class)</span>
-<span class="source-line-no">209</span><span id="line-209">    public void onSetTheme(SetTheme event, ConsoleConnection channel)</span>
-<span class="source-line-no">210</span><span id="line-210">            throws InterruptedException, IOException {</span>
-<span class="source-line-no">211</span><span id="line-211">        ThemeProvider themeProvider = StreamSupport</span>
-<span class="source-line-no">212</span><span id="line-212">            .stream(themeLoader().spliterator(), false)</span>
-<span class="source-line-no">213</span><span id="line-213">            .filter(thi -&gt; thi.themeId().equals(event.theme())).findFirst()</span>
-<span class="source-line-no">214</span><span id="line-214">            .orElse(baseTheme);</span>
-<span class="source-line-no">215</span><span id="line-215">        channel.session().put("themeProvider", themeProvider.themeId());</span>
-<span class="source-line-no">216</span><span id="line-216">        channel.respond(new KeyValueStoreUpdate().update(</span>
-<span class="source-line-no">217</span><span id="line-217">            "/" + WebConsoleUtils.userFromSession(channel.session())</span>
-<span class="source-line-no">218</span><span id="line-218">                .map(ConsoleUser::getName).orElse("")</span>
-<span class="source-line-no">219</span><span id="line-219">                + "/themeProvider",</span>
-<span class="source-line-no">220</span><span id="line-220">            themeProvider.themeId())).get();</span>
-<span class="source-line-no">221</span><span id="line-221">        channel.respond(new SimpleConsoleCommand("reload"));</span>
-<span class="source-line-no">222</span><span id="line-222">    }</span>
-<span class="source-line-no">223</span><span id="line-223"></span>
-<span class="source-line-no">224</span><span id="line-224">    /**</span>
-<span class="source-line-no">225</span><span id="line-225">     * Holds the information about a theme.</span>
-<span class="source-line-no">226</span><span id="line-226">     */</span>
-<span class="source-line-no">227</span><span id="line-227">    public static class ThemeInfo implements Comparable&lt;ThemeInfo&gt; {</span>
-<span class="source-line-no">228</span><span id="line-228">        private final String id;</span>
-<span class="source-line-no">229</span><span id="line-229">        private final String name;</span>
-<span class="source-line-no">230</span><span id="line-230"></span>
-<span class="source-line-no">231</span><span id="line-231">        /**</span>
-<span class="source-line-no">232</span><span id="line-232">         * Instantiates a new theme info.</span>
-<span class="source-line-no">233</span><span id="line-233">         *</span>
-<span class="source-line-no">234</span><span id="line-234">         * @param id the id</span>
-<span class="source-line-no">235</span><span id="line-235">         * @param name the name</span>
-<span class="source-line-no">236</span><span id="line-236">         */</span>
-<span class="source-line-no">237</span><span id="line-237">        public ThemeInfo(String id, String name) {</span>
-<span class="source-line-no">238</span><span id="line-238">            super();</span>
-<span class="source-line-no">239</span><span id="line-239">            this.id = id;</span>
-<span class="source-line-no">240</span><span id="line-240">            this.name = name;</span>
-<span class="source-line-no">241</span><span id="line-241">        }</span>
-<span class="source-line-no">242</span><span id="line-242"></span>
-<span class="source-line-no">243</span><span id="line-243">        /**</span>
-<span class="source-line-no">244</span><span id="line-244">         * Returns the id.</span>
-<span class="source-line-no">245</span><span id="line-245">         *</span>
-<span class="source-line-no">246</span><span id="line-246">         * @return the id</span>
-<span class="source-line-no">247</span><span id="line-247">         */</span>
-<span class="source-line-no">248</span><span id="line-248">        @SuppressWarnings("PMD.ShortMethodName")</span>
-<span class="source-line-no">249</span><span id="line-249">        public String id() {</span>
-<span class="source-line-no">250</span><span id="line-250">            return id;</span>
-<span class="source-line-no">251</span><span id="line-251">        }</span>
-<span class="source-line-no">252</span><span id="line-252"></span>
-<span class="source-line-no">253</span><span id="line-253">        /**</span>
-<span class="source-line-no">254</span><span id="line-254">         * Returns the name.</span>
-<span class="source-line-no">255</span><span id="line-255">         *</span>
-<span class="source-line-no">256</span><span id="line-256">         * @return the name</span>
-<span class="source-line-no">257</span><span id="line-257">         */</span>
-<span class="source-line-no">258</span><span id="line-258">        public String name() {</span>
-<span class="source-line-no">259</span><span id="line-259">            return name;</span>
-<span class="source-line-no">260</span><span id="line-260">        }</span>
-<span class="source-line-no">261</span><span id="line-261"></span>
-<span class="source-line-no">262</span><span id="line-262">        /*</span>
-<span class="source-line-no">263</span><span id="line-263">         * (non-Javadoc)</span>
-<span class="source-line-no">264</span><span id="line-264">         * </span>
-<span class="source-line-no">265</span><span id="line-265">         * @see java.lang.Comparable#compareTo(java.lang.Object)</span>
-<span class="source-line-no">266</span><span id="line-266">         */</span>
-<span class="source-line-no">267</span><span id="line-267">        @Override</span>
-<span class="source-line-no">268</span><span id="line-268">        public int compareTo(ThemeInfo other) {</span>
-<span class="source-line-no">269</span><span id="line-269">            return name().compareToIgnoreCase(other.name());</span>
-<span class="source-line-no">270</span><span id="line-270">        }</span>
-<span class="source-line-no">271</span><span id="line-271">    }</span>
-<span class="source-line-no">272</span><span id="line-272"></span>
-<span class="source-line-no">273</span><span id="line-273">//    /**</span>
-<span class="source-line-no">274</span><span id="line-274">//     * Create a {@link URI} from a path. This is similar to calling</span>
-<span class="source-line-no">275</span><span id="line-275">//     * `new URI(null, null, path, null)` with the {@link URISyntaxException}</span>
-<span class="source-line-no">276</span><span id="line-276">//     * converted to a {@link IllegalArgumentException}.</span>
-<span class="source-line-no">277</span><span id="line-277">//     * </span>
-<span class="source-line-no">278</span><span id="line-278">//     * @param path the path</span>
-<span class="source-line-no">279</span><span id="line-279">//     * @return the uri</span>
-<span class="source-line-no">280</span><span id="line-280">//     * @throws IllegalArgumentException if the string violates </span>
-<span class="source-line-no">281</span><span id="line-281">//     * RFC 2396</span>
-<span class="source-line-no">282</span><span id="line-282">//     */</span>
-<span class="source-line-no">283</span><span id="line-283">//    public static URI uriFromPath(String path) throws IllegalArgumentException {</span>
-<span class="source-line-no">284</span><span id="line-284">//        try {</span>
-<span class="source-line-no">285</span><span id="line-285">//            return new URI(null, null, path, null);</span>
-<span class="source-line-no">286</span><span id="line-286">//        } catch (URISyntaxException e) {</span>
-<span class="source-line-no">287</span><span id="line-287">//            throw new IllegalArgumentException(e);</span>
-<span class="source-line-no">288</span><span id="line-288">//        }</span>
-<span class="source-line-no">289</span><span id="line-289">//    }</span>
-<span class="source-line-no">290</span><span id="line-290">//</span>
-<span class="source-line-no">291</span><span id="line-291">//    /**</span>
-<span class="source-line-no">292</span><span id="line-292">//     * The channel used to send {@link PageResourceRequest}s and</span>
-<span class="source-line-no">293</span><span id="line-293">//     * {@link ConletResourceRequest}s to the conlets (via the</span>
-<span class="source-line-no">294</span><span id="line-294">//     * web console).</span>
-<span class="source-line-no">295</span><span id="line-295">//     */</span>
-<span class="source-line-no">296</span><span id="line-296">//    public class ConsoleResourceChannel extends LinkedIOSubchannel {</span>
-<span class="source-line-no">297</span><span id="line-297">//</span>
-<span class="source-line-no">298</span><span id="line-298">//        /**</span>
-<span class="source-line-no">299</span><span id="line-299">//         * Instantiates a new web console resource channel.</span>
-<span class="source-line-no">300</span><span id="line-300">//         *</span>
-<span class="source-line-no">301</span><span id="line-301">//         * @param hub the hub</span>
-<span class="source-line-no">302</span><span id="line-302">//         * @param upstreamChannel the upstream channel</span>
-<span class="source-line-no">303</span><span id="line-303">//         * @param responsePipeline the response pipeline</span>
-<span class="source-line-no">304</span><span id="line-304">//         */</span>
-<span class="source-line-no">305</span><span id="line-305">//        public ConsoleResourceChannel(Manager hub,</span>
-<span class="source-line-no">306</span><span id="line-306">//                IOSubchannel upstreamChannel, EventPipeline responsePipeline) {</span>
-<span class="source-line-no">307</span><span id="line-307">//            super(hub, hub.channel(), upstreamChannel, responsePipeline);</span>
-<span class="source-line-no">308</span><span id="line-308">//        }</span>
-<span class="source-line-no">309</span><span id="line-309">//    }</span>
-<span class="source-line-no">310</span><span id="line-310">//</span>
-<span class="source-line-no">311</span><span id="line-311">//    /**</span>
-<span class="source-line-no">312</span><span id="line-312">//     * The implementation of {@link RenderSupport} used by this class.</span>
-<span class="source-line-no">313</span><span id="line-313">//     */</span>
-<span class="source-line-no">314</span><span id="line-314">//    private class RenderSupportImpl implements RenderSupport {</span>
-<span class="source-line-no">315</span><span id="line-315">//</span>
-<span class="source-line-no">316</span><span id="line-316">//        @Override</span>
-<span class="source-line-no">317</span><span id="line-317">//        public URI conletResource(String conletType, URI uri) {</span>
-<span class="source-line-no">318</span><span id="line-318">//            return console.prefix().resolve(uriFromPath(</span>
-<span class="source-line-no">319</span><span id="line-319">//                "conlet-resource/" + conletType + "/")).resolve(uri);</span>
-<span class="source-line-no">320</span><span id="line-320">//        }</span>
-<span class="source-line-no">321</span><span id="line-321">//</span>
-<span class="source-line-no">322</span><span id="line-322">//        @Override</span>
-<span class="source-line-no">323</span><span id="line-323">//        public URI pageResource(URI uri) {</span>
-<span class="source-line-no">324</span><span id="line-324">//            return console.prefix().resolve(uriFromPath(</span>
-<span class="source-line-no">325</span><span id="line-325">//                "page-resource/")).resolve(uri);</span>
-<span class="source-line-no">326</span><span id="line-326">//        }</span>
-<span class="source-line-no">327</span><span id="line-327">//</span>
-<span class="source-line-no">328</span><span id="line-328">//        @Override</span>
-<span class="source-line-no">329</span><span id="line-329">//        public boolean useMinifiedResources() {</span>
-<span class="source-line-no">330</span><span id="line-330">//            return useMinifiedResources;</span>
-<span class="source-line-no">331</span><span id="line-331">//        }</span>
-<span class="source-line-no">332</span><span id="line-332">//</span>
-<span class="source-line-no">333</span><span id="line-333">//    }</span>
-<span class="source-line-no">334</span><span id="line-334">//</span>
-<span class="source-line-no">335</span><span id="line-335">}</span>
+<span class="source-line-no">030</span><span id="line-30">import org.jgrapes.core.Channel;</span>
+<span class="source-line-no">031</span><span id="line-31">import org.jgrapes.core.annotation.Handler;</span>
+<span class="source-line-no">032</span><span id="line-32">import org.jgrapes.http.ResourcePattern;</span>
+<span class="source-line-no">033</span><span id="line-33">import org.jgrapes.http.ResponseCreationSupport;</span>
+<span class="source-line-no">034</span><span id="line-34">import org.jgrapes.http.Session;</span>
+<span class="source-line-no">035</span><span id="line-35">import org.jgrapes.http.events.Request;</span>
+<span class="source-line-no">036</span><span id="line-36">import org.jgrapes.http.events.Response;</span>
+<span class="source-line-no">037</span><span id="line-37">import org.jgrapes.io.IOSubchannel;</span>
+<span class="source-line-no">038</span><span id="line-38">import org.jgrapes.util.events.KeyValueStoreUpdate;</span>
+<span class="source-line-no">039</span><span id="line-39">import org.jgrapes.webconsole.base.ConsoleConnection;</span>
+<span class="source-line-no">040</span><span id="line-40">import org.jgrapes.webconsole.base.ConsoleUser;</span>
+<span class="source-line-no">041</span><span id="line-41">import org.jgrapes.webconsole.base.ResourceNotFoundException;</span>
+<span class="source-line-no">042</span><span id="line-42">import org.jgrapes.webconsole.base.WebConsole;</span>
+<span class="source-line-no">043</span><span id="line-43">import org.jgrapes.webconsole.base.WebConsoleUtils;</span>
+<span class="source-line-no">044</span><span id="line-44">import org.jgrapes.webconsole.base.events.JsonInput;</span>
+<span class="source-line-no">045</span><span id="line-45">import org.jgrapes.webconsole.base.events.SimpleConsoleCommand;</span>
+<span class="source-line-no">046</span><span id="line-46">import org.jgrapes.webconsole.base.freemarker.FreeMarkerConsoleWeblet;</span>
+<span class="source-line-no">047</span><span id="line-47">import org.jgrapes.webconsole.jqueryui.events.SetTheme;</span>
+<span class="source-line-no">048</span><span id="line-48">import org.jgrapes.webconsole.jqueryui.themes.base.Provider;</span>
+<span class="source-line-no">049</span><span id="line-49"></span>
+<span class="source-line-no">050</span><span id="line-50">/**</span>
+<span class="source-line-no">051</span><span id="line-51"> * Provides resources using {@link Request}/{@link Response}</span>
+<span class="source-line-no">052</span><span id="line-52"> * events. Some resource requests (page resource, conlet resource)</span>
+<span class="source-line-no">053</span><span id="line-53"> * are forwarded via the {@link WebConsole} component to the </span>
+<span class="source-line-no">054</span><span id="line-54"> * web console components.</span>
+<span class="source-line-no">055</span><span id="line-55"> */</span>
+<span class="source-line-no">056</span><span id="line-56">@SuppressWarnings({ "PMD.ExcessiveImports", "PMD.NcssCount",</span>
+<span class="source-line-no">057</span><span id="line-57">    "PMD.TooManyMethods", "PMD.LinguisticNaming" })</span>
+<span class="source-line-no">058</span><span id="line-58">public class JQueryUiWeblet extends FreeMarkerConsoleWeblet {</span>
+<span class="source-line-no">059</span><span id="line-59"></span>
+<span class="source-line-no">060</span><span id="line-60">    private ServiceLoader&lt;ThemeProvider&gt; themeLoader;</span>
+<span class="source-line-no">061</span><span id="line-61">    private final ThemeProvider baseTheme;</span>
+<span class="source-line-no">062</span><span id="line-62">    private BiFunction&lt;ThemeProvider, String, URL&gt; fallbackResourceSupplier</span>
+<span class="source-line-no">063</span><span id="line-63">        = (themeProvider, resource) -&gt; {</span>
+<span class="source-line-no">064</span><span id="line-64">            return null;</span>
+<span class="source-line-no">065</span><span id="line-65">        };</span>
+<span class="source-line-no">066</span><span id="line-66"></span>
+<span class="source-line-no">067</span><span id="line-67">    /**</span>
+<span class="source-line-no">068</span><span id="line-68">     * Instantiates a new jQuery UI weblet.</span>
+<span class="source-line-no">069</span><span id="line-69">     *</span>
+<span class="source-line-no">070</span><span id="line-70">     * @param webletChannel the weblet channel</span>
+<span class="source-line-no">071</span><span id="line-71">     * @param consoleChannel the web console channel</span>
+<span class="source-line-no">072</span><span id="line-72">     * @param consolePrefix the web console prefix</span>
+<span class="source-line-no">073</span><span id="line-73">     */</span>
+<span class="source-line-no">074</span><span id="line-74">    public JQueryUiWeblet(Channel webletChannel, Channel consoleChannel,</span>
+<span class="source-line-no">075</span><span id="line-75">            URI consolePrefix) {</span>
+<span class="source-line-no">076</span><span id="line-76">        super(webletChannel, consoleChannel, consolePrefix);</span>
+<span class="source-line-no">077</span><span id="line-77">        baseTheme = new Provider();</span>
+<span class="source-line-no">078</span><span id="line-78">    }</span>
+<span class="source-line-no">079</span><span id="line-79"></span>
+<span class="source-line-no">080</span><span id="line-80">    @Override</span>
+<span class="source-line-no">081</span><span id="line-81">    public String styling() {</span>
+<span class="source-line-no">082</span><span id="line-82">        return "jqueryui";</span>
+<span class="source-line-no">083</span><span id="line-83">    }</span>
+<span class="source-line-no">084</span><span id="line-84"></span>
+<span class="source-line-no">085</span><span id="line-85">    /**</span>
+<span class="source-line-no">086</span><span id="line-86">     * The service loader must be created lazily, else the OSGi</span>
+<span class="source-line-no">087</span><span id="line-87">     * service mediator doesn't work properly.</span>
+<span class="source-line-no">088</span><span id="line-88">     * </span>
+<span class="source-line-no">089</span><span id="line-89">     * @return</span>
+<span class="source-line-no">090</span><span id="line-90">     */</span>
+<span class="source-line-no">091</span><span id="line-91">    private ServiceLoader&lt;ThemeProvider&gt; themeLoader() {</span>
+<span class="source-line-no">092</span><span id="line-92">        if (themeLoader != null) {</span>
+<span class="source-line-no">093</span><span id="line-93">            return themeLoader;</span>
+<span class="source-line-no">094</span><span id="line-94">        }</span>
+<span class="source-line-no">095</span><span id="line-95">        return themeLoader = ServiceLoader.load(ThemeProvider.class);</span>
+<span class="source-line-no">096</span><span id="line-96">    }</span>
+<span class="source-line-no">097</span><span id="line-97"></span>
+<span class="source-line-no">098</span><span id="line-98">    @Override</span>
+<span class="source-line-no">099</span><span id="line-99">    protected Map&lt;String, Object&gt; createConsoleBaseModel() {</span>
+<span class="source-line-no">100</span><span id="line-100">        Map&lt;String, Object&gt; model = super.createConsoleBaseModel();</span>
+<span class="source-line-no">101</span><span id="line-101">        model.put("themeInfos",</span>
+<span class="source-line-no">102</span><span id="line-102">            StreamSupport.stream(themeLoader().spliterator(), false)</span>
+<span class="source-line-no">103</span><span id="line-103">                .map(thi -&gt; new ThemeInfo(thi.themeId(), thi.themeName()))</span>
+<span class="source-line-no">104</span><span id="line-104">                .sorted().toArray(size -&gt; new ThemeInfo[size]));</span>
+<span class="source-line-no">105</span><span id="line-105">        return model;</span>
+<span class="source-line-no">106</span><span id="line-106">    }</span>
+<span class="source-line-no">107</span><span id="line-107"></span>
+<span class="source-line-no">108</span><span id="line-108">    /**</span>
+<span class="source-line-no">109</span><span id="line-109">     * Sets a function for obtaining a fallback resource bundle for</span>
+<span class="source-line-no">110</span><span id="line-110">     * a given theme provider and locale.</span>
+<span class="source-line-no">111</span><span id="line-111">     * </span>
+<span class="source-line-no">112</span><span id="line-112">     * @param supplier the function</span>
+<span class="source-line-no">113</span><span id="line-113">     * @return the web console fo reasy chaining</span>
+<span class="source-line-no">114</span><span id="line-114">     */</span>
+<span class="source-line-no">115</span><span id="line-115">    public JQueryUiWeblet setFallbackResourceSupplier(</span>
+<span class="source-line-no">116</span><span id="line-116">            BiFunction&lt;ThemeProvider, String, URL&gt; supplier) {</span>
+<span class="source-line-no">117</span><span id="line-117">        fallbackResourceSupplier = supplier;</span>
+<span class="source-line-no">118</span><span id="line-118">        return this;</span>
+<span class="source-line-no">119</span><span id="line-119">    }</span>
+<span class="source-line-no">120</span><span id="line-120"></span>
+<span class="source-line-no">121</span><span id="line-121">    @Override</span>
+<span class="source-line-no">122</span><span id="line-122">    protected void renderConsole(Request.In.Get event, IOSubchannel channel,</span>
+<span class="source-line-no">123</span><span id="line-123">            UUID consoleConnectionId) throws IOException, InterruptedException {</span>
+<span class="source-line-no">124</span><span id="line-124">        // Reloading themes on every reload allows themes</span>
+<span class="source-line-no">125</span><span id="line-125">        // to be added dynamically. Note that we must load again</span>
+<span class="source-line-no">126</span><span id="line-126">        // (not reload) in order for this to work in an OSGi environment.</span>
+<span class="source-line-no">127</span><span id="line-127">        themeLoader = null;</span>
+<span class="source-line-no">128</span><span id="line-128">        super.renderConsole(event, channel, consoleConnectionId);</span>
+<span class="source-line-no">129</span><span id="line-129">    }</span>
+<span class="source-line-no">130</span><span id="line-130"></span>
+<span class="source-line-no">131</span><span id="line-131">    @Override</span>
+<span class="source-line-no">132</span><span id="line-132">    @SuppressWarnings("PMD.AvoidLiteralsInIfCondition")</span>
+<span class="source-line-no">133</span><span id="line-133">    protected void provideConsoleResource(Request.In.Get event,</span>
+<span class="source-line-no">134</span><span id="line-134">            String requestPath, IOSubchannel channel) {</span>
+<span class="source-line-no">135</span><span id="line-135">        String[] requestParts = ResourcePattern.split(requestPath, 1);</span>
+<span class="source-line-no">136</span><span id="line-136">        if (requestParts.length == 2 &amp;&amp; "theme".equals(requestParts[0])) {</span>
+<span class="source-line-no">137</span><span id="line-137">            sendThemeResource(event, channel, requestParts[1]);</span>
+<span class="source-line-no">138</span><span id="line-138">            return;</span>
+<span class="source-line-no">139</span><span id="line-139">        }</span>
+<span class="source-line-no">140</span><span id="line-140">        super.provideConsoleResource(event, requestPath, channel);</span>
+<span class="source-line-no">141</span><span id="line-141">    }</span>
+<span class="source-line-no">142</span><span id="line-142"></span>
+<span class="source-line-no">143</span><span id="line-143">    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")</span>
+<span class="source-line-no">144</span><span id="line-144">    private void sendThemeResource(Request.In.Get event, IOSubchannel channel,</span>
+<span class="source-line-no">145</span><span id="line-145">            String resource) {</span>
+<span class="source-line-no">146</span><span id="line-146">        // Get resource</span>
+<span class="source-line-no">147</span><span id="line-147">        ThemeProvider themeProvider</span>
+<span class="source-line-no">148</span><span id="line-148">            = Optional.ofNullable(Session.from(event).get("themeProvider"))</span>
+<span class="source-line-no">149</span><span id="line-149">                .flatMap(themeId -&gt; StreamSupport</span>
+<span class="source-line-no">150</span><span id="line-150">                    .stream(themeLoader().spliterator(), false)</span>
+<span class="source-line-no">151</span><span id="line-151">                    .filter(thi -&gt; thi.themeId().equals(themeId))</span>
+<span class="source-line-no">152</span><span id="line-152">                    .findFirst())</span>
+<span class="source-line-no">153</span><span id="line-153">                .orElse(baseTheme);</span>
+<span class="source-line-no">154</span><span id="line-154">        // Get resource</span>
+<span class="source-line-no">155</span><span id="line-155">        URL resourceUrl;</span>
+<span class="source-line-no">156</span><span id="line-156">        try {</span>
+<span class="source-line-no">157</span><span id="line-157">            resourceUrl = themeProvider.getResource(resource);</span>
+<span class="source-line-no">158</span><span id="line-158">        } catch (ResourceNotFoundException e) {</span>
+<span class="source-line-no">159</span><span id="line-159">            try {</span>
+<span class="source-line-no">160</span><span id="line-160">                resourceUrl = baseTheme.getResource(resource);</span>
+<span class="source-line-no">161</span><span id="line-161">            } catch (ResourceNotFoundException e1) {</span>
+<span class="source-line-no">162</span><span id="line-162">                resourceUrl</span>
+<span class="source-line-no">163</span><span id="line-163">                    = fallbackResourceSupplier.apply(themeProvider, resource);</span>
+<span class="source-line-no">164</span><span id="line-164">                if (resourceUrl == null) {</span>
+<span class="source-line-no">165</span><span id="line-165">                    return;</span>
+<span class="source-line-no">166</span><span id="line-166">                }</span>
+<span class="source-line-no">167</span><span id="line-167">            }</span>
+<span class="source-line-no">168</span><span id="line-168">        }</span>
+<span class="source-line-no">169</span><span id="line-169">        final URL resUrl = resourceUrl;</span>
+<span class="source-line-no">170</span><span id="line-170">        ResponseCreationSupport.sendStaticContent(event, channel,</span>
+<span class="source-line-no">171</span><span id="line-171">            path -&gt; resUrl, null);</span>
+<span class="source-line-no">172</span><span id="line-172">    }</span>
+<span class="source-line-no">173</span><span id="line-173"></span>
+<span class="source-line-no">174</span><span id="line-174">    /**</span>
+<span class="source-line-no">175</span><span id="line-175">     * Handle JSON input.</span>
+<span class="source-line-no">176</span><span id="line-176">     *</span>
+<span class="source-line-no">177</span><span id="line-177">     * @param event the event</span>
+<span class="source-line-no">178</span><span id="line-178">     * @param channel the channel</span>
+<span class="source-line-no">179</span><span id="line-179">     * @throws InterruptedException the interrupted exception</span>
+<span class="source-line-no">180</span><span id="line-180">     * @throws IOException Signals that an I/O exception has occurred.</span>
+<span class="source-line-no">181</span><span id="line-181">     */</span>
+<span class="source-line-no">182</span><span id="line-182">    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")</span>
+<span class="source-line-no">183</span><span id="line-183">    @Handler(channels = ConsoleChannel.class)</span>
+<span class="source-line-no">184</span><span id="line-184">    public void onJsonInput(JsonInput event, ConsoleConnection channel)</span>
+<span class="source-line-no">185</span><span id="line-185">            throws InterruptedException, IOException {</span>
+<span class="source-line-no">186</span><span id="line-186">        // Send events to conlets on web console's channel</span>
+<span class="source-line-no">187</span><span id="line-187">        var request = event.request();</span>
+<span class="source-line-no">188</span><span id="line-188">        switch (event.request().method()) { // NOPMD</span>
+<span class="source-line-no">189</span><span id="line-189">        case "setTheme": {</span>
+<span class="source-line-no">190</span><span id="line-190">            fire(new SetTheme(request.param(0)), channel);</span>
+<span class="source-line-no">191</span><span id="line-191">            break;</span>
+<span class="source-line-no">192</span><span id="line-192">        }</span>
+<span class="source-line-no">193</span><span id="line-193">        default:</span>
+<span class="source-line-no">194</span><span id="line-194">            // Ignore unknown</span>
+<span class="source-line-no">195</span><span id="line-195">            break;</span>
+<span class="source-line-no">196</span><span id="line-196">        }</span>
+<span class="source-line-no">197</span><span id="line-197">    }</span>
+<span class="source-line-no">198</span><span id="line-198"></span>
+<span class="source-line-no">199</span><span id="line-199">    /**</span>
+<span class="source-line-no">200</span><span id="line-200">     * Handles a change of theme.</span>
+<span class="source-line-no">201</span><span id="line-201">     *</span>
+<span class="source-line-no">202</span><span id="line-202">     * @param event the event</span>
+<span class="source-line-no">203</span><span id="line-203">     * @param channel the channel</span>
+<span class="source-line-no">204</span><span id="line-204">     * @throws InterruptedException the interrupted exception</span>
+<span class="source-line-no">205</span><span id="line-205">     * @throws IOException Signals that an I/O exception has occurred.</span>
+<span class="source-line-no">206</span><span id="line-206">     */</span>
+<span class="source-line-no">207</span><span id="line-207">    @Handler(channels = ConsoleChannel.class)</span>
+<span class="source-line-no">208</span><span id="line-208">    public void onSetTheme(SetTheme event, ConsoleConnection channel)</span>
+<span class="source-line-no">209</span><span id="line-209">            throws InterruptedException, IOException {</span>
+<span class="source-line-no">210</span><span id="line-210">        ThemeProvider themeProvider = StreamSupport</span>
+<span class="source-line-no">211</span><span id="line-211">            .stream(themeLoader().spliterator(), false)</span>
+<span class="source-line-no">212</span><span id="line-212">            .filter(thi -&gt; thi.themeId().equals(event.theme())).findFirst()</span>
+<span class="source-line-no">213</span><span id="line-213">            .orElse(baseTheme);</span>
+<span class="source-line-no">214</span><span id="line-214">        channel.session().put("themeProvider", themeProvider.themeId());</span>
+<span class="source-line-no">215</span><span id="line-215">        channel.respond(new KeyValueStoreUpdate().update(</span>
+<span class="source-line-no">216</span><span id="line-216">            "/" + WebConsoleUtils.userFromSession(channel.session())</span>
+<span class="source-line-no">217</span><span id="line-217">                .map(ConsoleUser::getName).orElse("")</span>
+<span class="source-line-no">218</span><span id="line-218">                + "/themeProvider",</span>
+<span class="source-line-no">219</span><span id="line-219">            themeProvider.themeId())).get();</span>
+<span class="source-line-no">220</span><span id="line-220">        channel.respond(new SimpleConsoleCommand("reload"));</span>
+<span class="source-line-no">221</span><span id="line-221">    }</span>
+<span class="source-line-no">222</span><span id="line-222"></span>
+<span class="source-line-no">223</span><span id="line-223">    /**</span>
+<span class="source-line-no">224</span><span id="line-224">     * Holds the information about a theme.</span>
+<span class="source-line-no">225</span><span id="line-225">     */</span>
+<span class="source-line-no">226</span><span id="line-226">    public static class ThemeInfo implements Comparable&lt;ThemeInfo&gt; {</span>
+<span class="source-line-no">227</span><span id="line-227">        private final String id;</span>
+<span class="source-line-no">228</span><span id="line-228">        private final String name;</span>
+<span class="source-line-no">229</span><span id="line-229"></span>
+<span class="source-line-no">230</span><span id="line-230">        /**</span>
+<span class="source-line-no">231</span><span id="line-231">         * Instantiates a new theme info.</span>
+<span class="source-line-no">232</span><span id="line-232">         *</span>
+<span class="source-line-no">233</span><span id="line-233">         * @param id the id</span>
+<span class="source-line-no">234</span><span id="line-234">         * @param name the name</span>
+<span class="source-line-no">235</span><span id="line-235">         */</span>
+<span class="source-line-no">236</span><span id="line-236">        public ThemeInfo(String id, String name) {</span>
+<span class="source-line-no">237</span><span id="line-237">            super();</span>
+<span class="source-line-no">238</span><span id="line-238">            this.id = id;</span>
+<span class="source-line-no">239</span><span id="line-239">            this.name = name;</span>
+<span class="source-line-no">240</span><span id="line-240">        }</span>
+<span class="source-line-no">241</span><span id="line-241"></span>
+<span class="source-line-no">242</span><span id="line-242">        /**</span>
+<span class="source-line-no">243</span><span id="line-243">         * Returns the id.</span>
+<span class="source-line-no">244</span><span id="line-244">         *</span>
+<span class="source-line-no">245</span><span id="line-245">         * @return the id</span>
+<span class="source-line-no">246</span><span id="line-246">         */</span>
+<span class="source-line-no">247</span><span id="line-247">        @SuppressWarnings("PMD.ShortMethodName")</span>
+<span class="source-line-no">248</span><span id="line-248">        public String id() {</span>
+<span class="source-line-no">249</span><span id="line-249">            return id;</span>
+<span class="source-line-no">250</span><span id="line-250">        }</span>
+<span class="source-line-no">251</span><span id="line-251"></span>
+<span class="source-line-no">252</span><span id="line-252">        /**</span>
+<span class="source-line-no">253</span><span id="line-253">         * Returns the name.</span>
+<span class="source-line-no">254</span><span id="line-254">         *</span>
+<span class="source-line-no">255</span><span id="line-255">         * @return the name</span>
+<span class="source-line-no">256</span><span id="line-256">         */</span>
+<span class="source-line-no">257</span><span id="line-257">        public String name() {</span>
+<span class="source-line-no">258</span><span id="line-258">            return name;</span>
+<span class="source-line-no">259</span><span id="line-259">        }</span>
+<span class="source-line-no">260</span><span id="line-260"></span>
+<span class="source-line-no">261</span><span id="line-261">        /*</span>
+<span class="source-line-no">262</span><span id="line-262">         * (non-Javadoc)</span>
+<span class="source-line-no">263</span><span id="line-263">         * </span>
+<span class="source-line-no">264</span><span id="line-264">         * @see java.lang.Comparable#compareTo(java.lang.Object)</span>
+<span class="source-line-no">265</span><span id="line-265">         */</span>
+<span class="source-line-no">266</span><span id="line-266">        @Override</span>
+<span class="source-line-no">267</span><span id="line-267">        public int compareTo(ThemeInfo other) {</span>
+<span class="source-line-no">268</span><span id="line-268">            return name().compareToIgnoreCase(other.name());</span>
+<span class="source-line-no">269</span><span id="line-269">        }</span>
+<span class="source-line-no">270</span><span id="line-270">    }</span>
+<span class="source-line-no">271</span><span id="line-271"></span>
+<span class="source-line-no">272</span><span id="line-272">//    /**</span>
+<span class="source-line-no">273</span><span id="line-273">//     * Create a {@link URI} from a path. This is similar to calling</span>
+<span class="source-line-no">274</span><span id="line-274">//     * `new URI(null, null, path, null)` with the {@link URISyntaxException}</span>
+<span class="source-line-no">275</span><span id="line-275">//     * converted to a {@link IllegalArgumentException}.</span>
+<span class="source-line-no">276</span><span id="line-276">//     * </span>
+<span class="source-line-no">277</span><span id="line-277">//     * @param path the path</span>
+<span class="source-line-no">278</span><span id="line-278">//     * @return the uri</span>
+<span class="source-line-no">279</span><span id="line-279">//     * @throws IllegalArgumentException if the string violates </span>
+<span class="source-line-no">280</span><span id="line-280">//     * RFC 2396</span>
+<span class="source-line-no">281</span><span id="line-281">//     */</span>
+<span class="source-line-no">282</span><span id="line-282">//    public static URI uriFromPath(String path) throws IllegalArgumentException {</span>
+<span class="source-line-no">283</span><span id="line-283">//        try {</span>
+<span class="source-line-no">284</span><span id="line-284">//            return new URI(null, null, path, null);</span>
+<span class="source-line-no">285</span><span id="line-285">//        } catch (URISyntaxException e) {</span>
+<span class="source-line-no">286</span><span id="line-286">//            throw new IllegalArgumentException(e);</span>
+<span class="source-line-no">287</span><span id="line-287">//        }</span>
+<span class="source-line-no">288</span><span id="line-288">//    }</span>
+<span class="source-line-no">289</span><span id="line-289">//</span>
+<span class="source-line-no">290</span><span id="line-290">//    /**</span>
+<span class="source-line-no">291</span><span id="line-291">//     * The channel used to send {@link PageResourceRequest}s and</span>
+<span class="source-line-no">292</span><span id="line-292">//     * {@link ConletResourceRequest}s to the conlets (via the</span>
+<span class="source-line-no">293</span><span id="line-293">//     * web console).</span>
+<span class="source-line-no">294</span><span id="line-294">//     */</span>
+<span class="source-line-no">295</span><span id="line-295">//    public class ConsoleResourceChannel extends LinkedIOSubchannel {</span>
+<span class="source-line-no">296</span><span id="line-296">//</span>
+<span class="source-line-no">297</span><span id="line-297">//        /**</span>
+<span class="source-line-no">298</span><span id="line-298">//         * Instantiates a new web console resource channel.</span>
+<span class="source-line-no">299</span><span id="line-299">//         *</span>
+<span class="source-line-no">300</span><span id="line-300">//         * @param hub the hub</span>
+<span class="source-line-no">301</span><span id="line-301">//         * @param upstreamChannel the upstream channel</span>
+<span class="source-line-no">302</span><span id="line-302">//         * @param responsePipeline the response pipeline</span>
+<span class="source-line-no">303</span><span id="line-303">//         */</span>
+<span class="source-line-no">304</span><span id="line-304">//        public ConsoleResourceChannel(Manager hub,</span>
+<span class="source-line-no">305</span><span id="line-305">//                IOSubchannel upstreamChannel, EventPipeline responsePipeline) {</span>
+<span class="source-line-no">306</span><span id="line-306">//            super(hub, hub.channel(), upstreamChannel, responsePipeline);</span>
+<span class="source-line-no">307</span><span id="line-307">//        }</span>
+<span class="source-line-no">308</span><span id="line-308">//    }</span>
+<span class="source-line-no">309</span><span id="line-309">//</span>
+<span class="source-line-no">310</span><span id="line-310">//    /**</span>
+<span class="source-line-no">311</span><span id="line-311">//     * The implementation of {@link RenderSupport} used by this class.</span>
+<span class="source-line-no">312</span><span id="line-312">//     */</span>
+<span class="source-line-no">313</span><span id="line-313">//    private class RenderSupportImpl implements RenderSupport {</span>
+<span class="source-line-no">314</span><span id="line-314">//</span>
+<span class="source-line-no">315</span><span id="line-315">//        @Override</span>
+<span class="source-line-no">316</span><span id="line-316">//        public URI conletResource(String conletType, URI uri) {</span>
+<span class="source-line-no">317</span><span id="line-317">//            return console.prefix().resolve(uriFromPath(</span>
+<span class="source-line-no">318</span><span id="line-318">//                "conlet-resource/" + conletType + "/")).resolve(uri);</span>
+<span class="source-line-no">319</span><span id="line-319">//        }</span>
+<span class="source-line-no">320</span><span id="line-320">//</span>
+<span class="source-line-no">321</span><span id="line-321">//        @Override</span>
+<span class="source-line-no">322</span><span id="line-322">//        public URI pageResource(URI uri) {</span>
+<span class="source-line-no">323</span><span id="line-323">//            return console.prefix().resolve(uriFromPath(</span>
+<span class="source-line-no">324</span><span id="line-324">//                "page-resource/")).resolve(uri);</span>
+<span class="source-line-no">325</span><span id="line-325">//        }</span>
+<span class="source-line-no">326</span><span id="line-326">//</span>
+<span class="source-line-no">327</span><span id="line-327">//        @Override</span>
+<span class="source-line-no">328</span><span id="line-328">//        public boolean useMinifiedResources() {</span>
+<span class="source-line-no">329</span><span id="line-329">//            return useMinifiedResources;</span>
+<span class="source-line-no">330</span><span id="line-330">//        }</span>
+<span class="source-line-no">331</span><span id="line-331">//</span>
+<span class="source-line-no">332</span><span id="line-332">//    }</span>
+<span class="source-line-no">333</span><span id="line-333">//</span>
+<span class="source-line-no">334</span><span id="line-334">}</span>
 
 
 

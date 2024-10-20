@@ -164,24 +164,24 @@
 <span class="source-line-no">150</span><span id="line-150">            throws Exception {</span>
 <span class="source-line-no">151</span><span id="line-151">        event.stop();</span>
 <span class="source-line-no">152</span><span id="line-152">        if ("sendMBean".equals(event.method())) {</span>
-<span class="source-line-no">153</span><span id="line-153">            JsonArray segments = (JsonArray) event.params().get(0);</span>
-<span class="source-line-no">154</span><span id="line-154">            String domain = segments.asString(0);</span>
-<span class="source-line-no">155</span><span id="line-155">            @SuppressWarnings("PMD.ReplaceHashtableWithMap")</span>
-<span class="source-line-no">156</span><span id="line-156">            Hashtable&lt;String, String&gt; props = new Hashtable&lt;&gt;();</span>
-<span class="source-line-no">157</span><span id="line-157">            for (int i = 1; i &lt; segments.size(); i++) {</span>
-<span class="source-line-no">158</span><span id="line-158">                String[] keyProp = segments.asString(i).split("=", 2);</span>
-<span class="source-line-no">159</span><span id="line-159">                props.put(keyProp[0], keyProp[1]);</span>
-<span class="source-line-no">160</span><span id="line-160">            }</span>
-<span class="source-line-no">161</span><span id="line-161">            Set&lt;ObjectName&gt; mbeanNames</span>
-<span class="source-line-no">162</span><span id="line-162">                = mbeanServer.queryNames(new ObjectName(domain, props), null);</span>
-<span class="source-line-no">163</span><span id="line-163">            if (mbeanNames.isEmpty()) {</span>
-<span class="source-line-no">164</span><span id="line-164">                return;</span>
-<span class="source-line-no">165</span><span id="line-165">            }</span>
-<span class="source-line-no">166</span><span id="line-166">            ObjectName mbeanName = mbeanNames.iterator().next();</span>
-<span class="source-line-no">167</span><span id="line-167">            MBeanInfo info = mbeanServer.getMBeanInfo(mbeanName);</span>
-<span class="source-line-no">168</span><span id="line-168">            channel.respond(new NotifyConletView(type(),</span>
-<span class="source-line-no">169</span><span id="line-169">                event.conletId(), "mbeanDetails",</span>
-<span class="source-line-no">170</span><span id="line-170">                new Object[] { genAttributesInfo(mbeanName, info), null }));</span>
+<span class="source-line-no">153</span><span id="line-153">//            JsonArray segments = (JsonArray) event.params().get(0);</span>
+<span class="source-line-no">154</span><span id="line-154">//            String domain = segments.asString(0);</span>
+<span class="source-line-no">155</span><span id="line-155">//            @SuppressWarnings("PMD.ReplaceHashtableWithMap")</span>
+<span class="source-line-no">156</span><span id="line-156">//            Hashtable&lt;String, String&gt; props = new Hashtable&lt;&gt;();</span>
+<span class="source-line-no">157</span><span id="line-157">//            for (int i = 1; i &lt; segments.size(); i++) {</span>
+<span class="source-line-no">158</span><span id="line-158">//                String[] keyProp = segments.asString(i).split("=", 2);</span>
+<span class="source-line-no">159</span><span id="line-159">//                props.put(keyProp[0], keyProp[1]);</span>
+<span class="source-line-no">160</span><span id="line-160">//            }</span>
+<span class="source-line-no">161</span><span id="line-161">//            Set&lt;ObjectName&gt; mbeanNames</span>
+<span class="source-line-no">162</span><span id="line-162">//                = mbeanServer.queryNames(new ObjectName(domain, props), null);</span>
+<span class="source-line-no">163</span><span id="line-163">//            if (mbeanNames.isEmpty()) {</span>
+<span class="source-line-no">164</span><span id="line-164">//                return;</span>
+<span class="source-line-no">165</span><span id="line-165">//            }</span>
+<span class="source-line-no">166</span><span id="line-166">//            ObjectName mbeanName = mbeanNames.iterator().next();</span>
+<span class="source-line-no">167</span><span id="line-167">//            MBeanInfo info = mbeanServer.getMBeanInfo(mbeanName);</span>
+<span class="source-line-no">168</span><span id="line-168">//            channel.respond(new NotifyConletView(type(),</span>
+<span class="source-line-no">169</span><span id="line-169">//                event.conletId(), "mbeanDetails",</span>
+<span class="source-line-no">170</span><span id="line-170">//                new Object[] { genAttributesInfo(mbeanName, info), null }));</span>
 <span class="source-line-no">171</span><span id="line-171">        }</span>
 <span class="source-line-no">172</span><span id="line-172">    }</span>
 <span class="source-line-no">173</span><span id="line-173"></span>

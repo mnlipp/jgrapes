@@ -260,7 +260,7 @@
 <span class="source-line-no">246</span><span id="line-246">            ConsoleConnection connection, AccountModel model) throws Exception {</span>
 <span class="source-line-no">247</span><span id="line-247">        var bundle = resourceBundle(connection.locale());</span>
 <span class="source-line-no">248</span><span id="line-248">        if ("loginData".equals(event.method())) {</span>
-<span class="source-line-no">249</span><span id="line-249">            String userName = event.params().asString(0);</span>
+<span class="source-line-no">249</span><span id="line-249">            String userName = event.param(0);</span>
 <span class="source-line-no">250</span><span id="line-250">            if (userName == null || userName.isEmpty()) {</span>
 <span class="source-line-no">251</span><span id="line-251">                connection.respond(new NotifyConletView(type(),</span>
 <span class="source-line-no">252</span><span id="line-252">                    model.getConletId(), "setMessages",</span>
@@ -268,7 +268,7 @@
 <span class="source-line-no">254</span><span id="line-254">                return;</span>
 <span class="source-line-no">255</span><span id="line-255">            }</span>
 <span class="source-line-no">256</span><span id="line-256">            var userData = users.get(userName);</span>
-<span class="source-line-no">257</span><span id="line-257">            String password = event.params().asString(1);</span>
+<span class="source-line-no">257</span><span id="line-257">            String password = event.param(1);</span>
 <span class="source-line-no">258</span><span id="line-258">            if (userData == null</span>
 <span class="source-line-no">259</span><span id="line-259">                || !BCrypt.verifyer().verify(password.getBytes(),</span>
 <span class="source-line-no">260</span><span id="line-260">                    userData.get("password").getBytes()).verified) {</span>

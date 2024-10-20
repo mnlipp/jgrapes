@@ -372,7 +372,7 @@
 <span class="source-line-no">358</span><span id="line-358">            var locales = Optional.ofNullable(</span>
 <span class="source-line-no">359</span><span id="line-359">                (Selection) connection.session().get(Selection.class))</span>
 <span class="source-line-no">360</span><span id="line-360">                .map(Selection::get).orElse(new Locale[0]);</span>
-<span class="source-line-no">361</span><span id="line-361">            fire(new StartOidcLogin(providers.get(event.params().asString(0)),</span>
+<span class="source-line-no">361</span><span id="line-361">            fire(new StartOidcLogin(providers.get((String) event.params()[0]),</span>
 <span class="source-line-no">362</span><span id="line-362">                locales).setAssociated(this,</span>
 <span class="source-line-no">363</span><span id="line-363">                    new LoginContext(connection, model)));</span>
 <span class="source-line-no">364</span><span id="line-364">            return;</span>
@@ -393,7 +393,7 @@
 <span class="source-line-no">379</span><span id="line-379">    private void attemptLocalLogin(NotifyConletModel event,</span>
 <span class="source-line-no">380</span><span id="line-380">            ConsoleConnection connection, AccountModel model) {</span>
 <span class="source-line-no">381</span><span id="line-381">        var bundle = resourceBundle(connection.locale());</span>
-<span class="source-line-no">382</span><span id="line-382">        String userName = event.params().asString(0);</span>
+<span class="source-line-no">382</span><span id="line-382">        String userName = (String) event.param(0);</span>
 <span class="source-line-no">383</span><span id="line-383">        if (userName == null || userName.isEmpty()) {</span>
 <span class="source-line-no">384</span><span id="line-384">            connection.respond(new NotifyConletView(type(),</span>
 <span class="source-line-no">385</span><span id="line-385">                model.getConletId(), "setMessages",</span>
@@ -401,7 +401,7 @@
 <span class="source-line-no">387</span><span id="line-387">            return;</span>
 <span class="source-line-no">388</span><span id="line-388">        }</span>
 <span class="source-line-no">389</span><span id="line-389">        var userData = users.get(userName);</span>
-<span class="source-line-no">390</span><span id="line-390">        String password = event.params().asString(1);</span>
+<span class="source-line-no">390</span><span id="line-390">        String password = event.param(1);</span>
 <span class="source-line-no">391</span><span id="line-391">        if (userData == null</span>
 <span class="source-line-no">392</span><span id="line-392">            || !BCrypt.verifyer().verify(password.getBytes(),</span>
 <span class="source-line-no">393</span><span id="line-393">                userData.get("password").getBytes()).verified) {</span>
