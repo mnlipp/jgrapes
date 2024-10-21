@@ -220,7 +220,7 @@
 <span class="source-line-no">206</span><span id="line-206">            @SuppressWarnings("unchecked")</span>
 <span class="source-line-no">207</span><span id="line-207">            List&lt;String&gt; tabsLayout = (List&lt;String&gt;) persisted.computeIfAbsent(</span>
 <span class="source-line-no">208</span><span id="line-208">                "tabsLayout", newKey -&gt; Collections.emptyList());</span>
-<span class="source-line-no">209</span><span id="line-209">            Object xtraInfo = (Map&lt;?, ?&gt;) persisted.computeIfAbsent(</span>
+<span class="source-line-no">209</span><span id="line-209">            Object xtraInfo = persisted.computeIfAbsent(</span>
 <span class="source-line-no">210</span><span id="line-210">                "xtraInfo", newKey -&gt; new Object());</span>
 <span class="source-line-no">211</span><span id="line-211"></span>
 <span class="source-line-no">212</span><span id="line-212">            // Update (now consistent) layout</span>
