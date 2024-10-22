@@ -184,8 +184,8 @@
 <span class="source-line-no">170</span><span id="line-170">    }</span>
 <span class="source-line-no">171</span><span id="line-171"></span>
 <span class="source-line-no">172</span><span id="line-172">    @Override</span>
-<span class="source-line-no">173</span><span id="line-173">    public void toJson(Writer writer) throws IOException {</span>
-<span class="source-line-no">174</span><span id="line-174">        toJson(writer, "addPageResources", Arrays.stream(cssUris()).map(</span>
+<span class="source-line-no">173</span><span id="line-173">    public void emitJson(Writer writer) throws IOException {</span>
+<span class="source-line-no">174</span><span id="line-174">        emitJson(writer, "addPageResources", Arrays.stream(cssUris()).map(</span>
 <span class="source-line-no">175</span><span id="line-175">            URI::toString).toArray(String[]::new),</span>
 <span class="source-line-no">176</span><span id="line-176">            cssSource(), scriptResources());</span>
 <span class="source-line-no">177</span><span id="line-177">    }</span>

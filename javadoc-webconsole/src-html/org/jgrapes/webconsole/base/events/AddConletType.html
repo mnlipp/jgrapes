@@ -256,8 +256,8 @@
 <span class="source-line-no">242</span><span id="line-242">    }</span>
 <span class="source-line-no">243</span><span id="line-243"></span>
 <span class="source-line-no">244</span><span id="line-244">    @Override</span>
-<span class="source-line-no">245</span><span id="line-245">    public void toJson(Writer writer) throws IOException {</span>
-<span class="source-line-no">246</span><span id="line-246">        toJson(writer, "addConletType", conletType(),</span>
+<span class="source-line-no">245</span><span id="line-245">    public void emitJson(Writer writer) throws IOException {</span>
+<span class="source-line-no">246</span><span id="line-246">        emitJson(writer, "addConletType", conletType(),</span>
 <span class="source-line-no">247</span><span id="line-247">            displayNames().entrySet().stream()</span>
 <span class="source-line-no">248</span><span id="line-248">                .collect(Collectors.toMap(e -&gt; e.getKey().toLanguageTag(),</span>
 <span class="source-line-no">249</span><span id="line-249">                    Entry::getValue)),</span>

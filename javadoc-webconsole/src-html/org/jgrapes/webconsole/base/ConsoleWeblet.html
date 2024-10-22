@@ -736,7 +736,7 @@
 <span class="source-line-no">722</span><span id="line-722">            @SuppressWarnings({ "resource", "PMD.CloseResource" })</span>
 <span class="source-line-no">723</span><span id="line-723">            CharBufferWriter out = new CharBufferWriter(wsChannel,</span>
 <span class="source-line-no">724</span><span id="line-724">                wsChannel.responsePipeline()).suppressClose();</span>
-<span class="source-line-no">725</span><span id="line-725">            new SimpleConsoleCommand("reload").toJson(out);</span>
+<span class="source-line-no">725</span><span id="line-725">            new SimpleConsoleCommand("reload").emitJson(out);</span>
 <span class="source-line-no">726</span><span id="line-726">            out.close();</span>
 <span class="source-line-no">727</span><span id="line-727">            event.stop();</span>
 <span class="source-line-no">728</span><span id="line-728">            return;</span>
@@ -838,7 +838,7 @@
 <span class="source-line-no">824</span><span id="line-824">        @SuppressWarnings({ "resource", "PMD.CloseResource" })</span>
 <span class="source-line-no">825</span><span id="line-825">        CharBufferWriter out = new CharBufferWriter(upstream,</span>
 <span class="source-line-no">826</span><span id="line-826">            upstream.responsePipeline()).suppressClose();</span>
-<span class="source-line-no">827</span><span id="line-827">        event.toJson(out);</span>
+<span class="source-line-no">827</span><span id="line-827">        event.emitJson(out);</span>
 <span class="source-line-no">828</span><span id="line-828">    }</span>
 <span class="source-line-no">829</span><span id="line-829"></span>
 <span class="source-line-no">830</span><span id="line-830">    /**</span>

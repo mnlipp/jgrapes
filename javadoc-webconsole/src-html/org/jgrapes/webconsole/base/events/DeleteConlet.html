@@ -78,8 +78,8 @@
 <span class="source-line-no">064</span><span id="line-64">    }</span>
 <span class="source-line-no">065</span><span id="line-65"></span>
 <span class="source-line-no">066</span><span id="line-66">    @Override</span>
-<span class="source-line-no">067</span><span id="line-67">    public void toJson(Writer writer) throws IOException {</span>
-<span class="source-line-no">068</span><span id="line-68">        toJson(writer, "deleteConlet", conletId(),</span>
+<span class="source-line-no">067</span><span id="line-67">    public void emitJson(Writer writer) throws IOException {</span>
+<span class="source-line-no">068</span><span id="line-68">        emitJson(writer, "deleteConlet", conletId(),</span>
 <span class="source-line-no">069</span><span id="line-69">            renderModes.stream().map(RenderMode::name)</span>
 <span class="source-line-no">070</span><span id="line-70">                .toArray(size -&gt; new String[size]));</span>
 <span class="source-line-no">071</span><span id="line-71">    }</span>

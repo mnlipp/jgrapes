@@ -120,10 +120,10 @@
 <span class="source-line-no">106</span><span id="line-106">    }</span>
 <span class="source-line-no">107</span><span id="line-107"></span>
 <span class="source-line-no">108</span><span id="line-108">    @Override</span>
-<span class="source-line-no">109</span><span id="line-109">    public void toJson(Writer writer) throws IOException {</span>
+<span class="source-line-no">109</span><span id="line-109">    public void emitJson(Writer writer) throws IOException {</span>
 <span class="source-line-no">110</span><span id="line-110">        Map&lt;String, Object&gt; options = options();</span>
 <span class="source-line-no">111</span><span id="line-111">        try {</span>
-<span class="source-line-no">112</span><span id="line-112">            toJson(writer, "openModalDialog", conletType, conletId,</span>
+<span class="source-line-no">112</span><span id="line-112">            emitJson(writer, "openModalDialog", conletType, conletId,</span>
 <span class="source-line-no">113</span><span id="line-113">                content().get(), options);</span>
 <span class="source-line-no">114</span><span id="line-114">        } catch (ExecutionException | InterruptedException e) {</span>
 <span class="source-line-no">115</span><span id="line-115">            throw new IOException(e);</span>
