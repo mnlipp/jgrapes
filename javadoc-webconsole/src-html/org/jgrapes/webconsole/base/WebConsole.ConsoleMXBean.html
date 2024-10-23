@@ -379,44 +379,46 @@
 <span class="source-line-no">365</span><span id="line-365"></span>
 <span class="source-line-no">366</span><span id="line-366">        private static Set&lt;WebConsoleInfo&gt; consoleInfos = new HashSet&lt;&gt;();</span>
 <span class="source-line-no">367</span><span id="line-367"></span>
-<span class="source-line-no">368</span><span id="line-368">        public static void addConsole(WebConsole console) {</span>
-<span class="source-line-no">369</span><span id="line-369">            synchronized (consoleInfos) {</span>
-<span class="source-line-no">370</span><span id="line-370">                consoleInfos.add(new WebConsoleInfo(console));</span>
-<span class="source-line-no">371</span><span id="line-371">            }</span>
-<span class="source-line-no">372</span><span id="line-372">        }</span>
-<span class="source-line-no">373</span><span id="line-373"></span>
-<span class="source-line-no">374</span><span id="line-374">        @Override</span>
-<span class="source-line-no">375</span><span id="line-375">        public Set&lt;ConsoleMXBean&gt; getConsoles() {</span>
-<span class="source-line-no">376</span><span id="line-376">            Set&lt;WebConsoleInfo&gt; expired = new HashSet&lt;&gt;();</span>
-<span class="source-line-no">377</span><span id="line-377">            synchronized (consoleInfos) {</span>
-<span class="source-line-no">378</span><span id="line-378">                for (WebConsoleInfo consoleInfo : consoleInfos) {</span>
-<span class="source-line-no">379</span><span id="line-379">                    if (!consoleInfo.console().isPresent()) {</span>
-<span class="source-line-no">380</span><span id="line-380">                        expired.add(consoleInfo);</span>
-<span class="source-line-no">381</span><span id="line-381">                    }</span>
-<span class="source-line-no">382</span><span id="line-382">                }</span>
-<span class="source-line-no">383</span><span id="line-383">                consoleInfos.removeAll(expired);</span>
-<span class="source-line-no">384</span><span id="line-384">            }</span>
-<span class="source-line-no">385</span><span id="line-385">            @SuppressWarnings("unchecked")</span>
-<span class="source-line-no">386</span><span id="line-386">            Set&lt;ConsoleMXBean&gt; result</span>
-<span class="source-line-no">387</span><span id="line-387">                = (Set&lt;ConsoleMXBean&gt;) (Object) consoleInfos;</span>
-<span class="source-line-no">388</span><span id="line-388">            return result;</span>
-<span class="source-line-no">389</span><span id="line-389">        }</span>
-<span class="source-line-no">390</span><span id="line-390">    }</span>
-<span class="source-line-no">391</span><span id="line-391"></span>
-<span class="source-line-no">392</span><span id="line-392">    static {</span>
-<span class="source-line-no">393</span><span id="line-393">        try {</span>
-<span class="source-line-no">394</span><span id="line-394">            MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();</span>
-<span class="source-line-no">395</span><span id="line-395">            ObjectName mxbeanName</span>
-<span class="source-line-no">396</span><span id="line-396">                = new ObjectName("org.jgrapes.webconsole:type="</span>
-<span class="source-line-no">397</span><span id="line-397">                    + WebConsole.class.getSimpleName() + "s");</span>
-<span class="source-line-no">398</span><span id="line-398">            mbs.registerMBean(new MBeanView(), mxbeanName);</span>
-<span class="source-line-no">399</span><span id="line-399">        } catch (MalformedObjectNameException | InstanceAlreadyExistsException</span>
-<span class="source-line-no">400</span><span id="line-400">                | MBeanRegistrationException | NotCompliantMBeanException e) {</span>
-<span class="source-line-no">401</span><span id="line-401">            // Should not happen</span>
-<span class="source-line-no">402</span><span id="line-402">            logger.log(Level.WARNING, e.getMessage(), e);</span>
-<span class="source-line-no">403</span><span id="line-403">        }</span>
-<span class="source-line-no">404</span><span id="line-404">    }</span>
-<span class="source-line-no">405</span><span id="line-405">}</span>
+<span class="source-line-no">368</span><span id="line-368">        @SuppressWarnings("PMD.AvoidSynchronizedStatement")</span>
+<span class="source-line-no">369</span><span id="line-369">        public static void addConsole(WebConsole console) {</span>
+<span class="source-line-no">370</span><span id="line-370">            synchronized (consoleInfos) {</span>
+<span class="source-line-no">371</span><span id="line-371">                consoleInfos.add(new WebConsoleInfo(console));</span>
+<span class="source-line-no">372</span><span id="line-372">            }</span>
+<span class="source-line-no">373</span><span id="line-373">        }</span>
+<span class="source-line-no">374</span><span id="line-374"></span>
+<span class="source-line-no">375</span><span id="line-375">        @Override</span>
+<span class="source-line-no">376</span><span id="line-376">        @SuppressWarnings("PMD.AvoidSynchronizedStatement")</span>
+<span class="source-line-no">377</span><span id="line-377">        public Set&lt;ConsoleMXBean&gt; getConsoles() {</span>
+<span class="source-line-no">378</span><span id="line-378">            Set&lt;WebConsoleInfo&gt; expired = new HashSet&lt;&gt;();</span>
+<span class="source-line-no">379</span><span id="line-379">            synchronized (consoleInfos) {</span>
+<span class="source-line-no">380</span><span id="line-380">                for (WebConsoleInfo consoleInfo : consoleInfos) {</span>
+<span class="source-line-no">381</span><span id="line-381">                    if (!consoleInfo.console().isPresent()) {</span>
+<span class="source-line-no">382</span><span id="line-382">                        expired.add(consoleInfo);</span>
+<span class="source-line-no">383</span><span id="line-383">                    }</span>
+<span class="source-line-no">384</span><span id="line-384">                }</span>
+<span class="source-line-no">385</span><span id="line-385">                consoleInfos.removeAll(expired);</span>
+<span class="source-line-no">386</span><span id="line-386">            }</span>
+<span class="source-line-no">387</span><span id="line-387">            @SuppressWarnings("unchecked")</span>
+<span class="source-line-no">388</span><span id="line-388">            Set&lt;ConsoleMXBean&gt; result</span>
+<span class="source-line-no">389</span><span id="line-389">                = (Set&lt;ConsoleMXBean&gt;) (Object) consoleInfos;</span>
+<span class="source-line-no">390</span><span id="line-390">            return result;</span>
+<span class="source-line-no">391</span><span id="line-391">        }</span>
+<span class="source-line-no">392</span><span id="line-392">    }</span>
+<span class="source-line-no">393</span><span id="line-393"></span>
+<span class="source-line-no">394</span><span id="line-394">    static {</span>
+<span class="source-line-no">395</span><span id="line-395">        try {</span>
+<span class="source-line-no">396</span><span id="line-396">            MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();</span>
+<span class="source-line-no">397</span><span id="line-397">            ObjectName mxbeanName</span>
+<span class="source-line-no">398</span><span id="line-398">                = new ObjectName("org.jgrapes.webconsole:type="</span>
+<span class="source-line-no">399</span><span id="line-399">                    + WebConsole.class.getSimpleName() + "s");</span>
+<span class="source-line-no">400</span><span id="line-400">            mbs.registerMBean(new MBeanView(), mxbeanName);</span>
+<span class="source-line-no">401</span><span id="line-401">        } catch (MalformedObjectNameException | InstanceAlreadyExistsException</span>
+<span class="source-line-no">402</span><span id="line-402">                | MBeanRegistrationException | NotCompliantMBeanException e) {</span>
+<span class="source-line-no">403</span><span id="line-403">            // Should not happen</span>
+<span class="source-line-no">404</span><span id="line-404">            logger.log(Level.WARNING, e.getMessage(), e);</span>
+<span class="source-line-no">405</span><span id="line-405">        }</span>
+<span class="source-line-no">406</span><span id="line-406">    }</span>
+<span class="source-line-no">407</span><span id="line-407">}</span>
 
 
 

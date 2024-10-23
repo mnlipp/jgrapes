@@ -148,67 +148,68 @@
 <span class="source-line-no">134</span><span id="line-134">        channel.respond(new NotifyConletView(type(),</span>
 <span class="source-line-no">135</span><span id="line-135">            conletId, "entries",</span>
 <span class="source-line-no">136</span><span id="line-136">            (Object) LogViewerHandler.setConlet(this).stream()</span>
-<span class="source-line-no">137</span><span id="line-137">                .map(entry -&gt; logEntryAsMap(entry)).toArray()));</span>
+<span class="source-line-no">137</span><span id="line-137">                .map(this::logEntryAsMap).toArray()));</span>
 <span class="source-line-no">138</span><span id="line-138">    }</span>
 <span class="source-line-no">139</span><span id="line-139"></span>
-<span class="source-line-no">140</span><span id="line-140">    /* default */ void addEntry(LogRecord entry) {</span>
-<span class="source-line-no">141</span><span id="line-141">        for (ConsoleConnection connection : trackedConnections()) {</span>
-<span class="source-line-no">142</span><span id="line-142">            for (String conletId : conletIds(connection)) {</span>
-<span class="source-line-no">143</span><span id="line-143">                connection.respond(new NotifyConletView(type(),</span>
-<span class="source-line-no">144</span><span id="line-144">                    conletId, "addEntry", logEntryAsMap(entry))</span>
-<span class="source-line-no">145</span><span id="line-145">                        .disableTracking());</span>
-<span class="source-line-no">146</span><span id="line-146">            }</span>
-<span class="source-line-no">147</span><span id="line-147">        }</span>
-<span class="source-line-no">148</span><span id="line-148">    }</span>
-<span class="source-line-no">149</span><span id="line-149"></span>
-<span class="source-line-no">150</span><span id="line-150">    private Map&lt;String, Object&gt; logEntryAsMap(LogRecord record) {</span>
-<span class="source-line-no">151</span><span id="line-151">        @SuppressWarnings("PMD.UseConcurrentHashMap")</span>
-<span class="source-line-no">152</span><span id="line-152">        Map&lt;String, Object&gt; result = new HashMap&lt;&gt;();</span>
-<span class="source-line-no">153</span><span id="line-153">        result.put("exception", Optional.ofNullable(record.getThrown())</span>
-<span class="source-line-no">154</span><span id="line-154">            .map(exc -&gt; exc.getMessage()).orElse(""));</span>
-<span class="source-line-no">155</span><span id="line-155">        result.put("stacktrace", Optional.ofNullable(record.getThrown())</span>
-<span class="source-line-no">156</span><span id="line-156">            .map(exc -&gt; {</span>
-<span class="source-line-no">157</span><span id="line-157">                ByteArrayOutputStream out = new ByteArrayOutputStream();</span>
-<span class="source-line-no">158</span><span id="line-158">                PrintWriter printWriter = new PrintWriter(out);</span>
-<span class="source-line-no">159</span><span id="line-159">                exc.printStackTrace(printWriter);</span>
-<span class="source-line-no">160</span><span id="line-160">                printWriter.close();</span>
-<span class="source-line-no">161</span><span id="line-161">                return out.toString();</span>
-<span class="source-line-no">162</span><span id="line-162">            }).orElse(""));</span>
-<span class="source-line-no">163</span><span id="line-163">        result.put("loggerName", record.getLoggerName());</span>
-<span class="source-line-no">164</span><span id="line-164">        result.put("source",</span>
-<span class="source-line-no">165</span><span id="line-165">            record.getSourceClassName() + "::" + record.getSourceMethodName());</span>
-<span class="source-line-no">166</span><span id="line-166">        result.put("logLevel", record.getLevel().toString());</span>
-<span class="source-line-no">167</span><span id="line-167">        result.put("message", record.getMessage());</span>
-<span class="source-line-no">168</span><span id="line-168">        result.put("time", record.getInstant().toEpochMilli());</span>
-<span class="source-line-no">169</span><span id="line-169">        result.put("sequence", record.getSequenceNumber());</span>
-<span class="source-line-no">170</span><span id="line-170">        return result;</span>
-<span class="source-line-no">171</span><span id="line-171">    }</span>
-<span class="source-line-no">172</span><span id="line-172"></span>
-<span class="source-line-no">173</span><span id="line-173">    /*</span>
-<span class="source-line-no">174</span><span id="line-174">     * (non-Javadoc)</span>
-<span class="source-line-no">175</span><span id="line-175">     * </span>
-<span class="source-line-no">176</span><span id="line-176">     * @see org.jgrapes.console.AbstractConlet#doNotifyConletModel</span>
-<span class="source-line-no">177</span><span id="line-177">     */</span>
-<span class="source-line-no">178</span><span id="line-178">    @Override</span>
-<span class="source-line-no">179</span><span id="line-179">    @SuppressWarnings({ "PMD.SwitchStmtsShouldHaveDefault",</span>
-<span class="source-line-no">180</span><span id="line-180">        "PMD.TooFewBranchesForASwitchStatement" })</span>
-<span class="source-line-no">181</span><span id="line-181">    protected void doUpdateConletState(NotifyConletModel event,</span>
-<span class="source-line-no">182</span><span id="line-182">            ConsoleConnection channel, Serializable conletState)</span>
-<span class="source-line-no">183</span><span id="line-183">            throws Exception {</span>
-<span class="source-line-no">184</span><span id="line-184">        event.stop();</span>
-<span class="source-line-no">185</span><span id="line-185">        switch (event.method()) {</span>
-<span class="source-line-no">186</span><span id="line-186">        case "resync":</span>
-<span class="source-line-no">187</span><span id="line-187">            sendAllEntries(channel, event.conletId());</span>
-<span class="source-line-no">188</span><span id="line-188">            break;</span>
-<span class="source-line-no">189</span><span id="line-189">        }</span>
-<span class="source-line-no">190</span><span id="line-190">    }</span>
-<span class="source-line-no">191</span><span id="line-191"></span>
-<span class="source-line-no">192</span><span id="line-192">    @Override</span>
-<span class="source-line-no">193</span><span id="line-193">    protected boolean doSetLocale(SetLocale event, ConsoleConnection channel,</span>
-<span class="source-line-no">194</span><span id="line-194">            String conletId) throws Exception {</span>
-<span class="source-line-no">195</span><span id="line-195">        return true;</span>
-<span class="source-line-no">196</span><span id="line-196">    }</span>
-<span class="source-line-no">197</span><span id="line-197">}</span>
+<span class="source-line-no">140</span><span id="line-140">    /* default */ @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")</span>
+<span class="source-line-no">141</span><span id="line-141">    void addEntry(LogRecord entry) {</span>
+<span class="source-line-no">142</span><span id="line-142">        for (ConsoleConnection connection : trackedConnections()) {</span>
+<span class="source-line-no">143</span><span id="line-143">            for (String conletId : conletIds(connection)) {</span>
+<span class="source-line-no">144</span><span id="line-144">                connection.respond(new NotifyConletView(type(),</span>
+<span class="source-line-no">145</span><span id="line-145">                    conletId, "addEntry", logEntryAsMap(entry))</span>
+<span class="source-line-no">146</span><span id="line-146">                        .disableTracking());</span>
+<span class="source-line-no">147</span><span id="line-147">            }</span>
+<span class="source-line-no">148</span><span id="line-148">        }</span>
+<span class="source-line-no">149</span><span id="line-149">    }</span>
+<span class="source-line-no">150</span><span id="line-150"></span>
+<span class="source-line-no">151</span><span id="line-151">    private Map&lt;String, Object&gt; logEntryAsMap(LogRecord record) {</span>
+<span class="source-line-no">152</span><span id="line-152">        @SuppressWarnings("PMD.UseConcurrentHashMap")</span>
+<span class="source-line-no">153</span><span id="line-153">        Map&lt;String, Object&gt; result = new HashMap&lt;&gt;();</span>
+<span class="source-line-no">154</span><span id="line-154">        result.put("exception", Optional.ofNullable(record.getThrown())</span>
+<span class="source-line-no">155</span><span id="line-155">            .map(Throwable::getMessage).orElse(""));</span>
+<span class="source-line-no">156</span><span id="line-156">        result.put("stacktrace", Optional.ofNullable(record.getThrown())</span>
+<span class="source-line-no">157</span><span id="line-157">            .map(exc -&gt; {</span>
+<span class="source-line-no">158</span><span id="line-158">                ByteArrayOutputStream out = new ByteArrayOutputStream();</span>
+<span class="source-line-no">159</span><span id="line-159">                PrintWriter printWriter = new PrintWriter(out);</span>
+<span class="source-line-no">160</span><span id="line-160">                exc.printStackTrace(printWriter);</span>
+<span class="source-line-no">161</span><span id="line-161">                printWriter.close();</span>
+<span class="source-line-no">162</span><span id="line-162">                return out.toString();</span>
+<span class="source-line-no">163</span><span id="line-163">            }).orElse(""));</span>
+<span class="source-line-no">164</span><span id="line-164">        result.put("loggerName", record.getLoggerName());</span>
+<span class="source-line-no">165</span><span id="line-165">        result.put("source",</span>
+<span class="source-line-no">166</span><span id="line-166">            record.getSourceClassName() + "::" + record.getSourceMethodName());</span>
+<span class="source-line-no">167</span><span id="line-167">        result.put("logLevel", record.getLevel().toString());</span>
+<span class="source-line-no">168</span><span id="line-168">        result.put("message", record.getMessage());</span>
+<span class="source-line-no">169</span><span id="line-169">        result.put("time", record.getInstant().toEpochMilli());</span>
+<span class="source-line-no">170</span><span id="line-170">        result.put("sequence", record.getSequenceNumber());</span>
+<span class="source-line-no">171</span><span id="line-171">        return result;</span>
+<span class="source-line-no">172</span><span id="line-172">    }</span>
+<span class="source-line-no">173</span><span id="line-173"></span>
+<span class="source-line-no">174</span><span id="line-174">    /*</span>
+<span class="source-line-no">175</span><span id="line-175">     * (non-Javadoc)</span>
+<span class="source-line-no">176</span><span id="line-176">     * </span>
+<span class="source-line-no">177</span><span id="line-177">     * @see org.jgrapes.console.AbstractConlet#doNotifyConletModel</span>
+<span class="source-line-no">178</span><span id="line-178">     */</span>
+<span class="source-line-no">179</span><span id="line-179">    @Override</span>
+<span class="source-line-no">180</span><span id="line-180">    @SuppressWarnings({ "PMD.SwitchStmtsShouldHaveDefault",</span>
+<span class="source-line-no">181</span><span id="line-181">        "PMD.TooFewBranchesForASwitchStatement" })</span>
+<span class="source-line-no">182</span><span id="line-182">    protected void doUpdateConletState(NotifyConletModel event,</span>
+<span class="source-line-no">183</span><span id="line-183">            ConsoleConnection channel, Serializable conletState)</span>
+<span class="source-line-no">184</span><span id="line-184">            throws Exception {</span>
+<span class="source-line-no">185</span><span id="line-185">        event.stop();</span>
+<span class="source-line-no">186</span><span id="line-186">        switch (event.method()) {</span>
+<span class="source-line-no">187</span><span id="line-187">        case "resync":</span>
+<span class="source-line-no">188</span><span id="line-188">            sendAllEntries(channel, event.conletId());</span>
+<span class="source-line-no">189</span><span id="line-189">            break;</span>
+<span class="source-line-no">190</span><span id="line-190">        }</span>
+<span class="source-line-no">191</span><span id="line-191">    }</span>
+<span class="source-line-no">192</span><span id="line-192"></span>
+<span class="source-line-no">193</span><span id="line-193">    @Override</span>
+<span class="source-line-no">194</span><span id="line-194">    protected boolean doSetLocale(SetLocale event, ConsoleConnection channel,</span>
+<span class="source-line-no">195</span><span id="line-195">            String conletId) throws Exception {</span>
+<span class="source-line-no">196</span><span id="line-196">        return true;</span>
+<span class="source-line-no">197</span><span id="line-197">    }</span>
+<span class="source-line-no">198</span><span id="line-198">}</span>
 
 
 

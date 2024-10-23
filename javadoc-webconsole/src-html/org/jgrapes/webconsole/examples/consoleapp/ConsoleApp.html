@@ -179,7 +179,7 @@
 <span class="source-line-no">165</span><span id="line-165">            throws URISyntaxException {</span>
 <span class="source-line-no">166</span><span id="line-166">        ConsoleWeblet consoleWeblet</span>
 <span class="source-line-no">167</span><span id="line-167">            = httpServer.attach(new VueJsConsoleWeblet(httpServer.channel(),</span>
-<span class="source-line-no">168</span><span id="line-168">                Channel.SELF, new URI("/")))</span>
+<span class="source-line-no">168</span><span id="line-168">                SELF, new URI("/")))</span>
 <span class="source-line-no">169</span><span id="line-169">                .prependClassTemplateLoader(this.getClass())</span>
 <span class="source-line-no">170</span><span id="line-170">                .prependResourceBundleProvider(ConsoleApp.class)</span>
 <span class="source-line-no">171</span><span id="line-171">                .prependConsoleResourceProvider(ConsoleApp.class);</span>
@@ -211,7 +211,7 @@
 <span class="source-line-no">197</span><span id="line-197">     */</span>
 <span class="source-line-no">198</span><span id="line-198">    @SuppressWarnings("PMD.SignatureDeclareThrowsException")</span>
 <span class="source-line-no">199</span><span id="line-199">    public void stop() throws Exception {</span>
-<span class="source-line-no">200</span><span id="line-200">        app.fire(new Stop(), Channel.BROADCAST);</span>
+<span class="source-line-no">200</span><span id="line-200">        app.fire(new Stop(), BROADCAST);</span>
 <span class="source-line-no">201</span><span id="line-201">        Components.awaitExhaustion();</span>
 <span class="source-line-no">202</span><span id="line-202">    }</span>
 <span class="source-line-no">203</span><span id="line-203"></span>

@@ -34,7 +34,7 @@
 <span class="source-line-no">020</span><span id="line-20"></span>
 <span class="source-line-no">021</span><span id="line-21">import java.util.Arrays;</span>
 <span class="source-line-no">022</span><span id="line-22">import java.util.Collections;</span>
-<span class="source-line-no">023</span><span id="line-23">import java.util.HashSet;</span>
+<span class="source-line-no">023</span><span id="line-23">import java.util.EnumSet;</span>
 <span class="source-line-no">024</span><span id="line-24">import java.util.Set;</span>
 <span class="source-line-no">025</span><span id="line-25">import org.jgrapes.webconsole.base.events.AddConletRequest;</span>
 <span class="source-line-no">026</span><span id="line-26">import org.jgrapes.webconsole.base.events.AddConletType;</span>
@@ -128,14 +128,14 @@
 <span class="source-line-no">114</span><span id="line-114">         * @return the sets the</span>
 <span class="source-line-no">115</span><span id="line-115">         */</span>
 <span class="source-line-no">116</span><span id="line-116">        public static Set&lt;RenderMode&gt; asSet(RenderMode... modes) {</span>
-<span class="source-line-no">117</span><span id="line-117">            return new HashSet&lt;&gt;(Arrays.asList(modes));</span>
+<span class="source-line-no">117</span><span id="line-117">            return EnumSet.copyOf(Arrays.asList(modes));</span>
 <span class="source-line-no">118</span><span id="line-118">        }</span>
 <span class="source-line-no">119</span><span id="line-119"></span>
 <span class="source-line-no">120</span><span id="line-120">        /**</span>
 <span class="source-line-no">121</span><span id="line-121">         * Retrieves the modifiers.</span>
 <span class="source-line-no">122</span><span id="line-122">         */</span>
 <span class="source-line-no">123</span><span id="line-123">        public static Set&lt;RenderMode&gt; modifiers(Set&lt;RenderMode&gt; modes) {</span>
-<span class="source-line-no">124</span><span id="line-124">            Set&lt;RenderMode&gt; result = new HashSet&lt;&gt;(modes);</span>
+<span class="source-line-no">124</span><span id="line-124">            Set&lt;RenderMode&gt; result = EnumSet.copyOf(modes);</span>
 <span class="source-line-no">125</span><span id="line-125">            result.removeAll(basicModes);</span>
 <span class="source-line-no">126</span><span id="line-126">            return result;</span>
 <span class="source-line-no">127</span><span id="line-127">        }</span>
