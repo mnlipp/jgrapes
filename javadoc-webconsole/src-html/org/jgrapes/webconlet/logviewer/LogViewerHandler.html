@@ -63,8 +63,8 @@
 <span class="source-line-no">049</span><span id="line-49">        }</span>
 <span class="source-line-no">050</span><span id="line-50">    }</span>
 <span class="source-line-no">051</span><span id="line-51"></span>
-<span class="source-line-no">052</span><span id="line-52">    /* default */ @SuppressWarnings("PMD.AvoidSynchronizedStatement")</span>
-<span class="source-line-no">053</span><span id="line-53">    static List&lt;LogRecord&gt; setConlet(LogViewerConlet conlet) {</span>
+<span class="source-line-no">052</span><span id="line-52">    @SuppressWarnings("PMD.AvoidSynchronizedStatement")</span>
+<span class="source-line-no">053</span><span id="line-53">    /* default */ static List&lt;LogRecord&gt; setConlet(LogViewerConlet conlet) {</span>
 <span class="source-line-no">054</span><span id="line-54">        synchronized (buffer) {</span>
 <span class="source-line-no">055</span><span id="line-55">            LogViewerHandler.conlet = conlet;</span>
 <span class="source-line-no">056</span><span id="line-56">            return new ArrayList&lt;&gt;(buffer);</span>
