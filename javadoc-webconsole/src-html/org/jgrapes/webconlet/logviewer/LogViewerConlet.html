@@ -151,8 +151,8 @@
 <span class="source-line-no">137</span><span id="line-137">                .map(this::logEntryAsMap).toArray()));</span>
 <span class="source-line-no">138</span><span id="line-138">    }</span>
 <span class="source-line-no">139</span><span id="line-139"></span>
-<span class="source-line-no">140</span><span id="line-140">    @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")</span>
-<span class="source-line-no">141</span><span id="line-141">    /* default */ void addEntry(LogRecord entry) {</span>
+<span class="source-line-no">140</span><span id="line-140">    /* default */ @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")</span>
+<span class="source-line-no">141</span><span id="line-141">    void addEntry(LogRecord entry) {</span>
 <span class="source-line-no">142</span><span id="line-142">        for (ConsoleConnection connection : trackedConnections()) {</span>
 <span class="source-line-no">143</span><span id="line-143">            for (String conletId : conletIds(connection)) {</span>
 <span class="source-line-no">144</span><span id="line-144">                connection.respond(new NotifyConletView(type(),</span>
