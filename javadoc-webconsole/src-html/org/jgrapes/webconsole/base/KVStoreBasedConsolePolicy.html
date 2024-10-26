@@ -33,227 +33,232 @@
 <span class="source-line-no">019</span><span id="line-19">package org.jgrapes.webconsole.base;</span>
 <span class="source-line-no">020</span><span id="line-20"></span>
 <span class="source-line-no">021</span><span id="line-21">import com.fasterxml.jackson.databind.ObjectMapper;</span>
-<span class="source-line-no">022</span><span id="line-22">import java.io.IOException;</span>
-<span class="source-line-no">023</span><span id="line-23">import java.util.Collections;</span>
-<span class="source-line-no">024</span><span id="line-24">import java.util.HashMap;</span>
-<span class="source-line-no">025</span><span id="line-25">import java.util.List;</span>
-<span class="source-line-no">026</span><span id="line-26">import java.util.Map;</span>
-<span class="source-line-no">027</span><span id="line-27">import java.util.Optional;</span>
-<span class="source-line-no">028</span><span id="line-28">import org.jgrapes.core.Channel;</span>
-<span class="source-line-no">029</span><span id="line-29">import org.jgrapes.core.Component;</span>
-<span class="source-line-no">030</span><span id="line-30">import org.jgrapes.core.Event;</span>
-<span class="source-line-no">031</span><span id="line-31">import org.jgrapes.core.annotation.Handler;</span>
-<span class="source-line-no">032</span><span id="line-32">import org.jgrapes.http.Session;</span>
-<span class="source-line-no">033</span><span id="line-33">import org.jgrapes.io.IOSubchannel;</span>
-<span class="source-line-no">034</span><span id="line-34">import org.jgrapes.util.events.KeyValueStoreQuery;</span>
-<span class="source-line-no">035</span><span id="line-35">import org.jgrapes.util.events.KeyValueStoreUpdate;</span>
-<span class="source-line-no">036</span><span id="line-36">import org.jgrapes.webconsole.base.Conlet.RenderMode;</span>
-<span class="source-line-no">037</span><span id="line-37">import org.jgrapes.webconsole.base.events.ConsoleLayoutChanged;</span>
-<span class="source-line-no">038</span><span id="line-38">import org.jgrapes.webconsole.base.events.ConsolePrepared;</span>
-<span class="source-line-no">039</span><span id="line-39">import org.jgrapes.webconsole.base.events.LastConsoleLayout;</span>
-<span class="source-line-no">040</span><span id="line-40">import org.jgrapes.webconsole.base.events.RenderConletRequest;</span>
-<span class="source-line-no">041</span><span id="line-41"></span>
-<span class="source-line-no">042</span><span id="line-42">/**</span>
-<span class="source-line-no">043</span><span id="line-43"> * A component that restores the console layout</span>
-<span class="source-line-no">044</span><span id="line-44"> * using key/value events for persisting the data between sessions.</span>
-<span class="source-line-no">045</span><span id="line-45"> * </span>
-<span class="source-line-no">046</span><span id="line-46"> * &lt;img src="KVPPBootSeq.svg" alt="Boot Event Sequence"&gt;</span>
-<span class="source-line-no">047</span><span id="line-47"> * </span>
-<span class="source-line-no">048</span><span id="line-48"> * This component requires another component that handles the key/value</span>
-<span class="source-line-no">049</span><span id="line-49"> * store events ({@link KeyValueStoreUpdate}, {@link KeyValueStoreQuery})</span>
-<span class="source-line-no">050</span><span id="line-50"> * used by this component for implementing persistence. When the web console </span>
-<span class="source-line-no">051</span><span id="line-51"> * becomesready, this policy sends a query for the persisted data.</span>
-<span class="source-line-no">052</span><span id="line-52"> * </span>
-<span class="source-line-no">053</span><span id="line-53"> * When the web console has been prepared, the policy sends the last layout</span>
-<span class="source-line-no">054</span><span id="line-54"> * as retrieved from persistent storage to the web console and then generates</span>
-<span class="source-line-no">055</span><span id="line-55"> * render events for all web console components contained in this layout.</span>
+<span class="source-line-no">022</span><span id="line-22">import com.fasterxml.jackson.databind.json.JsonMapper;</span>
+<span class="source-line-no">023</span><span id="line-23">import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;</span>
+<span class="source-line-no">024</span><span id="line-24">import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;</span>
+<span class="source-line-no">025</span><span id="line-25">import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;</span>
+<span class="source-line-no">026</span><span id="line-26">import java.io.IOException;</span>
+<span class="source-line-no">027</span><span id="line-27">import java.util.Collections;</span>
+<span class="source-line-no">028</span><span id="line-28">import java.util.HashMap;</span>
+<span class="source-line-no">029</span><span id="line-29">import java.util.List;</span>
+<span class="source-line-no">030</span><span id="line-30">import java.util.Map;</span>
+<span class="source-line-no">031</span><span id="line-31">import java.util.Optional;</span>
+<span class="source-line-no">032</span><span id="line-32">import org.jgrapes.core.Channel;</span>
+<span class="source-line-no">033</span><span id="line-33">import org.jgrapes.core.Component;</span>
+<span class="source-line-no">034</span><span id="line-34">import org.jgrapes.core.Event;</span>
+<span class="source-line-no">035</span><span id="line-35">import org.jgrapes.core.annotation.Handler;</span>
+<span class="source-line-no">036</span><span id="line-36">import org.jgrapes.http.Session;</span>
+<span class="source-line-no">037</span><span id="line-37">import org.jgrapes.io.IOSubchannel;</span>
+<span class="source-line-no">038</span><span id="line-38">import org.jgrapes.util.events.KeyValueStoreQuery;</span>
+<span class="source-line-no">039</span><span id="line-39">import org.jgrapes.util.events.KeyValueStoreUpdate;</span>
+<span class="source-line-no">040</span><span id="line-40">import org.jgrapes.webconsole.base.Conlet.RenderMode;</span>
+<span class="source-line-no">041</span><span id="line-41">import org.jgrapes.webconsole.base.events.ConsoleLayoutChanged;</span>
+<span class="source-line-no">042</span><span id="line-42">import org.jgrapes.webconsole.base.events.ConsolePrepared;</span>
+<span class="source-line-no">043</span><span id="line-43">import org.jgrapes.webconsole.base.events.LastConsoleLayout;</span>
+<span class="source-line-no">044</span><span id="line-44">import org.jgrapes.webconsole.base.events.RenderConletRequest;</span>
+<span class="source-line-no">045</span><span id="line-45"></span>
+<span class="source-line-no">046</span><span id="line-46">/**</span>
+<span class="source-line-no">047</span><span id="line-47"> * A component that restores the console layout</span>
+<span class="source-line-no">048</span><span id="line-48"> * using key/value events for persisting the data between sessions.</span>
+<span class="source-line-no">049</span><span id="line-49"> * </span>
+<span class="source-line-no">050</span><span id="line-50"> * &lt;img src="KVPPBootSeq.svg" alt="Boot Event Sequence"&gt;</span>
+<span class="source-line-no">051</span><span id="line-51"> * </span>
+<span class="source-line-no">052</span><span id="line-52"> * This component requires another component that handles the key/value</span>
+<span class="source-line-no">053</span><span id="line-53"> * store events ({@link KeyValueStoreUpdate}, {@link KeyValueStoreQuery})</span>
+<span class="source-line-no">054</span><span id="line-54"> * used by this component for implementing persistence. When the web console </span>
+<span class="source-line-no">055</span><span id="line-55"> * becomesready, this policy sends a query for the persisted data.</span>
 <span class="source-line-no">056</span><span id="line-56"> * </span>
-<span class="source-line-no">057</span><span id="line-57"> * Each time the layout is changed in the web console, the web console sends </span>
-<span class="source-line-no">058</span><span id="line-58"> * the new layout data and this component updates the persistent storage</span>
-<span class="source-line-no">059</span><span id="line-59"> * accordingly.</span>
+<span class="source-line-no">057</span><span id="line-57"> * When the web console has been prepared, the policy sends the last layout</span>
+<span class="source-line-no">058</span><span id="line-58"> * as retrieved from persistent storage to the web console and then generates</span>
+<span class="source-line-no">059</span><span id="line-59"> * render events for all web console components contained in this layout.</span>
 <span class="source-line-no">060</span><span id="line-60"> * </span>
-<span class="source-line-no">061</span><span id="line-61"> * @startuml KVPPBootSeq.svg</span>
-<span class="source-line-no">062</span><span id="line-62"> * hide footbox</span>
-<span class="source-line-no">063</span><span id="line-63"> * </span>
-<span class="source-line-no">064</span><span id="line-64"> * actor System</span>
-<span class="source-line-no">065</span><span id="line-65"> * System -&gt; KVStoreBasedConsolePolicy: ConsolePrepared</span>
-<span class="source-line-no">066</span><span id="line-66"> * activate KVStoreBasedConsolePolicy</span>
-<span class="source-line-no">067</span><span id="line-67"> * KVStoreBasedConsolePolicy -&gt; "KV Store": KeyValueStoreQuery</span>
-<span class="source-line-no">068</span><span id="line-68"> * deactivate KVStoreBasedConsolePolicy</span>
-<span class="source-line-no">069</span><span id="line-69"> * activate "KV Store"</span>
-<span class="source-line-no">070</span><span id="line-70"> * "KV Store" -&gt; KVStoreBasedConsolePolicy: KeyValueStoreData</span>
-<span class="source-line-no">071</span><span id="line-71"> * deactivate "KV Store"</span>
-<span class="source-line-no">072</span><span id="line-72"> * activate KVStoreBasedConsolePolicy</span>
-<span class="source-line-no">073</span><span id="line-73"> * KVStoreBasedConsolePolicy -&gt; WebConsole: LastConsoleLayout</span>
-<span class="source-line-no">074</span><span id="line-74"> * activate WebConsole</span>
-<span class="source-line-no">075</span><span id="line-75"> * WebConsole -&gt; Browser: "lastConsoleLayout"</span>
-<span class="source-line-no">076</span><span id="line-76"> * deactivate WebConsole</span>
-<span class="source-line-no">077</span><span id="line-77"> * loop for all conlets to be displayed</span>
-<span class="source-line-no">078</span><span id="line-78"> *     KVStoreBasedConsolePolicy -&gt; ConletX: RenderConletRequest</span>
-<span class="source-line-no">079</span><span id="line-79"> *     activate ConletX</span>
-<span class="source-line-no">080</span><span id="line-80"> *     ConletX -&gt; WebConsole: RenderConlet</span>
-<span class="source-line-no">081</span><span id="line-81"> *     deactivate ConletX</span>
-<span class="source-line-no">082</span><span id="line-82"> *     activate WebConsole</span>
-<span class="source-line-no">083</span><span id="line-83"> *     WebConsole -&gt; Browser: "renderConlet"</span>
-<span class="source-line-no">084</span><span id="line-84"> *     deactivate WebConsole</span>
-<span class="source-line-no">085</span><span id="line-85"> * end</span>
-<span class="source-line-no">086</span><span id="line-86"> * deactivate KVStoreBasedConsolePolicy</span>
-<span class="source-line-no">087</span><span id="line-87"> * </span>
-<span class="source-line-no">088</span><span id="line-88"> * Browser -&gt; WebConsole: "consoleLayout"</span>
-<span class="source-line-no">089</span><span id="line-89"> * activate WebConsole</span>
-<span class="source-line-no">090</span><span id="line-90"> * WebConsole -&gt; KVStoreBasedConsolePolicy: ConsoleLayoutChanged</span>
-<span class="source-line-no">091</span><span id="line-91"> * deactivate WebConsole</span>
-<span class="source-line-no">092</span><span id="line-92"> * activate KVStoreBasedConsolePolicy</span>
-<span class="source-line-no">093</span><span id="line-93"> * KVStoreBasedConsolePolicy -&gt; "KV Store": KeyValueStoreUpdate</span>
-<span class="source-line-no">094</span><span id="line-94"> * deactivate KVStoreBasedConsolePolicy</span>
-<span class="source-line-no">095</span><span id="line-95"> * activate "KV Store"</span>
-<span class="source-line-no">096</span><span id="line-96"> * deactivate "KV Store"</span>
-<span class="source-line-no">097</span><span id="line-97"> * </span>
-<span class="source-line-no">098</span><span id="line-98"> * @enduml</span>
-<span class="source-line-no">099</span><span id="line-99"> */</span>
-<span class="source-line-no">100</span><span id="line-100">public class KVStoreBasedConsolePolicy extends Component {</span>
-<span class="source-line-no">101</span><span id="line-101"></span>
-<span class="source-line-no">102</span><span id="line-102">    /** The mapper. */</span>
-<span class="source-line-no">103</span><span id="line-103">    @SuppressWarnings("PMD.FieldNamingConventions")</span>
-<span class="source-line-no">104</span><span id="line-104">    protected static final ObjectMapper mapper</span>
-<span class="source-line-no">105</span><span id="line-105">        = new ObjectMapper().findAndRegisterModules();</span>
-<span class="source-line-no">106</span><span id="line-106"></span>
-<span class="source-line-no">107</span><span id="line-107">    /**</span>
-<span class="source-line-no">108</span><span id="line-108">     * Creates a new component with its channel set to</span>
-<span class="source-line-no">109</span><span id="line-109">     * itself.</span>
-<span class="source-line-no">110</span><span id="line-110">     */</span>
-<span class="source-line-no">111</span><span id="line-111">    public KVStoreBasedConsolePolicy() {</span>
-<span class="source-line-no">112</span><span id="line-112">        // Everything done by super.</span>
-<span class="source-line-no">113</span><span id="line-113">    }</span>
-<span class="source-line-no">114</span><span id="line-114"></span>
-<span class="source-line-no">115</span><span id="line-115">    /**</span>
-<span class="source-line-no">116</span><span id="line-116">     * Creates a new component with its channel set to the given channel.</span>
-<span class="source-line-no">117</span><span id="line-117">     * </span>
-<span class="source-line-no">118</span><span id="line-118">     * @param componentChannel</span>
-<span class="source-line-no">119</span><span id="line-119">     */</span>
-<span class="source-line-no">120</span><span id="line-120">    public KVStoreBasedConsolePolicy(Channel componentChannel) {</span>
-<span class="source-line-no">121</span><span id="line-121">        super(componentChannel);</span>
-<span class="source-line-no">122</span><span id="line-122">    }</span>
-<span class="source-line-no">123</span><span id="line-123"></span>
-<span class="source-line-no">124</span><span id="line-124">    /**</span>
-<span class="source-line-no">125</span><span id="line-125">     * Create browser session scoped storage and forward event to it.</span>
-<span class="source-line-no">126</span><span id="line-126">     *</span>
-<span class="source-line-no">127</span><span id="line-127">     * @param event the event</span>
-<span class="source-line-no">128</span><span id="line-128">     * @param channel the channel</span>
-<span class="source-line-no">129</span><span id="line-129">     */</span>
-<span class="source-line-no">130</span><span id="line-130">    @Handler</span>
-<span class="source-line-no">131</span><span id="line-131">    public void onConsolePrepared(</span>
-<span class="source-line-no">132</span><span id="line-132">            ConsolePrepared event, ConsoleConnection channel) {</span>
-<span class="source-line-no">133</span><span id="line-133">        ((KVStoredLayoutData) channel.session().transientData()</span>
-<span class="source-line-no">134</span><span id="line-134">            .computeIfAbsent(KVStoredLayoutData.class,</span>
-<span class="source-line-no">135</span><span id="line-135">                key -&gt; new KVStoredLayoutData(channel.session())))</span>
-<span class="source-line-no">136</span><span id="line-136">                    .onConsolePrepared(event, channel);</span>
-<span class="source-line-no">137</span><span id="line-137">    }</span>
-<span class="source-line-no">138</span><span id="line-138"></span>
-<span class="source-line-no">139</span><span id="line-139">    /**</span>
-<span class="source-line-no">140</span><span id="line-140">     * Forward layout changed event to browser session scoped storage.</span>
-<span class="source-line-no">141</span><span id="line-141">     *</span>
-<span class="source-line-no">142</span><span id="line-142">     * @param event the event</span>
-<span class="source-line-no">143</span><span id="line-143">     * @param channel the channel</span>
-<span class="source-line-no">144</span><span id="line-144">     * @throws IOException Signals that an I/O exception has occurred.</span>
-<span class="source-line-no">145</span><span id="line-145">     */</span>
-<span class="source-line-no">146</span><span id="line-146">    @Handler</span>
-<span class="source-line-no">147</span><span id="line-147">    public void onConsoleLayoutChanged(ConsoleLayoutChanged event,</span>
-<span class="source-line-no">148</span><span id="line-148">            ConsoleConnection channel) throws IOException {</span>
-<span class="source-line-no">149</span><span id="line-149">        Optional&lt;KVStoredLayoutData&gt; optDs = Optional.ofNullable(</span>
-<span class="source-line-no">150</span><span id="line-150">            (KVStoredLayoutData) channel.session().transientData()</span>
-<span class="source-line-no">151</span><span id="line-151">                .get(KVStoredLayoutData.class));</span>
-<span class="source-line-no">152</span><span id="line-152">        if (optDs.isPresent()) {</span>
-<span class="source-line-no">153</span><span id="line-153">            optDs.get().onConsoleLayoutChanged(event, channel);</span>
-<span class="source-line-no">154</span><span id="line-154">        }</span>
-<span class="source-line-no">155</span><span id="line-155">    }</span>
-<span class="source-line-no">156</span><span id="line-156"></span>
-<span class="source-line-no">157</span><span id="line-157">    /**</span>
-<span class="source-line-no">158</span><span id="line-158">     * Caches the data in the session.</span>
-<span class="source-line-no">159</span><span id="line-159">     */</span>
-<span class="source-line-no">160</span><span id="line-160">    @SuppressWarnings("PMD.CommentRequired")</span>
-<span class="source-line-no">161</span><span id="line-161">    private class KVStoredLayoutData {</span>
-<span class="source-line-no">162</span><span id="line-162"></span>
-<span class="source-line-no">163</span><span id="line-163">        private final String storagePath;</span>
-<span class="source-line-no">164</span><span id="line-164">        private Map&lt;String, Object&gt; persisted;</span>
-<span class="source-line-no">165</span><span id="line-165"></span>
-<span class="source-line-no">166</span><span id="line-166">        public KVStoredLayoutData(Session session) {</span>
-<span class="source-line-no">167</span><span id="line-167">            storagePath = "/"</span>
-<span class="source-line-no">168</span><span id="line-168">                + WebConsoleUtils.userFromSession(session)</span>
-<span class="source-line-no">169</span><span id="line-169">                    .map(ConsoleUser::getName).orElse("")</span>
-<span class="source-line-no">170</span><span id="line-170">                + "/" + KVStoreBasedConsolePolicy.class.getName();</span>
-<span class="source-line-no">171</span><span id="line-171">        }</span>
-<span class="source-line-no">172</span><span id="line-172"></span>
-<span class="source-line-no">173</span><span id="line-173">        @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",</span>
-<span class="source-line-no">174</span><span id="line-174">            "PMD.AvoidInstantiatingObjectsInLoops" })</span>
-<span class="source-line-no">175</span><span id="line-175">        public void onConsolePrepared(</span>
-<span class="source-line-no">176</span><span id="line-176">                ConsolePrepared event, IOSubchannel channel) {</span>
-<span class="source-line-no">177</span><span id="line-177">            KeyValueStoreQuery query = new KeyValueStoreQuery(</span>
-<span class="source-line-no">178</span><span id="line-178">                storagePath, channel);</span>
-<span class="source-line-no">179</span><span id="line-179">            Event.onCompletion(query, e -&gt; onQueryCompleted(e, channel,</span>
-<span class="source-line-no">180</span><span id="line-180">                event.event().renderSupport()));</span>
-<span class="source-line-no">181</span><span id="line-181">            fire(query, channel);</span>
-<span class="source-line-no">182</span><span id="line-182">        }</span>
-<span class="source-line-no">183</span><span id="line-183"></span>
-<span class="source-line-no">184</span><span id="line-184">        @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")</span>
-<span class="source-line-no">185</span><span id="line-185">        public void onQueryCompleted(KeyValueStoreQuery query,</span>
-<span class="source-line-no">186</span><span id="line-186">                IOSubchannel channel, RenderSupport renderSupport) {</span>
-<span class="source-line-no">187</span><span id="line-187">            try {</span>
-<span class="source-line-no">188</span><span id="line-188">                String data = Optional.ofNullable(query.get())</span>
-<span class="source-line-no">189</span><span id="line-189">                    .flatMap(m -&gt; Optional.ofNullable(m.get(storagePath)))</span>
-<span class="source-line-no">190</span><span id="line-190">                    .orElse(null);</span>
-<span class="source-line-no">191</span><span id="line-191">                if (data == null) {</span>
-<span class="source-line-no">192</span><span id="line-192">                    persisted = new HashMap&lt;&gt;();</span>
-<span class="source-line-no">193</span><span id="line-193">                } else {</span>
-<span class="source-line-no">194</span><span id="line-194">                    persisted = mapper.readValue(data.getBytes(),</span>
-<span class="source-line-no">195</span><span id="line-195">                        mapper.getTypeFactory().constructMapType(Map.class,</span>
-<span class="source-line-no">196</span><span id="line-196">                            String.class, Object.class));</span>
-<span class="source-line-no">197</span><span id="line-197">                }</span>
-<span class="source-line-no">198</span><span id="line-198">            } catch (InterruptedException | IOException e) {</span>
-<span class="source-line-no">199</span><span id="line-199">                persisted = new HashMap&lt;&gt;();</span>
-<span class="source-line-no">200</span><span id="line-200">            }</span>
-<span class="source-line-no">201</span><span id="line-201"></span>
-<span class="source-line-no">202</span><span id="line-202">            // Make sure data is consistent</span>
-<span class="source-line-no">203</span><span id="line-203">            @SuppressWarnings("unchecked")</span>
-<span class="source-line-no">204</span><span id="line-204">            List&lt;String&gt; previewLayout = (List&lt;String&gt;) persisted</span>
-<span class="source-line-no">205</span><span id="line-205">                .computeIfAbsent("previewLayout",</span>
-<span class="source-line-no">206</span><span id="line-206">                    newKey -&gt; Collections.emptyList());</span>
-<span class="source-line-no">207</span><span id="line-207">            @SuppressWarnings("unchecked")</span>
-<span class="source-line-no">208</span><span id="line-208">            List&lt;String&gt; tabsLayout = (List&lt;String&gt;) persisted.computeIfAbsent(</span>
-<span class="source-line-no">209</span><span id="line-209">                "tabsLayout", newKey -&gt; Collections.emptyList());</span>
-<span class="source-line-no">210</span><span id="line-210">            Object xtraInfo = persisted.computeIfAbsent(</span>
-<span class="source-line-no">211</span><span id="line-211">                "xtraInfo", newKey -&gt; new Object());</span>
-<span class="source-line-no">212</span><span id="line-212"></span>
-<span class="source-line-no">213</span><span id="line-213">            // Update (now consistent) layout</span>
-<span class="source-line-no">214</span><span id="line-214">            channel.respond(new LastConsoleLayout(</span>
-<span class="source-line-no">215</span><span id="line-215">                previewLayout, tabsLayout, xtraInfo));</span>
-<span class="source-line-no">216</span><span id="line-216"></span>
-<span class="source-line-no">217</span><span id="line-217">            // Restore conlets</span>
-<span class="source-line-no">218</span><span id="line-218">            for (String conletId : tabsLayout) {</span>
-<span class="source-line-no">219</span><span id="line-219">                fire(new RenderConletRequest(renderSupport, conletId,</span>
-<span class="source-line-no">220</span><span id="line-220">                    RenderMode.asSet(RenderMode.View)), channel);</span>
-<span class="source-line-no">221</span><span id="line-221">            }</span>
-<span class="source-line-no">222</span><span id="line-222">            for (String conletId : previewLayout) {</span>
-<span class="source-line-no">223</span><span id="line-223">                fire(new RenderConletRequest(renderSupport, conletId,</span>
-<span class="source-line-no">224</span><span id="line-224">                    RenderMode.asSet(RenderMode.Preview,</span>
-<span class="source-line-no">225</span><span id="line-225">                        RenderMode.Foreground)),</span>
-<span class="source-line-no">226</span><span id="line-226">                    channel);</span>
-<span class="source-line-no">227</span><span id="line-227">            }</span>
-<span class="source-line-no">228</span><span id="line-228">        }</span>
-<span class="source-line-no">229</span><span id="line-229"></span>
-<span class="source-line-no">230</span><span id="line-230">        public void onConsoleLayoutChanged(ConsoleLayoutChanged event,</span>
-<span class="source-line-no">231</span><span id="line-231">                IOSubchannel channel) throws IOException {</span>
-<span class="source-line-no">232</span><span id="line-232">            persisted.put("previewLayout", event.previewLayout());</span>
-<span class="source-line-no">233</span><span id="line-233">            persisted.put("tabsLayout", event.tabsLayout());</span>
-<span class="source-line-no">234</span><span id="line-234">            persisted.put("xtraInfo", event.xtraInfo());</span>
-<span class="source-line-no">235</span><span id="line-235"></span>
-<span class="source-line-no">236</span><span id="line-236">            // Now store.</span>
-<span class="source-line-no">237</span><span id="line-237">            fire(new KeyValueStoreUpdate().update(storagePath,</span>
-<span class="source-line-no">238</span><span id="line-238">                mapper.writer().writeValueAsString(persisted)), channel);</span>
-<span class="source-line-no">239</span><span id="line-239">        }</span>
+<span class="source-line-no">061</span><span id="line-61"> * Each time the layout is changed in the web console, the web console sends </span>
+<span class="source-line-no">062</span><span id="line-62"> * the new layout data and this component updates the persistent storage</span>
+<span class="source-line-no">063</span><span id="line-63"> * accordingly.</span>
+<span class="source-line-no">064</span><span id="line-64"> * </span>
+<span class="source-line-no">065</span><span id="line-65"> * @startuml KVPPBootSeq.svg</span>
+<span class="source-line-no">066</span><span id="line-66"> * hide footbox</span>
+<span class="source-line-no">067</span><span id="line-67"> * </span>
+<span class="source-line-no">068</span><span id="line-68"> * actor System</span>
+<span class="source-line-no">069</span><span id="line-69"> * System -&gt; KVStoreBasedConsolePolicy: ConsolePrepared</span>
+<span class="source-line-no">070</span><span id="line-70"> * activate KVStoreBasedConsolePolicy</span>
+<span class="source-line-no">071</span><span id="line-71"> * KVStoreBasedConsolePolicy -&gt; "KV Store": KeyValueStoreQuery</span>
+<span class="source-line-no">072</span><span id="line-72"> * deactivate KVStoreBasedConsolePolicy</span>
+<span class="source-line-no">073</span><span id="line-73"> * activate "KV Store"</span>
+<span class="source-line-no">074</span><span id="line-74"> * "KV Store" -&gt; KVStoreBasedConsolePolicy: KeyValueStoreData</span>
+<span class="source-line-no">075</span><span id="line-75"> * deactivate "KV Store"</span>
+<span class="source-line-no">076</span><span id="line-76"> * activate KVStoreBasedConsolePolicy</span>
+<span class="source-line-no">077</span><span id="line-77"> * KVStoreBasedConsolePolicy -&gt; WebConsole: LastConsoleLayout</span>
+<span class="source-line-no">078</span><span id="line-78"> * activate WebConsole</span>
+<span class="source-line-no">079</span><span id="line-79"> * WebConsole -&gt; Browser: "lastConsoleLayout"</span>
+<span class="source-line-no">080</span><span id="line-80"> * deactivate WebConsole</span>
+<span class="source-line-no">081</span><span id="line-81"> * loop for all conlets to be displayed</span>
+<span class="source-line-no">082</span><span id="line-82"> *     KVStoreBasedConsolePolicy -&gt; ConletX: RenderConletRequest</span>
+<span class="source-line-no">083</span><span id="line-83"> *     activate ConletX</span>
+<span class="source-line-no">084</span><span id="line-84"> *     ConletX -&gt; WebConsole: RenderConlet</span>
+<span class="source-line-no">085</span><span id="line-85"> *     deactivate ConletX</span>
+<span class="source-line-no">086</span><span id="line-86"> *     activate WebConsole</span>
+<span class="source-line-no">087</span><span id="line-87"> *     WebConsole -&gt; Browser: "renderConlet"</span>
+<span class="source-line-no">088</span><span id="line-88"> *     deactivate WebConsole</span>
+<span class="source-line-no">089</span><span id="line-89"> * end</span>
+<span class="source-line-no">090</span><span id="line-90"> * deactivate KVStoreBasedConsolePolicy</span>
+<span class="source-line-no">091</span><span id="line-91"> * </span>
+<span class="source-line-no">092</span><span id="line-92"> * Browser -&gt; WebConsole: "consoleLayout"</span>
+<span class="source-line-no">093</span><span id="line-93"> * activate WebConsole</span>
+<span class="source-line-no">094</span><span id="line-94"> * WebConsole -&gt; KVStoreBasedConsolePolicy: ConsoleLayoutChanged</span>
+<span class="source-line-no">095</span><span id="line-95"> * deactivate WebConsole</span>
+<span class="source-line-no">096</span><span id="line-96"> * activate KVStoreBasedConsolePolicy</span>
+<span class="source-line-no">097</span><span id="line-97"> * KVStoreBasedConsolePolicy -&gt; "KV Store": KeyValueStoreUpdate</span>
+<span class="source-line-no">098</span><span id="line-98"> * deactivate KVStoreBasedConsolePolicy</span>
+<span class="source-line-no">099</span><span id="line-99"> * activate "KV Store"</span>
+<span class="source-line-no">100</span><span id="line-100"> * deactivate "KV Store"</span>
+<span class="source-line-no">101</span><span id="line-101"> * </span>
+<span class="source-line-no">102</span><span id="line-102"> * @enduml</span>
+<span class="source-line-no">103</span><span id="line-103"> */</span>
+<span class="source-line-no">104</span><span id="line-104">public class KVStoreBasedConsolePolicy extends Component {</span>
+<span class="source-line-no">105</span><span id="line-105"></span>
+<span class="source-line-no">106</span><span id="line-106">    /** The mapper. */</span>
+<span class="source-line-no">107</span><span id="line-107">    @SuppressWarnings("PMD.FieldNamingConventions")</span>
+<span class="source-line-no">108</span><span id="line-108">    protected static final ObjectMapper mapper = JsonMapper.builder()</span>
+<span class="source-line-no">109</span><span id="line-109">        .addModule(new ParameterNamesModule()).addModule(new Jdk8Module())</span>
+<span class="source-line-no">110</span><span id="line-110">        .addModule(new JavaTimeModule()).build();</span>
+<span class="source-line-no">111</span><span id="line-111"></span>
+<span class="source-line-no">112</span><span id="line-112">    /**</span>
+<span class="source-line-no">113</span><span id="line-113">     * Creates a new component with its channel set to</span>
+<span class="source-line-no">114</span><span id="line-114">     * itself.</span>
+<span class="source-line-no">115</span><span id="line-115">     */</span>
+<span class="source-line-no">116</span><span id="line-116">    public KVStoreBasedConsolePolicy() {</span>
+<span class="source-line-no">117</span><span id="line-117">        // Everything done by super.</span>
+<span class="source-line-no">118</span><span id="line-118">    }</span>
+<span class="source-line-no">119</span><span id="line-119"></span>
+<span class="source-line-no">120</span><span id="line-120">    /**</span>
+<span class="source-line-no">121</span><span id="line-121">     * Creates a new component with its channel set to the given channel.</span>
+<span class="source-line-no">122</span><span id="line-122">     * </span>
+<span class="source-line-no">123</span><span id="line-123">     * @param componentChannel</span>
+<span class="source-line-no">124</span><span id="line-124">     */</span>
+<span class="source-line-no">125</span><span id="line-125">    public KVStoreBasedConsolePolicy(Channel componentChannel) {</span>
+<span class="source-line-no">126</span><span id="line-126">        super(componentChannel);</span>
+<span class="source-line-no">127</span><span id="line-127">    }</span>
+<span class="source-line-no">128</span><span id="line-128"></span>
+<span class="source-line-no">129</span><span id="line-129">    /**</span>
+<span class="source-line-no">130</span><span id="line-130">     * Create browser session scoped storage and forward event to it.</span>
+<span class="source-line-no">131</span><span id="line-131">     *</span>
+<span class="source-line-no">132</span><span id="line-132">     * @param event the event</span>
+<span class="source-line-no">133</span><span id="line-133">     * @param channel the channel</span>
+<span class="source-line-no">134</span><span id="line-134">     */</span>
+<span class="source-line-no">135</span><span id="line-135">    @Handler</span>
+<span class="source-line-no">136</span><span id="line-136">    public void onConsolePrepared(</span>
+<span class="source-line-no">137</span><span id="line-137">            ConsolePrepared event, ConsoleConnection channel) {</span>
+<span class="source-line-no">138</span><span id="line-138">        ((KVStoredLayoutData) channel.session().transientData()</span>
+<span class="source-line-no">139</span><span id="line-139">            .computeIfAbsent(KVStoredLayoutData.class,</span>
+<span class="source-line-no">140</span><span id="line-140">                key -&gt; new KVStoredLayoutData(channel.session())))</span>
+<span class="source-line-no">141</span><span id="line-141">                    .onConsolePrepared(event, channel);</span>
+<span class="source-line-no">142</span><span id="line-142">    }</span>
+<span class="source-line-no">143</span><span id="line-143"></span>
+<span class="source-line-no">144</span><span id="line-144">    /**</span>
+<span class="source-line-no">145</span><span id="line-145">     * Forward layout changed event to browser session scoped storage.</span>
+<span class="source-line-no">146</span><span id="line-146">     *</span>
+<span class="source-line-no">147</span><span id="line-147">     * @param event the event</span>
+<span class="source-line-no">148</span><span id="line-148">     * @param channel the channel</span>
+<span class="source-line-no">149</span><span id="line-149">     * @throws IOException Signals that an I/O exception has occurred.</span>
+<span class="source-line-no">150</span><span id="line-150">     */</span>
+<span class="source-line-no">151</span><span id="line-151">    @Handler</span>
+<span class="source-line-no">152</span><span id="line-152">    public void onConsoleLayoutChanged(ConsoleLayoutChanged event,</span>
+<span class="source-line-no">153</span><span id="line-153">            ConsoleConnection channel) throws IOException {</span>
+<span class="source-line-no">154</span><span id="line-154">        Optional&lt;KVStoredLayoutData&gt; optDs = Optional.ofNullable(</span>
+<span class="source-line-no">155</span><span id="line-155">            (KVStoredLayoutData) channel.session().transientData()</span>
+<span class="source-line-no">156</span><span id="line-156">                .get(KVStoredLayoutData.class));</span>
+<span class="source-line-no">157</span><span id="line-157">        if (optDs.isPresent()) {</span>
+<span class="source-line-no">158</span><span id="line-158">            optDs.get().onConsoleLayoutChanged(event, channel);</span>
+<span class="source-line-no">159</span><span id="line-159">        }</span>
+<span class="source-line-no">160</span><span id="line-160">    }</span>
+<span class="source-line-no">161</span><span id="line-161"></span>
+<span class="source-line-no">162</span><span id="line-162">    /**</span>
+<span class="source-line-no">163</span><span id="line-163">     * Caches the data in the session.</span>
+<span class="source-line-no">164</span><span id="line-164">     */</span>
+<span class="source-line-no">165</span><span id="line-165">    @SuppressWarnings("PMD.CommentRequired")</span>
+<span class="source-line-no">166</span><span id="line-166">    private class KVStoredLayoutData {</span>
+<span class="source-line-no">167</span><span id="line-167"></span>
+<span class="source-line-no">168</span><span id="line-168">        private final String storagePath;</span>
+<span class="source-line-no">169</span><span id="line-169">        private Map&lt;String, Object&gt; persisted;</span>
+<span class="source-line-no">170</span><span id="line-170"></span>
+<span class="source-line-no">171</span><span id="line-171">        public KVStoredLayoutData(Session session) {</span>
+<span class="source-line-no">172</span><span id="line-172">            storagePath = "/"</span>
+<span class="source-line-no">173</span><span id="line-173">                + WebConsoleUtils.userFromSession(session)</span>
+<span class="source-line-no">174</span><span id="line-174">                    .map(ConsoleUser::getName).orElse("")</span>
+<span class="source-line-no">175</span><span id="line-175">                + "/" + KVStoreBasedConsolePolicy.class.getName();</span>
+<span class="source-line-no">176</span><span id="line-176">        }</span>
+<span class="source-line-no">177</span><span id="line-177"></span>
+<span class="source-line-no">178</span><span id="line-178">        @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",</span>
+<span class="source-line-no">179</span><span id="line-179">            "PMD.AvoidInstantiatingObjectsInLoops" })</span>
+<span class="source-line-no">180</span><span id="line-180">        public void onConsolePrepared(</span>
+<span class="source-line-no">181</span><span id="line-181">                ConsolePrepared event, IOSubchannel channel) {</span>
+<span class="source-line-no">182</span><span id="line-182">            KeyValueStoreQuery query = new KeyValueStoreQuery(</span>
+<span class="source-line-no">183</span><span id="line-183">                storagePath, channel);</span>
+<span class="source-line-no">184</span><span id="line-184">            Event.onCompletion(query, e -&gt; onQueryCompleted(e, channel,</span>
+<span class="source-line-no">185</span><span id="line-185">                event.event().renderSupport()));</span>
+<span class="source-line-no">186</span><span id="line-186">            fire(query, channel);</span>
+<span class="source-line-no">187</span><span id="line-187">        }</span>
+<span class="source-line-no">188</span><span id="line-188"></span>
+<span class="source-line-no">189</span><span id="line-189">        @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")</span>
+<span class="source-line-no">190</span><span id="line-190">        public void onQueryCompleted(KeyValueStoreQuery query,</span>
+<span class="source-line-no">191</span><span id="line-191">                IOSubchannel channel, RenderSupport renderSupport) {</span>
+<span class="source-line-no">192</span><span id="line-192">            try {</span>
+<span class="source-line-no">193</span><span id="line-193">                String data = Optional.ofNullable(query.get())</span>
+<span class="source-line-no">194</span><span id="line-194">                    .flatMap(m -&gt; Optional.ofNullable(m.get(storagePath)))</span>
+<span class="source-line-no">195</span><span id="line-195">                    .orElse(null);</span>
+<span class="source-line-no">196</span><span id="line-196">                if (data == null) {</span>
+<span class="source-line-no">197</span><span id="line-197">                    persisted = new HashMap&lt;&gt;();</span>
+<span class="source-line-no">198</span><span id="line-198">                } else {</span>
+<span class="source-line-no">199</span><span id="line-199">                    persisted = mapper.readValue(data.getBytes(),</span>
+<span class="source-line-no">200</span><span id="line-200">                        mapper.getTypeFactory().constructMapType(Map.class,</span>
+<span class="source-line-no">201</span><span id="line-201">                            String.class, Object.class));</span>
+<span class="source-line-no">202</span><span id="line-202">                }</span>
+<span class="source-line-no">203</span><span id="line-203">            } catch (InterruptedException | IOException e) {</span>
+<span class="source-line-no">204</span><span id="line-204">                persisted = new HashMap&lt;&gt;();</span>
+<span class="source-line-no">205</span><span id="line-205">            }</span>
+<span class="source-line-no">206</span><span id="line-206"></span>
+<span class="source-line-no">207</span><span id="line-207">            // Make sure data is consistent</span>
+<span class="source-line-no">208</span><span id="line-208">            @SuppressWarnings("unchecked")</span>
+<span class="source-line-no">209</span><span id="line-209">            List&lt;String&gt; previewLayout = (List&lt;String&gt;) persisted</span>
+<span class="source-line-no">210</span><span id="line-210">                .computeIfAbsent("previewLayout",</span>
+<span class="source-line-no">211</span><span id="line-211">                    newKey -&gt; Collections.emptyList());</span>
+<span class="source-line-no">212</span><span id="line-212">            @SuppressWarnings("unchecked")</span>
+<span class="source-line-no">213</span><span id="line-213">            List&lt;String&gt; tabsLayout = (List&lt;String&gt;) persisted.computeIfAbsent(</span>
+<span class="source-line-no">214</span><span id="line-214">                "tabsLayout", newKey -&gt; Collections.emptyList());</span>
+<span class="source-line-no">215</span><span id="line-215">            Object xtraInfo = persisted.computeIfAbsent(</span>
+<span class="source-line-no">216</span><span id="line-216">                "xtraInfo", newKey -&gt; new Object());</span>
+<span class="source-line-no">217</span><span id="line-217"></span>
+<span class="source-line-no">218</span><span id="line-218">            // Update (now consistent) layout</span>
+<span class="source-line-no">219</span><span id="line-219">            channel.respond(new LastConsoleLayout(</span>
+<span class="source-line-no">220</span><span id="line-220">                previewLayout, tabsLayout, xtraInfo));</span>
+<span class="source-line-no">221</span><span id="line-221"></span>
+<span class="source-line-no">222</span><span id="line-222">            // Restore conlets</span>
+<span class="source-line-no">223</span><span id="line-223">            for (String conletId : tabsLayout) {</span>
+<span class="source-line-no">224</span><span id="line-224">                fire(new RenderConletRequest(renderSupport, conletId,</span>
+<span class="source-line-no">225</span><span id="line-225">                    RenderMode.asSet(RenderMode.View)), channel);</span>
+<span class="source-line-no">226</span><span id="line-226">            }</span>
+<span class="source-line-no">227</span><span id="line-227">            for (String conletId : previewLayout) {</span>
+<span class="source-line-no">228</span><span id="line-228">                fire(new RenderConletRequest(renderSupport, conletId,</span>
+<span class="source-line-no">229</span><span id="line-229">                    RenderMode.asSet(RenderMode.Preview,</span>
+<span class="source-line-no">230</span><span id="line-230">                        RenderMode.Foreground)),</span>
+<span class="source-line-no">231</span><span id="line-231">                    channel);</span>
+<span class="source-line-no">232</span><span id="line-232">            }</span>
+<span class="source-line-no">233</span><span id="line-233">        }</span>
+<span class="source-line-no">234</span><span id="line-234"></span>
+<span class="source-line-no">235</span><span id="line-235">        public void onConsoleLayoutChanged(ConsoleLayoutChanged event,</span>
+<span class="source-line-no">236</span><span id="line-236">                IOSubchannel channel) throws IOException {</span>
+<span class="source-line-no">237</span><span id="line-237">            persisted.put("previewLayout", event.previewLayout());</span>
+<span class="source-line-no">238</span><span id="line-238">            persisted.put("tabsLayout", event.tabsLayout());</span>
+<span class="source-line-no">239</span><span id="line-239">            persisted.put("xtraInfo", event.xtraInfo());</span>
 <span class="source-line-no">240</span><span id="line-240"></span>
-<span class="source-line-no">241</span><span id="line-241">    }</span>
-<span class="source-line-no">242</span><span id="line-242">}</span>
+<span class="source-line-no">241</span><span id="line-241">            // Now store.</span>
+<span class="source-line-no">242</span><span id="line-242">            fire(new KeyValueStoreUpdate().update(storagePath,</span>
+<span class="source-line-no">243</span><span id="line-243">                mapper.writer().writeValueAsString(persisted)), channel);</span>
+<span class="source-line-no">244</span><span id="line-244">        }</span>
+<span class="source-line-no">245</span><span id="line-245"></span>
+<span class="source-line-no">246</span><span id="line-246">    }</span>
+<span class="source-line-no">247</span><span id="line-247">}</span>
 
 
 
