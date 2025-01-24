@@ -174,63 +174,64 @@
 <span class="source-line-no">160</span><span id="line-160">        return sslContext;</span>
 <span class="source-line-no">161</span><span id="line-161">    }</span>
 <span class="source-line-no">162</span><span id="line-162"></span>
-<span class="source-line-no">163</span><span id="line-163">    @SuppressWarnings("PMD.TooFewBranchesForASwitchStatement")</span>
-<span class="source-line-no">164</span><span id="line-164">    private void createVueJsConsole(HttpServer httpServer)</span>
-<span class="source-line-no">165</span><span id="line-165">            throws URISyntaxException {</span>
-<span class="source-line-no">166</span><span id="line-166">        ConsoleWeblet consoleWeblet</span>
-<span class="source-line-no">167</span><span id="line-167">            = httpServer.attach(new VueJsConsoleWeblet(httpServer.channel(),</span>
-<span class="source-line-no">168</span><span id="line-168">                SELF, new URI("/")))</span>
-<span class="source-line-no">169</span><span id="line-169">                .prependClassTemplateLoader(this.getClass())</span>
-<span class="source-line-no">170</span><span id="line-170">                .prependResourceBundleProvider(ConsoleApp.class)</span>
-<span class="source-line-no">171</span><span id="line-171">                .prependConsoleResourceProvider(ConsoleApp.class);</span>
-<span class="source-line-no">172</span><span id="line-172">        WebConsole console = consoleWeblet.console();</span>
-<span class="source-line-no">173</span><span id="line-173">        // consoleWeblet.setConnectionInactivityTimeout(300_000);</span>
-<span class="source-line-no">174</span><span id="line-174">        console.attach(new BrowserLocalBackedKVStore(</span>
-<span class="source-line-no">175</span><span id="line-175">            console.channel(), consoleWeblet.prefix().getPath()));</span>
-<span class="source-line-no">176</span><span id="line-176">        console.attach(new KVStoreBasedConsolePolicy(console.channel()));</span>
-<span class="source-line-no">177</span><span id="line-177">        // Add all available page resource providers</span>
-<span class="source-line-no">178</span><span id="line-178">        console.attach(new ComponentCollector&lt;&gt;(</span>
-<span class="source-line-no">179</span><span id="line-179">            PageResourceProviderFactory.class, console.channel()));</span>
-<span class="source-line-no">180</span><span id="line-180">        // Add all available conlets</span>
-<span class="source-line-no">181</span><span id="line-181">        console.attach(new ComponentCollector&lt;&gt;(</span>
-<span class="source-line-no">182</span><span id="line-182">            ConletComponentFactory.class, console.channel(), type -&gt; {</span>
-<span class="source-line-no">183</span><span id="line-183">                switch (type) {</span>
-<span class="source-line-no">184</span><span id="line-184">                case "org.jgrapes.webconlet.examples.login.LoginConlet":</span>
-<span class="source-line-no">185</span><span id="line-185">                    return Collections.emptyList();</span>
-<span class="source-line-no">186</span><span id="line-186">                default:</span>
-<span class="source-line-no">187</span><span id="line-187">                    return Arrays.asList(Collections.emptyMap());</span>
-<span class="source-line-no">188</span><span id="line-188">                }</span>
-<span class="source-line-no">189</span><span id="line-189">            }));</span>
-<span class="source-line-no">190</span><span id="line-190">    }</span>
-<span class="source-line-no">191</span><span id="line-191"></span>
-<span class="source-line-no">192</span><span id="line-192">    /**</span>
-<span class="source-line-no">193</span><span id="line-193">     * Stop the application.</span>
-<span class="source-line-no">194</span><span id="line-194">     * @throws Exception </span>
-<span class="source-line-no">195</span><span id="line-195">     *</span>
-<span class="source-line-no">196</span><span id="line-196">     * @throws Exception the exception</span>
-<span class="source-line-no">197</span><span id="line-197">     */</span>
-<span class="source-line-no">198</span><span id="line-198">    @SuppressWarnings("PMD.SignatureDeclareThrowsException")</span>
-<span class="source-line-no">199</span><span id="line-199">    public void stop() throws Exception {</span>
-<span class="source-line-no">200</span><span id="line-200">        app.fire(new Stop(), BROADCAST);</span>
-<span class="source-line-no">201</span><span id="line-201">        Components.awaitExhaustion();</span>
-<span class="source-line-no">202</span><span id="line-202">    }</span>
-<span class="source-line-no">203</span><span id="line-203"></span>
-<span class="source-line-no">204</span><span id="line-204">    /**</span>
-<span class="source-line-no">205</span><span id="line-205">     * @param args</span>
-<span class="source-line-no">206</span><span id="line-206">     * @throws IOException</span>
-<span class="source-line-no">207</span><span id="line-207">     * @throws InterruptedException</span>
-<span class="source-line-no">208</span><span id="line-208">     * @throws NoSuchAlgorithmException</span>
-<span class="source-line-no">209</span><span id="line-209">     * @throws KeyStoreException</span>
-<span class="source-line-no">210</span><span id="line-210">     * @throws UnrecoverableKeyException</span>
-<span class="source-line-no">211</span><span id="line-211">     * @throws CertificateException</span>
-<span class="source-line-no">212</span><span id="line-212">     * @throws KeyManagementException</span>
-<span class="source-line-no">213</span><span id="line-213">     */</span>
-<span class="source-line-no">214</span><span id="line-214">    @SuppressWarnings("PMD.SignatureDeclareThrowsException")</span>
-<span class="source-line-no">215</span><span id="line-215">    public static void main(String[] args) throws Exception {</span>
-<span class="source-line-no">216</span><span id="line-216">        new ConsoleApp().start();</span>
-<span class="source-line-no">217</span><span id="line-217">    }</span>
-<span class="source-line-no">218</span><span id="line-218"></span>
-<span class="source-line-no">219</span><span id="line-219">}</span>
+<span class="source-line-no">163</span><span id="line-163">    @SuppressWarnings({ "PMD.TooFewBranchesForASwitchStatement",</span>
+<span class="source-line-no">164</span><span id="line-164">        "PMD.TooFewBranchesForSwitch" })</span>
+<span class="source-line-no">165</span><span id="line-165">    private void createVueJsConsole(HttpServer httpServer)</span>
+<span class="source-line-no">166</span><span id="line-166">            throws URISyntaxException {</span>
+<span class="source-line-no">167</span><span id="line-167">        ConsoleWeblet consoleWeblet</span>
+<span class="source-line-no">168</span><span id="line-168">            = httpServer.attach(new VueJsConsoleWeblet(httpServer.channel(),</span>
+<span class="source-line-no">169</span><span id="line-169">                SELF, new URI("/")))</span>
+<span class="source-line-no">170</span><span id="line-170">                .prependClassTemplateLoader(this.getClass())</span>
+<span class="source-line-no">171</span><span id="line-171">                .prependResourceBundleProvider(ConsoleApp.class)</span>
+<span class="source-line-no">172</span><span id="line-172">                .prependConsoleResourceProvider(ConsoleApp.class);</span>
+<span class="source-line-no">173</span><span id="line-173">        WebConsole console = consoleWeblet.console();</span>
+<span class="source-line-no">174</span><span id="line-174">        // consoleWeblet.setConnectionInactivityTimeout(300_000);</span>
+<span class="source-line-no">175</span><span id="line-175">        console.attach(new BrowserLocalBackedKVStore(</span>
+<span class="source-line-no">176</span><span id="line-176">            console.channel(), consoleWeblet.prefix().getPath()));</span>
+<span class="source-line-no">177</span><span id="line-177">        console.attach(new KVStoreBasedConsolePolicy(console.channel()));</span>
+<span class="source-line-no">178</span><span id="line-178">        // Add all available page resource providers</span>
+<span class="source-line-no">179</span><span id="line-179">        console.attach(new ComponentCollector&lt;&gt;(</span>
+<span class="source-line-no">180</span><span id="line-180">            PageResourceProviderFactory.class, console.channel()));</span>
+<span class="source-line-no">181</span><span id="line-181">        // Add all available conlets</span>
+<span class="source-line-no">182</span><span id="line-182">        console.attach(new ComponentCollector&lt;&gt;(</span>
+<span class="source-line-no">183</span><span id="line-183">            ConletComponentFactory.class, console.channel(), type -&gt; {</span>
+<span class="source-line-no">184</span><span id="line-184">                switch (type) {</span>
+<span class="source-line-no">185</span><span id="line-185">                case "org.jgrapes.webconlet.examples.login.LoginConlet":</span>
+<span class="source-line-no">186</span><span id="line-186">                    return Collections.emptyList();</span>
+<span class="source-line-no">187</span><span id="line-187">                default:</span>
+<span class="source-line-no">188</span><span id="line-188">                    return Arrays.asList(Collections.emptyMap());</span>
+<span class="source-line-no">189</span><span id="line-189">                }</span>
+<span class="source-line-no">190</span><span id="line-190">            }));</span>
+<span class="source-line-no">191</span><span id="line-191">    }</span>
+<span class="source-line-no">192</span><span id="line-192"></span>
+<span class="source-line-no">193</span><span id="line-193">    /**</span>
+<span class="source-line-no">194</span><span id="line-194">     * Stop the application.</span>
+<span class="source-line-no">195</span><span id="line-195">     * @throws Exception </span>
+<span class="source-line-no">196</span><span id="line-196">     *</span>
+<span class="source-line-no">197</span><span id="line-197">     * @throws Exception the exception</span>
+<span class="source-line-no">198</span><span id="line-198">     */</span>
+<span class="source-line-no">199</span><span id="line-199">    @SuppressWarnings("PMD.SignatureDeclareThrowsException")</span>
+<span class="source-line-no">200</span><span id="line-200">    public void stop() throws Exception {</span>
+<span class="source-line-no">201</span><span id="line-201">        app.fire(new Stop(), BROADCAST);</span>
+<span class="source-line-no">202</span><span id="line-202">        Components.awaitExhaustion();</span>
+<span class="source-line-no">203</span><span id="line-203">    }</span>
+<span class="source-line-no">204</span><span id="line-204"></span>
+<span class="source-line-no">205</span><span id="line-205">    /**</span>
+<span class="source-line-no">206</span><span id="line-206">     * @param args</span>
+<span class="source-line-no">207</span><span id="line-207">     * @throws IOException</span>
+<span class="source-line-no">208</span><span id="line-208">     * @throws InterruptedException</span>
+<span class="source-line-no">209</span><span id="line-209">     * @throws NoSuchAlgorithmException</span>
+<span class="source-line-no">210</span><span id="line-210">     * @throws KeyStoreException</span>
+<span class="source-line-no">211</span><span id="line-211">     * @throws UnrecoverableKeyException</span>
+<span class="source-line-no">212</span><span id="line-212">     * @throws CertificateException</span>
+<span class="source-line-no">213</span><span id="line-213">     * @throws KeyManagementException</span>
+<span class="source-line-no">214</span><span id="line-214">     */</span>
+<span class="source-line-no">215</span><span id="line-215">    @SuppressWarnings("PMD.SignatureDeclareThrowsException")</span>
+<span class="source-line-no">216</span><span id="line-216">    public static void main(String[] args) throws Exception {</span>
+<span class="source-line-no">217</span><span id="line-217">        new ConsoleApp().start();</span>
+<span class="source-line-no">218</span><span id="line-218">    }</span>
+<span class="source-line-no">219</span><span id="line-219"></span>
+<span class="source-line-no">220</span><span id="line-220">}</span>
 
 
 
