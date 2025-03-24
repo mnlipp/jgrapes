@@ -1,4 +1,5 @@
 org.jgrapes.webconlet.examples.formtest
+org.jgrapes.webconlet.examples.hellosolid
 org.jgrapes.webconlet.examples.helloworld
 org.jgrapes.webconlet.examples.styletest
 org.jgrapes.webconlet.jmxbrowser
@@ -31,6 +32,7 @@ org.jgrapes.webconsole.provider.lodash
 org.jgrapes.webconsole.provider.luxon
 org.jgrapes.webconsole.provider.markdownit
 org.jgrapes.webconsole.provider.moment
+org.jgrapes.webconsole.provider.solidjs
 org.jgrapes.webconsole.provider.vue
 org.jgrapes.webconsole.provider.vuejs
 org.jgrapes.webconsole.provider.vuex
