@@ -1,6 +1,6 @@
 /*
  * JGrapes Event Driven Framework
- * Copyright (C) 2016-2018 Michael N. Lipp
+ * Copyright (C) 2016-2026 Michael N. Lipp
  * 
  * This program is free software; you can redistribute it and/or modify it 
  * under the terms of the GNU Affero General Public License as published by 
@@ -9,11 +9,11 @@
  * 
  * This program is distributed in the hope that it will be useful, but 
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License 
- * for more details.
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public
+ * License for more details.
  * 
- * You should have received a copy of the GNU Affero General Public License along 
- * with this program; if not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 package org.jgrapes.core.internal;
@@ -50,9 +50,8 @@ import org.jgrapes.core.events.Start;
  * the derived class {@link org.jgrapes.core.internal.ComponentProxy} can be
  * used. 
  */
-@SuppressWarnings({ "PMD.TooManyMethods", "PMD.DataflowAnomalyAnalysis",
-    "PMD.AvoidDuplicateLiterals", "PMD.GodClass",
-    "PMD.CouplingBetweenObjects" })
+@SuppressWarnings({ "PMD.TooManyMethods", "PMD.GodClass",
+    "PMD.CouplingBetweenObjects", "PMD.AvoidSynchronizedStatement" })
 public abstract class ComponentVertex implements Manager, Channel {
 
     /** The component's (optional) name. */
@@ -66,6 +65,7 @@ public abstract class ComponentVertex implements Manager, Channel {
     /** The handlers provided by this component. */
     private List<HandlerReference> handlers;
     /** The channel replacements. */
+    @SuppressWarnings({ "PMD.LooseCoupling", "PMD.AvoidDuplicateLiterals" })
     private final ChannelReplacements channelReplacements;
 
     /**
@@ -75,6 +75,7 @@ public abstract class ComponentVertex implements Manager, Channel {
      *
      * @param channelReplacements the channel replacements
      */
+    @SuppressWarnings("PMD.LooseCoupling")
     protected ComponentVertex(ChannelReplacements channelReplacements) {
         this.channelReplacements = channelReplacements;
     }
@@ -84,6 +85,7 @@ public abstract class ComponentVertex implements Manager, Channel {
      *
      * @return the channel replacements
      */
+    @SuppressWarnings("PMD.LooseCoupling")
     public ChannelReplacements channelReplacements() {
         return channelReplacements;
     }
@@ -93,7 +95,6 @@ public abstract class ComponentVertex implements Manager, Channel {
      * when {@link #component()} can be relied on to return the
      * correct value.
      */
-    @SuppressWarnings("PMD.AvoidDuplicateLiterals")
     protected void initComponentsHandlers() {
         handlers = new ArrayList<>();
         // Have a look at all methods.
@@ -103,6 +104,7 @@ public abstract class ComponentVertex implements Manager, Channel {
         handlers = Collections.synchronizedList(handlers);
     }
 
+    @SuppressWarnings("PMD.LooseCoupling")
     private void maybeAddHandler(
             Method method, ChannelReplacements channelReplacements) {
         for (Annotation annotation : method.getDeclaredAnnotations()) {
@@ -186,6 +188,7 @@ public abstract class ComponentVertex implements Manager, Channel {
      * 
      * @return the component
      */
+    @Override
     public abstract ComponentType component();
 
     /*
@@ -269,8 +272,7 @@ public abstract class ComponentVertex implements Manager, Channel {
      */
     @Override
     @SuppressWarnings({ "PMD.CyclomaticComplexity", "PMD.NcssCount",
-        "PMD.NPathComplexity", "PMD.CognitiveComplexity",
-        "PMD.ConfusingArgumentToVarargsMethod" })
+        "PMD.CognitiveComplexity" })
     public <T extends ComponentType> T attach(T child) {
         synchronized (this) {
             ComponentVertex childNode = componentVertex(child, null);
@@ -311,16 +313,15 @@ public abstract class ComponentVertex implements Manager, Channel {
             }
             Channel parentChan = channel();
             if (parentChan == null) {
-                parentChan = Channel.BROADCAST;
+                parentChan = BROADCAST;
             }
             Channel childChan = childNode.channel();
             if (childChan == null) {
-                parentChan = Channel.BROADCAST;
+                parentChan = BROADCAST;
             }
             Attached evt = new Attached(childNode.component(), component());
-            if (parentChan.equals(Channel.BROADCAST)
-                || childChan.equals(Channel.BROADCAST)) {
-                fire(evt, Channel.BROADCAST);
+            if (parentChan.equals(BROADCAST) || childChan.equals(BROADCAST)) {
+                fire(evt, BROADCAST);
             } else if (parentChan.equals(childChan)) {
                 fire(evt, parentChan);
             } else {
@@ -410,7 +411,7 @@ public abstract class ComponentVertex implements Manager, Channel {
      */
     private static class TreeIterator implements Iterator<ComponentVertex> {
 
-        @SuppressWarnings({ "PMD.LooseCoupling", "PMD.ReplaceVectorWithList" })
+        @SuppressWarnings({ "PMD.LooseCoupling" })
         private final Stack<CurPos> stack = new Stack<>();
         private final ComponentTree tree;
 
@@ -458,17 +459,15 @@ public abstract class ComponentVertex implements Manager, Channel {
          * @see java.util.Iterator#next()
          */
         @Override
-        @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
         public ComponentVertex next() {
             if (stack.empty()) {
                 throw new NoSuchElementException();
             }
             CurPos pos = stack.peek();
-            @SuppressWarnings("PMD.PrematureDeclaration")
             ComponentVertex res = pos.current;
             while (true) {
                 synchronized (pos.current) {
-                    if (pos.current.tree != tree) {
+                    if (pos.current.tree != tree) { // NOPMD (comparison)
                         throw new ConcurrentModificationException();
                     }
                     if (pos.childIter.hasNext()) {

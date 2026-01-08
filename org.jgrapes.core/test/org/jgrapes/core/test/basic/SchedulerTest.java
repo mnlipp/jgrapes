@@ -52,6 +52,7 @@ class SchedulerTest {
             startTime.plusMillis(t1));
         Components.schedule(expiredTimer -> hit2.getAndSet(true),
             startTime.plusMillis(t2));
+        @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
         Timer timer3
             = Components.schedule(expiredTimer -> hit1.getAndSet(false),
                 startTime.plusMillis(t3));

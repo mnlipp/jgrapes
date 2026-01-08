@@ -1,6 +1,6 @@
 /*
  * JGrapes Event Driven Framework
- * Copyright (C) 2016-2018 Michael N. Lipp
+ * Copyright (C) 2016-2026 Michael N. Lipp
  * 
  * This program is free software; you can redistribute it and/or modify it 
  * under the terms of the GNU Affero General Public License as published by 
@@ -9,11 +9,11 @@
  * 
  * This program is distributed in the hope that it will be useful, but 
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License 
- * for more details.
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public
+ * License for more details.
  * 
- * You should have received a copy of the GNU Affero General Public License along 
- * with this program; if not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 package org.jgrapes.core.events;
@@ -58,8 +58,7 @@ public class Error extends Event<Void> {
      * @param event the event
      * @return the t
      */
-    @SuppressWarnings({ "unchecked",
-        "PMD.AvoidThrowingNewInstanceOfSameException" })
+    @SuppressWarnings({ "unchecked" })
     public static <T extends Error> T duplicate(T event) {
         try {
             return (T) event.getClass().getConstructor(event.getClass())
@@ -149,8 +148,7 @@ public class Error extends Event<Void> {
         builder.append(Components.objectName(this))
             .append(" [");
         if (channels().length > 0) {
-            builder.append("channels=");
-            builder.append(Channel.toString(channels()));
+            builder.append("channels=").append(Channel.toString(channels()));
         }
         if (message != null) {
             builder.append(", message=\"").append(message).append('"');

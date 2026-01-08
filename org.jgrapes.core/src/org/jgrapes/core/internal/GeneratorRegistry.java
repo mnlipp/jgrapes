@@ -1,6 +1,6 @@
 /*
  * JGrapes Event Driven Framework
- * Copyright (C) 2016-2018 Michael N. Lipp
+ * Copyright (C) 2016-2026 Michael N. Lipp
  * 
  * This program is free software; you can redistribute it and/or modify it 
  * under the terms of the GNU Affero General Public License as published by 
@@ -9,11 +9,11 @@
  * 
  * This program is distributed in the hope that it will be useful, but 
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License 
- * for more details.
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public
+ * License for more details.
  * 
- * You should have received a copy of the GNU Affero General Public License along 
- * with this program; if not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 package org.jgrapes.core.internal;
@@ -29,7 +29,8 @@ import org.jgrapes.core.ComponentType;
  * A registry for generators. Used to track generators and determine
  * whether the application has stopped.
  */
-@SuppressWarnings("PMD.ClassWithOnlyPrivateConstructorsShouldBeFinal")
+@SuppressWarnings({ "PMD.ClassWithOnlyPrivateConstructorsShouldBeFinal",
+    "PMD.AvoidSynchronizedStatement" })
 public class GeneratorRegistry {
 
     @SuppressWarnings("PMD.FieldNamingConventions")
@@ -39,14 +40,12 @@ public class GeneratorRegistry {
 
     private long running;
     private Thread keepAlive;
-    @SuppressWarnings("PMD.ImmutableField")
     private Map<Object, Object> generators;
 
     /**
      * Holds a generator instance.
      */
     private static final class InstanceHolder {
-        @SuppressWarnings("PMD.AccessorClassGeneration")
         private static final GeneratorRegistry INSTANCE
             = new GeneratorRegistry();
     }
@@ -71,7 +70,6 @@ public class GeneratorRegistry {
      *
      * @param obj the obj
      */
-    @SuppressWarnings({ "PMD.GuardLogStatement", "PMD.AvoidDuplicateLiterals" })
     public void add(Object obj) {
         synchronized (this) {
             running += 1;
@@ -105,7 +103,6 @@ public class GeneratorRegistry {
      *
      * @param obj the generator
      */
-    @SuppressWarnings("PMD.GuardLogStatement")
     public void remove(Object obj) {
         synchronized (this) {
             running -= 1;
@@ -138,8 +135,7 @@ public class GeneratorRegistry {
      *
      * @throws InterruptedException the interrupted exception
      */
-    @SuppressWarnings({ "PMD.CollapsibleIfStatements",
-        "PMD.GuardLogStatement" })
+    @SuppressWarnings({ "PMD.GuardLogStatement" })
     public void awaitExhaustion() throws InterruptedException {
         if (generators != null) {
             synchronized (this) {
@@ -179,8 +175,7 @@ public class GeneratorRegistry {
      * @return true, if successful
      * @throws InterruptedException the interrupted exception
      */
-    @SuppressWarnings({ "PMD.CollapsibleIfStatements",
-        "PMD.GuardLogStatement" })
+    @SuppressWarnings({ "PMD.CollapsibleIfStatements" })
     public boolean awaitExhaustion(long timeout)
             throws InterruptedException {
         synchronized (this) {

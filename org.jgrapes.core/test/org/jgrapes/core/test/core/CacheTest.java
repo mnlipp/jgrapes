@@ -27,7 +27,7 @@ import org.jgrapes.core.events.Start;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 
-class CacheTestTest {
+class CacheTest {
 
     class App extends Component {
     }
@@ -53,6 +53,7 @@ class CacheTestTest {
     void testUpdateCache() throws InterruptedException {
         // App with component
         App app = new App();
+        @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
         Comp comp1 = app.attach(new Comp(app));
         app.fire(new Start());
 
@@ -62,6 +63,7 @@ class CacheTestTest {
         assertEquals(1, comp1.testEvents);
 
         // Attach another component and fire again
+        @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
         Comp comp2 = app.attach(new Comp(app));
         app.fire(new TestEvent(), app);
         Components.awaitExhaustion();

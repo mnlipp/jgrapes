@@ -1,6 +1,6 @@
 /*
  * JGrapes Event Driven Framework
- * Copyright (C) 2018 Michael N. Lipp
+ * Copyright (C) 2026 Michael N. Lipp
  * 
  * This program is free software; you can redistribute it and/or modify it 
  * under the terms of the GNU Affero General Public License as published by 
@@ -9,11 +9,11 @@
  * 
  * This program is distributed in the hope that it will be useful, but 
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License 
- * for more details.
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public
+ * License for more details.
  * 
- * You should have received a copy of the GNU Affero General Public License along 
- * with this program; if not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 package org.jgrapes.core;
@@ -54,7 +54,7 @@ public final class TypedIdKey<V> implements Serializable {
     public static <V> V associate(Associator associator, Serializable id,
             V value) {
         associator.setAssociated(
-            new TypedIdKey<V>((Class<V>) value.getClass(), id), value);
+            new TypedIdKey<>((Class<V>) value.getClass(), id), value);
         return value;
     }
 
@@ -106,9 +106,7 @@ public final class TypedIdKey<V> implements Serializable {
     }
 
     @Override
-    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
     public int hashCode() {
-        @SuppressWarnings("PMD.AvoidFinalLocalVariable")
         final int prime = 31;
         int result = 1;
         result = prime * result + ((id == null) ? 0 : id.hashCode());

@@ -1,6 +1,6 @@
 /*
  * JGrapes Event Driven Framework
- * Copyright (C) 2016-2018 Michael N. Lipp
+ * Copyright (C) 2016-2026 Michael N. Lipp
  * 
  * This program is free software; you can redistribute it and/or modify it 
  * under the terms of the GNU Affero General Public License as published by 
@@ -41,6 +41,7 @@ public abstract class CompletionEvent<T extends Event<?>>
      * @param monitoredEvent the monitored event
      * @param channels the channels
      */
+    @SuppressWarnings("PMD.ConstructorCallsOverridableMethod")
     public CompletionEvent(T monitoredEvent, Channel... channels) {
         super(channels);
         setResult(monitoredEvent);
@@ -70,8 +71,7 @@ public abstract class CompletionEvent<T extends Event<?>>
             .append(Components.objectName(currentResults().get(0)))
             .append(") [");
         if (channels().length > 0) {
-            builder.append("channels=");
-            builder.append(Channel.toString(channels()));
+            builder.append("channels=").append(Channel.toString(channels()));
         }
         builder.append(']');
         return builder.toString();

@@ -9,11 +9,11 @@
  * 
  * This program is distributed in the hope that it will be useful, but 
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License 
- * for more details.
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public
+ * License for more details.
  * 
- * You should have received a copy of the GNU Affero General Public License along 
- * with this program; if not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 package org.jgrapes.core;
@@ -47,18 +47,16 @@ import org.jgrapes.core.internal.GeneratorRegistry;
 /**
  * This class provides some utility functions.
  */
-@SuppressWarnings({ "PMD.TooManyMethods", "PMD.ClassNamingConventions",
-    "PMD.ExcessivePublicCount", "PMD.ExcessiveClassLength",
+@SuppressWarnings({ "PMD.TooManyMethods",
     "PMD.ClassWithOnlyPrivateConstructorsShouldBeFinal",
-    "PMD.CouplingBetweenObjects" })
+    "PMD.CouplingBetweenObjects", "PMD.AvoidSynchronizedStatement" })
 public class Components {
 
     private static ExecutorService defaultExecutorService
         = useVirtualThreads() ? Executors.newVirtualThreadPerTaskExecutor()
             : Executors.newCachedThreadPool(
                 new ThreadFactory() {
-                    @SuppressWarnings({ "PMD.CommentRequired",
-                        "PMD.MissingOverride" })
+                    @SuppressWarnings({ "PMD.MissingOverride" })
                     public Thread newThread(Runnable runnable) {
                         Thread thread
                             = Executors.defaultThreadFactory()
@@ -352,6 +350,7 @@ public class Components {
      * for looking up their id or want to map to another object for getting the
      * id (see {@link Components#objectId(Object)}).
      */
+    @SuppressWarnings("PMD.ImplicitFunctionalInterface")
     public interface IdInfoProvider {
 
         /**
@@ -477,7 +476,6 @@ public class Components {
         /**
          * Instantiates a new scheduler.
          */
-        @SuppressWarnings("PMD.ConstructorCallsOverridableMethod")
         public Scheduler() {
             (useVirtualThreads() ? ofVirtual() : ofPlatform())
                 .name("Components.Scheduler").start(this);
@@ -492,7 +490,6 @@ public class Components {
          */
         public Timer schedule(
                 TimeoutHandler timeoutHandler, Instant scheduledFor) {
-            @SuppressWarnings("PMD.AccessorClassGeneration")
             Timer timer = new Timer(this, timeoutHandler, scheduledFor);
             synchronized (timers) {
                 timers.add(timer);
@@ -523,7 +520,6 @@ public class Components {
         public void run() {
             while (true) {
                 while (true) {
-                    @SuppressWarnings("PMD.AvoidFinalLocalVariable")
                     final Timer first;
                     synchronized (timers) {
                         first = timers.peek();
@@ -867,7 +863,7 @@ public class Components {
             }
         }
 
-        @SuppressWarnings("PMD.CompareObjectsWithEquals")
+        @SuppressWarnings({ "PMD.CompareObjectsWithEquals" })
         private void cleanOrphaned() {
             while (true) {
                 @SuppressWarnings("unchecked")
@@ -1000,7 +996,6 @@ public class Components {
          * @param value the value
          * @return the v
          */
-        @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
         public V remove(K key, V value) {
             synchronized (this) {
                 cleanOrphaned();

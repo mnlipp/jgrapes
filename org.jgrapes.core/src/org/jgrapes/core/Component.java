@@ -1,6 +1,6 @@
 /*
  * JGrapes Event Driven Framework
- * Copyright (C) 2016-2018 Michael N. Lipp
+ * Copyright (C) 2016-2026 Michael N. Lipp
  * 
  * This program is free software; you can redistribute it and/or modify it 
  * under the terms of the GNU Affero General Public License as published by 
@@ -43,7 +43,6 @@ import org.jgrapes.core.internal.ComponentVertex;
 public abstract class Component extends ComponentVertex
         implements ComponentType, Channel {
 
-    @SuppressWarnings("PMD.FieldNamingConventions")
     protected final Logger logger = Logger.getLogger(getClass().getName());
     private final Channel componentChannel;
 
@@ -51,6 +50,7 @@ public abstract class Component extends ComponentVertex
      * Creates a new component base with its channel set to
      * itself.
      */
+    @SuppressWarnings("PMD.ConstructorCallsOverridableMethod")
     public Component() {
         super(null);
         componentChannel = this;
@@ -69,6 +69,7 @@ public abstract class Component extends ComponentVertex
      * handlers listen on by default and that 
      * {@link Manager#fire(Event, Channel...)} sends the event to
      */
+    @SuppressWarnings("PMD.ConstructorCallsOverridableMethod")
     public Component(Channel componentChannel) {
         super(null);
         if (componentChannel == SELF) {
@@ -89,6 +90,8 @@ public abstract class Component extends ComponentVertex
      * @param channelReplacements the channel replacements to apply
      * to the `channels` elements of the {@link Handler} annotations
      */
+    @SuppressWarnings({ "PMD.LooseCoupling",
+        "PMD.ConstructorCallsOverridableMethod" })
     public Component(
             Channel componentChannel, ChannelReplacements channelReplacements) {
         super(channelReplacements);

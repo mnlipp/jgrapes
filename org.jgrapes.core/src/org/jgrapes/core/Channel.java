@@ -1,6 +1,6 @@
 /*
  * JGrapes Event Driven Framework
- * Copyright (C) 2016-2018 Michael N. Lipp
+ * Copyright (C) 2016-2026 Michael N. Lipp
  * 
  * This program is free software; you can redistribute it and/or modify it 
  * under the terms of the GNU Affero General Public License as published by 
@@ -61,6 +61,7 @@ import org.jgrapes.core.annotation.Handler;
  * 
  * @see Channel#BROADCAST
  */
+@SuppressWarnings("PMD.ImplicitFunctionalInterface")
 public interface Channel extends Eligible {
 
     /**
@@ -86,6 +87,7 @@ public interface Channel extends Eligible {
      * if you want to specify a handler that handles events fired on the 
      * component's channel or on additional channels.
      */
+    @SuppressWarnings("PMD.ImplicitFunctionalInterface")
     interface Default extends Channel {
     }
 
@@ -167,6 +169,7 @@ public interface Channel extends Eligible {
      * @param channel the channel
      * @return the representation
      */
+    @SuppressWarnings("PMD.CompareObjectsWithEquals")
     static String toString(Channel channel) {
         if (channel == null) {
             return "null";
@@ -189,7 +192,7 @@ public interface Channel extends Eligible {
      * @param channels the channels
      * @return the representation
      */
-    @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis", "PMD.UseVarargs" })
+    @SuppressWarnings({ "PMD.UseVarargs" })
     static String toString(Channel[] channels) {
         StringBuilder builder = new StringBuilder();
         builder.append('[');

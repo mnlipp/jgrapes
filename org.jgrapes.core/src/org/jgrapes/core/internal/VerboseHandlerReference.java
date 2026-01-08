@@ -1,6 +1,6 @@
 /*
  * JGrapes Event Driven Framework
- * Copyright (C) 2016-2018 Michael N. Lipp
+ * Copyright (C) 2016-2026 Michael N. Lipp
  * 
  * This program is free software; you can redistribute it and/or modify it 
  * under the terms of the GNU Affero General Public License as published by 
@@ -32,7 +32,6 @@ import org.jgrapes.core.InvocationFilter;
  * the cost of some cpu cycles).
  *
  */
-@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 class VerboseHandlerReference extends HandlerReference {
 
     private static AtomicLong invocationCounter = new AtomicLong(1);
@@ -59,7 +58,6 @@ class VerboseHandlerReference extends HandlerReference {
      * @param event the event
      */
     @Override
-    @SuppressWarnings("PMD.NcssCount")
     public void invoke(EventBase<?> event) throws Throwable {
         if (needsFiltering && !((InvocationFilter) filter).includes(event)) {
             return;

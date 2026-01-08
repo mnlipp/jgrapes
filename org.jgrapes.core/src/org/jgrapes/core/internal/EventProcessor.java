@@ -1,6 +1,6 @@
 /*
  * JGrapes Event Driven Framework
- * Copyright (C) 2016-2018 Michael N. Lipp
+ * Copyright (C) 2016-2026 Michael N. Lipp
  * 
  * This program is free software; you can redistribute it and/or modify it 
  * under the terms of the GNU Affero General Public License as published by 
@@ -9,11 +9,11 @@
  * 
  * This program is distributed in the hope that it will be useful, but 
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License 
- * for more details.
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public
+ * License for more details.
  * 
- * You should have received a copy of the GNU Affero General Public License along 
- * with this program; if not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 package org.jgrapes.core.internal;
@@ -33,7 +33,7 @@ import org.jgrapes.core.EventPipeline;
 /**
  * This class provides the default implementation of an {@link EventPipeline}.
  */
-@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
+@SuppressWarnings("PMD.AvoidSynchronizedStatement")
 public class EventProcessor implements InternalEventPipeline, Runnable {
 
     @SuppressWarnings("PMD.FieldNamingConventions")
@@ -97,8 +97,8 @@ public class EventProcessor implements InternalEventPipeline, Runnable {
 
     @Override
     public <T extends Event<?>> T add(T event, Channel... channels) {
-        ((EventBase<?>) event).generatedBy(newEventsParent.get());
-        ((EventBase<?>) event).processedBy(this);
+        ((EventBase<?>) event).generatedBy(newEventsParent.get()); // NOPMD
+        ((EventBase<?>) event).processedBy(this); // NOPMD (cast)
         synchronized (this) {
             EventChannelsTuple.addTo(queue, event, channels);
             if (!isExecuting) {
@@ -111,7 +111,6 @@ public class EventProcessor implements InternalEventPipeline, Runnable {
         return event;
     }
 
-    @SuppressWarnings("PMD.ConfusingTernary")
     /* default */ void add(Queue<EventChannelsTuple> source) {
         synchronized (this) {
             while (true) {
@@ -140,8 +139,6 @@ public class EventProcessor implements InternalEventPipeline, Runnable {
     }
 
     @Override
-    @SuppressWarnings({ "PMD.AvoidDeeplyNestedIfStmts",
-        "PMD.CognitiveComplexity" })
     public void run() {
         String origName = Thread.currentThread().getName();
         try {
@@ -175,6 +172,7 @@ public class EventProcessor implements InternalEventPipeline, Runnable {
                         break;
                     }
                 }
+                @SuppressWarnings("PMD.LooseCoupling")
                 HandlerList handlers
                     = componentTree.getEventHandlers(next.event, next.channels);
                 invokeHandlers(handlers.iterator(), next.event);
@@ -235,7 +233,7 @@ public class EventProcessor implements InternalEventPipeline, Runnable {
         } catch (Throwable t) { // NOPMD
             // Errors have been rethrown, so this should work.
             event.handlingError(asEventPipeline, t);
-        } finally { // NOPMD
+        } finally {
             if (invoking != null) {
                 event.handled();
                 invoking = null;
