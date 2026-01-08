@@ -101,6 +101,7 @@ public class ProjectPreparation {
                     .resolve("junit:junit:4.13.2")
                     .bom("org.junit:junit-bom:5.12.2")
                     .resolve("org.junit.jupiter:junit-jupiter-api")
+                    .resolve("org.junit.jupiter:junit-jupiter-params")
                     .resolve(Scope.Runtime,
                         "org.junit.jupiter:junit-jupiter-engine",
                         "org.junit.vintage:junit-vintage-engine"));
