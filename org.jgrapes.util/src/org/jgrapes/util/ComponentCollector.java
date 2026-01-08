@@ -73,6 +73,7 @@ public class ComponentCollector<F extends ComponentFactory>
      * @param componentChannel this component's channel
      * @param configurator the configurator function
      */
+    @SuppressWarnings("PMD.ConstructorCallsOverridableMethod")
     public ComponentCollector(Class<F> factoryClass, Channel componentChannel,
             Function<String, List<Map<Object, Object>>> configurator) {
         super(componentChannel);
