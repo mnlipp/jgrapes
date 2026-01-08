@@ -26,7 +26,7 @@ getProperty() {
 
 # Get the executable jar
 
-jdbldVersion=$(getProperty "jdbldVersion" "0.0.11")
+jdbldVersion=$(getProperty "jdbldVersion" "0.0.12")
 
 if [ -n "$JDBLD_JAR" ]; then
   builderJar="$JDBLD_JAR"
