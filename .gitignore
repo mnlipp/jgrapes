@@ -1,10 +1,22 @@
+# Ignore build output directory
+**/build
+
+# Eclipse
+**/bin
+**/.classpath
+**/.project
+# **/.settings/
+/.settings
+# */.checkstyle
+# */.eclipse-pmd
+!_jdbld/.project
+!_jdbld/.classpath
+!_jdbld/.settings/
+
+# Others
 .gradle/
 .metadata/
 .recommenders/
-/build/
-**/.classpath
-**/.project
 **/org.eclipse.jdt.core.prefs
 /node_modules/
 /package-lock.json
-/bin/
