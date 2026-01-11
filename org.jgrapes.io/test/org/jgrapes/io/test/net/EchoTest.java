@@ -204,8 +204,8 @@ public class EchoTest {
 
         // Create TLS "converter"
         KeyStore serverStore = KeyStore.getInstance("JKS");
-        try (FileInputStream kf
-            = new FileInputStream("test-resources/localhost.jks")) {
+        try (InputStream kf = getClass()
+                .getResourceAsStream("/localhost.jks")) {
             serverStore.load(kf, "nopass".toCharArray());
         }
         KeyManagerFactory kmf = KeyManagerFactory.getInstance(

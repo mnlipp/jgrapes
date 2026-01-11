@@ -18,9 +18,10 @@
 
 package org.jgrapes.io.test.net;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.URISyntaxException;
+import java.nio.file.Path;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.events.Stop;
@@ -33,11 +34,13 @@ import org.junit.Test;
 public class ConfigureTcpServerTest {
 
     @Test
-    public void testConfigure() throws InterruptedException, IOException {
+    public void testConfigure()
+            throws InterruptedException, IOException, URISyntaxException {
         SocketServer app = new SocketServer(Channel.SELF).setServerAddress(
             new InetSocketAddress("test.org", 80));
         app.attach(new NioDispatcher());
-        File file = new File("test-resources/TestConfig.json");
+        var file = Path.of(getClass().getResource("/TestConfig.json").toURI())
+            .toAbsolutePath().toFile();
         app.attach(new JsonConfigurationStore(app, file, false));
         Components.start(app);
         assertEquals("127.0.0.1",

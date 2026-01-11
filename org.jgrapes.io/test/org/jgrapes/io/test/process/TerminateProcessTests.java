@@ -3,7 +3,9 @@ package org.jgrapes.io.test.process;
 import java.io.FileDescriptor;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
+import java.nio.file.Path;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
@@ -98,14 +100,16 @@ public class TerminateProcessTests {
     }
 
     @Test
-    public void testClose() throws InterruptedException, IOException {
+    public void testClose()
+            throws InterruptedException, IOException, URISyntaxException {
         var app = new ProcessManager();
         var consumer = new Consumer(app);
         app.attach(consumer);
         app.attach(new OnStartedCloser(app));
         Components.start(app);
-        app.fire(new StartProcess("/bin/sh", "test-resources/destroy.sh"))
-            .get();
+        var script = Path.of(getClass().getResource("/destroy.sh").toURI())
+            .toAbsolutePath();
+        app.fire(new StartProcess("/bin/sh", script.toString())).get();
         Components.awaitExhaustion();
         Components.checkAssertions();
         assertEquals(0, consumer.exitValue);
@@ -140,14 +144,16 @@ public class TerminateProcessTests {
     }
 
     @Test
-    public void testStop() throws InterruptedException, IOException {
+    public void testStop()
+            throws InterruptedException, IOException, URISyntaxException {
         var app = new ProcessManager();
         var consumer = new Consumer(app);
         app.attach(consumer);
         app.attach(new OnStartedStopper(app));
         Components.start(app);
-        app.fire(new StartProcess("/bin/sh", "test-resources/destroy.sh"))
-            .get();
+        var script = Path.of(getClass().getResource("/destroy.sh").toURI())
+            .toAbsolutePath();
+        app.fire(new StartProcess("/bin/sh", script.toString())).get();
         Components.awaitExhaustion();
         Components.checkAssertions();
         assertEquals(0, consumer.exitValue);

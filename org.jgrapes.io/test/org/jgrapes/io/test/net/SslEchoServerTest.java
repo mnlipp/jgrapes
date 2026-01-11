@@ -22,6 +22,7 @@ import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -115,8 +116,8 @@ public class SslEchoServerTest {
 
         // Create TLS "converter"
         KeyStore serverStore = KeyStore.getInstance("JKS");
-        try (FileInputStream kf
-            = new FileInputStream("test-resources/localhost.jks")) {
+        try (InputStream kf = getClass()
+            .getResourceAsStream("/localhost.jks")) {
             serverStore.load(kf, "nopass".toCharArray());
         }
         KeyManagerFactory kmf = KeyManagerFactory.getInstance(

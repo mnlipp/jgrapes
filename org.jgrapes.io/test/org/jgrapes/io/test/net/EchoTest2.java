@@ -18,8 +18,8 @@
 
 package org.jgrapes.io.test.net;
 
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
@@ -181,8 +181,8 @@ public class EchoTest2 {
 
         // Create TLS "converter"
         KeyStore serverStore = KeyStore.getInstance("JKS");
-        try (FileInputStream kf
-            = new FileInputStream("test-resources/localhost.jks")) {
+        try (InputStream kf = getClass()
+            .getResourceAsStream("/localhost.jks")) {
             serverStore.load(kf, "nopass".toCharArray());
         }
         KeyManagerFactory kmf = KeyManagerFactory.getInstance(
