@@ -1,4 +1,9 @@
+# Eclipse
 /bin/
-/generated/
 /bin_test/
-/build/
+/generated/
+/.project
+/.classpath
+/.eclipse-pmd
+/.checkstyle
+/.settings

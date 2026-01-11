@@ -19,22 +19,14 @@
 package jdbld;
 
 import java.io.IOException;
-import java.util.stream.Stream;
-import org.jdrupes.builder.api.FileTree;
 import static org.jdrupes.builder.api.Intend.*;
 import org.jdrupes.builder.api.Project;
-import org.jdrupes.builder.api.ResourceRequest;
-import static org.jdrupes.builder.api.ResourceRequest.*;
-import org.jdrupes.builder.api.ResourceType;
 import org.jdrupes.builder.api.RootProject;
 import org.jdrupes.builder.api.TestResult;
 import org.jdrupes.builder.core.AbstractProject;
 import org.jdrupes.builder.eclipse.EclipseConfiguration;
 import org.jdrupes.builder.java.ClasspathElement;
-import org.jdrupes.builder.mvnrepo.MvnRepoLookup;
-import org.jdrupes.builder.java.Javadoc;
-import org.jdrupes.builder.java.JavaSourceFile;
-import static org.jdrupes.builder.java.JavaTypes.*;
+import org.jdrupes.builder.mvnrepo.PomFile;
 import static org.jdrupes.builder.mvnrepo.MvnProperties.GroupId;
 
 public class Root extends AbstractProject implements RootProject {
@@ -83,17 +75,15 @@ public class Root extends AbstractProject implements RootProject {
 //            .options("-quiet");
 
         // Commands
-        commandAlias("build",
-            new ResourceRequest<ClasspathElement>(new ResourceType<>() {})
+        commandAlias("build", requestFor(ClasspathElement.class)
         /*
          * ,
          * new ResourceRequest<JavadocDirectory>(
          * new ResourceType<>() {
          * })
          */);
-        commandAlias("test",
-            new ResourceRequest<TestResult>(new ResourceType<>() {}));
-        commandAlias("eclipse",
-            new ResourceRequest<EclipseConfiguration>(new ResourceType<>() {}));
+        commandAlias("pomFile", requestFor(PomFile.class));
+        commandAlias("test", requestFor(TestResult.class));
+        commandAlias("eclipse", requestFor(EclipseConfiguration.class));
     }
 }
