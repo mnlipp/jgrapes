@@ -14,7 +14,7 @@
 <div class="source-container">
 <pre><span class="source-line-no">001</span><span id="line-1">/*</span>
 <span class="source-line-no">002</span><span id="line-2"> * JGrapes Event Driven Framework</span>
-<span class="source-line-no">003</span><span id="line-3"> * Copyright (C) 2018 Michael N. Lipp</span>
+<span class="source-line-no">003</span><span id="line-3"> * Copyright (C) 2026 Michael N. Lipp</span>
 <span class="source-line-no">004</span><span id="line-4"> * </span>
 <span class="source-line-no">005</span><span id="line-5"> * This program is free software; you can redistribute it and/or modify it </span>
 <span class="source-line-no">006</span><span id="line-6"> * under the terms of the GNU Affero General Public License as published by </span>
@@ -23,11 +23,11 @@
 <span class="source-line-no">009</span><span id="line-9"> * </span>
 <span class="source-line-no">010</span><span id="line-10"> * This program is distributed in the hope that it will be useful, but </span>
 <span class="source-line-no">011</span><span id="line-11"> * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY</span>
-<span class="source-line-no">012</span><span id="line-12"> * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License </span>
-<span class="source-line-no">013</span><span id="line-13"> * for more details.</span>
+<span class="source-line-no">012</span><span id="line-12"> * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public</span>
+<span class="source-line-no">013</span><span id="line-13"> * License for more details.</span>
 <span class="source-line-no">014</span><span id="line-14"> * </span>
-<span class="source-line-no">015</span><span id="line-15"> * You should have received a copy of the GNU Affero General Public License along </span>
-<span class="source-line-no">016</span><span id="line-16"> * with this program; if not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+<span class="source-line-no">015</span><span id="line-15"> * You should have received a copy of the GNU Affero General Public License</span>
+<span class="source-line-no">016</span><span id="line-16"> * along with this program; if not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 <span class="source-line-no">017</span><span id="line-17"> */</span>
 <span class="source-line-no">018</span><span id="line-18"></span>
 <span class="source-line-no">019</span><span id="line-19">package org.jgrapes.core;</span>
@@ -68,7 +68,7 @@
 <span class="source-line-no">054</span><span id="line-54">    public static &lt;V&gt; V associate(Associator associator, Serializable id,</span>
 <span class="source-line-no">055</span><span id="line-55">            V value) {</span>
 <span class="source-line-no">056</span><span id="line-56">        associator.setAssociated(</span>
-<span class="source-line-no">057</span><span id="line-57">            new TypedIdKey&lt;V&gt;((Class&lt;V&gt;) value.getClass(), id), value);</span>
+<span class="source-line-no">057</span><span id="line-57">            new TypedIdKey&lt;&gt;((Class&lt;V&gt;) value.getClass(), id), value);</span>
 <span class="source-line-no">058</span><span id="line-58">        return value;</span>
 <span class="source-line-no">059</span><span id="line-59">    }</span>
 <span class="source-line-no">060</span><span id="line-60"></span>
@@ -120,50 +120,48 @@
 <span class="source-line-no">106</span><span id="line-106">    }</span>
 <span class="source-line-no">107</span><span id="line-107"></span>
 <span class="source-line-no">108</span><span id="line-108">    @Override</span>
-<span class="source-line-no">109</span><span id="line-109">    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")</span>
-<span class="source-line-no">110</span><span id="line-110">    public int hashCode() {</span>
-<span class="source-line-no">111</span><span id="line-111">        @SuppressWarnings("PMD.AvoidFinalLocalVariable")</span>
-<span class="source-line-no">112</span><span id="line-112">        final int prime = 31;</span>
-<span class="source-line-no">113</span><span id="line-113">        int result = 1;</span>
-<span class="source-line-no">114</span><span id="line-114">        result = prime * result + ((id == null) ? 0 : id.hashCode());</span>
-<span class="source-line-no">115</span><span id="line-115">        result = prime * result + ((type == null) ? 0 : type.hashCode());</span>
-<span class="source-line-no">116</span><span id="line-116">        return result;</span>
-<span class="source-line-no">117</span><span id="line-117">    }</span>
-<span class="source-line-no">118</span><span id="line-118"></span>
-<span class="source-line-no">119</span><span id="line-119">    @Override</span>
-<span class="source-line-no">120</span><span id="line-120">    public boolean equals(Object obj) {</span>
-<span class="source-line-no">121</span><span id="line-121">        if (this == obj) {</span>
-<span class="source-line-no">122</span><span id="line-122">            return true;</span>
-<span class="source-line-no">123</span><span id="line-123">        }</span>
-<span class="source-line-no">124</span><span id="line-124">        if (obj == null) {</span>
-<span class="source-line-no">125</span><span id="line-125">            return false;</span>
-<span class="source-line-no">126</span><span id="line-126">        }</span>
-<span class="source-line-no">127</span><span id="line-127">        if (getClass() != obj.getClass()) {</span>
-<span class="source-line-no">128</span><span id="line-128">            return false;</span>
-<span class="source-line-no">129</span><span id="line-129">        }</span>
-<span class="source-line-no">130</span><span id="line-130">        TypedIdKey&lt;?&gt; other = (TypedIdKey&lt;?&gt;) obj;</span>
-<span class="source-line-no">131</span><span id="line-131">        if (id == null) {</span>
-<span class="source-line-no">132</span><span id="line-132">            if (other.id != null) {</span>
-<span class="source-line-no">133</span><span id="line-133">                return false;</span>
-<span class="source-line-no">134</span><span id="line-134">            }</span>
-<span class="source-line-no">135</span><span id="line-135">        } else if (!id.equals(other.id)) {</span>
-<span class="source-line-no">136</span><span id="line-136">            return false;</span>
-<span class="source-line-no">137</span><span id="line-137">        }</span>
-<span class="source-line-no">138</span><span id="line-138">        if (type == null) {</span>
-<span class="source-line-no">139</span><span id="line-139">            if (other.type != null) {</span>
-<span class="source-line-no">140</span><span id="line-140">                return false;</span>
-<span class="source-line-no">141</span><span id="line-141">            }</span>
-<span class="source-line-no">142</span><span id="line-142">        } else if (!type.equals(other.type)) {</span>
-<span class="source-line-no">143</span><span id="line-143">            return false;</span>
-<span class="source-line-no">144</span><span id="line-144">        }</span>
-<span class="source-line-no">145</span><span id="line-145">        return true;</span>
-<span class="source-line-no">146</span><span id="line-146">    }</span>
-<span class="source-line-no">147</span><span id="line-147"></span>
-<span class="source-line-no">148</span><span id="line-148">    @Override</span>
-<span class="source-line-no">149</span><span id="line-149">    public String toString() {</span>
-<span class="source-line-no">150</span><span id="line-150">        return "TypedIdKey [" + type + ":" + id + "]";</span>
-<span class="source-line-no">151</span><span id="line-151">    }</span>
-<span class="source-line-no">152</span><span id="line-152">}</span>
+<span class="source-line-no">109</span><span id="line-109">    public int hashCode() {</span>
+<span class="source-line-no">110</span><span id="line-110">        final int prime = 31;</span>
+<span class="source-line-no">111</span><span id="line-111">        int result = 1;</span>
+<span class="source-line-no">112</span><span id="line-112">        result = prime * result + ((id == null) ? 0 : id.hashCode());</span>
+<span class="source-line-no">113</span><span id="line-113">        result = prime * result + ((type == null) ? 0 : type.hashCode());</span>
+<span class="source-line-no">114</span><span id="line-114">        return result;</span>
+<span class="source-line-no">115</span><span id="line-115">    }</span>
+<span class="source-line-no">116</span><span id="line-116"></span>
+<span class="source-line-no">117</span><span id="line-117">    @Override</span>
+<span class="source-line-no">118</span><span id="line-118">    public boolean equals(Object obj) {</span>
+<span class="source-line-no">119</span><span id="line-119">        if (this == obj) {</span>
+<span class="source-line-no">120</span><span id="line-120">            return true;</span>
+<span class="source-line-no">121</span><span id="line-121">        }</span>
+<span class="source-line-no">122</span><span id="line-122">        if (obj == null) {</span>
+<span class="source-line-no">123</span><span id="line-123">            return false;</span>
+<span class="source-line-no">124</span><span id="line-124">        }</span>
+<span class="source-line-no">125</span><span id="line-125">        if (getClass() != obj.getClass()) {</span>
+<span class="source-line-no">126</span><span id="line-126">            return false;</span>
+<span class="source-line-no">127</span><span id="line-127">        }</span>
+<span class="source-line-no">128</span><span id="line-128">        TypedIdKey&lt;?&gt; other = (TypedIdKey&lt;?&gt;) obj;</span>
+<span class="source-line-no">129</span><span id="line-129">        if (id == null) {</span>
+<span class="source-line-no">130</span><span id="line-130">            if (other.id != null) {</span>
+<span class="source-line-no">131</span><span id="line-131">                return false;</span>
+<span class="source-line-no">132</span><span id="line-132">            }</span>
+<span class="source-line-no">133</span><span id="line-133">        } else if (!id.equals(other.id)) {</span>
+<span class="source-line-no">134</span><span id="line-134">            return false;</span>
+<span class="source-line-no">135</span><span id="line-135">        }</span>
+<span class="source-line-no">136</span><span id="line-136">        if (type == null) {</span>
+<span class="source-line-no">137</span><span id="line-137">            if (other.type != null) {</span>
+<span class="source-line-no">138</span><span id="line-138">                return false;</span>
+<span class="source-line-no">139</span><span id="line-139">            }</span>
+<span class="source-line-no">140</span><span id="line-140">        } else if (!type.equals(other.type)) {</span>
+<span class="source-line-no">141</span><span id="line-141">            return false;</span>
+<span class="source-line-no">142</span><span id="line-142">        }</span>
+<span class="source-line-no">143</span><span id="line-143">        return true;</span>
+<span class="source-line-no">144</span><span id="line-144">    }</span>
+<span class="source-line-no">145</span><span id="line-145"></span>
+<span class="source-line-no">146</span><span id="line-146">    @Override</span>
+<span class="source-line-no">147</span><span id="line-147">    public String toString() {</span>
+<span class="source-line-no">148</span><span id="line-148">        return "TypedIdKey [" + type + ":" + id + "]";</span>
+<span class="source-line-no">149</span><span id="line-149">    }</span>
+<span class="source-line-no">150</span><span id="line-150">}</span>
 
 
 

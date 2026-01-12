@@ -14,7 +14,7 @@
 <div class="source-container">
 <pre><span class="source-line-no">001</span><span id="line-1">/*</span>
 <span class="source-line-no">002</span><span id="line-2"> * JGrapes Event Driven Framework</span>
-<span class="source-line-no">003</span><span id="line-3"> * Copyright (C) 2016-2018 Michael N. Lipp</span>
+<span class="source-line-no">003</span><span id="line-3"> * Copyright (C) 2016-2026 Michael N. Lipp</span>
 <span class="source-line-no">004</span><span id="line-4"> * </span>
 <span class="source-line-no">005</span><span id="line-5"> * This program is free software; you can redistribute it and/or modify it </span>
 <span class="source-line-no">006</span><span id="line-6"> * under the terms of the GNU Affero General Public License as published by </span>
@@ -23,11 +23,11 @@
 <span class="source-line-no">009</span><span id="line-9"> * </span>
 <span class="source-line-no">010</span><span id="line-10"> * This program is distributed in the hope that it will be useful, but </span>
 <span class="source-line-no">011</span><span id="line-11"> * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY</span>
-<span class="source-line-no">012</span><span id="line-12"> * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License </span>
-<span class="source-line-no">013</span><span id="line-13"> * for more details.</span>
+<span class="source-line-no">012</span><span id="line-12"> * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public</span>
+<span class="source-line-no">013</span><span id="line-13"> * License for more details.</span>
 <span class="source-line-no">014</span><span id="line-14"> * </span>
-<span class="source-line-no">015</span><span id="line-15"> * You should have received a copy of the GNU Affero General Public License along </span>
-<span class="source-line-no">016</span><span id="line-16"> * with this program; if not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+<span class="source-line-no">015</span><span id="line-15"> * You should have received a copy of the GNU Affero General Public License</span>
+<span class="source-line-no">016</span><span id="line-16"> * along with this program; if not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 <span class="source-line-no">017</span><span id="line-17"> */</span>
 <span class="source-line-no">018</span><span id="line-18"></span>
 <span class="source-line-no">019</span><span id="line-19">package org.jgrapes.core;</span>
@@ -133,51 +133,53 @@
 <span class="source-line-no">119</span><span id="line-119">         * @param with the object to be associated</span>
 <span class="source-line-no">120</span><span id="line-120">         */</span>
 <span class="source-line-no">121</span><span id="line-121">        @SuppressWarnings({ "PMD.ShortVariable", "unchecked" })</span>
-<span class="source-line-no">122</span><span id="line-122">        public &lt;A extends Associator&gt; A setAssociated(Object by, Object with) {</span>
-<span class="source-line-no">123</span><span id="line-123">            if (contextData == null) {</span>
-<span class="source-line-no">124</span><span id="line-124">                contextData = new ConcurrentHashMap&lt;&gt;();</span>
-<span class="source-line-no">125</span><span id="line-125">            }</span>
-<span class="source-line-no">126</span><span id="line-126">            if (with == null) {</span>
-<span class="source-line-no">127</span><span id="line-127">                contextData.remove(by);</span>
-<span class="source-line-no">128</span><span id="line-128">            } else {</span>
-<span class="source-line-no">129</span><span id="line-129">                contextData.put(by, with);</span>
-<span class="source-line-no">130</span><span id="line-130">            }</span>
-<span class="source-line-no">131</span><span id="line-131">            return (A) this;</span>
-<span class="source-line-no">132</span><span id="line-132">        }</span>
-<span class="source-line-no">133</span><span id="line-133"></span>
-<span class="source-line-no">134</span><span id="line-134">        /**</span>
-<span class="source-line-no">135</span><span id="line-135">         * Retrieves the associated object following the association </span>
-<span class="source-line-no">136</span><span id="line-136">         * with the given "name". This general version of the method</span>
-<span class="source-line-no">137</span><span id="line-137">         * supports the retrieval of values of arbitrary types</span>
-<span class="source-line-no">138</span><span id="line-138">         * associated by any "name" types. </span>
-<span class="source-line-no">139</span><span id="line-139">         * </span>
-<span class="source-line-no">140</span><span id="line-140">         * @param by the "name"</span>
-<span class="source-line-no">141</span><span id="line-141">         * @param type the tape of the value to be retrieved</span>
-<span class="source-line-no">142</span><span id="line-142">         * @param &lt;V&gt; the type of the value to be retrieved</span>
-<span class="source-line-no">143</span><span id="line-143">         * @return the associate, if any</span>
-<span class="source-line-no">144</span><span id="line-144">         */</span>
-<span class="source-line-no">145</span><span id="line-145">        @SuppressWarnings("PMD.ShortVariable")</span>
-<span class="source-line-no">146</span><span id="line-146">        public &lt;V&gt; Optional&lt;V&gt; associated(Object by, Class&lt;V&gt; type) {</span>
-<span class="source-line-no">147</span><span id="line-147">            if (contextData == null) {</span>
-<span class="source-line-no">148</span><span id="line-148">                return Optional.empty();</span>
-<span class="source-line-no">149</span><span id="line-149">            }</span>
-<span class="source-line-no">150</span><span id="line-150">            return Optional.ofNullable(contextData.get(by))</span>
-<span class="source-line-no">151</span><span id="line-151">                .filter(found -&gt; type.isAssignableFrom(found.getClass()))</span>
-<span class="source-line-no">152</span><span id="line-152">                .map(type::cast);</span>
-<span class="source-line-no">153</span><span id="line-153">        }</span>
-<span class="source-line-no">154</span><span id="line-154"></span>
-<span class="source-line-no">155</span><span id="line-155">        /*</span>
-<span class="source-line-no">156</span><span id="line-156">         * (non-Javadoc)</span>
-<span class="source-line-no">157</span><span id="line-157">         * </span>
-<span class="source-line-no">158</span><span id="line-158">         * @see java.lang.Object#toString()</span>
-<span class="source-line-no">159</span><span id="line-159">         */</span>
-<span class="source-line-no">160</span><span id="line-160">        @Override</span>
-<span class="source-line-no">161</span><span id="line-161">        public String toString() {</span>
-<span class="source-line-no">162</span><span id="line-162">            return Subchannel.toString(this);</span>
-<span class="source-line-no">163</span><span id="line-163">        }</span>
-<span class="source-line-no">164</span><span id="line-164"></span>
-<span class="source-line-no">165</span><span id="line-165">    }</span>
-<span class="source-line-no">166</span><span id="line-166">}</span>
+<span class="source-line-no">122</span><span id="line-122">        @Override</span>
+<span class="source-line-no">123</span><span id="line-123">        public &lt;A extends Associator&gt; A setAssociated(Object by, Object with) {</span>
+<span class="source-line-no">124</span><span id="line-124">            if (contextData == null) {</span>
+<span class="source-line-no">125</span><span id="line-125">                contextData = new ConcurrentHashMap&lt;&gt;();</span>
+<span class="source-line-no">126</span><span id="line-126">            }</span>
+<span class="source-line-no">127</span><span id="line-127">            if (with == null) {</span>
+<span class="source-line-no">128</span><span id="line-128">                contextData.remove(by);</span>
+<span class="source-line-no">129</span><span id="line-129">            } else {</span>
+<span class="source-line-no">130</span><span id="line-130">                contextData.put(by, with);</span>
+<span class="source-line-no">131</span><span id="line-131">            }</span>
+<span class="source-line-no">132</span><span id="line-132">            return (A) this;</span>
+<span class="source-line-no">133</span><span id="line-133">        }</span>
+<span class="source-line-no">134</span><span id="line-134"></span>
+<span class="source-line-no">135</span><span id="line-135">        /**</span>
+<span class="source-line-no">136</span><span id="line-136">         * Retrieves the associated object following the association </span>
+<span class="source-line-no">137</span><span id="line-137">         * with the given "name". This general version of the method</span>
+<span class="source-line-no">138</span><span id="line-138">         * supports the retrieval of values of arbitrary types</span>
+<span class="source-line-no">139</span><span id="line-139">         * associated by any "name" types. </span>
+<span class="source-line-no">140</span><span id="line-140">         * </span>
+<span class="source-line-no">141</span><span id="line-141">         * @param by the "name"</span>
+<span class="source-line-no">142</span><span id="line-142">         * @param type the tape of the value to be retrieved</span>
+<span class="source-line-no">143</span><span id="line-143">         * @param &lt;V&gt; the type of the value to be retrieved</span>
+<span class="source-line-no">144</span><span id="line-144">         * @return the associate, if any</span>
+<span class="source-line-no">145</span><span id="line-145">         */</span>
+<span class="source-line-no">146</span><span id="line-146">        @SuppressWarnings("PMD.ShortVariable")</span>
+<span class="source-line-no">147</span><span id="line-147">        @Override</span>
+<span class="source-line-no">148</span><span id="line-148">        public &lt;V&gt; Optional&lt;V&gt; associated(Object by, Class&lt;V&gt; type) {</span>
+<span class="source-line-no">149</span><span id="line-149">            if (contextData == null) {</span>
+<span class="source-line-no">150</span><span id="line-150">                return Optional.empty();</span>
+<span class="source-line-no">151</span><span id="line-151">            }</span>
+<span class="source-line-no">152</span><span id="line-152">            return Optional.ofNullable(contextData.get(by))</span>
+<span class="source-line-no">153</span><span id="line-153">                .filter(found -&gt; type.isAssignableFrom(found.getClass()))</span>
+<span class="source-line-no">154</span><span id="line-154">                .map(type::cast);</span>
+<span class="source-line-no">155</span><span id="line-155">        }</span>
+<span class="source-line-no">156</span><span id="line-156"></span>
+<span class="source-line-no">157</span><span id="line-157">        /*</span>
+<span class="source-line-no">158</span><span id="line-158">         * (non-Javadoc)</span>
+<span class="source-line-no">159</span><span id="line-159">         * </span>
+<span class="source-line-no">160</span><span id="line-160">         * @see java.lang.Object#toString()</span>
+<span class="source-line-no">161</span><span id="line-161">         */</span>
+<span class="source-line-no">162</span><span id="line-162">        @Override</span>
+<span class="source-line-no">163</span><span id="line-163">        public String toString() {</span>
+<span class="source-line-no">164</span><span id="line-164">            return Subchannel.toString(this);</span>
+<span class="source-line-no">165</span><span id="line-165">        }</span>
+<span class="source-line-no">166</span><span id="line-166"></span>
+<span class="source-line-no">167</span><span id="line-167">    }</span>
+<span class="source-line-no">168</span><span id="line-168">}</span>
 
 
 

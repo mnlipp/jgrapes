@@ -14,7 +14,7 @@
 <div class="source-container">
 <pre><span class="source-line-no">001</span><span id="line-1">/*</span>
 <span class="source-line-no">002</span><span id="line-2"> * JGrapes Event Driven Framework</span>
-<span class="source-line-no">003</span><span id="line-3"> * Copyright (C) 2016-2018 Michael N. Lipp</span>
+<span class="source-line-no">003</span><span id="line-3"> * Copyright (C) 2016-2026 Michael N. Lipp</span>
 <span class="source-line-no">004</span><span id="line-4"> * </span>
 <span class="source-line-no">005</span><span id="line-5"> * This program is free software; you can redistribute it and/or modify it </span>
 <span class="source-line-no">006</span><span id="line-6"> * under the terms of the GNU Affero General Public License as published by </span>
@@ -23,11 +23,11 @@
 <span class="source-line-no">009</span><span id="line-9"> * </span>
 <span class="source-line-no">010</span><span id="line-10"> * This program is distributed in the hope that it will be useful, but </span>
 <span class="source-line-no">011</span><span id="line-11"> * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY</span>
-<span class="source-line-no">012</span><span id="line-12"> * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License </span>
-<span class="source-line-no">013</span><span id="line-13"> * for more details.</span>
+<span class="source-line-no">012</span><span id="line-12"> * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public</span>
+<span class="source-line-no">013</span><span id="line-13"> * License for more details.</span>
 <span class="source-line-no">014</span><span id="line-14"> * </span>
-<span class="source-line-no">015</span><span id="line-15"> * You should have received a copy of the GNU Affero General Public License along </span>
-<span class="source-line-no">016</span><span id="line-16"> * with this program; if not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+<span class="source-line-no">015</span><span id="line-15"> * You should have received a copy of the GNU Affero General Public License</span>
+<span class="source-line-no">016</span><span id="line-16"> * along with this program; if not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 <span class="source-line-no">017</span><span id="line-17"> */</span>
 <span class="source-line-no">018</span><span id="line-18"></span>
 <span class="source-line-no">019</span><span id="line-19">package org.jgrapes.core.internal;</span>
@@ -58,7 +58,7 @@
 <span class="source-line-no">044</span><span id="line-44"> * @param &lt;T&gt; the result type of the event. Use {@link Void} if handling</span>
 <span class="source-line-no">045</span><span id="line-45"> * the event does not produce a result</span>
 <span class="source-line-no">046</span><span id="line-46"> */</span>
-<span class="source-line-no">047</span><span id="line-47">@SuppressWarnings("PMD.TooManyMethods")</span>
+<span class="source-line-no">047</span><span id="line-47">@SuppressWarnings({ "PMD.TooManyMethods", "PMD.AvoidSynchronizedStatement" })</span>
 <span class="source-line-no">048</span><span id="line-48">public abstract class EventBase&lt;T&gt;</span>
 <span class="source-line-no">049</span><span id="line-49">        implements Eligible, Future&lt;T&gt;, Associator {</span>
 <span class="source-line-no">050</span><span id="line-50"></span>
@@ -180,8 +180,8 @@
 <span class="source-line-no">166</span><span id="line-166">    }</span>
 <span class="source-line-no">167</span><span id="line-167"></span>
 <span class="source-line-no">168</span><span id="line-168">    public Optional&lt;EventPipeline&gt; processedBy() {</span>
-<span class="source-line-no">169</span><span id="line-169">        return Optional.ofNullable(processedBy).map(</span>
-<span class="source-line-no">170</span><span id="line-170">            procBy -&gt; procBy.asEventPipeline());</span>
+<span class="source-line-no">169</span><span id="line-169">        return Optional.ofNullable(processedBy)</span>
+<span class="source-line-no">170</span><span id="line-170">            .map(EventProcessor::asEventPipeline);</span>
 <span class="source-line-no">171</span><span id="line-171">    }</span>
 <span class="source-line-no">172</span><span id="line-172"></span>
 <span class="source-line-no">173</span><span id="line-173">    /**</span>
@@ -241,89 +241,89 @@
 <span class="source-line-no">227</span><span id="line-227">    /**</span>
 <span class="source-line-no">228</span><span id="line-228">     * @param pipeline</span>
 <span class="source-line-no">229</span><span id="line-229">     */</span>
-<span class="source-line-no">230</span><span id="line-230">    @SuppressWarnings("PMD.CognitiveComplexity")</span>
-<span class="source-line-no">231</span><span id="line-231">    /* default */ void decrementOpen() {</span>
-<span class="source-line-no">232</span><span id="line-232">        if (openCount.decrementAndGet() == 0 &amp;&amp; !completed) {</span>
-<span class="source-line-no">233</span><span id="line-233">            synchronized (this) {</span>
-<span class="source-line-no">234</span><span id="line-234">                completed = true;</span>
-<span class="source-line-no">235</span><span id="line-235">                notifyAll();</span>
-<span class="source-line-no">236</span><span id="line-236">            }</span>
-<span class="source-line-no">237</span><span id="line-237">            if (completionEvents != null &amp;&amp; !isCancelled()) {</span>
-<span class="source-line-no">238</span><span id="line-238">                processedBy.updateNewEventsParent(generatedBy);</span>
-<span class="source-line-no">239</span><span id="line-239">                for (Event&lt;?&gt; e : completionEvents) {</span>
-<span class="source-line-no">240</span><span id="line-240">                    Channel[] completeChannels = e.channels();</span>
-<span class="source-line-no">241</span><span id="line-241">                    if (completeChannels.length == 0) {</span>
-<span class="source-line-no">242</span><span id="line-242">                        // Note that channels() cannot be empty, as it is set</span>
-<span class="source-line-no">243</span><span id="line-243">                        // when firing the event and an event is never fired</span>
-<span class="source-line-no">244</span><span id="line-244">                        // on no channels.</span>
-<span class="source-line-no">245</span><span id="line-245">                        completeChannels = channels();</span>
-<span class="source-line-no">246</span><span id="line-246">                        e.setChannels(completeChannels);</span>
-<span class="source-line-no">247</span><span id="line-247">                    }</span>
-<span class="source-line-no">248</span><span id="line-248">                    processedBy.add(e, completeChannels);</span>
-<span class="source-line-no">249</span><span id="line-249">                }</span>
-<span class="source-line-no">250</span><span id="line-250">            }</span>
-<span class="source-line-no">251</span><span id="line-251">            if (generatedBy != null) {</span>
-<span class="source-line-no">252</span><span id="line-252">                generatedBy.decrementOpen();</span>
-<span class="source-line-no">253</span><span id="line-253">            }</span>
-<span class="source-line-no">254</span><span id="line-254">            processedBy = null; // No longer needed</span>
-<span class="source-line-no">255</span><span id="line-255">        }</span>
-<span class="source-line-no">256</span><span id="line-256">    }</span>
-<span class="source-line-no">257</span><span id="line-257"></span>
-<span class="source-line-no">258</span><span id="line-258">    /**</span>
-<span class="source-line-no">259</span><span id="line-259">     * Adds the given completion lock. </span>
-<span class="source-line-no">260</span><span id="line-260">     * </span>
-<span class="source-line-no">261</span><span id="line-261">     * @param lock the lock</span>
-<span class="source-line-no">262</span><span id="line-262">     * @see CompletionLock</span>
-<span class="source-line-no">263</span><span id="line-263">     */</span>
-<span class="source-line-no">264</span><span id="line-264">    /* default */ Event&lt;T&gt; addCompletionLock(CompletionLockBase lock) {</span>
-<span class="source-line-no">265</span><span id="line-265">        synchronized (this) {</span>
-<span class="source-line-no">266</span><span id="line-266">            if (completionLocks == null) {</span>
-<span class="source-line-no">267</span><span id="line-267">                completionLocks = Collections.synchronizedSet(new HashSet&lt;&gt;());</span>
-<span class="source-line-no">268</span><span id="line-268">            }</span>
-<span class="source-line-no">269</span><span id="line-269">        }</span>
-<span class="source-line-no">270</span><span id="line-270">        if (completionLocks.add(lock)) {</span>
-<span class="source-line-no">271</span><span id="line-271">            openCount.incrementAndGet();</span>
-<span class="source-line-no">272</span><span id="line-272">            lock.startTimer();</span>
-<span class="source-line-no">273</span><span id="line-273">        }</span>
-<span class="source-line-no">274</span><span id="line-274">        return (Event&lt;T&gt;) this;</span>
-<span class="source-line-no">275</span><span id="line-275">    }</span>
-<span class="source-line-no">276</span><span id="line-276"></span>
-<span class="source-line-no">277</span><span id="line-277">    /**</span>
-<span class="source-line-no">278</span><span id="line-278">     * Removes the given completion lock. </span>
-<span class="source-line-no">279</span><span id="line-279">     * </span>
-<span class="source-line-no">280</span><span id="line-280">     * @param lock the lock</span>
-<span class="source-line-no">281</span><span id="line-281">     * @see CompletionLock</span>
-<span class="source-line-no">282</span><span id="line-282">     */</span>
-<span class="source-line-no">283</span><span id="line-283">    /* default */ void removeCompletionLock(CompletionLockBase lock) {</span>
-<span class="source-line-no">284</span><span id="line-284">        if (completionLocks == null) {</span>
-<span class="source-line-no">285</span><span id="line-285">            return;</span>
-<span class="source-line-no">286</span><span id="line-286">        }</span>
-<span class="source-line-no">287</span><span id="line-287">        if (completionLocks.remove(lock)) {</span>
-<span class="source-line-no">288</span><span id="line-288">            decrementOpen();</span>
-<span class="source-line-no">289</span><span id="line-289">        }</span>
-<span class="source-line-no">290</span><span id="line-290">        lock.cancelTimer();</span>
-<span class="source-line-no">291</span><span id="line-291">    }</span>
-<span class="source-line-no">292</span><span id="line-292"></span>
-<span class="source-line-no">293</span><span id="line-293">    /**</span>
-<span class="source-line-no">294</span><span id="line-294">     * Disables tracking for this event and all events generated</span>
-<span class="source-line-no">295</span><span id="line-295">     * when handling it.</span>
-<span class="source-line-no">296</span><span id="line-296">     */</span>
-<span class="source-line-no">297</span><span id="line-297">    public Event&lt;T&gt; disableTracking() {</span>
-<span class="source-line-no">298</span><span id="line-298">        tracked = false;</span>
-<span class="source-line-no">299</span><span id="line-299">        return (Event&lt;T&gt;) this;</span>
-<span class="source-line-no">300</span><span id="line-300">    }</span>
-<span class="source-line-no">301</span><span id="line-301"></span>
-<span class="source-line-no">302</span><span id="line-302">    /**</span>
-<span class="source-line-no">303</span><span id="line-303">     * Whether the event (and all events generated when handling it)</span>
-<span class="source-line-no">304</span><span id="line-304">     * is tracked.</span>
-<span class="source-line-no">305</span><span id="line-305">     * </span>
-<span class="source-line-no">306</span><span id="line-306">     * @return `true` if event is tracked</span>
-<span class="source-line-no">307</span><span id="line-307">     */</span>
-<span class="source-line-no">308</span><span id="line-308">    public boolean isTracked() {</span>
-<span class="source-line-no">309</span><span id="line-309">        return tracked;</span>
-<span class="source-line-no">310</span><span id="line-310">    }</span>
-<span class="source-line-no">311</span><span id="line-311"></span>
-<span class="source-line-no">312</span><span id="line-312">    @SuppressWarnings("PMD.UselessParentheses")</span>
+<span class="source-line-no">230</span><span id="line-230">    @SuppressWarnings({ "PMD.CognitiveComplexity",</span>
+<span class="source-line-no">231</span><span id="line-231">        "PMD.AvoidDeeplyNestedIfStmts" })</span>
+<span class="source-line-no">232</span><span id="line-232">    /* default */ void decrementOpen() {</span>
+<span class="source-line-no">233</span><span id="line-233">        if (openCount.decrementAndGet() == 0 &amp;&amp; !completed) {</span>
+<span class="source-line-no">234</span><span id="line-234">            synchronized (this) {</span>
+<span class="source-line-no">235</span><span id="line-235">                completed = true;</span>
+<span class="source-line-no">236</span><span id="line-236">                notifyAll();</span>
+<span class="source-line-no">237</span><span id="line-237">            }</span>
+<span class="source-line-no">238</span><span id="line-238">            if (completionEvents != null &amp;&amp; !isCancelled()) {</span>
+<span class="source-line-no">239</span><span id="line-239">                processedBy.updateNewEventsParent(generatedBy);</span>
+<span class="source-line-no">240</span><span id="line-240">                for (Event&lt;?&gt; e : completionEvents) {</span>
+<span class="source-line-no">241</span><span id="line-241">                    Channel[] completeChannels = e.channels();</span>
+<span class="source-line-no">242</span><span id="line-242">                    if (completeChannels.length == 0) {</span>
+<span class="source-line-no">243</span><span id="line-243">                        // Note that channels() cannot be empty, as it is set</span>
+<span class="source-line-no">244</span><span id="line-244">                        // when firing the event and an event is never fired</span>
+<span class="source-line-no">245</span><span id="line-245">                        // on no channels.</span>
+<span class="source-line-no">246</span><span id="line-246">                        completeChannels = channels();</span>
+<span class="source-line-no">247</span><span id="line-247">                        e.setChannels(completeChannels);</span>
+<span class="source-line-no">248</span><span id="line-248">                    }</span>
+<span class="source-line-no">249</span><span id="line-249">                    processedBy.add(e, completeChannels);</span>
+<span class="source-line-no">250</span><span id="line-250">                }</span>
+<span class="source-line-no">251</span><span id="line-251">            }</span>
+<span class="source-line-no">252</span><span id="line-252">            if (generatedBy != null) {</span>
+<span class="source-line-no">253</span><span id="line-253">                generatedBy.decrementOpen();</span>
+<span class="source-line-no">254</span><span id="line-254">            }</span>
+<span class="source-line-no">255</span><span id="line-255">            processedBy = null; // No longer needed</span>
+<span class="source-line-no">256</span><span id="line-256">        }</span>
+<span class="source-line-no">257</span><span id="line-257">    }</span>
+<span class="source-line-no">258</span><span id="line-258"></span>
+<span class="source-line-no">259</span><span id="line-259">    /**</span>
+<span class="source-line-no">260</span><span id="line-260">     * Adds the given completion lock. </span>
+<span class="source-line-no">261</span><span id="line-261">     * </span>
+<span class="source-line-no">262</span><span id="line-262">     * @param lock the lock</span>
+<span class="source-line-no">263</span><span id="line-263">     * @see CompletionLock</span>
+<span class="source-line-no">264</span><span id="line-264">     */</span>
+<span class="source-line-no">265</span><span id="line-265">    /* default */ Event&lt;T&gt; addCompletionLock(CompletionLockBase lock) {</span>
+<span class="source-line-no">266</span><span id="line-266">        synchronized (this) {</span>
+<span class="source-line-no">267</span><span id="line-267">            if (completionLocks == null) {</span>
+<span class="source-line-no">268</span><span id="line-268">                completionLocks = Collections.synchronizedSet(new HashSet&lt;&gt;());</span>
+<span class="source-line-no">269</span><span id="line-269">            }</span>
+<span class="source-line-no">270</span><span id="line-270">        }</span>
+<span class="source-line-no">271</span><span id="line-271">        if (completionLocks.add(lock)) {</span>
+<span class="source-line-no">272</span><span id="line-272">            openCount.incrementAndGet();</span>
+<span class="source-line-no">273</span><span id="line-273">            lock.startTimer();</span>
+<span class="source-line-no">274</span><span id="line-274">        }</span>
+<span class="source-line-no">275</span><span id="line-275">        return (Event&lt;T&gt;) this;</span>
+<span class="source-line-no">276</span><span id="line-276">    }</span>
+<span class="source-line-no">277</span><span id="line-277"></span>
+<span class="source-line-no">278</span><span id="line-278">    /**</span>
+<span class="source-line-no">279</span><span id="line-279">     * Removes the given completion lock. </span>
+<span class="source-line-no">280</span><span id="line-280">     * </span>
+<span class="source-line-no">281</span><span id="line-281">     * @param lock the lock</span>
+<span class="source-line-no">282</span><span id="line-282">     * @see CompletionLock</span>
+<span class="source-line-no">283</span><span id="line-283">     */</span>
+<span class="source-line-no">284</span><span id="line-284">    /* default */ void removeCompletionLock(CompletionLockBase lock) {</span>
+<span class="source-line-no">285</span><span id="line-285">        if (completionLocks == null) {</span>
+<span class="source-line-no">286</span><span id="line-286">            return;</span>
+<span class="source-line-no">287</span><span id="line-287">        }</span>
+<span class="source-line-no">288</span><span id="line-288">        if (completionLocks.remove(lock)) {</span>
+<span class="source-line-no">289</span><span id="line-289">            decrementOpen();</span>
+<span class="source-line-no">290</span><span id="line-290">        }</span>
+<span class="source-line-no">291</span><span id="line-291">        lock.cancelTimer();</span>
+<span class="source-line-no">292</span><span id="line-292">    }</span>
+<span class="source-line-no">293</span><span id="line-293"></span>
+<span class="source-line-no">294</span><span id="line-294">    /**</span>
+<span class="source-line-no">295</span><span id="line-295">     * Disables tracking for this event and all events generated</span>
+<span class="source-line-no">296</span><span id="line-296">     * when handling it.</span>
+<span class="source-line-no">297</span><span id="line-297">     */</span>
+<span class="source-line-no">298</span><span id="line-298">    public Event&lt;T&gt; disableTracking() {</span>
+<span class="source-line-no">299</span><span id="line-299">        tracked = false;</span>
+<span class="source-line-no">300</span><span id="line-300">        return (Event&lt;T&gt;) this;</span>
+<span class="source-line-no">301</span><span id="line-301">    }</span>
+<span class="source-line-no">302</span><span id="line-302"></span>
+<span class="source-line-no">303</span><span id="line-303">    /**</span>
+<span class="source-line-no">304</span><span id="line-304">     * Whether the event (and all events generated when handling it)</span>
+<span class="source-line-no">305</span><span id="line-305">     * is tracked.</span>
+<span class="source-line-no">306</span><span id="line-306">     * </span>
+<span class="source-line-no">307</span><span id="line-307">     * @return `true` if event is tracked</span>
+<span class="source-line-no">308</span><span id="line-308">     */</span>
+<span class="source-line-no">309</span><span id="line-309">    public boolean isTracked() {</span>
+<span class="source-line-no">310</span><span id="line-310">        return tracked;</span>
+<span class="source-line-no">311</span><span id="line-311">    }</span>
+<span class="source-line-no">312</span><span id="line-312"></span>
 <span class="source-line-no">313</span><span id="line-313">    /* default */ boolean isTrackable() {</span>
 <span class="source-line-no">314</span><span id="line-314">        return generatedBy == null ? tracked</span>
 <span class="source-line-no">315</span><span id="line-315">            : (tracked &amp;&amp; generatedBy.isTrackable());</span>

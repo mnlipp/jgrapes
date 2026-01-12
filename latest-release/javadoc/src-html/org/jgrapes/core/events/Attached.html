@@ -14,7 +14,7 @@
 <div class="source-container">
 <pre><span class="source-line-no">001</span><span id="line-1">/*</span>
 <span class="source-line-no">002</span><span id="line-2"> * JGrapes Event Driven Framework</span>
-<span class="source-line-no">003</span><span id="line-3"> * Copyright (C) 2016-2018 Michael N. Lipp</span>
+<span class="source-line-no">003</span><span id="line-3"> * Copyright (C) 2016-2026 Michael N. Lipp</span>
 <span class="source-line-no">004</span><span id="line-4"> * </span>
 <span class="source-line-no">005</span><span id="line-5"> * This program is free software; you can redistribute it and/or modify it </span>
 <span class="source-line-no">006</span><span id="line-6"> * under the terms of the GNU Affero General Public License as published by </span>
@@ -23,11 +23,11 @@
 <span class="source-line-no">009</span><span id="line-9"> * </span>
 <span class="source-line-no">010</span><span id="line-10"> * This program is distributed in the hope that it will be useful, but </span>
 <span class="source-line-no">011</span><span id="line-11"> * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY</span>
-<span class="source-line-no">012</span><span id="line-12"> * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License </span>
-<span class="source-line-no">013</span><span id="line-13"> * for more details.</span>
+<span class="source-line-no">012</span><span id="line-12"> * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public</span>
+<span class="source-line-no">013</span><span id="line-13"> * License for more details.</span>
 <span class="source-line-no">014</span><span id="line-14"> * </span>
-<span class="source-line-no">015</span><span id="line-15"> * You should have received a copy of the GNU Affero General Public License along </span>
-<span class="source-line-no">016</span><span id="line-16"> * with this program; if not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+<span class="source-line-no">015</span><span id="line-15"> * You should have received a copy of the GNU Affero General Public License</span>
+<span class="source-line-no">016</span><span id="line-16"> * along with this program; if not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 <span class="source-line-no">017</span><span id="line-17"> */</span>
 <span class="source-line-no">018</span><span id="line-18"></span>
 <span class="source-line-no">019</span><span id="line-19">package org.jgrapes.core.events;</span>
@@ -98,14 +98,13 @@
 <span class="source-line-no">084</span><span id="line-84">            .append(node)</span>
 <span class="source-line-no">085</span><span id="line-85">            .append(", ");</span>
 <span class="source-line-no">086</span><span id="line-86">        if (channels().length &gt; 0) {</span>
-<span class="source-line-no">087</span><span id="line-87">            builder.append("channels=");</span>
-<span class="source-line-no">088</span><span id="line-88">            builder.append(Channel.toString(channels()));</span>
-<span class="source-line-no">089</span><span id="line-89">        }</span>
-<span class="source-line-no">090</span><span id="line-90">        builder.append(']');</span>
-<span class="source-line-no">091</span><span id="line-91">        return builder.toString();</span>
-<span class="source-line-no">092</span><span id="line-92">    }</span>
-<span class="source-line-no">093</span><span id="line-93"></span>
-<span class="source-line-no">094</span><span id="line-94">}</span>
+<span class="source-line-no">087</span><span id="line-87">            builder.append("channels=").append(Channel.toString(channels()));</span>
+<span class="source-line-no">088</span><span id="line-88">        }</span>
+<span class="source-line-no">089</span><span id="line-89">        builder.append(']');</span>
+<span class="source-line-no">090</span><span id="line-90">        return builder.toString();</span>
+<span class="source-line-no">091</span><span id="line-91">    }</span>
+<span class="source-line-no">092</span><span id="line-92"></span>
+<span class="source-line-no">093</span><span id="line-93">}</span>
 
 
 

@@ -14,7 +14,7 @@
 <div class="source-container">
 <pre><span class="source-line-no">001</span><span id="line-1">/*</span>
 <span class="source-line-no">002</span><span id="line-2"> * JGrapes Event Driven Framework</span>
-<span class="source-line-no">003</span><span id="line-3"> * Copyright (C) 2016-2018 Michael N. Lipp</span>
+<span class="source-line-no">003</span><span id="line-3"> * Copyright (C) 2016-2026 Michael N. Lipp</span>
 <span class="source-line-no">004</span><span id="line-4"> * </span>
 <span class="source-line-no">005</span><span id="line-5"> * This program is free software; you can redistribute it and/or modify it </span>
 <span class="source-line-no">006</span><span id="line-6"> * under the terms of the GNU Affero General Public License as published by </span>
@@ -23,11 +23,11 @@
 <span class="source-line-no">009</span><span id="line-9"> * </span>
 <span class="source-line-no">010</span><span id="line-10"> * This program is distributed in the hope that it will be useful, but </span>
 <span class="source-line-no">011</span><span id="line-11"> * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY</span>
-<span class="source-line-no">012</span><span id="line-12"> * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License </span>
-<span class="source-line-no">013</span><span id="line-13"> * for more details.</span>
+<span class="source-line-no">012</span><span id="line-12"> * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public</span>
+<span class="source-line-no">013</span><span id="line-13"> * License for more details.</span>
 <span class="source-line-no">014</span><span id="line-14"> * </span>
-<span class="source-line-no">015</span><span id="line-15"> * You should have received a copy of the GNU Affero General Public License along </span>
-<span class="source-line-no">016</span><span id="line-16"> * with this program; if not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+<span class="source-line-no">015</span><span id="line-15"> * You should have received a copy of the GNU Affero General Public License</span>
+<span class="source-line-no">016</span><span id="line-16"> * along with this program; if not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 <span class="source-line-no">017</span><span id="line-17"> */</span>
 <span class="source-line-no">018</span><span id="line-18"></span>
 <span class="source-line-no">019</span><span id="line-19">package org.jgrapes.core;</span>
@@ -240,15 +240,14 @@
 <span class="source-line-no">226</span><span id="line-226">     * </span>
 <span class="source-line-no">227</span><span id="line-227">     * @return the stream</span>
 <span class="source-line-no">228</span><span id="line-228">     */</span>
-<span class="source-line-no">229</span><span id="line-229">    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")</span>
-<span class="source-line-no">230</span><span id="line-230">    default Stream&lt;ComponentType&gt; stream() {</span>
-<span class="source-line-no">231</span><span id="line-231">        Stream.Builder&lt;ComponentType&gt; res = Stream.builder();</span>
-<span class="source-line-no">232</span><span id="line-232">        for (ComponentType c : this) {</span>
-<span class="source-line-no">233</span><span id="line-233">            res.accept(c);</span>
-<span class="source-line-no">234</span><span id="line-234">        }</span>
-<span class="source-line-no">235</span><span id="line-235">        return res.build();</span>
-<span class="source-line-no">236</span><span id="line-236">    }</span>
-<span class="source-line-no">237</span><span id="line-237">}</span>
+<span class="source-line-no">229</span><span id="line-229">    default Stream&lt;ComponentType&gt; stream() {</span>
+<span class="source-line-no">230</span><span id="line-230">        Stream.Builder&lt;ComponentType&gt; res = Stream.builder();</span>
+<span class="source-line-no">231</span><span id="line-231">        for (ComponentType c : this) {</span>
+<span class="source-line-no">232</span><span id="line-232">            res.accept(c);</span>
+<span class="source-line-no">233</span><span id="line-233">        }</span>
+<span class="source-line-no">234</span><span id="line-234">        return res.build();</span>
+<span class="source-line-no">235</span><span id="line-235">    }</span>
+<span class="source-line-no">236</span><span id="line-236">}</span>
 
 
 
