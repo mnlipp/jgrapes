@@ -18,7 +18,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Install Java 25 for jdbld
-        run: sudo apt-get install openjdk-25-jre
+        run: sudo apt-get install openjdk-25-jdk
       - name: Install graphviz
         run: sudo apt-get install graphviz
       - name: Set up JDK ${{ matrix.java-version }}
