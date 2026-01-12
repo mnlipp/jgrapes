@@ -26,7 +26,5 @@ jobs:
         with:
           java-version: ${{ matrix.java-version }}
           distribution: 'adopt'
-      - name: check
-        run: update-alternatives --list java
       - name: Build with jdbld
         run: JAVA_HOME=/usr/lib/jvm/java-25-openjdk-amd64/ ./jdbld -Prepo.access.token=${{ secrets.REPO_ACCESS_TOKEN }} build test
