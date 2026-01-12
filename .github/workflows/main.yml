@@ -17,6 +17,8 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
+      - name: Install Java 25 for jdbld
+        run: sudo apt-get install openjdk-25-jre
       - name: Install graphviz
         run: sudo apt-get install graphviz
       - name: Set up JDK ${{ matrix.java-version }}
