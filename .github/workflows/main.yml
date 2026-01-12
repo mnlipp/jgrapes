@@ -26,5 +26,7 @@ jobs:
         with:
           java-version: ${{ matrix.java-version }}
           distribution: 'adopt'
+      - name: check
+        run: update-alternatives --list java
       - name: Build with jdbld
         run: ./jdbld -Prepo.access.token=${{ secrets.REPO_ACCESS_TOKEN }} stage
