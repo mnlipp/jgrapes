@@ -95,7 +95,7 @@ public class ProjectPreparation {
                     "test-resources"), "**/*");
                 project.dependency(Consume, new MvnRepoLookup()
                     .resolve("junit:junit:4.13.2")
-                    .bom("org.junit:junit-bom:5.12.2")
+                    .bom("org.junit:junit-bom:5.14.2")
                     .resolve("org.junit.jupiter:junit-jupiter-api")
                     .resolve("org.junit.jupiter:junit-jupiter-params")
                     .resolve("org.junit.jupiter:junit-jupiter-engine",
