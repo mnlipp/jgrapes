@@ -29,4 +29,4 @@ jobs:
       - name: check
         run: update-alternatives --list java
       - name: Build with jdbld
-        run: JAVA_HOME=/usr/lib/jvm/java-25-openjdk-amd64/bin/java ./jdbld -Prepo.access.token=${{ secrets.REPO_ACCESS_TOKEN }} stage
+        run: JAVA_HOME=/usr/lib/jvm/java-25-openjdk-amd64/ ./jdbld -Prepo.access.token=${{ secrets.REPO_ACCESS_TOKEN }} stage
