@@ -99,7 +99,8 @@ public class ProjectPreparation {
                     .resolve("org.junit.jupiter:junit-jupiter-api")
                     .resolve("org.junit.jupiter:junit-jupiter-params")
                     .resolve("org.junit.jupiter:junit-jupiter-engine",
-                        "org.junit.vintage:junit-vintage-engine"));
+                        "org.junit.vintage:junit-vintage-engine",
+                        "net.jodah:concurrentunit:0.4.2"));
                 project.dependency(Supply, JUnitTestRunner::new);
             }
         }

@@ -32,7 +32,6 @@ public class IO extends AbstractProject implements JavaLibraryProject {
 
     public IO() {
         super(name("org.jgrapes.io"));
-        dependency(Expose, project(Core.class));
         dependency(Expose, project(Util.class));
         dependency(Expose, new MvnRepoLookup().resolve(
             "com.fasterxml.jackson.core:jackson-databind:[2.13,3)"));
