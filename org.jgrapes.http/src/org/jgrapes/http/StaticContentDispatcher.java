@@ -72,7 +72,6 @@ public class StaticContentDispatcher extends Component {
      * in order to be handled by this component 
      * (see {@link ResourcePattern})
      * @param contentRoot the location with content to serve 
-     * @see Component#Component(Channel)
      */
     public StaticContentDispatcher(Channel componentChannel,
             String resourcePattern, URI contentRoot) {
@@ -98,7 +97,6 @@ public class StaticContentDispatcher extends Component {
      * be handled by this component 
      * (see {@link ResourcePattern#matches(String, java.net.URI)})
      * @param contentRoot the location with content to serve 
-     * @see Component#Component()
      */
     public StaticContentDispatcher(String resourcePattern, URI contentRoot) {
         this(Channel.SELF, resourcePattern, contentRoot);
