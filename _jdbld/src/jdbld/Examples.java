@@ -18,9 +18,9 @@
 
 package jdbld;
 
-import static org.jdrupes.builder.api.Intend.*;
-
+import static org.jdrupes.builder.api.Intent.*;
 import org.jdrupes.builder.core.AbstractProject;
+import org.jdrupes.builder.java.JavaExecutor;
 import org.jdrupes.builder.java.JavaLibraryProject;
 import org.jdrupes.builder.mvnrepo.MvnRepoLookup;
 
@@ -28,10 +28,19 @@ public class Examples extends AbstractProject implements JavaLibraryProject {
 
     public Examples() {
         super(name("examples"));
-        dependency(Consume, project(Http.class));
-        dependency(Consume, project(Mail.class));
-        dependency(Consume, new MvnRepoLookup().resolve(
+        dependency(Reveal, project(Http.class));
+        dependency(Reveal, project(Mail.class));
+        dependency(Reveal, new MvnRepoLookup().resolve(
             "org.osgi:osgi.core:6.0.0"));
+        dependency(Supply, JavaExecutor::new).name("Greeter")
+            .addFrom(providers().select(Supply, Reveal))
+            .mainClass("org.jgrapes.examples.core.helloworld.Greeter");
+        dependency(Supply, JavaExecutor::new).name("EchoUntilQuit")
+            .addFrom(providers().select(Supply, Reveal))
+            .mainClass("org.jgrapes.examples.io.consoleinput.EchoUntilQuit");
+        dependency(Supply, JavaExecutor::new).name("EchoServer")
+            .addFrom(providers().select(Supply, Reveal))
+            .mainClass("org.jgrapes.examples.io.tcpecho.EchoServer");
 
 //        runtimeOnly 'org.apache.felix:org.apache.felix.framework:6.0.5'
 //        runtimeOnly ('org.apache.aries.spifly:org.apache.aries.spifly.dynamic.bundle:1.3.4') {

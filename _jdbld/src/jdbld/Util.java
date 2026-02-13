@@ -18,14 +18,11 @@
 
 package jdbld;
 
-import static org.jdrupes.builder.api.Intend.*;
-
+import static org.jdrupes.builder.api.Intent.*;
 import org.jdrupes.builder.api.MergedTestProject;
-import static org.jdrupes.builder.api.ResourceRequest.*;
 import org.jdrupes.builder.core.AbstractProject;
 import org.jdrupes.builder.java.JavaLibraryProject;
 import org.jdrupes.builder.java.JavaProject;
-import static org.jdrupes.builder.java.JavaTypes.*;
 import org.jdrupes.builder.mvnrepo.MvnRepoLookup;
 
 public class Util extends AbstractProject implements JavaLibraryProject {
@@ -33,7 +30,7 @@ public class Util extends AbstractProject implements JavaLibraryProject {
     public Util() {
         super(name("org.jgrapes.util"));
         dependency(Expose, project(Core.class));
-        dependency(Consume, new MvnRepoLookup().resolve(
+        dependency(Reveal, new MvnRepoLookup().resolve(
             "com.electronwill.night-config:core:[3.6.7,3.7.0)",
             "com.electronwill.night-config:json:[3.6.7,3.7.0)",
             "com.electronwill.night-config:toml:[3.6.7,3.7.0)",

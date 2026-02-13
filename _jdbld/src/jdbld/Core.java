@@ -18,13 +18,11 @@
 
 package jdbld;
 
-import static org.jdrupes.builder.api.Intend.*;
-
+import static org.jdrupes.builder.api.Intent.*;
 import org.jdrupes.builder.api.MergedTestProject;
 import org.jdrupes.builder.core.AbstractProject;
 import org.jdrupes.builder.java.JavaLibraryProject;
 import org.jdrupes.builder.java.JavaProject;
-import org.jdrupes.builder.mvnrepo.MvnRepoLookup;
 
 public class Core extends AbstractProject implements JavaLibraryProject {
 

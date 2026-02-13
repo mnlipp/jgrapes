@@ -18,8 +18,7 @@
 
 package jdbld;
 
-import static org.jdrupes.builder.api.Intend.*;
-
+import static org.jdrupes.builder.api.Intent.*;
 import org.jdrupes.builder.api.MergedTestProject;
 import org.jdrupes.builder.core.AbstractProject;
 import org.jdrupes.builder.java.JavaLibraryProject;
@@ -31,8 +30,11 @@ public class HttpFreemarker extends AbstractProject
 
     public HttpFreemarker() {
         super(name("org.jgrapes.http.freemarker"));
+        dependency(Expose, project(Core.class));
+        dependency(Expose, project(IO.class));
         dependency(Expose, project(Http.class));
         dependency(Expose, new MvnRepoLookup().resolve(
+            "org.jdrupes.httpcodec:httpcodec:[3.1.0,4.0.0)",
             "org.freemarker:freemarker:[2.3.31,2.4)"));
     }
 

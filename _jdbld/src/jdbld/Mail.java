@@ -18,22 +18,21 @@
 
 package jdbld;
 
-import static org.jdrupes.builder.api.Intend.*;
-
-import org.jdrupes.builder.api.MergedTestProject;
+import static org.jdrupes.builder.api.Intent.*;
 import org.jdrupes.builder.core.AbstractProject;
 import org.jdrupes.builder.java.JavaLibraryProject;
-import org.jdrupes.builder.java.JavaProject;
 import org.jdrupes.builder.mvnrepo.MvnRepoLookup;
 
 public class Mail extends AbstractProject implements JavaLibraryProject {
 
     public Mail() {
         super(name("org.jgrapes.mail"));
+        dependency(Expose, project(Core.class));
+        dependency(Expose, project(Util.class));
         dependency(Expose, project(IO.class));
         dependency(Expose, new MvnRepoLookup().resolve(
             "jakarta.mail:jakarta.mail-api:[2.1.4,2.2.0)"));
-        dependency(Consume, new MvnRepoLookup().resolve(
+        dependency(Reveal, new MvnRepoLookup().resolve(
             "org.eclipse.angus:imap:[2.0.4,2.1.0)"));
     }
 }
