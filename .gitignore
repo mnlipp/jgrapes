@@ -20,3 +20,4 @@
 **/org.eclipse.jdt.core.prefs
 /node_modules/
 /package-lock.json
+/jdbld.log
