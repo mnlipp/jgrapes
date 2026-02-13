@@ -1,3 +1,0 @@
-class ConfigurePublishingExtension {
-	Closure withPomXml = {}
-}
