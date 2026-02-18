@@ -87,7 +87,7 @@ public class JGrapesJavadoc extends AbstractGenerator implements Renamable {
 
         // Build command
         List<String> command = List.of(
-            "/usr/lib/jvm/java-21-openjdk/bin/java",
+            context().property("javadocJava", "java"),
             "--add-exports=jdk.compiler/com.sun.tools.doclint=ALL-UNNAMED",
             "--add-exports=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED",
             "--add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED",
