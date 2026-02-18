@@ -29,4 +29,7 @@ jobs:
           java-version: ${{ matrix.java-version }}
           distribution: 'adopt'
       - name: Build with jdbld
-        run: JAVA_HOME=/usr/lib/jvm/java-25-openjdk-amd64/ ./jdbld -Prepo.access.token=${{ secrets.REPO_ACCESS_TOKEN }} build test
+        run: >
+          JAVA_HOME=/usr/lib/jvm/java-25-openjdk-amd64/
+          ./jdbld -Pjgrapes.repo.access.token=${{ secrets.REPO_ACCESS_TOKEN }}
+          build test ghPagesPublication
