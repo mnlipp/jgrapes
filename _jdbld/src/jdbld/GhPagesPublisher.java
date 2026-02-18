@@ -65,8 +65,8 @@ public class GhPagesPublisher extends AbstractGenerator {
             .resources(of(JavadocDirectory.class).using(Intent.Supply));
 
         // Clone, copy, publish
+        var workDir = project().buildDirectory().resolve("gh-pages");
         try {
-            var workDir = project().buildDirectory().resolve("gh-pages");
             var git = cloneRepository(workDir);
             copyJavadocs(javadocs, workDir);
             git.add().addFilepattern(".").call();
@@ -82,7 +82,10 @@ public class GhPagesPublisher extends AbstractGenerator {
             throw new BuildException().from(this).cause(e);
         }
 
-        return Stream.empty();
+        @SuppressWarnings("unchecked")
+        var result = (T) newResource(
+            new ResourceType<GhPagesPublication>() {}, workDir);
+        return Stream.of(result);
     }
 
     private Git cloneRepository(Path workDir)
