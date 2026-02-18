@@ -48,7 +48,7 @@ import org.jdrupes.builder.api.TestResult;
 import org.jdrupes.builder.bnd.BndAnalyzer;
 import org.jdrupes.builder.bnd.BndBaselineEvaluation;
 import org.jdrupes.builder.bnd.BndBaseliner;
-import org.jdrupes.builder.core.AbstractProject;
+import org.jdrupes.builder.core.AbstractRootProject;
 import org.jdrupes.builder.eclipse.EclipseConfiguration;
 import org.jdrupes.builder.eclipse.EclipseConfigurator;
 import org.jdrupes.builder.java.JarFile;
@@ -71,7 +71,7 @@ import org.w3c.dom.Node;
 
 import static org.jdrupes.builder.mvnrepo.MvnProperties.GroupId;
 
-public class Root extends AbstractProject implements RootProject {
+public class Root extends AbstractRootProject {
 
     @Override
     public void prepareProject(Project project) throws Exception {
@@ -94,6 +94,9 @@ public class Root extends AbstractProject implements RootProject {
         // Build javadoc
         generator(JGrapesJavadoc::new);
 
+        // Publish gh-pages
+        generator(GhPagesPublisher::new);
+
         // Commands
         commandAlias("build").projects("org.jgrapes.*")
             .resources(of(JarFile.class).using(Supply));
@@ -108,6 +111,8 @@ public class Root extends AbstractProject implements RootProject {
         commandAlias("runEchoServer")
             .resources(of(ExecResult.class).withName("EchoServer"));
         commandAlias("baseline").resources(of(BndBaselineEvaluation.class));
+        commandAlias("ghPagesPublication")
+            .resources(of(GhPagesPublication.class));
     }
 
     private static void setupVersion(Project project)
@@ -158,7 +163,8 @@ public class Root extends AbstractProject implements RootProject {
                     .resolve("org.junit.jupiter:junit-jupiter-engine",
                         "org.junit.vintage:junit-vintage-engine",
                         "net.jodah:concurrentunit:0.4.2"));
-                project.dependency(Supply, JUnitTestRunner::new);
+                project.dependency(Supply, JUnitTestRunner::new)
+                    .syncOn(Root.class);
             }
         }
         if (project instanceof JavaLibraryProject) {
