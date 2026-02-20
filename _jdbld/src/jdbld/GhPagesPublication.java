@@ -18,10 +18,10 @@
 
 package jdbld;
 
-import org.jdrupes.builder.api.FileResource;
+import org.jdrupes.builder.api.VirtualResource;
 
 /// Defines the resource GhPagesPublication.
 ///
-public interface GhPagesPublication extends FileResource {
+public interface GhPagesPublication extends VirtualResource {
 
 }

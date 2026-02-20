@@ -1,5 +1,6 @@
 #!/usr/bin/bash
 
+defaultVersion="0.0.18"
 propertiesFile=".jdbld.properties"
 
 if [ ! -r "$propertiesFile" ]; then
@@ -26,7 +27,7 @@ getProperty() {
 
 # Get the executable jar
 
-jdbldVersion=$(getProperty "jdbldVersion" "0.0.18-SNAPSHOT")
+jdbldVersion=$(getProperty "jdbldVersion" $defaultVersion)
 
 if [ -n "$JDBLD_JAR" ]; then
   builderJar="$JDBLD_JAR"

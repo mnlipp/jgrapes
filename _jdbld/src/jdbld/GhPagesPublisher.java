@@ -55,8 +55,8 @@ public class GhPagesPublisher extends AbstractGenerator {
 
     @Override
     protected <T extends Resource> Stream<T>
-            doProvide(ResourceRequest<T> requested) {
-        if (!requested.accepts(new ResourceType<GhPagesPublication>() {})) {
+            doProvide(ResourceRequest<T> request) {
+        if (!request.accepts(new ResourceType<GhPagesPublication>() {})) {
             return Stream.empty();
         }
 
