@@ -60,9 +60,13 @@ import org.jdrupes.builder.java.JavadocDirectory;
 import org.jdrupes.builder.java.LibraryBuilder;
 import org.jdrupes.builder.java.ManifestAttributes;
 import org.jdrupes.builder.junit.JUnitTestRunner;
+import org.jdrupes.builder.mvnrepo.JavadocJarGenerator;
+import org.jdrupes.builder.mvnrepo.MvnPublication;
+import org.jdrupes.builder.mvnrepo.MvnPublisher;
 import org.jdrupes.builder.mvnrepo.MvnRepoLookup;
 import org.jdrupes.builder.mvnrepo.PomFile;
 import org.jdrupes.builder.mvnrepo.PomFileGenerator;
+import org.jdrupes.builder.mvnrepo.SourcesJarGenerator;
 import org.jdrupes.gitversioning.api.VersionEvaluator;
 import org.jdrupes.gitversioning.core.DefaultTagFilter;
 import org.jdrupes.gitversioning.core.MavenStyleTagProcessor;
@@ -102,6 +106,7 @@ public class Root extends AbstractRootProject {
             .resources(of(JarFile.class).using(Supply));
         commandAlias("javadoc").resources(of(JavadocDirectory.class));
         commandAlias("pomFile").resources(of(PomFile.class));
+        commandAlias("mavenPublication").resources(of(MvnPublication.class));
         commandAlias("test").resources(of(TestResult.class));
         commandAlias("eclipse").resources(of(EclipseConfiguration.class));
         commandAlias("runGreeter")
@@ -241,6 +246,18 @@ public class Root extends AbstractRootProject {
                 project.dependency(Supply, BndBaseliner::new)
                     .instruction("-diffignore", "Git-Descriptor, Git-SHA");
             }
+
+            // Supply sources jar
+            project.generator(SourcesJarGenerator::new).addTrees(
+                project.resources(project.of(
+                    JavaSourceTreeType).using(Supply, Expose)));
+
+            // Supply javadoc jar
+            project.generator(JavadocJarGenerator::new);
+
+            // Publish (deploy). Credentials and signing information is
+            // obtained through properties.
+            project.generator(MvnPublisher::new);
         }
     }
 
