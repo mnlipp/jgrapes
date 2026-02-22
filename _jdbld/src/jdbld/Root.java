@@ -242,8 +242,10 @@ public class Root extends AbstractRootProject {
                     .instructions(
                         Map.of("-diffignore", "Git-Descriptor, Git-SHA",
                             "Bundle-Version", bundleVersion));
-                project.dependency(Supply, BndBaseliner::new)
-                    .instruction("-diffignore", "Git-Descriptor, Git-SHA");
+                if (project.name().startsWith("org.jgrapes.")) {
+                    project.dependency(Supply, BndBaseliner::new)
+                        .instruction("-diffignore", "Git-Descriptor, Git-SHA");
+                }
             }
 
             // Supply sources jar
