@@ -39,9 +39,8 @@ import org.jdrupes.builder.core.AbstractGenerator;
 import org.jdrupes.builder.java.ClassTree;
 import org.jdrupes.builder.java.ClasspathElement;
 import org.jdrupes.builder.java.JarFile;
-import org.jdrupes.builder.mvnrepo.MvnRepoLookup;
-
 import static org.jdrupes.builder.java.JavaTypes.*;
+import org.jdrupes.builder.mvnrepo.MvnRepoLookup;
 
 /// Very special javadoc generation.
 ///
@@ -95,7 +94,8 @@ public class JGrapesJavadoc extends AbstractGenerator implements Renamable {
             "--add-exports=jdk.compiler/com.sun.tools.javac.model=ALL-UNNAMED",
             "--add-exports=jdk.javadoc/jdk.javadoc.internal.tool=ALL-UNNAMED",
             "--add-exports=jdk.javadoc/jdk.javadoc.internal.doclets.toolkit=ALL-UNNAMED",
-            "--add-opens=jdk.javadoc/jdk.javadoc.internal.doclets.toolkit.resources.releases=ALL-UNNAMED",
+            "--add-opens=jdk.javadoc/jdk.javadoc.internal.doclets.toolkit"
+                + ".resources.releases=ALL-UNNAMED",
             "-Duser.language=en_US", "-Duser.region=US",
             "jdk.javadoc.internal.tool.Main",
             "-doctitle", String.format("JGrapes (core-%s, io-%s, http-%s,"
