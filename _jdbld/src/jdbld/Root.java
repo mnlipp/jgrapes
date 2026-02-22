@@ -29,9 +29,6 @@ import static java.util.jar.Attributes.Name.IMPLEMENTATION_TITLE;
 import static java.util.jar.Attributes.Name.IMPLEMENTATION_VENDOR;
 import static java.util.jar.Attributes.Name.IMPLEMENTATION_VERSION;
 import static jdbld.ExtProps.GitApi;
-import static org.jdrupes.builder.api.Intent.*;
-import static org.jdrupes.builder.api.Project.Properties.Version;
-import static org.jdrupes.builder.java.JavaTypes.JavaSourceTreeType;
 import org.apache.maven.model.Developer;
 import org.apache.maven.model.License;
 import org.apache.maven.model.Scm;
@@ -41,8 +38,10 @@ import org.eclipse.jgit.errors.InvalidPatternException;
 import org.eclipse.jgit.errors.RevisionSyntaxException;
 import org.jdrupes.builder.api.BuildException;
 import org.jdrupes.builder.api.ExecResult;
+import static org.jdrupes.builder.api.Intent.*;
 import org.jdrupes.builder.api.MergedTestProject;
 import org.jdrupes.builder.api.Project;
+import static org.jdrupes.builder.api.Project.Properties.Version;
 import org.jdrupes.builder.api.RootProject;
 import org.jdrupes.builder.api.TestResult;
 import org.jdrupes.builder.bnd.BndAnalyzer;
@@ -51,16 +50,18 @@ import org.jdrupes.builder.bnd.BndBaseliner;
 import org.jdrupes.builder.core.AbstractRootProject;
 import org.jdrupes.builder.eclipse.EclipseConfiguration;
 import org.jdrupes.builder.eclipse.EclipseConfigurator;
-import org.jdrupes.builder.java.JarFile;
 import org.jdrupes.builder.java.JavaCompiler;
 import org.jdrupes.builder.java.JavaLibraryProject;
 import org.jdrupes.builder.java.JavaProject;
 import org.jdrupes.builder.java.JavaResourceCollector;
+import static org.jdrupes.builder.java.JavaTypes.JavaSourceTreeType;
 import org.jdrupes.builder.java.JavadocDirectory;
 import org.jdrupes.builder.java.LibraryBuilder;
+import org.jdrupes.builder.java.LibraryJarFile;
 import org.jdrupes.builder.java.ManifestAttributes;
 import org.jdrupes.builder.junit.JUnitTestRunner;
-import org.jdrupes.builder.mvnrepo.JavadocJarGenerator;
+import org.jdrupes.builder.mvnrepo.JavadocJarBuilder;
+import static org.jdrupes.builder.mvnrepo.MvnProperties.GroupId;
 import org.jdrupes.builder.mvnrepo.MvnPublication;
 import org.jdrupes.builder.mvnrepo.MvnPublisher;
 import org.jdrupes.builder.mvnrepo.MvnRepoLookup;
@@ -72,8 +73,6 @@ import org.jdrupes.gitversioning.core.DefaultTagFilter;
 import org.jdrupes.gitversioning.core.MavenStyleTagProcessor;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
-
-import static org.jdrupes.builder.mvnrepo.MvnProperties.GroupId;
 
 public class Root extends AbstractRootProject {
 
@@ -102,8 +101,8 @@ public class Root extends AbstractRootProject {
         generator(GhPagesPublisher::new);
 
         // Commands
-        commandAlias("build").projects("org.jgrapes.*")
-            .resources(of(JarFile.class).using(Supply));
+        commandAlias("build").projects("**")
+            .resources(of(LibraryJarFile.class).using(Supply));
         commandAlias("javadoc").resources(of(JavadocDirectory.class));
         commandAlias("pomFile").resources(of(PomFile.class));
         commandAlias("mavenPublication").resources(of(MvnPublication.class));
@@ -253,7 +252,7 @@ public class Root extends AbstractRootProject {
                     JavaSourceTreeType).using(Supply, Expose)));
 
             // Supply javadoc jar
-            project.generator(JavadocJarGenerator::new);
+            project.generator(JavadocJarBuilder::new);
 
             // Publish (deploy). Credentials and signing information is
             // obtained through properties.
