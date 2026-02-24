@@ -19,9 +19,7 @@ jobs:
           fetch-depth: 0
       # jdk 25 and xmlstarlet for jdbld, and graphviz for javadoc, 
       - name: Install required packages
-        run: >
-          sudo sh -c 'echo "http://archive.ubuntu.com/ubuntu/" > /etc/apt/apt-mirrors.txt'
-          && sudo apt-get install openjdk-25-jdk xmlstarlet graphviz
+        run: sudo apt-get update && sudo apt-get install openjdk-25-jdk xmlstarlet graphviz
       - name: Set up JDK ${{ matrix.java-version }}
         uses: actions/setup-java@v3
         with:
