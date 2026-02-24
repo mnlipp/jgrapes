@@ -1,8 +1,10 @@
 package org.jgrapes.http.test;
 
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import org.jgrapes.http.ResourcePattern;
 import org.jgrapes.http.ResponseCreationSupport;
@@ -19,13 +21,16 @@ public class MiscTests {
     }
 
     @Test
-    public void testResourceInfoForFiles() throws MalformedURLException {
+    public void testResourceInfoForFiles()
+            throws MalformedURLException, URISyntaxException {
+        Path testResources = Paths.get(getClass().getResource(
+            "/static-content/index.html").toURI()).getParent().getParent();
         ResourceInfo info = ResponseCreationSupport.resourceInfo(
-            Paths.get("test-resources").toUri().toURL());
+            testResources.toUri().toURL());
         assertTrue(info.isDirectory());
         assertNotNull(info.getLastModifiedAt());
-        info = ResponseCreationSupport.resourceInfo(Paths.get(
-            "test-resources/static-content/index.html").toUri().toURL());
+        info = ResponseCreationSupport.resourceInfo(testResources
+            .resolve("static-content/index.html").toUri().toURL());
         assertFalse(info.isDirectory());
         assertNotNull(info.getLastModifiedAt());
     }

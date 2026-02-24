@@ -19,15 +19,14 @@
 package org.jgrapes.http.test;
 
 import java.io.BufferedReader;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.file.Paths;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -87,15 +86,16 @@ public class ServerTest {
 
         public TestServer() throws IOException, KeyStoreException,
                 NoSuchAlgorithmException, CertificateException,
-                UnrecoverableKeyException, KeyManagementException {
+                UnrecoverableKeyException, KeyManagementException,
+                URISyntaxException {
             super();
             // Attach a general nio dispatcher
             attach(new NioDispatcher());
 
             // Create TLS "converter"
             KeyStore serverStore = KeyStore.getInstance("JKS");
-            try (FileInputStream kf
-                = new FileInputStream("test-resources/localhost.jks")) {
+            try (InputStream kf = getClass()
+                .getResourceAsStream("/localhost.jks")) {
                 serverStore.load(kf, "nopass".toCharArray());
             }
             KeyManagerFactory kmf = KeyManagerFactory.getInstance(
@@ -123,8 +123,8 @@ public class ServerTest {
             // Build application layer
             attach(new InMemorySessionManager(channel()));
             attach(new FileStorage(channel(), 65536));
-            attach(new StaticContentDispatcher(channel(),
-                "/**", Paths.get("test-resources/static-content").toUri()));
+            attach(new StaticContentDispatcher(channel(), "/**",
+                getClass().getResource("/static-content/index.html").toURI()));
             attach(new PurgeTerminator(channel()));
 
             readyMonitor = new WaitForTests<>(this, Ready.class,
@@ -154,7 +154,7 @@ public class ServerTest {
     public static void startServer() throws IOException, InterruptedException,
             ExecutionException, UnrecoverableKeyException,
             KeyManagementException, KeyStoreException, NoSuchAlgorithmException,
-            CertificateException {
+            CertificateException, URISyntaxException {
         server = new TestServer();
         Components.start(server);
 

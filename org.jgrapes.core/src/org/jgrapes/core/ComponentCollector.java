@@ -1,6 +1,6 @@
 /*
  * JGrapes Event Driven Framework
- * Copyright (C) 2017-2018 Michael N. Lipp
+ * Copyright (C) 2017-2026 Michael N. Lipp
  * 
  * This program is free software; you can redistribute it and/or modify it 
  * under the terms of the GNU Affero General Public License as published by 
@@ -62,6 +62,8 @@ public class ComponentCollector<F extends ComponentFactory>
      * @param componentChannel this component's channel
      * @param matcher the matcher function
      */
+    @Deprecated
+    @SuppressWarnings("PMD.ConstructorCallsOverridableMethod")
     public ComponentCollector(
             Class<F> factoryClass, Channel componentChannel,
             Function<String, List<Map<Object, Object>>> matcher) {
@@ -71,8 +73,7 @@ public class ComponentCollector<F extends ComponentFactory>
             List<Map<Object, Object>> configs = matcher.apply(
                 factory.componentType().getName());
             for (Map<Object, Object> config : configs) {
-                factory.create(channel(), config).ifPresent(
-                    component -> attach(component));
+                factory.create(channel(), config).ifPresent(this::attach);
             }
         }
     }
@@ -84,6 +85,7 @@ public class ComponentCollector<F extends ComponentFactory>
      * @param factoryClass the factory class
      * @param componentChannel this component's channel
      */
+    @Deprecated
     public ComponentCollector(
             Class<F> factoryClass, Channel componentChannel) {
         this(factoryClass, componentChannel, type -> SINGLE_DEFAULT);

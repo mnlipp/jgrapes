@@ -1,6 +1,6 @@
 /*
  * JGrapes Event Driven Framework
- * Copyright (C) 2016-2018 Michael N. Lipp
+ * Copyright (C) 2016-2026 Michael N. Lipp
  * 
  * This program is free software; you can redistribute it and/or modify it 
  * under the terms of the GNU Affero General Public License as published by 
@@ -9,11 +9,11 @@
  * 
  * This program is distributed in the hope that it will be useful, but 
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License 
- * for more details.
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public
+ * License for more details.
  * 
- * You should have received a copy of the GNU Affero General Public License along 
- * with this program; if not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 package org.jgrapes.core;
@@ -22,7 +22,6 @@ package org.jgrapes.core;
  * This interface type can be used to specify the object
  * itself as channel in handler annotations.
  */
-@SuppressWarnings("PMD.ShortClassName")
+@SuppressWarnings({ "PMD.ShortClassName", "PMD.ImplicitFunctionalInterface" })
 public interface Self extends Channel {
-
 }

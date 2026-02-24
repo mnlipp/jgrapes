@@ -1,5 +1,9 @@
+# Eclipse
 /bin/
 /bin_test/
 /generated/
-/build/
-test-config.json
+/.project
+/.classpath
+/.eclipse-pmd
+/.checkstyle
+/.settings

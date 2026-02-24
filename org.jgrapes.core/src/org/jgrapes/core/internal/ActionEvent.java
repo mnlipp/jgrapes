@@ -1,6 +1,6 @@
 /*
  * Ad Hoc Polling Application
- * Copyright (C) 2018 Michael N. Lipp
+ * Copyright (C) 2018-2026 Michael N. Lipp
  * 
  * This program is free software; you can redistribute it and/or modify it 
  * under the terms of the GNU Affero General Public License as published by 
@@ -9,11 +9,11 @@
  * 
  * This program is distributed in the hope that it will be useful, but 
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License 
- * for more details.
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public
+ * License for more details.
  * 
- * You should have received a copy of the GNU Affero General Public License along 
- * with this program; if not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 package org.jgrapes.core.internal;
@@ -75,8 +75,7 @@ public abstract class ActionEvent<T> extends Event<T> {
         }
         builder.append(" [");
         if (channels() != null) {
-            builder.append("channels=");
-            builder.append(Channel.toString(channels()));
+            builder.append("channels=").append(Channel.toString(channels()));
         }
         builder.append(']');
         return builder.toString();
@@ -101,7 +100,6 @@ public abstract class ActionEvent<T> extends Event<T> {
             this.action = callable;
         }
 
-        @SuppressWarnings("PMD.SignatureDeclareThrowsException")
         @Override
         /* default */ void execute() throws Exception {
             setResult(action.call());
@@ -125,7 +123,6 @@ public abstract class ActionEvent<T> extends Event<T> {
             this.action = action;
         }
 
-        @SuppressWarnings("PMD.SignatureDeclareThrowsException")
         @Override
         /* default */ void execute() throws Exception {
             action.run();

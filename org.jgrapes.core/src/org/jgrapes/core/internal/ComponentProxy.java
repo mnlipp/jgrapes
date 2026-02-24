@@ -1,6 +1,6 @@
 /*
  * JGrapes Event Driven Framework
- * Copyright (C) 2016-2018 Michael N. Lipp
+ * Copyright (C) 2016-2026 Michael N. Lipp
  * 
  * This program is free software; you can redistribute it and/or modify it 
  * under the terms of the GNU Affero General Public License as published by 
@@ -9,11 +9,11 @@
  * 
  * This program is distributed in the hope that it will be useful, but 
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License 
- * for more details.
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public
+ * License for more details.
  * 
- * You should have received a copy of the GNU Affero General Public License along 
- * with this program; if not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 package org.jgrapes.core.internal;
@@ -32,6 +32,7 @@ import org.jgrapes.core.annotation.Handler;
  * object implementing the Component interface (instead of being
  * its base class).
  */
+@SuppressWarnings("PMD.AvoidSynchronizedStatement")
 public final class ComponentProxy extends ComponentVertex {
 
     /** The reference to the actual component. */
@@ -64,7 +65,7 @@ public final class ComponentProxy extends ComponentVertex {
     private static Channel getComponentChannel(Field field) {
         ComponentManager cma = field.getAnnotation(ComponentManager.class);
         if (cma.channel() != Handler.NoChannel.class) {
-            if (cma.channel() != Channel.BROADCAST.defaultCriterion()) {
+            if (cma.channel() != BROADCAST.defaultCriterion()) {
                 try {
                     return cma.channel().getConstructor().newInstance();
                 } catch (InstantiationException // NOPMD
@@ -74,12 +75,12 @@ public final class ComponentProxy extends ComponentVertex {
                     // Ignored
                 }
             }
-            return Channel.BROADCAST;
+            return BROADCAST;
         }
         if (!cma.namedChannel().isEmpty()) {
             return new NamedChannel(cma.namedChannel());
         }
-        return Channel.SELF;
+        return SELF;
     }
 
     /**
@@ -99,7 +100,7 @@ public final class ComponentProxy extends ComponentVertex {
             if (componentChannel == null) {
                 componentChannel = getComponentChannel(field);
             }
-            if (componentChannel.equals(Channel.SELF)) {
+            if (componentChannel.equals(SELF)) {
                 componentChannel = this;
             }
             this.componentChannel = componentChannel;
@@ -118,8 +119,8 @@ public final class ComponentProxy extends ComponentVertex {
      * @param componentChannel the component's channel
      * @return the node representing the component in the tree
      */
-    @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",
-        "PMD.AvoidAccessibilityAlteration", "PMD.ConfusingTernary" })
+    @SuppressWarnings({ "PMD.AvoidAccessibilityAlteration",
+        "PMD.ConfusingTernary" })
     /* default */ static ComponentVertex getComponentProxy(
             ComponentType component, Channel componentChannel) {
         ComponentProxy componentProxy;
@@ -149,6 +150,7 @@ public final class ComponentProxy extends ComponentVertex {
         return componentProxy;
     }
 
+    @Override
     public ComponentType component() {
         return component;
     }

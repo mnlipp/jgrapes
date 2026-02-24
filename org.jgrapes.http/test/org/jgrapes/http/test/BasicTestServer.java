@@ -18,8 +18,8 @@
 
 package org.jgrapes.http.test;
 
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
@@ -69,8 +69,8 @@ public class BasicTestServer extends Component {
 
         // Create TLS "converter"
         KeyStore serverStore = KeyStore.getInstance("JKS");
-        try (FileInputStream kf
-            = new FileInputStream("test-resources/localhost.jks")) {
+        try (InputStream kf = getClass()
+            .getResourceAsStream("/localhost.jks")) {
             serverStore.load(kf, "nopass".toCharArray());
         }
         KeyManagerFactory kmf = KeyManagerFactory.getInstance(

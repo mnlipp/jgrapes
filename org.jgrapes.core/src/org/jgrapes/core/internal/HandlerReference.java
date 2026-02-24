@@ -1,6 +1,6 @@
 /*
  * JGrapes Event Driven Framework
- * Copyright (C) 2016-2018 Michael N. Lipp
+ * Copyright (C) 2016-2026 Michael N. Lipp
  * 
  * This program is free software; you can redistribute it and/or modify it 
  * under the terms of the GNU Affero General Public License as published by 
@@ -9,11 +9,11 @@
  * 
  * This program is distributed in the hope that it will be useful, but 
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License 
- * for more details.
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public
+ * License for more details.
  * 
- * You should have received a copy of the GNU Affero General Public License along 
- * with this program; if not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 package org.jgrapes.core.internal;
@@ -108,7 +108,6 @@ class HandlerReference implements Comparable<HandlerReference> {
      * 
      * @param event the event
      */
-    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
     public void invoke(EventBase<?> event) throws Throwable {
         // ADAPT VERBOSEHANDLERREFERENCE TO ANY CHANGES MADE HERE
         if (needsFiltering && !((InvocationFilter) filter).includes(event)) {
@@ -187,9 +186,7 @@ class HandlerReference implements Comparable<HandlerReference> {
      * @see java.lang.Object#hashCode()
      */
     @Override
-    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
     public int hashCode() {
-        @SuppressWarnings("PMD.AvoidFinalLocalVariable")
         final int prime = 31;
         int result = 1;
         result = prime * result + ((filter == null) ? 0 : filter.hashCode());

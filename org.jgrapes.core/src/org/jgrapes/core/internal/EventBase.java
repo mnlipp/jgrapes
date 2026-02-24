@@ -1,6 +1,6 @@
 /*
  * JGrapes Event Driven Framework
- * Copyright (C) 2016-2018 Michael N. Lipp
+ * Copyright (C) 2016-2026 Michael N. Lipp
  * 
  * This program is free software; you can redistribute it and/or modify it 
  * under the terms of the GNU Affero General Public License as published by 
@@ -9,11 +9,11 @@
  * 
  * This program is distributed in the hope that it will be useful, but 
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License 
- * for more details.
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public
+ * License for more details.
  * 
- * You should have received a copy of the GNU Affero General Public License along 
- * with this program; if not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 package org.jgrapes.core.internal;
@@ -44,7 +44,7 @@ import org.jgrapes.core.EventPipeline;
  * @param <T> the result type of the event. Use {@link Void} if handling
  * the event does not produce a result
  */
-@SuppressWarnings("PMD.TooManyMethods")
+@SuppressWarnings({ "PMD.TooManyMethods", "PMD.AvoidSynchronizedStatement" })
 public abstract class EventBase<T>
         implements Eligible, Future<T>, Associator {
 
@@ -166,8 +166,8 @@ public abstract class EventBase<T>
     }
 
     public Optional<EventPipeline> processedBy() {
-        return Optional.ofNullable(processedBy).map(
-            procBy -> procBy.asEventPipeline());
+        return Optional.ofNullable(processedBy)
+            .map(EventProcessor::asEventPipeline);
     }
 
     /**
@@ -227,7 +227,8 @@ public abstract class EventBase<T>
     /**
      * @param pipeline
      */
-    @SuppressWarnings("PMD.CognitiveComplexity")
+    @SuppressWarnings({ "PMD.CognitiveComplexity",
+        "PMD.AvoidDeeplyNestedIfStmts" })
     /* default */ void decrementOpen() {
         if (openCount.decrementAndGet() == 0 && !completed) {
             synchronized (this) {
@@ -309,7 +310,6 @@ public abstract class EventBase<T>
         return tracked;
     }
 
-    @SuppressWarnings("PMD.UselessParentheses")
     /* default */ boolean isTrackable() {
         return generatedBy == null ? tracked
             : (tracked && generatedBy.isTrackable());

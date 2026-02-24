@@ -1,6 +1,6 @@
 /*
  * JGrapes Event Driven Framework
- * Copyright (C) 2016-2018 Michael N. Lipp
+ * Copyright (C) 2016-2026 Michael N. Lipp
  * 
  * This program is free software; you can redistribute it and/or modify it 
  * under the terms of the GNU Affero General Public License as published by 
@@ -9,11 +9,11 @@
  * 
  * This program is distributed in the hope that it will be useful, but 
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License 
- * for more details.
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public
+ * License for more details.
  * 
- * You should have received a copy of the GNU Affero General Public License along 
- * with this program; if not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 package org.jgrapes.core;
@@ -119,6 +119,7 @@ public interface Subchannel extends Channel, Associator {
          * @param with the object to be associated
          */
         @SuppressWarnings({ "PMD.ShortVariable", "unchecked" })
+        @Override
         public <A extends Associator> A setAssociated(Object by, Object with) {
             if (contextData == null) {
                 contextData = new ConcurrentHashMap<>();
@@ -143,6 +144,7 @@ public interface Subchannel extends Channel, Associator {
          * @return the associate, if any
          */
         @SuppressWarnings("PMD.ShortVariable")
+        @Override
         public <V> Optional<V> associated(Object by, Class<V> type) {
             if (contextData == null) {
                 return Optional.empty();

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
     JGrapes Event Driven Framework
-    Copyright (C) 2016, 2017  Michael N. Lipp
+    Copyright (C) 2016, 2026  Michael N. Lipp
    
     This program is free software; you can redistribute it and/or modify it 
     under the terms of the GNU Affero General Public License as published by 
@@ -30,8 +30,11 @@
   <property name="severity" value="warning"/>
   <property name="charset" value="UTF-8"/>
   <property name="fileExtensions" value="java, properties, xml"/>
+  <module name="SuppressWarningsFilter"/>
   <module name="TreeWalker">
     <property name="tabWidth" value="4"/>
+
+    <module name="SuppressWarningsHolder"/>
     <module name="OuterTypeFilename"/>
     <module name="IllegalTokenText">
       <property name="tokens" value="STRING_LITERAL, CHAR_LITERAL"/>

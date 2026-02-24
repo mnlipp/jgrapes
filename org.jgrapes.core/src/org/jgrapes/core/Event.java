@@ -1,6 +1,6 @@
 /*
  * JGrapes Event Driven Framework
- * Copyright (C) 2016-2018 Michael N. Lipp
+ * Copyright (C) 2016-2026 Michael N. Lipp
  * 
  * This program is free software; you can redistribute it and/or modify it 
  * under the terms of the GNU Affero General Public License as published by 
@@ -9,11 +9,11 @@
  * 
  * This program is distributed in the hope that it will be useful, but 
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License 
- * for more details.
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public
+ * License for more details.
  * 
- * You should have received a copy of the GNU Affero General Public License along 
- * with this program; if not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 package org.jgrapes.core;
@@ -49,7 +49,8 @@ import org.jgrapes.core.internal.EventBase;
  *            the result type of the event. Use {@link Void} if handling the
  *            event does not produce a result
  */
-@SuppressWarnings({ "PMD.GodClass", "PMD.TooManyMethods" })
+@SuppressWarnings({ "PMD.GodClass", "PMD.TooManyMethods",
+    "PMD.AvoidSynchronizedStatement" })
 public class Event<T> extends EventBase<T> {
 
     /** The channels that this event is to be fired on if no
@@ -172,8 +173,7 @@ public class Event<T> extends EventBase<T> {
      * @return the filtered channels
      * @see #channels()
      */
-    @SuppressWarnings({ "unchecked", "PMD.ShortVariable",
-        "PMD.AvoidDuplicateLiterals" })
+    @SuppressWarnings({ "unchecked" })
     public <C> C[] channels(Class<C> type) {
         return Arrays.stream(channels)
             .filter(c -> type.isAssignableFrom(c.getClass())).toArray(
@@ -188,7 +188,7 @@ public class Event<T> extends EventBase<T> {
      * @param type the channel type
      * @param handler the handler
      */
-    @SuppressWarnings({ "unchecked", "PMD.ShortVariable" })
+    @SuppressWarnings({ "unchecked" })
     public <E extends EventBase<?>, C extends Channel> void forChannels(
             Class<C> type, BiConsumer<E, C> handler) {
         Arrays.stream(channels)
@@ -253,6 +253,7 @@ public class Event<T> extends EventBase<T> {
      * implementation does nothing. This method is invoked by the event 
      * handler thread and must not block.
      */
+    @Override
     protected void handled() {
         // Default is to do nothing.
     }
@@ -303,6 +304,7 @@ public class Event<T> extends EventBase<T> {
      * 
      * @return the stopped state
      */
+    @Override
     public boolean isStopped() {
         return stopped;
     }
@@ -359,6 +361,7 @@ public class Event<T> extends EventBase<T> {
      * 
      * @return the intermediate results (which may be an empty list)
      */
+    @Override
     protected List<T> currentResults() {
         return results == null ? Collections.emptyList()
             : Collections.unmodifiableList(results);
@@ -514,8 +517,7 @@ public class Event<T> extends EventBase<T> {
         builder.append(Components.objectName(this))
             .append(" [");
         if (channels != null) {
-            builder.append("channels=");
-            builder.append(Channel.toString(channels));
+            builder.append("channels=").append(Channel.toString(channels));
         }
         builder.append(']');
         return builder.toString();

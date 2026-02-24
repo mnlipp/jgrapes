@@ -1,6 +1,6 @@
 /*
  * JGrapes Event Driven Framework
- * Copyright (C) 2016-2018 Michael N. Lipp
+ * Copyright (C) 2016-2026 Michael N. Lipp
  * 
  * This program is free software; you can redistribute it and/or modify it 
  * under the terms of the GNU Affero General Public License as published by 
@@ -9,11 +9,11 @@
  * 
  * This program is distributed in the hope that it will be useful, but 
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License 
- * for more details.
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public
+ * License for more details.
  * 
- * You should have received a copy of the GNU Affero General Public License along 
- * with this program; if not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 package org.jgrapes.core.internal;
@@ -38,6 +38,7 @@ import org.jgrapes.core.events.Error;
  * This class represents the component tree. It holds all properties that 
  * are common to all nodes of a component tree (the {@link ComponentVertex}s).
  */
+@SuppressWarnings("PMD.AvoidSynchronizedStatement")
 class ComponentTree {
 
     @SuppressWarnings("PMD.FieldNamingConventions")
@@ -46,7 +47,7 @@ class ComponentTree {
             + ".handlerTracking");
 
     private final ComponentVertex root;
-    @SuppressWarnings("PMD.UseConcurrentHashMap") // Used synchronized only
+    @SuppressWarnings({ "PMD.UseConcurrentHashMap", "PMD.LooseCoupling" })
     private final Map<CacheKey, HandlerList> handlerCache = new HashMap<>();
     private InternalEventPipeline eventPipeline;
     private static HandlerReference fallbackErrorHandler;
@@ -113,7 +114,7 @@ class ComponentTree {
          * Instantiates a new dummy component.
          */
         public DummyComponent() {
-            super(Channel.SELF);
+            super(SELF);
         }
 
         /**
@@ -213,7 +214,7 @@ class ComponentTree {
      * @param event the event
      * @param channels the channels the event is sent to
      */
-    @SuppressWarnings("PMD.UseVarargs")
+    @SuppressWarnings({ "PMD.UseVarargs", "PMD.LooseCoupling" })
     /* default */ HandlerList getEventHandlers(
             EventBase<?> event, Channel[] channels) {
         CacheKey key = new CacheKey(event, channels);
@@ -288,9 +289,7 @@ class ComponentTree {
          * @see java.lang.Object#hashCode()
          */
         @Override
-        @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
         public int hashCode() {
-            @SuppressWarnings("PMD.AvoidFinalLocalVariable")
             final int prime = 31;
             int result = 1;
             result = prime * result + Arrays.hashCode(channelMatchValues);
