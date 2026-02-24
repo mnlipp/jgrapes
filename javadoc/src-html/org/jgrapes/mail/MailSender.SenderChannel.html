@@ -65,7 +65,7 @@
 <span class="source-line-no">051</span><span id="line-51"> * Additional connections can be created by firing events of type </span>
 <span class="source-line-no">052</span><span id="line-52"> * {@link OpenMailSender}.</span>
 <span class="source-line-no">053</span><span id="line-53"> */</span>
-<span class="source-line-no">054</span><span id="line-54">@SuppressWarnings("PMD.DataflowAnomalyAnalysis")</span>
+<span class="source-line-no">054</span><span id="line-54">@SuppressWarnings("PMD.AvoidSynchronizedStatement")</span>
 <span class="source-line-no">055</span><span id="line-55">public class MailSender</span>
 <span class="source-line-no">056</span><span id="line-56">        extends MailConnectionManager&lt;MailSender.SenderChannel, Event&lt;?&gt;&gt; {</span>
 <span class="source-line-no">057</span><span id="line-57"></span>
@@ -100,207 +100,210 @@
 <span class="source-line-no">086</span><span id="line-86">     * @param props the props</span>
 <span class="source-line-no">087</span><span id="line-87">     * @return the mail monitor</span>
 <span class="source-line-no">088</span><span id="line-88">     */</span>
-<span class="source-line-no">089</span><span id="line-89">    public MailSender setMailProperties(Map&lt;String, String&gt; props) {</span>
-<span class="source-line-no">090</span><span id="line-90">        mailProps.putAll(props);</span>
-<span class="source-line-no">091</span><span id="line-91">        return this;</span>
-<span class="source-line-no">092</span><span id="line-92">    }</span>
-<span class="source-line-no">093</span><span id="line-93"></span>
-<span class="source-line-no">094</span><span id="line-94">    /**</span>
-<span class="source-line-no">095</span><span id="line-95">     * Sets the maximum idle time. An open connection to the mail server</span>
-<span class="source-line-no">096</span><span id="line-96">     * is closed after this time.</span>
-<span class="source-line-no">097</span><span id="line-97">     *</span>
-<span class="source-line-no">098</span><span id="line-98">     * @param maxIdleTime the new max idle time</span>
-<span class="source-line-no">099</span><span id="line-99">     */</span>
-<span class="source-line-no">100</span><span id="line-100">    public MailSender setMaxIdleTime(Duration maxIdleTime) {</span>
-<span class="source-line-no">101</span><span id="line-101">        this.maxIdleTime = maxIdleTime;</span>
-<span class="source-line-no">102</span><span id="line-102">        return this;</span>
-<span class="source-line-no">103</span><span id="line-103">    }</span>
-<span class="source-line-no">104</span><span id="line-104"></span>
-<span class="source-line-no">105</span><span id="line-105">    /**</span>
-<span class="source-line-no">106</span><span id="line-106">     * Returns the max idle time.</span>
-<span class="source-line-no">107</span><span id="line-107">     *</span>
-<span class="source-line-no">108</span><span id="line-108">     * @return the duration</span>
-<span class="source-line-no">109</span><span id="line-109">     */</span>
-<span class="source-line-no">110</span><span id="line-110">    public Duration maxIdleTime() {</span>
-<span class="source-line-no">111</span><span id="line-111">        return maxIdleTime;</span>
-<span class="source-line-no">112</span><span id="line-112">    }</span>
-<span class="source-line-no">113</span><span id="line-113"></span>
-<span class="source-line-no">114</span><span id="line-114">    @Override</span>
-<span class="source-line-no">115</span><span id="line-115">    protected void configureComponent(Map&lt;String, String&gt; values) {</span>
-<span class="source-line-no">116</span><span id="line-116">        Optional.ofNullable(values.get("maxIdleTime"))</span>
-<span class="source-line-no">117</span><span id="line-117">            .map(Integer::parseInt).map(Duration::ofSeconds)</span>
-<span class="source-line-no">118</span><span id="line-118">            .ifPresent(this::setMaxIdleTime);</span>
-<span class="source-line-no">119</span><span id="line-119">    }</span>
-<span class="source-line-no">120</span><span id="line-120"></span>
-<span class="source-line-no">121</span><span id="line-121">    /**</span>
-<span class="source-line-no">122</span><span id="line-122">     * Start the component.</span>
-<span class="source-line-no">123</span><span id="line-123">     *</span>
-<span class="source-line-no">124</span><span id="line-124">     * @param event the event</span>
-<span class="source-line-no">125</span><span id="line-125">     * @throws MessagingException </span>
-<span class="source-line-no">126</span><span id="line-126">     */</span>
-<span class="source-line-no">127</span><span id="line-127">    @Handler</span>
-<span class="source-line-no">128</span><span id="line-128">    public void onStart(Start event) throws MessagingException {</span>
-<span class="source-line-no">129</span><span id="line-129">        systemChannel = new SenderChannel(event,</span>
-<span class="source-line-no">130</span><span id="line-130">            channel(), mailProps, password());</span>
-<span class="source-line-no">131</span><span id="line-131">    }</span>
-<span class="source-line-no">132</span><span id="line-132"></span>
-<span class="source-line-no">133</span><span id="line-133">    /**</span>
-<span class="source-line-no">134</span><span id="line-134">     * Open a connection for sending mail as specified by the event.</span>
-<span class="source-line-no">135</span><span id="line-135">     * </span>
-<span class="source-line-no">136</span><span id="line-136">     * Properties configured for the component are used as fallbacks,</span>
-<span class="source-line-no">137</span><span id="line-137">     * so simply sending an event without specific properties opens</span>
-<span class="source-line-no">138</span><span id="line-138">     * another system connection.</span>
-<span class="source-line-no">139</span><span id="line-139">     *</span>
-<span class="source-line-no">140</span><span id="line-140">     * @param event the event</span>
-<span class="source-line-no">141</span><span id="line-141">     * @param channel the channel</span>
-<span class="source-line-no">142</span><span id="line-142">     * @throws MessagingException </span>
-<span class="source-line-no">143</span><span id="line-143">     */</span>
-<span class="source-line-no">144</span><span id="line-144">    @Handler</span>
-<span class="source-line-no">145</span><span id="line-145">    public void onOpenMailSender(OpenMailSender event, Channel channel)</span>
-<span class="source-line-no">146</span><span id="line-146">            throws MessagingException {</span>
-<span class="source-line-no">147</span><span id="line-147">        Properties sessionProps = new Properties(mailProps);</span>
-<span class="source-line-no">148</span><span id="line-148">        sessionProps.putAll(event.mailProperties());</span>
-<span class="source-line-no">149</span><span id="line-149">        new SenderChannel(event, channel, sessionProps,</span>
-<span class="source-line-no">150</span><span id="line-150">            event.password().or(this::password));</span>
-<span class="source-line-no">151</span><span id="line-151">    }</span>
-<span class="source-line-no">152</span><span id="line-152"></span>
-<span class="source-line-no">153</span><span id="line-153">    /**</span>
-<span class="source-line-no">154</span><span id="line-154">     * Sends the message as specified by the event.</span>
-<span class="source-line-no">155</span><span id="line-155">     *</span>
-<span class="source-line-no">156</span><span id="line-156">     * @param event the event</span>
-<span class="source-line-no">157</span><span id="line-157">     * @throws MessagingException the messaging exception</span>
-<span class="source-line-no">158</span><span id="line-158">     */</span>
-<span class="source-line-no">159</span><span id="line-159">    @Handler</span>
-<span class="source-line-no">160</span><span id="line-160">    @SuppressWarnings("PMD.CompareObjectsWithEquals")</span>
-<span class="source-line-no">161</span><span id="line-161">    public void onMessage(SendMailMessage event, Channel channel)</span>
-<span class="source-line-no">162</span><span id="line-162">            throws MessagingException {</span>
-<span class="source-line-no">163</span><span id="line-163">        if (channel instanceof SenderChannel chan</span>
-<span class="source-line-no">164</span><span id="line-164">            &amp;&amp; chan.mailSender() == this) {</span>
-<span class="source-line-no">165</span><span id="line-165">            chan.sendMessage(event);</span>
-<span class="source-line-no">166</span><span id="line-166">        } else {</span>
-<span class="source-line-no">167</span><span id="line-167">            systemChannel.sendMessage(event);</span>
-<span class="source-line-no">168</span><span id="line-168">        }</span>
-<span class="source-line-no">169</span><span id="line-169">    }</span>
-<span class="source-line-no">170</span><span id="line-170"></span>
-<span class="source-line-no">171</span><span id="line-171">    /**</span>
-<span class="source-line-no">172</span><span id="line-172">     * The specific implementation of the {@link MailChannel}.</span>
-<span class="source-line-no">173</span><span id="line-173">     */</span>
-<span class="source-line-no">174</span><span id="line-174">    protected class SenderChannel extends MailConnectionManager&lt;</span>
-<span class="source-line-no">175</span><span id="line-175">            MailSender.SenderChannel, Event&lt;?&gt;&gt;.AbstractMailChannel {</span>
-<span class="source-line-no">176</span><span id="line-176"></span>
-<span class="source-line-no">177</span><span id="line-177">        private final Session session;</span>
-<span class="source-line-no">178</span><span id="line-178">        private final Transport transport;</span>
-<span class="source-line-no">179</span><span id="line-179">        private Timer idleTimer;</span>
-<span class="source-line-no">180</span><span id="line-180"></span>
-<span class="source-line-no">181</span><span id="line-181">        /**</span>
-<span class="source-line-no">182</span><span id="line-182">         * Instantiates a new monitor channel.</span>
-<span class="source-line-no">183</span><span id="line-183">         *</span>
-<span class="source-line-no">184</span><span id="line-184">         * @param event the event that triggered the creation</span>
-<span class="source-line-no">185</span><span id="line-185">         * @param mainChannel the main channel (of this {@link Subchannel})</span>
-<span class="source-line-no">186</span><span id="line-186">         * @param sessionProps the session properties</span>
-<span class="source-line-no">187</span><span id="line-187">         * @param password the password</span>
-<span class="source-line-no">188</span><span id="line-188">         * @throws MessagingException the messaging exception</span>
-<span class="source-line-no">189</span><span id="line-189">         */</span>
-<span class="source-line-no">190</span><span id="line-190">        public SenderChannel(Event&lt;?&gt; event, Channel mainChannel,</span>
-<span class="source-line-no">191</span><span id="line-191">                Properties sessionProps, Optional&lt;Password&gt; password)</span>
-<span class="source-line-no">192</span><span id="line-192">                throws MessagingException {</span>
-<span class="source-line-no">193</span><span id="line-193">            super(event, mainChannel);</span>
-<span class="source-line-no">194</span><span id="line-194">            var passwd = password.map(Password::password).map(String::new)</span>
-<span class="source-line-no">195</span><span id="line-195">                .orElse(null);</span>
-<span class="source-line-no">196</span><span id="line-196">            session = Session.getInstance(sessionProps, new Authenticator() {</span>
-<span class="source-line-no">197</span><span id="line-197">                // Workaround for class loading problem in OSGi with j.m. 2.1.</span>
-<span class="source-line-no">198</span><span id="line-198">                // Authenticator's classpath allows accessing provider's</span>
-<span class="source-line-no">199</span><span id="line-199">                // service. See https://github.com/eclipse-ee4j/mail/issues/631</span>
-<span class="source-line-no">200</span><span id="line-200">                @Override</span>
-<span class="source-line-no">201</span><span id="line-201">                protected PasswordAuthentication</span>
-<span class="source-line-no">202</span><span id="line-202">                        getPasswordAuthentication() {</span>
-<span class="source-line-no">203</span><span id="line-203">                    return new PasswordAuthentication(</span>
-<span class="source-line-no">204</span><span id="line-204">                        sessionProps.getProperty("mail.user"), passwd);</span>
-<span class="source-line-no">205</span><span id="line-205">                }</span>
-<span class="source-line-no">206</span><span id="line-206">            });</span>
-<span class="source-line-no">207</span><span id="line-207">            transport = session.getTransport();</span>
-<span class="source-line-no">208</span><span id="line-208">            transport.connect(sessionProps.getProperty("mail.user"), passwd);</span>
-<span class="source-line-no">209</span><span id="line-209">            idleTimer</span>
-<span class="source-line-no">210</span><span id="line-210">                = Components.schedule(timer -&gt; closeConnection(), maxIdleTime);</span>
-<span class="source-line-no">211</span><span id="line-211">        }</span>
-<span class="source-line-no">212</span><span id="line-212"></span>
-<span class="source-line-no">213</span><span id="line-213">        private MailSender mailSender() {</span>
-<span class="source-line-no">214</span><span id="line-214">            return MailSender.this;</span>
-<span class="source-line-no">215</span><span id="line-215">        }</span>
-<span class="source-line-no">216</span><span id="line-216"></span>
-<span class="source-line-no">217</span><span id="line-217">        /**</span>
-<span class="source-line-no">218</span><span id="line-218">         * Send the message provided by the event.</span>
-<span class="source-line-no">219</span><span id="line-219">         *</span>
-<span class="source-line-no">220</span><span id="line-220">         * @param event the event</span>
-<span class="source-line-no">221</span><span id="line-221">         * @throws MessagingException </span>
-<span class="source-line-no">222</span><span id="line-222">         */</span>
-<span class="source-line-no">223</span><span id="line-223">        protected void sendMessage(SendMailMessage event)</span>
-<span class="source-line-no">224</span><span id="line-224">                throws MessagingException {</span>
-<span class="source-line-no">225</span><span id="line-225">            synchronized (transport) {</span>
-<span class="source-line-no">226</span><span id="line-226">                if (idleTimer != null) {</span>
-<span class="source-line-no">227</span><span id="line-227">                    idleTimer.cancel();</span>
-<span class="source-line-no">228</span><span id="line-228">                    idleTimer = null;</span>
-<span class="source-line-no">229</span><span id="line-229">                }</span>
-<span class="source-line-no">230</span><span id="line-230">            }</span>
-<span class="source-line-no">231</span><span id="line-231">            Message msg = new MimeMessage(session);</span>
-<span class="source-line-no">232</span><span id="line-232">            if (event.from() != null) {</span>
-<span class="source-line-no">233</span><span id="line-233">                msg.setFrom(event.from());</span>
-<span class="source-line-no">234</span><span id="line-234">            } else {</span>
-<span class="source-line-no">235</span><span id="line-235">                msg.setFrom();</span>
-<span class="source-line-no">236</span><span id="line-236">            }</span>
-<span class="source-line-no">237</span><span id="line-237">            msg.setRecipients(Message.RecipientType.TO, event.to());</span>
-<span class="source-line-no">238</span><span id="line-238">            msg.setRecipients(Message.RecipientType.CC, event.cc());</span>
-<span class="source-line-no">239</span><span id="line-239">            msg.setRecipients(Message.RecipientType.BCC, event.bcc());</span>
-<span class="source-line-no">240</span><span id="line-240">            msg.setSentDate(new Date());</span>
-<span class="source-line-no">241</span><span id="line-241">            for (var header : event.headers().entrySet()) {</span>
-<span class="source-line-no">242</span><span id="line-242">                msg.setHeader(header.getKey(), header.getValue());</span>
-<span class="source-line-no">243</span><span id="line-243">            }</span>
-<span class="source-line-no">244</span><span id="line-244">            msg.setSubject(event.subject());</span>
-<span class="source-line-no">245</span><span id="line-245">            msg.setContent(event.content());</span>
-<span class="source-line-no">246</span><span id="line-246"></span>
-<span class="source-line-no">247</span><span id="line-247">            synchronized (transport) {</span>
-<span class="source-line-no">248</span><span id="line-248">                if (!transport.isConnected()) {</span>
-<span class="source-line-no">249</span><span id="line-249">                    transport.connect();</span>
-<span class="source-line-no">250</span><span id="line-250">                }</span>
-<span class="source-line-no">251</span><span id="line-251">                idleTimer</span>
-<span class="source-line-no">252</span><span id="line-252">                    = Components.schedule(timer -&gt; closeConnection(),</span>
-<span class="source-line-no">253</span><span id="line-253">                        maxIdleTime);</span>
-<span class="source-line-no">254</span><span id="line-254">            }</span>
-<span class="source-line-no">255</span><span id="line-255">            msg.saveChanges();</span>
-<span class="source-line-no">256</span><span id="line-256">            transport.sendMessage(msg, msg.getAllRecipients());</span>
-<span class="source-line-no">257</span><span id="line-257">        }</span>
-<span class="source-line-no">258</span><span id="line-258"></span>
-<span class="source-line-no">259</span><span id="line-259">        @Override</span>
-<span class="source-line-no">260</span><span id="line-260">        public void close() {</span>
-<span class="source-line-no">261</span><span id="line-261">            closeConnection();</span>
-<span class="source-line-no">262</span><span id="line-262">            super.close();</span>
-<span class="source-line-no">263</span><span id="line-263">        }</span>
-<span class="source-line-no">264</span><span id="line-264"></span>
-<span class="source-line-no">265</span><span id="line-265">        /**</span>
-<span class="source-line-no">266</span><span id="line-266">         * Close the connection (not the channel). May be reopened</span>
-<span class="source-line-no">267</span><span id="line-267">         * later if closed due to idle time over.</span>
-<span class="source-line-no">268</span><span id="line-268">         */</span>
-<span class="source-line-no">269</span><span id="line-269">        @SuppressWarnings("PMD.GuardLogStatement")</span>
-<span class="source-line-no">270</span><span id="line-270">        protected void closeConnection() {</span>
-<span class="source-line-no">271</span><span id="line-271">            synchronized (transport) {</span>
-<span class="source-line-no">272</span><span id="line-272">                if (idleTimer != null) {</span>
-<span class="source-line-no">273</span><span id="line-273">                    idleTimer.cancel();</span>
-<span class="source-line-no">274</span><span id="line-274">                    idleTimer = null;</span>
-<span class="source-line-no">275</span><span id="line-275">                }</span>
-<span class="source-line-no">276</span><span id="line-276">                if (transport.isConnected()) {</span>
-<span class="source-line-no">277</span><span id="line-277">                    try {</span>
-<span class="source-line-no">278</span><span id="line-278">                        transport.close();</span>
-<span class="source-line-no">279</span><span id="line-279">                    } catch (MessagingException e) {</span>
-<span class="source-line-no">280</span><span id="line-280">                        logger.log(Level.WARNING,</span>
-<span class="source-line-no">281</span><span id="line-281">                            "Cannot close connection: " + e.getMessage(), e);</span>
-<span class="source-line-no">282</span><span id="line-282">                    }</span>
-<span class="source-line-no">283</span><span id="line-283">                }</span>
-<span class="source-line-no">284</span><span id="line-284">            }</span>
-<span class="source-line-no">285</span><span id="line-285">        }</span>
-<span class="source-line-no">286</span><span id="line-286"></span>
-<span class="source-line-no">287</span><span id="line-287">    }</span>
-<span class="source-line-no">288</span><span id="line-288"></span>
-<span class="source-line-no">289</span><span id="line-289">}</span>
+<span class="source-line-no">089</span><span id="line-89">    @Override</span>
+<span class="source-line-no">090</span><span id="line-90">    public MailSender setMailProperties(Map&lt;String, String&gt; props) {</span>
+<span class="source-line-no">091</span><span id="line-91">        mailProps.putAll(props);</span>
+<span class="source-line-no">092</span><span id="line-92">        return this;</span>
+<span class="source-line-no">093</span><span id="line-93">    }</span>
+<span class="source-line-no">094</span><span id="line-94"></span>
+<span class="source-line-no">095</span><span id="line-95">    /**</span>
+<span class="source-line-no">096</span><span id="line-96">     * Sets the maximum idle time. An open connection to the mail server</span>
+<span class="source-line-no">097</span><span id="line-97">     * is closed after this time.</span>
+<span class="source-line-no">098</span><span id="line-98">     *</span>
+<span class="source-line-no">099</span><span id="line-99">     * @param maxIdleTime the new max idle time</span>
+<span class="source-line-no">100</span><span id="line-100">     */</span>
+<span class="source-line-no">101</span><span id="line-101">    public MailSender setMaxIdleTime(Duration maxIdleTime) {</span>
+<span class="source-line-no">102</span><span id="line-102">        this.maxIdleTime = maxIdleTime;</span>
+<span class="source-line-no">103</span><span id="line-103">        return this;</span>
+<span class="source-line-no">104</span><span id="line-104">    }</span>
+<span class="source-line-no">105</span><span id="line-105"></span>
+<span class="source-line-no">106</span><span id="line-106">    /**</span>
+<span class="source-line-no">107</span><span id="line-107">     * Returns the max idle time.</span>
+<span class="source-line-no">108</span><span id="line-108">     *</span>
+<span class="source-line-no">109</span><span id="line-109">     * @return the duration</span>
+<span class="source-line-no">110</span><span id="line-110">     */</span>
+<span class="source-line-no">111</span><span id="line-111">    public Duration maxIdleTime() {</span>
+<span class="source-line-no">112</span><span id="line-112">        return maxIdleTime;</span>
+<span class="source-line-no">113</span><span id="line-113">    }</span>
+<span class="source-line-no">114</span><span id="line-114"></span>
+<span class="source-line-no">115</span><span id="line-115">    @Override</span>
+<span class="source-line-no">116</span><span id="line-116">    protected void configureComponent(Map&lt;String, String&gt; values) {</span>
+<span class="source-line-no">117</span><span id="line-117">        Optional.ofNullable(values.get("maxIdleTime"))</span>
+<span class="source-line-no">118</span><span id="line-118">            .map(Integer::parseInt).map(Duration::ofSeconds)</span>
+<span class="source-line-no">119</span><span id="line-119">            .ifPresent(this::setMaxIdleTime);</span>
+<span class="source-line-no">120</span><span id="line-120">    }</span>
+<span class="source-line-no">121</span><span id="line-121"></span>
+<span class="source-line-no">122</span><span id="line-122">    /**</span>
+<span class="source-line-no">123</span><span id="line-123">     * Start the component.</span>
+<span class="source-line-no">124</span><span id="line-124">     *</span>
+<span class="source-line-no">125</span><span id="line-125">     * @param event the event</span>
+<span class="source-line-no">126</span><span id="line-126">     * @throws MessagingException </span>
+<span class="source-line-no">127</span><span id="line-127">     */</span>
+<span class="source-line-no">128</span><span id="line-128">    @Handler</span>
+<span class="source-line-no">129</span><span id="line-129">    public void onStart(Start event) throws MessagingException {</span>
+<span class="source-line-no">130</span><span id="line-130">        systemChannel = new SenderChannel(event,</span>
+<span class="source-line-no">131</span><span id="line-131">            channel(), mailProps, password());</span>
+<span class="source-line-no">132</span><span id="line-132">    }</span>
+<span class="source-line-no">133</span><span id="line-133"></span>
+<span class="source-line-no">134</span><span id="line-134">    /**</span>
+<span class="source-line-no">135</span><span id="line-135">     * Open a connection for sending mail as specified by the event.</span>
+<span class="source-line-no">136</span><span id="line-136">     * </span>
+<span class="source-line-no">137</span><span id="line-137">     * Properties configured for the component are used as fallbacks,</span>
+<span class="source-line-no">138</span><span id="line-138">     * so simply sending an event without specific properties opens</span>
+<span class="source-line-no">139</span><span id="line-139">     * another system connection.</span>
+<span class="source-line-no">140</span><span id="line-140">     *</span>
+<span class="source-line-no">141</span><span id="line-141">     * @param event the event</span>
+<span class="source-line-no">142</span><span id="line-142">     * @param channel the channel</span>
+<span class="source-line-no">143</span><span id="line-143">     * @throws MessagingException </span>
+<span class="source-line-no">144</span><span id="line-144">     */</span>
+<span class="source-line-no">145</span><span id="line-145">    @Handler</span>
+<span class="source-line-no">146</span><span id="line-146">    public void onOpenMailSender(OpenMailSender event, Channel channel)</span>
+<span class="source-line-no">147</span><span id="line-147">            throws MessagingException {</span>
+<span class="source-line-no">148</span><span id="line-148">        Properties sessionProps = new Properties(mailProps);</span>
+<span class="source-line-no">149</span><span id="line-149">        sessionProps.putAll(event.mailProperties());</span>
+<span class="source-line-no">150</span><span id="line-150">        new SenderChannel(event, channel, sessionProps,</span>
+<span class="source-line-no">151</span><span id="line-151">            event.password().or(this::password));</span>
+<span class="source-line-no">152</span><span id="line-152">    }</span>
+<span class="source-line-no">153</span><span id="line-153"></span>
+<span class="source-line-no">154</span><span id="line-154">    /**</span>
+<span class="source-line-no">155</span><span id="line-155">     * Sends the message as specified by the event.</span>
+<span class="source-line-no">156</span><span id="line-156">     *</span>
+<span class="source-line-no">157</span><span id="line-157">     * @param event the event</span>
+<span class="source-line-no">158</span><span id="line-158">     * @throws MessagingException the messaging exception</span>
+<span class="source-line-no">159</span><span id="line-159">     */</span>
+<span class="source-line-no">160</span><span id="line-160">    @Handler</span>
+<span class="source-line-no">161</span><span id="line-161">    @SuppressWarnings("PMD.CompareObjectsWithEquals")</span>
+<span class="source-line-no">162</span><span id="line-162">    public void onMessage(SendMailMessage event, Channel channel)</span>
+<span class="source-line-no">163</span><span id="line-163">            throws MessagingException {</span>
+<span class="source-line-no">164</span><span id="line-164">        if (channel instanceof SenderChannel chan</span>
+<span class="source-line-no">165</span><span id="line-165">            &amp;&amp; chan.mailSender() == this) {</span>
+<span class="source-line-no">166</span><span id="line-166">            chan.sendMessage(event);</span>
+<span class="source-line-no">167</span><span id="line-167">        } else {</span>
+<span class="source-line-no">168</span><span id="line-168">            systemChannel.sendMessage(event);</span>
+<span class="source-line-no">169</span><span id="line-169">        }</span>
+<span class="source-line-no">170</span><span id="line-170">    }</span>
+<span class="source-line-no">171</span><span id="line-171"></span>
+<span class="source-line-no">172</span><span id="line-172">    /**</span>
+<span class="source-line-no">173</span><span id="line-173">     * The specific implementation of the {@link MailChannel}.</span>
+<span class="source-line-no">174</span><span id="line-174">     */</span>
+<span class="source-line-no">175</span><span id="line-175">    @SuppressWarnings("PMD.PublicMemberInNonPublicType")</span>
+<span class="source-line-no">176</span><span id="line-176">    protected class SenderChannel extends MailConnectionManager&lt;</span>
+<span class="source-line-no">177</span><span id="line-177">            MailSender.SenderChannel, Event&lt;?&gt;&gt;.AbstractMailChannel {</span>
+<span class="source-line-no">178</span><span id="line-178"></span>
+<span class="source-line-no">179</span><span id="line-179">        private final Session session;</span>
+<span class="source-line-no">180</span><span id="line-180">        private final Transport transport;</span>
+<span class="source-line-no">181</span><span id="line-181">        private Timer idleTimer;</span>
+<span class="source-line-no">182</span><span id="line-182"></span>
+<span class="source-line-no">183</span><span id="line-183">        /**</span>
+<span class="source-line-no">184</span><span id="line-184">         * Instantiates a new monitor channel.</span>
+<span class="source-line-no">185</span><span id="line-185">         *</span>
+<span class="source-line-no">186</span><span id="line-186">         * @param event the event that triggered the creation</span>
+<span class="source-line-no">187</span><span id="line-187">         * @param mainChannel the main channel (of this {@link Subchannel})</span>
+<span class="source-line-no">188</span><span id="line-188">         * @param sessionProps the session properties</span>
+<span class="source-line-no">189</span><span id="line-189">         * @param password the password</span>
+<span class="source-line-no">190</span><span id="line-190">         * @throws MessagingException the messaging exception</span>
+<span class="source-line-no">191</span><span id="line-191">         */</span>
+<span class="source-line-no">192</span><span id="line-192">        public SenderChannel(Event&lt;?&gt; event, Channel mainChannel,</span>
+<span class="source-line-no">193</span><span id="line-193">                Properties sessionProps, Optional&lt;Password&gt; password)</span>
+<span class="source-line-no">194</span><span id="line-194">                throws MessagingException {</span>
+<span class="source-line-no">195</span><span id="line-195">            super(event, mainChannel);</span>
+<span class="source-line-no">196</span><span id="line-196">            var passwd = password.map(Password::password).map(String::new)</span>
+<span class="source-line-no">197</span><span id="line-197">                .orElse(null);</span>
+<span class="source-line-no">198</span><span id="line-198">            session = Session.getInstance(sessionProps, new Authenticator() {</span>
+<span class="source-line-no">199</span><span id="line-199">                // Workaround for class loading problem in OSGi with j.m. 2.1.</span>
+<span class="source-line-no">200</span><span id="line-200">                // Authenticator's classpath allows accessing provider's</span>
+<span class="source-line-no">201</span><span id="line-201">                // service. See https://github.com/eclipse-ee4j/mail/issues/631</span>
+<span class="source-line-no">202</span><span id="line-202">                @Override</span>
+<span class="source-line-no">203</span><span id="line-203">                protected PasswordAuthentication</span>
+<span class="source-line-no">204</span><span id="line-204">                        getPasswordAuthentication() {</span>
+<span class="source-line-no">205</span><span id="line-205">                    return new PasswordAuthentication(</span>
+<span class="source-line-no">206</span><span id="line-206">                        sessionProps.getProperty("mail.user"), passwd);</span>
+<span class="source-line-no">207</span><span id="line-207">                }</span>
+<span class="source-line-no">208</span><span id="line-208">            });</span>
+<span class="source-line-no">209</span><span id="line-209">            transport = session.getTransport();</span>
+<span class="source-line-no">210</span><span id="line-210">            transport.connect(sessionProps.getProperty("mail.user"), passwd);</span>
+<span class="source-line-no">211</span><span id="line-211">            idleTimer</span>
+<span class="source-line-no">212</span><span id="line-212">                = Components.schedule(timer -&gt; closeConnection(), maxIdleTime);</span>
+<span class="source-line-no">213</span><span id="line-213">        }</span>
+<span class="source-line-no">214</span><span id="line-214"></span>
+<span class="source-line-no">215</span><span id="line-215">        private MailSender mailSender() {</span>
+<span class="source-line-no">216</span><span id="line-216">            return MailSender.this;</span>
+<span class="source-line-no">217</span><span id="line-217">        }</span>
+<span class="source-line-no">218</span><span id="line-218"></span>
+<span class="source-line-no">219</span><span id="line-219">        /**</span>
+<span class="source-line-no">220</span><span id="line-220">         * Send the message provided by the event.</span>
+<span class="source-line-no">221</span><span id="line-221">         *</span>
+<span class="source-line-no">222</span><span id="line-222">         * @param event the event</span>
+<span class="source-line-no">223</span><span id="line-223">         * @throws MessagingException </span>
+<span class="source-line-no">224</span><span id="line-224">         */</span>
+<span class="source-line-no">225</span><span id="line-225">        @SuppressWarnings("PMD.ReplaceJavaUtilDate")</span>
+<span class="source-line-no">226</span><span id="line-226">        protected void sendMessage(SendMailMessage event)</span>
+<span class="source-line-no">227</span><span id="line-227">                throws MessagingException {</span>
+<span class="source-line-no">228</span><span id="line-228">            synchronized (transport) {</span>
+<span class="source-line-no">229</span><span id="line-229">                if (idleTimer != null) {</span>
+<span class="source-line-no">230</span><span id="line-230">                    idleTimer.cancel();</span>
+<span class="source-line-no">231</span><span id="line-231">                    idleTimer = null;</span>
+<span class="source-line-no">232</span><span id="line-232">                }</span>
+<span class="source-line-no">233</span><span id="line-233">            }</span>
+<span class="source-line-no">234</span><span id="line-234">            Message msg = new MimeMessage(session);</span>
+<span class="source-line-no">235</span><span id="line-235">            if (event.from() != null) {</span>
+<span class="source-line-no">236</span><span id="line-236">                msg.setFrom(event.from());</span>
+<span class="source-line-no">237</span><span id="line-237">            } else {</span>
+<span class="source-line-no">238</span><span id="line-238">                msg.setFrom();</span>
+<span class="source-line-no">239</span><span id="line-239">            }</span>
+<span class="source-line-no">240</span><span id="line-240">            msg.setRecipients(Message.RecipientType.TO, event.to());</span>
+<span class="source-line-no">241</span><span id="line-241">            msg.setRecipients(Message.RecipientType.CC, event.cc());</span>
+<span class="source-line-no">242</span><span id="line-242">            msg.setRecipients(Message.RecipientType.BCC, event.bcc());</span>
+<span class="source-line-no">243</span><span id="line-243">            msg.setSentDate(new Date());</span>
+<span class="source-line-no">244</span><span id="line-244">            for (var header : event.headers().entrySet()) {</span>
+<span class="source-line-no">245</span><span id="line-245">                msg.setHeader(header.getKey(), header.getValue());</span>
+<span class="source-line-no">246</span><span id="line-246">            }</span>
+<span class="source-line-no">247</span><span id="line-247">            msg.setSubject(event.subject());</span>
+<span class="source-line-no">248</span><span id="line-248">            msg.setContent(event.content());</span>
+<span class="source-line-no">249</span><span id="line-249"></span>
+<span class="source-line-no">250</span><span id="line-250">            synchronized (transport) {</span>
+<span class="source-line-no">251</span><span id="line-251">                if (!transport.isConnected()) {</span>
+<span class="source-line-no">252</span><span id="line-252">                    transport.connect();</span>
+<span class="source-line-no">253</span><span id="line-253">                }</span>
+<span class="source-line-no">254</span><span id="line-254">                idleTimer</span>
+<span class="source-line-no">255</span><span id="line-255">                    = Components.schedule(timer -&gt; closeConnection(),</span>
+<span class="source-line-no">256</span><span id="line-256">                        maxIdleTime);</span>
+<span class="source-line-no">257</span><span id="line-257">            }</span>
+<span class="source-line-no">258</span><span id="line-258">            msg.saveChanges();</span>
+<span class="source-line-no">259</span><span id="line-259">            transport.sendMessage(msg, msg.getAllRecipients());</span>
+<span class="source-line-no">260</span><span id="line-260">        }</span>
+<span class="source-line-no">261</span><span id="line-261"></span>
+<span class="source-line-no">262</span><span id="line-262">        @Override</span>
+<span class="source-line-no">263</span><span id="line-263">        public void close() {</span>
+<span class="source-line-no">264</span><span id="line-264">            closeConnection();</span>
+<span class="source-line-no">265</span><span id="line-265">            super.close();</span>
+<span class="source-line-no">266</span><span id="line-266">        }</span>
+<span class="source-line-no">267</span><span id="line-267"></span>
+<span class="source-line-no">268</span><span id="line-268">        /**</span>
+<span class="source-line-no">269</span><span id="line-269">         * Close the connection (not the channel). May be reopened</span>
+<span class="source-line-no">270</span><span id="line-270">         * later if closed due to idle time over.</span>
+<span class="source-line-no">271</span><span id="line-271">         */</span>
+<span class="source-line-no">272</span><span id="line-272">        @SuppressWarnings("PMD.GuardLogStatement")</span>
+<span class="source-line-no">273</span><span id="line-273">        protected void closeConnection() {</span>
+<span class="source-line-no">274</span><span id="line-274">            synchronized (transport) {</span>
+<span class="source-line-no">275</span><span id="line-275">                if (idleTimer != null) {</span>
+<span class="source-line-no">276</span><span id="line-276">                    idleTimer.cancel();</span>
+<span class="source-line-no">277</span><span id="line-277">                    idleTimer = null;</span>
+<span class="source-line-no">278</span><span id="line-278">                }</span>
+<span class="source-line-no">279</span><span id="line-279">                if (transport.isConnected()) {</span>
+<span class="source-line-no">280</span><span id="line-280">                    try {</span>
+<span class="source-line-no">281</span><span id="line-281">                        transport.close();</span>
+<span class="source-line-no">282</span><span id="line-282">                    } catch (MessagingException e) {</span>
+<span class="source-line-no">283</span><span id="line-283">                        logger.log(Level.WARNING,</span>
+<span class="source-line-no">284</span><span id="line-284">                            "Cannot close connection: " + e.getMessage(), e);</span>
+<span class="source-line-no">285</span><span id="line-285">                    }</span>
+<span class="source-line-no">286</span><span id="line-286">                }</span>
+<span class="source-line-no">287</span><span id="line-287">            }</span>
+<span class="source-line-no">288</span><span id="line-288">        }</span>
+<span class="source-line-no">289</span><span id="line-289"></span>
+<span class="source-line-no">290</span><span id="line-290">    }</span>
+<span class="source-line-no">291</span><span id="line-291"></span>
+<span class="source-line-no">292</span><span id="line-292">}</span>
 
 
 

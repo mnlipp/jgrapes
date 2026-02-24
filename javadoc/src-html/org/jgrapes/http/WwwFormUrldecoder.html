@@ -52,72 +52,72 @@
 <span class="source-line-no">038</span><span id="line-38">/**</span>
 <span class="source-line-no">039</span><span id="line-39"> * Decodes www-form-urlencoded data.</span>
 <span class="source-line-no">040</span><span id="line-40"> */</span>
-<span class="source-line-no">041</span><span id="line-41">@SuppressWarnings("PMD.DataflowAnomalyAnalysis")</span>
-<span class="source-line-no">042</span><span id="line-42">public class WwwFormUrldecoder implements InputConsumer {</span>
-<span class="source-line-no">043</span><span id="line-43">    private boolean isEof;</span>
-<span class="source-line-no">044</span><span id="line-44">    private CharsetDecoder decoder;</span>
-<span class="source-line-no">045</span><span id="line-45">    private Charset charset = StandardCharsets.UTF_8;</span>
-<span class="source-line-no">046</span><span id="line-46">    private Charset formCharset = StandardCharsets.UTF_8;</span>
-<span class="source-line-no">047</span><span id="line-47">    private CharBuffer pending;</span>
-<span class="source-line-no">048</span><span id="line-48">    private CharBuffer rest;</span>
-<span class="source-line-no">049</span><span id="line-49">    private final Map&lt;String, List&lt;String&gt;&gt; result = new ConcurrentHashMap&lt;&gt;();</span>
-<span class="source-line-no">050</span><span id="line-50">    private BiConsumer&lt;String, String&gt; consumer = (k, v) -&gt; {</span>
-<span class="source-line-no">051</span><span id="line-51">        result.computeIfAbsent(k,</span>
-<span class="source-line-no">052</span><span id="line-52">            key -&gt; Collections.synchronizedList(new ArrayList&lt;&gt;())).add(v);</span>
-<span class="source-line-no">053</span><span id="line-53">    };</span>
-<span class="source-line-no">054</span><span id="line-54"></span>
-<span class="source-line-no">055</span><span id="line-55">    /**</span>
-<span class="source-line-no">056</span><span id="line-56">     * Sets the charset to be used if {@link #feed(ManagedBuffer)}</span>
-<span class="source-line-no">057</span><span id="line-57">     * is invoked with `ManagedBuffer&lt;ByteBuffer&gt;`. Defaults to UTF-8. </span>
-<span class="source-line-no">058</span><span id="line-58">     * Must be set before the first invocation of {@link #feed(ManagedBuffer)}.</span>
-<span class="source-line-no">059</span><span id="line-59">     * </span>
-<span class="source-line-no">060</span><span id="line-60">     * This is provided for edge cases. As "urlencoded" data may only</span>
-<span class="source-line-no">061</span><span id="line-61">     * contain ASCII characters, it does not make sense to specify</span>
-<span class="source-line-no">062</span><span id="line-62">     * a charset for media type `x-www-form-urlencoded`</span>
-<span class="source-line-no">063</span><span id="line-63">     *</span>
-<span class="source-line-no">064</span><span id="line-64">     * @param charset the charset</span>
-<span class="source-line-no">065</span><span id="line-65">     * @return the managed buffer reader</span>
-<span class="source-line-no">066</span><span id="line-66">     */</span>
-<span class="source-line-no">067</span><span id="line-67">    public WwwFormUrldecoder charset(Charset charset) {</span>
-<span class="source-line-no">068</span><span id="line-68">        if (decoder != null) {</span>
-<span class="source-line-no">069</span><span id="line-69">            throw new IllegalStateException("Charset cannot be changed.");</span>
-<span class="source-line-no">070</span><span id="line-70">        }</span>
-<span class="source-line-no">071</span><span id="line-71">        this.charset = charset;</span>
-<span class="source-line-no">072</span><span id="line-72">        return this;</span>
-<span class="source-line-no">073</span><span id="line-73">    }</span>
-<span class="source-line-no">074</span><span id="line-74"></span>
-<span class="source-line-no">075</span><span id="line-75">    /**</span>
-<span class="source-line-no">076</span><span id="line-76">     * The charset to be used with {@link URLDecoder#decode(String, Charset)}.</span>
-<span class="source-line-no">077</span><span id="line-77">     * Defaults to UTF-8.</span>
-<span class="source-line-no">078</span><span id="line-78">     *</span>
-<span class="source-line-no">079</span><span id="line-79">     * @param charset the charset</span>
-<span class="source-line-no">080</span><span id="line-80">     * @return the www form urldecoder</span>
-<span class="source-line-no">081</span><span id="line-81">     */</span>
-<span class="source-line-no">082</span><span id="line-82">    public WwwFormUrldecoder formCharset(Charset charset) {</span>
-<span class="source-line-no">083</span><span id="line-83">        formCharset = charset;</span>
-<span class="source-line-no">084</span><span id="line-84">        return this;</span>
-<span class="source-line-no">085</span><span id="line-85">    }</span>
-<span class="source-line-no">086</span><span id="line-86"></span>
-<span class="source-line-no">087</span><span id="line-87">    /**</span>
-<span class="source-line-no">088</span><span id="line-88">     * Configures a consumer for key/value pairs. The consumer is invoked</span>
-<span class="source-line-no">089</span><span id="line-89">     * when a pair has been decoded. If a consumer is configured,</span>
-<span class="source-line-no">090</span><span id="line-90">     * {@link #result()} must not be used (always returns an empty map).</span>
-<span class="source-line-no">091</span><span id="line-91">     *</span>
-<span class="source-line-no">092</span><span id="line-92">     * @param consumer the consumer</span>
-<span class="source-line-no">093</span><span id="line-93">     * @return the decoder</span>
-<span class="source-line-no">094</span><span id="line-94">     */</span>
-<span class="source-line-no">095</span><span id="line-95">    public WwwFormUrldecoder consumer(BiConsumer&lt;String, String&gt; consumer) {</span>
-<span class="source-line-no">096</span><span id="line-96">        this.consumer = consumer;</span>
-<span class="source-line-no">097</span><span id="line-97">        return this;</span>
-<span class="source-line-no">098</span><span id="line-98">    }</span>
-<span class="source-line-no">099</span><span id="line-99"></span>
-<span class="source-line-no">100</span><span id="line-100">    /**</span>
-<span class="source-line-no">101</span><span id="line-101">     * Feed data to the collector. </span>
-<span class="source-line-no">102</span><span id="line-102">     * </span>
-<span class="source-line-no">103</span><span id="line-103">     * Calling this method with `null` as argument closes the feed.</span>
-<span class="source-line-no">104</span><span id="line-104">     *</span>
-<span class="source-line-no">105</span><span id="line-105">     * @param buffer the buffer</span>
-<span class="source-line-no">106</span><span id="line-106">     */</span>
+<span class="source-line-no">041</span><span id="line-41">public class WwwFormUrldecoder implements InputConsumer {</span>
+<span class="source-line-no">042</span><span id="line-42">    private boolean isEof;</span>
+<span class="source-line-no">043</span><span id="line-43">    private CharsetDecoder decoder;</span>
+<span class="source-line-no">044</span><span id="line-44">    private Charset charset = StandardCharsets.UTF_8;</span>
+<span class="source-line-no">045</span><span id="line-45">    private Charset formCharset = StandardCharsets.UTF_8;</span>
+<span class="source-line-no">046</span><span id="line-46">    private CharBuffer pending;</span>
+<span class="source-line-no">047</span><span id="line-47">    private CharBuffer rest;</span>
+<span class="source-line-no">048</span><span id="line-48">    private final Map&lt;String, List&lt;String&gt;&gt; result = new ConcurrentHashMap&lt;&gt;();</span>
+<span class="source-line-no">049</span><span id="line-49">    private BiConsumer&lt;String, String&gt; consumer = (k, v) -&gt; {</span>
+<span class="source-line-no">050</span><span id="line-50">        result.computeIfAbsent(k,</span>
+<span class="source-line-no">051</span><span id="line-51">            key -&gt; Collections.synchronizedList(new ArrayList&lt;&gt;())).add(v);</span>
+<span class="source-line-no">052</span><span id="line-52">    };</span>
+<span class="source-line-no">053</span><span id="line-53"></span>
+<span class="source-line-no">054</span><span id="line-54">    /**</span>
+<span class="source-line-no">055</span><span id="line-55">     * Sets the charset to be used if {@link #feed(ManagedBuffer)}</span>
+<span class="source-line-no">056</span><span id="line-56">     * is invoked with `ManagedBuffer&lt;ByteBuffer&gt;`. Defaults to UTF-8. </span>
+<span class="source-line-no">057</span><span id="line-57">     * Must be set before the first invocation of {@link #feed(ManagedBuffer)}.</span>
+<span class="source-line-no">058</span><span id="line-58">     * </span>
+<span class="source-line-no">059</span><span id="line-59">     * This is provided for edge cases. As "urlencoded" data may only</span>
+<span class="source-line-no">060</span><span id="line-60">     * contain ASCII characters, it does not make sense to specify</span>
+<span class="source-line-no">061</span><span id="line-61">     * a charset for media type `x-www-form-urlencoded`</span>
+<span class="source-line-no">062</span><span id="line-62">     *</span>
+<span class="source-line-no">063</span><span id="line-63">     * @param charset the charset</span>
+<span class="source-line-no">064</span><span id="line-64">     * @return the managed buffer reader</span>
+<span class="source-line-no">065</span><span id="line-65">     */</span>
+<span class="source-line-no">066</span><span id="line-66">    public WwwFormUrldecoder charset(Charset charset) {</span>
+<span class="source-line-no">067</span><span id="line-67">        if (decoder != null) {</span>
+<span class="source-line-no">068</span><span id="line-68">            throw new IllegalStateException("Charset cannot be changed.");</span>
+<span class="source-line-no">069</span><span id="line-69">        }</span>
+<span class="source-line-no">070</span><span id="line-70">        this.charset = charset;</span>
+<span class="source-line-no">071</span><span id="line-71">        return this;</span>
+<span class="source-line-no">072</span><span id="line-72">    }</span>
+<span class="source-line-no">073</span><span id="line-73"></span>
+<span class="source-line-no">074</span><span id="line-74">    /**</span>
+<span class="source-line-no">075</span><span id="line-75">     * The charset to be used with {@link URLDecoder#decode(String, Charset)}.</span>
+<span class="source-line-no">076</span><span id="line-76">     * Defaults to UTF-8.</span>
+<span class="source-line-no">077</span><span id="line-77">     *</span>
+<span class="source-line-no">078</span><span id="line-78">     * @param charset the charset</span>
+<span class="source-line-no">079</span><span id="line-79">     * @return the www form urldecoder</span>
+<span class="source-line-no">080</span><span id="line-80">     */</span>
+<span class="source-line-no">081</span><span id="line-81">    public WwwFormUrldecoder formCharset(Charset charset) {</span>
+<span class="source-line-no">082</span><span id="line-82">        formCharset = charset;</span>
+<span class="source-line-no">083</span><span id="line-83">        return this;</span>
+<span class="source-line-no">084</span><span id="line-84">    }</span>
+<span class="source-line-no">085</span><span id="line-85"></span>
+<span class="source-line-no">086</span><span id="line-86">    /**</span>
+<span class="source-line-no">087</span><span id="line-87">     * Configures a consumer for key/value pairs. The consumer is invoked</span>
+<span class="source-line-no">088</span><span id="line-88">     * when a pair has been decoded. If a consumer is configured,</span>
+<span class="source-line-no">089</span><span id="line-89">     * {@link #result()} must not be used (always returns an empty map).</span>
+<span class="source-line-no">090</span><span id="line-90">     *</span>
+<span class="source-line-no">091</span><span id="line-91">     * @param consumer the consumer</span>
+<span class="source-line-no">092</span><span id="line-92">     * @return the decoder</span>
+<span class="source-line-no">093</span><span id="line-93">     */</span>
+<span class="source-line-no">094</span><span id="line-94">    public WwwFormUrldecoder consumer(BiConsumer&lt;String, String&gt; consumer) {</span>
+<span class="source-line-no">095</span><span id="line-95">        this.consumer = consumer;</span>
+<span class="source-line-no">096</span><span id="line-96">        return this;</span>
+<span class="source-line-no">097</span><span id="line-97">    }</span>
+<span class="source-line-no">098</span><span id="line-98"></span>
+<span class="source-line-no">099</span><span id="line-99">    /**</span>
+<span class="source-line-no">100</span><span id="line-100">     * Feed data to the collector. </span>
+<span class="source-line-no">101</span><span id="line-101">     * </span>
+<span class="source-line-no">102</span><span id="line-102">     * Calling this method with `null` as argument closes the feed.</span>
+<span class="source-line-no">103</span><span id="line-103">     *</span>
+<span class="source-line-no">104</span><span id="line-104">     * @param buffer the buffer</span>
+<span class="source-line-no">105</span><span id="line-105">     */</span>
+<span class="source-line-no">106</span><span id="line-106">    @Override</span>
 <span class="source-line-no">107</span><span id="line-107">    public &lt;W extends Buffer&gt; void feed(ManagedBuffer&lt;W&gt; buffer) {</span>
 <span class="source-line-no">108</span><span id="line-108">        if (buffer == null) {</span>
 <span class="source-line-no">109</span><span id="line-109">            isEof = true;</span>
@@ -189,85 +189,84 @@
 <span class="source-line-no">175</span><span id="line-175">    @SuppressWarnings({ "PMD.AvoidReassigningLoopVariables",</span>
 <span class="source-line-no">176</span><span id="line-176">        "PMD.AvoidInstantiatingObjectsInLoops",</span>
 <span class="source-line-no">177</span><span id="line-177">        "PMD.AvoidLiteralsInIfCondition",</span>
-<span class="source-line-no">178</span><span id="line-178">        "PMD.AvoidBranchingStatementAsLastInLoop", "PMD.NcssCount",</span>
-<span class="source-line-no">179</span><span id="line-179">        "PMD.NPathComplexity" })</span>
-<span class="source-line-no">180</span><span id="line-180">    private void processPending() {</span>
-<span class="source-line-no">181</span><span id="line-181">        pending.flip();</span>
-<span class="source-line-no">182</span><span id="line-182">        if (!pending.hasRemaining()) {</span>
-<span class="source-line-no">183</span><span id="line-183">            pending.clear();</span>
-<span class="source-line-no">184</span><span id="line-184">            return;</span>
-<span class="source-line-no">185</span><span id="line-185">        }</span>
-<span class="source-line-no">186</span><span id="line-186">        int end = pending.limit();</span>
-<span class="source-line-no">187</span><span id="line-187">        while (pending.hasRemaining()) {</span>
-<span class="source-line-no">188</span><span id="line-188">            int start = pending.position();</span>
-<span class="source-line-no">189</span><span id="line-189">            for (int pos = start; pos &lt; end;) {</span>
-<span class="source-line-no">190</span><span id="line-190">                if (pending.get(pos) != '&amp;') {</span>
-<span class="source-line-no">191</span><span id="line-191">                    pos += 1;</span>
-<span class="source-line-no">192</span><span id="line-192">                    continue;</span>
-<span class="source-line-no">193</span><span id="line-193">                }</span>
-<span class="source-line-no">194</span><span id="line-194">                splitPair(new String(pending.array(), start, pos - start));</span>
-<span class="source-line-no">195</span><span id="line-195">                pos += 1;</span>
-<span class="source-line-no">196</span><span id="line-196">                pending.position(pos);</span>
-<span class="source-line-no">197</span><span id="line-197">                break;</span>
-<span class="source-line-no">198</span><span id="line-198">            }</span>
-<span class="source-line-no">199</span><span id="line-199">            if (pending.position() == start) {</span>
-<span class="source-line-no">200</span><span id="line-200">                // No '&amp;' found</span>
-<span class="source-line-no">201</span><span id="line-201">                break;</span>
-<span class="source-line-no">202</span><span id="line-202">            }</span>
-<span class="source-line-no">203</span><span id="line-203">        }</span>
-<span class="source-line-no">204</span><span id="line-204">        if (!pending.hasRemaining()) {</span>
-<span class="source-line-no">205</span><span id="line-205">            pending.clear();</span>
-<span class="source-line-no">206</span><span id="line-206">            return;</span>
-<span class="source-line-no">207</span><span id="line-207">        }</span>
-<span class="source-line-no">208</span><span id="line-208">        if (isEof) {</span>
-<span class="source-line-no">209</span><span id="line-209">            // Remaining is last entry</span>
-<span class="source-line-no">210</span><span id="line-210">            splitPair(new String(pending.array(), pending.position(),</span>
-<span class="source-line-no">211</span><span id="line-211">                pending.remaining()).trim());</span>
-<span class="source-line-no">212</span><span id="line-212">            return;</span>
-<span class="source-line-no">213</span><span id="line-213">        }</span>
-<span class="source-line-no">214</span><span id="line-214">        if (pending.position() == 0) {</span>
-<span class="source-line-no">215</span><span id="line-215">            // Nothing consumed, continue to write into pending</span>
-<span class="source-line-no">216</span><span id="line-216">            var limit = pending.limit();</span>
-<span class="source-line-no">217</span><span id="line-217">            pending.clear();</span>
-<span class="source-line-no">218</span><span id="line-218">            pending.position(limit);</span>
-<span class="source-line-no">219</span><span id="line-219">            return;</span>
-<span class="source-line-no">220</span><span id="line-220">        }</span>
-<span class="source-line-no">221</span><span id="line-221">        // Transfer remaining to beginning of pending</span>
-<span class="source-line-no">222</span><span id="line-222">        if (rest == null || rest.capacity() &lt; pending.remaining()) {</span>
-<span class="source-line-no">223</span><span id="line-223">            rest = CharBuffer.allocate(pending.capacity());</span>
-<span class="source-line-no">224</span><span id="line-224">        }</span>
-<span class="source-line-no">225</span><span id="line-225">        rest.put(pending);</span>
-<span class="source-line-no">226</span><span id="line-226">        rest.flip();</span>
-<span class="source-line-no">227</span><span id="line-227">        pending.clear();</span>
-<span class="source-line-no">228</span><span id="line-228">        pending.put(rest);</span>
-<span class="source-line-no">229</span><span id="line-229">        rest.clear();</span>
-<span class="source-line-no">230</span><span id="line-230">    }</span>
-<span class="source-line-no">231</span><span id="line-231"></span>
-<span class="source-line-no">232</span><span id="line-232">    private void splitPair(String pair) {</span>
-<span class="source-line-no">233</span><span id="line-233">        int sep = pair.indexOf('=');</span>
-<span class="source-line-no">234</span><span id="line-234">        String key = URLDecoder.decode(pair.substring(0, sep), formCharset);</span>
-<span class="source-line-no">235</span><span id="line-235">        String value = URLDecoder.decode(pair.substring(sep + 1), formCharset);</span>
-<span class="source-line-no">236</span><span id="line-236">        consumer.accept(key, value);</span>
-<span class="source-line-no">237</span><span id="line-237">    }</span>
-<span class="source-line-no">238</span><span id="line-238"></span>
-<span class="source-line-no">239</span><span id="line-239">    /**</span>
-<span class="source-line-no">240</span><span id="line-240">     * Checks if more input may become available.</span>
-<span class="source-line-no">241</span><span id="line-241">     *</span>
-<span class="source-line-no">242</span><span id="line-242">     * @return true, if successful</span>
-<span class="source-line-no">243</span><span id="line-243">     */</span>
-<span class="source-line-no">244</span><span id="line-244">    public boolean eof() {</span>
-<span class="source-line-no">245</span><span id="line-245">        return isEof;</span>
-<span class="source-line-no">246</span><span id="line-246">    }</span>
-<span class="source-line-no">247</span><span id="line-247"></span>
-<span class="source-line-no">248</span><span id="line-248">    /**</span>
-<span class="source-line-no">249</span><span id="line-249">     * Gets the result.</span>
-<span class="source-line-no">250</span><span id="line-250">     *</span>
-<span class="source-line-no">251</span><span id="line-251">     * @return the line</span>
-<span class="source-line-no">252</span><span id="line-252">     */</span>
-<span class="source-line-no">253</span><span id="line-253">    public Map&lt;String, List&lt;String&gt;&gt; result() {</span>
-<span class="source-line-no">254</span><span id="line-254">        return result;</span>
-<span class="source-line-no">255</span><span id="line-255">    }</span>
-<span class="source-line-no">256</span><span id="line-256">}</span>
+<span class="source-line-no">178</span><span id="line-178">        "PMD.AvoidBranchingStatementAsLastInLoop", "PMD.NcssCount" })</span>
+<span class="source-line-no">179</span><span id="line-179">    private void processPending() {</span>
+<span class="source-line-no">180</span><span id="line-180">        pending.flip();</span>
+<span class="source-line-no">181</span><span id="line-181">        if (!pending.hasRemaining()) {</span>
+<span class="source-line-no">182</span><span id="line-182">            pending.clear();</span>
+<span class="source-line-no">183</span><span id="line-183">            return;</span>
+<span class="source-line-no">184</span><span id="line-184">        }</span>
+<span class="source-line-no">185</span><span id="line-185">        int end = pending.limit();</span>
+<span class="source-line-no">186</span><span id="line-186">        while (pending.hasRemaining()) {</span>
+<span class="source-line-no">187</span><span id="line-187">            int start = pending.position();</span>
+<span class="source-line-no">188</span><span id="line-188">            for (int pos = start; pos &lt; end;) {</span>
+<span class="source-line-no">189</span><span id="line-189">                if (pending.get(pos) != '&amp;') {</span>
+<span class="source-line-no">190</span><span id="line-190">                    pos += 1;</span>
+<span class="source-line-no">191</span><span id="line-191">                    continue;</span>
+<span class="source-line-no">192</span><span id="line-192">                }</span>
+<span class="source-line-no">193</span><span id="line-193">                splitPair(new String(pending.array(), start, pos - start));</span>
+<span class="source-line-no">194</span><span id="line-194">                pos += 1;</span>
+<span class="source-line-no">195</span><span id="line-195">                pending.position(pos);</span>
+<span class="source-line-no">196</span><span id="line-196">                break;</span>
+<span class="source-line-no">197</span><span id="line-197">            }</span>
+<span class="source-line-no">198</span><span id="line-198">            if (pending.position() == start) {</span>
+<span class="source-line-no">199</span><span id="line-199">                // No '&amp;' found</span>
+<span class="source-line-no">200</span><span id="line-200">                break;</span>
+<span class="source-line-no">201</span><span id="line-201">            }</span>
+<span class="source-line-no">202</span><span id="line-202">        }</span>
+<span class="source-line-no">203</span><span id="line-203">        if (!pending.hasRemaining()) {</span>
+<span class="source-line-no">204</span><span id="line-204">            pending.clear();</span>
+<span class="source-line-no">205</span><span id="line-205">            return;</span>
+<span class="source-line-no">206</span><span id="line-206">        }</span>
+<span class="source-line-no">207</span><span id="line-207">        if (isEof) {</span>
+<span class="source-line-no">208</span><span id="line-208">            // Remaining is last entry</span>
+<span class="source-line-no">209</span><span id="line-209">            splitPair(new String(pending.array(), pending.position(),</span>
+<span class="source-line-no">210</span><span id="line-210">                pending.remaining()).trim());</span>
+<span class="source-line-no">211</span><span id="line-211">            return;</span>
+<span class="source-line-no">212</span><span id="line-212">        }</span>
+<span class="source-line-no">213</span><span id="line-213">        if (pending.position() == 0) {</span>
+<span class="source-line-no">214</span><span id="line-214">            // Nothing consumed, continue to write into pending</span>
+<span class="source-line-no">215</span><span id="line-215">            var limit = pending.limit();</span>
+<span class="source-line-no">216</span><span id="line-216">            pending.clear();</span>
+<span class="source-line-no">217</span><span id="line-217">            pending.position(limit);</span>
+<span class="source-line-no">218</span><span id="line-218">            return;</span>
+<span class="source-line-no">219</span><span id="line-219">        }</span>
+<span class="source-line-no">220</span><span id="line-220">        // Transfer remaining to beginning of pending</span>
+<span class="source-line-no">221</span><span id="line-221">        if (rest == null || rest.capacity() &lt; pending.remaining()) {</span>
+<span class="source-line-no">222</span><span id="line-222">            rest = CharBuffer.allocate(pending.capacity());</span>
+<span class="source-line-no">223</span><span id="line-223">        }</span>
+<span class="source-line-no">224</span><span id="line-224">        rest.put(pending);</span>
+<span class="source-line-no">225</span><span id="line-225">        rest.flip();</span>
+<span class="source-line-no">226</span><span id="line-226">        pending.clear();</span>
+<span class="source-line-no">227</span><span id="line-227">        pending.put(rest);</span>
+<span class="source-line-no">228</span><span id="line-228">        rest.clear();</span>
+<span class="source-line-no">229</span><span id="line-229">    }</span>
+<span class="source-line-no">230</span><span id="line-230"></span>
+<span class="source-line-no">231</span><span id="line-231">    private void splitPair(String pair) {</span>
+<span class="source-line-no">232</span><span id="line-232">        int sep = pair.indexOf('=');</span>
+<span class="source-line-no">233</span><span id="line-233">        String key = URLDecoder.decode(pair.substring(0, sep), formCharset);</span>
+<span class="source-line-no">234</span><span id="line-234">        String value = URLDecoder.decode(pair.substring(sep + 1), formCharset);</span>
+<span class="source-line-no">235</span><span id="line-235">        consumer.accept(key, value);</span>
+<span class="source-line-no">236</span><span id="line-236">    }</span>
+<span class="source-line-no">237</span><span id="line-237"></span>
+<span class="source-line-no">238</span><span id="line-238">    /**</span>
+<span class="source-line-no">239</span><span id="line-239">     * Checks if more input may become available.</span>
+<span class="source-line-no">240</span><span id="line-240">     *</span>
+<span class="source-line-no">241</span><span id="line-241">     * @return true, if successful</span>
+<span class="source-line-no">242</span><span id="line-242">     */</span>
+<span class="source-line-no">243</span><span id="line-243">    public boolean eof() {</span>
+<span class="source-line-no">244</span><span id="line-244">        return isEof;</span>
+<span class="source-line-no">245</span><span id="line-245">    }</span>
+<span class="source-line-no">246</span><span id="line-246"></span>
+<span class="source-line-no">247</span><span id="line-247">    /**</span>
+<span class="source-line-no">248</span><span id="line-248">     * Gets the result.</span>
+<span class="source-line-no">249</span><span id="line-249">     *</span>
+<span class="source-line-no">250</span><span id="line-250">     * @return the line</span>
+<span class="source-line-no">251</span><span id="line-251">     */</span>
+<span class="source-line-no">252</span><span id="line-252">    public Map&lt;String, List&lt;String&gt;&gt; result() {</span>
+<span class="source-line-no">253</span><span id="line-253">        return result;</span>
+<span class="source-line-no">254</span><span id="line-254">    }</span>
+<span class="source-line-no">255</span><span id="line-255">}</span>
 
 
 

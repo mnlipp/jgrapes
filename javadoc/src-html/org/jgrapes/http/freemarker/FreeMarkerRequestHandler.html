@@ -78,34 +78,34 @@
 <span class="source-line-no">064</span><span id="line-64"> * A base class for components that generate responses to</span>
 <span class="source-line-no">065</span><span id="line-65"> * HTTP requests which are based on a FreeMarker template.</span>
 <span class="source-line-no">066</span><span id="line-66"> */</span>
-<span class="source-line-no">067</span><span id="line-67">@SuppressWarnings("PMD.DataClass")</span>
-<span class="source-line-no">068</span><span id="line-68">public class FreeMarkerRequestHandler extends Component {</span>
-<span class="source-line-no">069</span><span id="line-69">    public static final Pattern TEMPLATE_PATTERN</span>
-<span class="source-line-no">070</span><span id="line-70">        = Pattern.compile(".*\\.ftl\\.[a-z]+$");</span>
-<span class="source-line-no">071</span><span id="line-71"></span>
-<span class="source-line-no">072</span><span id="line-72">    private ClassLoader contentLoader;</span>
-<span class="source-line-no">073</span><span id="line-73">    private String contentPath;</span>
-<span class="source-line-no">074</span><span id="line-74">    private URI prefix;</span>
-<span class="source-line-no">075</span><span id="line-75">    private ResourcePattern prefixPattern;</span>
-<span class="source-line-no">076</span><span id="line-76">    private Configuration fmConfig;</span>
-<span class="source-line-no">077</span><span id="line-77">    private MaxAgeCalculator maxAgeCalculator;</span>
-<span class="source-line-no">078</span><span id="line-78"></span>
-<span class="source-line-no">079</span><span id="line-79">    /**</span>
-<span class="source-line-no">080</span><span id="line-80">     * Instantiates a new free marker request handler.</span>
-<span class="source-line-no">081</span><span id="line-81">     * </span>
-<span class="source-line-no">082</span><span id="line-82">     * The prefix path is removed from the request paths before resolving</span>
-<span class="source-line-no">083</span><span id="line-83">     * them against the content root. A prefix path must start with a</span>
-<span class="source-line-no">084</span><span id="line-84">     * slash and must end with a slash. If the request handler</span>
-<span class="source-line-no">085</span><span id="line-85">     * should respond to top-level requests, the prefix must be</span>
-<span class="source-line-no">086</span><span id="line-86">     * a single slash.</span>
-<span class="source-line-no">087</span><span id="line-87">     *</span>
-<span class="source-line-no">088</span><span id="line-88">     * @param componentChannel the component channel</span>
-<span class="source-line-no">089</span><span id="line-89">     * @param channelReplacements the channel replacements to apply</span>
-<span class="source-line-no">090</span><span id="line-90">     * to the `channels` elements of the {@link Handler} annotations</span>
-<span class="source-line-no">091</span><span id="line-91">     * @param contentLoader the content loader</span>
-<span class="source-line-no">092</span><span id="line-92">     * @param contentPath the content path</span>
-<span class="source-line-no">093</span><span id="line-93">     * @param prefix the prefix used in requests</span>
-<span class="source-line-no">094</span><span id="line-94">     */</span>
+<span class="source-line-no">067</span><span id="line-67">public class FreeMarkerRequestHandler extends Component {</span>
+<span class="source-line-no">068</span><span id="line-68">    public static final Pattern TEMPLATE_PATTERN</span>
+<span class="source-line-no">069</span><span id="line-69">        = Pattern.compile(".*\\.ftl\\.[a-z]+$");</span>
+<span class="source-line-no">070</span><span id="line-70"></span>
+<span class="source-line-no">071</span><span id="line-71">    private ClassLoader contentLoader;</span>
+<span class="source-line-no">072</span><span id="line-72">    private String contentPath;</span>
+<span class="source-line-no">073</span><span id="line-73">    private URI prefix;</span>
+<span class="source-line-no">074</span><span id="line-74">    private ResourcePattern prefixPattern;</span>
+<span class="source-line-no">075</span><span id="line-75">    private Configuration fmConfig;</span>
+<span class="source-line-no">076</span><span id="line-76">    private MaxAgeCalculator maxAgeCalculator;</span>
+<span class="source-line-no">077</span><span id="line-77"></span>
+<span class="source-line-no">078</span><span id="line-78">    /**</span>
+<span class="source-line-no">079</span><span id="line-79">     * Instantiates a new free marker request handler.</span>
+<span class="source-line-no">080</span><span id="line-80">     * </span>
+<span class="source-line-no">081</span><span id="line-81">     * The prefix path is removed from the request paths before resolving</span>
+<span class="source-line-no">082</span><span id="line-82">     * them against the content root. A prefix path must start with a</span>
+<span class="source-line-no">083</span><span id="line-83">     * slash and must end with a slash. If the request handler</span>
+<span class="source-line-no">084</span><span id="line-84">     * should respond to top-level requests, the prefix must be</span>
+<span class="source-line-no">085</span><span id="line-85">     * a single slash.</span>
+<span class="source-line-no">086</span><span id="line-86">     *</span>
+<span class="source-line-no">087</span><span id="line-87">     * @param componentChannel the component channel</span>
+<span class="source-line-no">088</span><span id="line-88">     * @param channelReplacements the channel replacements to apply</span>
+<span class="source-line-no">089</span><span id="line-89">     * to the `channels` elements of the {@link Handler} annotations</span>
+<span class="source-line-no">090</span><span id="line-90">     * @param contentLoader the content loader</span>
+<span class="source-line-no">091</span><span id="line-91">     * @param contentPath the content path</span>
+<span class="source-line-no">092</span><span id="line-92">     * @param prefix the prefix used in requests</span>
+<span class="source-line-no">093</span><span id="line-93">     */</span>
+<span class="source-line-no">094</span><span id="line-94">    @SuppressWarnings("PMD.LooseCoupling")</span>
 <span class="source-line-no">095</span><span id="line-95">    public FreeMarkerRequestHandler(Channel componentChannel,</span>
 <span class="source-line-no">096</span><span id="line-96">            ChannelReplacements channelReplacements,</span>
 <span class="source-line-no">097</span><span id="line-97">            ClassLoader contentLoader, String contentPath, URI prefix) {</span>
@@ -212,191 +212,190 @@
 <span class="source-line-no">198</span><span id="line-198">     * @param channel the channel</span>
 <span class="source-line-no">199</span><span id="line-199">     * @throws ParseException the parse exception</span>
 <span class="source-line-no">200</span><span id="line-200">     */</span>
-<span class="source-line-no">201</span><span id="line-201">    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")</span>
-<span class="source-line-no">202</span><span id="line-202">    protected void doRespond(Request.In event, IOSubchannel channel)</span>
-<span class="source-line-no">203</span><span id="line-203">            throws ParseException {</span>
-<span class="source-line-no">204</span><span id="line-204">        final HttpRequest request = event.httpRequest();</span>
-<span class="source-line-no">205</span><span id="line-205">        prefixPattern.pathRemainder(request.requestUri()).ifPresent(path -&gt; {</span>
-<span class="source-line-no">206</span><span id="line-206">            boolean success;</span>
-<span class="source-line-no">207</span><span id="line-207">            if (TEMPLATE_PATTERN.matcher(path).matches()) {</span>
-<span class="source-line-no">208</span><span id="line-208">                success = sendProcessedTemplate(event, channel, path);</span>
-<span class="source-line-no">209</span><span id="line-209">            } else {</span>
-<span class="source-line-no">210</span><span id="line-210">                success = ResponseCreationSupport.sendStaticContent(</span>
-<span class="source-line-no">211</span><span id="line-211">                    request, channel, requestPath -&gt; contentLoader</span>
-<span class="source-line-no">212</span><span id="line-212">                        .getResource(contentPath + "/" + path),</span>
-<span class="source-line-no">213</span><span id="line-213">                    maxAgeCalculator);</span>
-<span class="source-line-no">214</span><span id="line-214">            }</span>
-<span class="source-line-no">215</span><span id="line-215">            event.setResult(true);</span>
-<span class="source-line-no">216</span><span id="line-216">            event.stop();</span>
-<span class="source-line-no">217</span><span id="line-217">            if (!success) {</span>
-<span class="source-line-no">218</span><span id="line-218">                channel.respond(new Close());</span>
-<span class="source-line-no">219</span><span id="line-219">            }</span>
-<span class="source-line-no">220</span><span id="line-220">        });</span>
-<span class="source-line-no">221</span><span id="line-221">    }</span>
-<span class="source-line-no">222</span><span id="line-222"></span>
-<span class="source-line-no">223</span><span id="line-223">    /**</span>
-<span class="source-line-no">224</span><span id="line-224">     * Render a response using the given template. Send the </span>
-<span class="source-line-no">225</span><span id="line-225">     * {@link Response} and at least one {@link Output} event.</span>
-<span class="source-line-no">226</span><span id="line-226">     *</span>
-<span class="source-line-no">227</span><span id="line-227">     * If the method does not return `true`, the invoker should close</span>
-<span class="source-line-no">228</span><span id="line-228">     * the connection because it is most likely in an undefined state.</span>
-<span class="source-line-no">229</span><span id="line-229">     *</span>
-<span class="source-line-no">230</span><span id="line-230">     * @param event the request event</span>
-<span class="source-line-no">231</span><span id="line-231">     * @param channel the channel</span>
-<span class="source-line-no">232</span><span id="line-232">     * @param tpl the template</span>
-<span class="source-line-no">233</span><span id="line-233">     * @return false if an error occurred</span>
-<span class="source-line-no">234</span><span id="line-234">     */</span>
-<span class="source-line-no">235</span><span id="line-235">    protected boolean sendProcessedTemplate(</span>
-<span class="source-line-no">236</span><span id="line-236">            Request.In event, IOSubchannel channel, Template tpl) {</span>
-<span class="source-line-no">237</span><span id="line-237">        // Prepare response</span>
-<span class="source-line-no">238</span><span id="line-238">        HttpResponse response = event.httpRequest().response().get();</span>
-<span class="source-line-no">239</span><span id="line-239">        MediaType mediaType = contentType(</span>
-<span class="source-line-no">240</span><span id="line-240">            ResponseCreationSupport.uriFromPath(tpl.getSourceName()));</span>
-<span class="source-line-no">241</span><span id="line-241">        response.setContentType(mediaType);</span>
-<span class="source-line-no">242</span><span id="line-242"></span>
-<span class="source-line-no">243</span><span id="line-243">        // Send response</span>
-<span class="source-line-no">244</span><span id="line-244">        response.setStatus(HttpStatus.OK);</span>
-<span class="source-line-no">245</span><span id="line-245">        response.setField(HttpField.LAST_MODIFIED, Instant.now());</span>
-<span class="source-line-no">246</span><span id="line-246">        if (maxAgeCalculator == null) {</span>
-<span class="source-line-no">247</span><span id="line-247">            ResponseCreationSupport.setMaxAge(response, 0);</span>
-<span class="source-line-no">248</span><span id="line-248">        } else {</span>
-<span class="source-line-no">249</span><span id="line-249">            ResponseCreationSupport.setMaxAge(response,</span>
-<span class="source-line-no">250</span><span id="line-250">                maxAgeCalculator.maxAge(event.httpRequest(), mediaType));</span>
-<span class="source-line-no">251</span><span id="line-251">        }</span>
-<span class="source-line-no">252</span><span id="line-252">        channel.respond(new Response(response));</span>
-<span class="source-line-no">253</span><span id="line-253"></span>
-<span class="source-line-no">254</span><span id="line-254">        // Send content</span>
-<span class="source-line-no">255</span><span id="line-255">        try (@SuppressWarnings("resource")</span>
-<span class="source-line-no">256</span><span id="line-256">        Writer out = new ByteBufferWriter(channel).suppressClose()) {</span>
-<span class="source-line-no">257</span><span id="line-257">            Map&lt;String, Object&gt; model</span>
-<span class="source-line-no">258</span><span id="line-258">                = fmSessionModel(event.associatedGet(Session.class));</span>
-<span class="source-line-no">259</span><span id="line-259">            tpl.setLocale((Locale) model.get("locale"));</span>
-<span class="source-line-no">260</span><span id="line-260">            tpl.process(model, out);</span>
-<span class="source-line-no">261</span><span id="line-261">            return true;</span>
-<span class="source-line-no">262</span><span id="line-262">        } catch (IOException | TemplateException e) {</span>
-<span class="source-line-no">263</span><span id="line-263">            // Too late to do anything about this (header was sent).</span>
-<span class="source-line-no">264</span><span id="line-264">            fire(new Error(event, e), channel);</span>
-<span class="source-line-no">265</span><span id="line-265">        }</span>
-<span class="source-line-no">266</span><span id="line-266">        return false;</span>
-<span class="source-line-no">267</span><span id="line-267">    }</span>
-<span class="source-line-no">268</span><span id="line-268"></span>
-<span class="source-line-no">269</span><span id="line-269">    /**</span>
-<span class="source-line-no">270</span><span id="line-270">     * Render a response using the template obtained from the config with</span>
-<span class="source-line-no">271</span><span id="line-271">     * {@link Configuration#getTemplate(String)} and the given path.</span>
-<span class="source-line-no">272</span><span id="line-272">     *</span>
-<span class="source-line-no">273</span><span id="line-273">     * @param event</span>
-<span class="source-line-no">274</span><span id="line-274">     *            the event</span>
-<span class="source-line-no">275</span><span id="line-275">     * @param channel</span>
-<span class="source-line-no">276</span><span id="line-276">     *            the channel</span>
-<span class="source-line-no">277</span><span id="line-277">     * @param path</span>
-<span class="source-line-no">278</span><span id="line-278">     *            the path</span>
-<span class="source-line-no">279</span><span id="line-279">     */</span>
-<span class="source-line-no">280</span><span id="line-280">    protected boolean sendProcessedTemplate(</span>
-<span class="source-line-no">281</span><span id="line-281">            Request.In event, IOSubchannel channel, String path) {</span>
-<span class="source-line-no">282</span><span id="line-282">        try {</span>
-<span class="source-line-no">283</span><span id="line-283">            // Get template (no need to continue if this fails).</span>
-<span class="source-line-no">284</span><span id="line-284">            Template tpl = freemarkerConfig().getTemplate(path);</span>
-<span class="source-line-no">285</span><span id="line-285">            return sendProcessedTemplate(event, channel, tpl);</span>
-<span class="source-line-no">286</span><span id="line-286">        } catch (IOException e) {</span>
-<span class="source-line-no">287</span><span id="line-287">            fire(new Error(event, e), channel);</span>
-<span class="source-line-no">288</span><span id="line-288">            return false;</span>
-<span class="source-line-no">289</span><span id="line-289">        }</span>
-<span class="source-line-no">290</span><span id="line-290">    }</span>
-<span class="source-line-no">291</span><span id="line-291"></span>
-<span class="source-line-no">292</span><span id="line-292">    /**</span>
-<span class="source-line-no">293</span><span id="line-293">     * Creates the configuration for freemarker template processing.</span>
-<span class="source-line-no">294</span><span id="line-294">     * </span>
-<span class="source-line-no">295</span><span id="line-295">     * @return the configuration</span>
-<span class="source-line-no">296</span><span id="line-296">     */</span>
-<span class="source-line-no">297</span><span id="line-297">    protected Configuration freemarkerConfig() {</span>
-<span class="source-line-no">298</span><span id="line-298">        if (fmConfig == null) {</span>
-<span class="source-line-no">299</span><span id="line-299">            fmConfig = new Configuration(Configuration.VERSION_2_3_26);</span>
-<span class="source-line-no">300</span><span id="line-300">            fmConfig.setClassLoaderForTemplateLoading(</span>
-<span class="source-line-no">301</span><span id="line-301">                contentLoader, contentPath);</span>
-<span class="source-line-no">302</span><span id="line-302">            fmConfig.setDefaultEncoding("utf-8");</span>
-<span class="source-line-no">303</span><span id="line-303">            fmConfig.setTemplateExceptionHandler(</span>
-<span class="source-line-no">304</span><span id="line-304">                TemplateExceptionHandler.RETHROW_HANDLER);</span>
-<span class="source-line-no">305</span><span id="line-305">            fmConfig.setLogTemplateExceptions(false);</span>
-<span class="source-line-no">306</span><span id="line-306">        }</span>
-<span class="source-line-no">307</span><span id="line-307">        return fmConfig;</span>
-<span class="source-line-no">308</span><span id="line-308">    }</span>
-<span class="source-line-no">309</span><span id="line-309"></span>
-<span class="source-line-no">310</span><span id="line-310">    /**</span>
-<span class="source-line-no">311</span><span id="line-311">     * Build a freemarker model holding the information usually found in the</span>
-<span class="source-line-no">312</span><span id="line-312">     * session. Provides fallbacks in case no session is available.</span>
-<span class="source-line-no">313</span><span id="line-313">     * </span>
-<span class="source-line-no">314</span><span id="line-314">     * This model provides: </span>
-<span class="source-line-no">315</span><span id="line-315">     * </span>
-<span class="source-line-no">316</span><span id="line-316">     * * The `locale` (of type {@link Locale}) (falls back to </span>
-<span class="source-line-no">317</span><span id="line-317">     *   {@link Locale#getDefault()}. </span>
-<span class="source-line-no">318</span><span id="line-318">     * </span>
-<span class="source-line-no">319</span><span id="line-319">     * * The `resourceBundle` (of type {@link ResourceBundle})</span>
-<span class="source-line-no">320</span><span id="line-320">     *   obtained by calling {@link #resourceBundle(Locale)}. </span>
-<span class="source-line-no">321</span><span id="line-321">     * </span>
-<span class="source-line-no">322</span><span id="line-322">     * * A function "`_`" that looks up the given key in the </span>
-<span class="source-line-no">323</span><span id="line-323">     *   resource bundle.</span>
-<span class="source-line-no">324</span><span id="line-324">     * </span>
-<span class="source-line-no">325</span><span id="line-325">     * @param session</span>
-<span class="source-line-no">326</span><span id="line-326">     *            the session</span>
-<span class="source-line-no">327</span><span id="line-327">     * @return the model</span>
-<span class="source-line-no">328</span><span id="line-328">     */</span>
-<span class="source-line-no">329</span><span id="line-329">    protected Map&lt;String, Object&gt; fmSessionModel(Optional&lt;Session&gt; session) {</span>
-<span class="source-line-no">330</span><span id="line-330">        @SuppressWarnings("PMD.UseConcurrentHashMap")</span>
-<span class="source-line-no">331</span><span id="line-331">        final Map&lt;String, Object&gt; model = new HashMap&lt;&gt;();</span>
-<span class="source-line-no">332</span><span id="line-332">        Locale locale = session.map(</span>
-<span class="source-line-no">333</span><span id="line-333">            sess -&gt; sess.locale()).orElse(Locale.getDefault());</span>
-<span class="source-line-no">334</span><span id="line-334">        model.put("locale", locale);</span>
-<span class="source-line-no">335</span><span id="line-335">        final ResourceBundle resourceBundle = resourceBundle(locale);</span>
-<span class="source-line-no">336</span><span id="line-336">        model.put("resourceBundle", resourceBundle);</span>
-<span class="source-line-no">337</span><span id="line-337">        model.put("_", new TemplateMethodModelEx() {</span>
-<span class="source-line-no">338</span><span id="line-338">            @Override</span>
-<span class="source-line-no">339</span><span id="line-339">            @SuppressWarnings("PMD.EmptyCatchBlock")</span>
-<span class="source-line-no">340</span><span id="line-340">            public Object exec(@SuppressWarnings("rawtypes") List arguments)</span>
-<span class="source-line-no">341</span><span id="line-341">                    throws TemplateModelException {</span>
-<span class="source-line-no">342</span><span id="line-342">                @SuppressWarnings("unchecked")</span>
-<span class="source-line-no">343</span><span id="line-343">                List&lt;TemplateModel&gt; args = (List&lt;TemplateModel&gt;) arguments;</span>
-<span class="source-line-no">344</span><span id="line-344">                if (!(args.get(0) instanceof SimpleScalar)) {</span>
-<span class="source-line-no">345</span><span id="line-345">                    throw new TemplateModelException("Not a string.");</span>
-<span class="source-line-no">346</span><span id="line-346">                }</span>
-<span class="source-line-no">347</span><span id="line-347">                String key = ((SimpleScalar) args.get(0)).getAsString();</span>
-<span class="source-line-no">348</span><span id="line-348">                try {</span>
-<span class="source-line-no">349</span><span id="line-349">                    return resourceBundle.getString(key);</span>
-<span class="source-line-no">350</span><span id="line-350">                } catch (MissingResourceException e) {</span>
-<span class="source-line-no">351</span><span id="line-351">                    // no luck</span>
-<span class="source-line-no">352</span><span id="line-352">                }</span>
-<span class="source-line-no">353</span><span id="line-353">                return key;</span>
-<span class="source-line-no">354</span><span id="line-354">            }</span>
-<span class="source-line-no">355</span><span id="line-355">        });</span>
-<span class="source-line-no">356</span><span id="line-356">        return model;</span>
-<span class="source-line-no">357</span><span id="line-357">    }</span>
-<span class="source-line-no">358</span><span id="line-358"></span>
-<span class="source-line-no">359</span><span id="line-359">    /**</span>
-<span class="source-line-no">360</span><span id="line-360">     * Used to get the content type when generating a response with</span>
-<span class="source-line-no">361</span><span id="line-361">     * {@link #sendProcessedTemplate(Request.In, IOSubchannel, Template)}. </span>
-<span class="source-line-no">362</span><span id="line-362">     * May be overridden by derived classes. This implementation simply invokes</span>
-<span class="source-line-no">363</span><span id="line-363">     * {@link HttpResponse#contentType(URI)}.</span>
-<span class="source-line-no">364</span><span id="line-364">     *</span>
-<span class="source-line-no">365</span><span id="line-365">     * @param request the request</span>
-<span class="source-line-no">366</span><span id="line-366">     * @return the content type</span>
-<span class="source-line-no">367</span><span id="line-367">     */</span>
-<span class="source-line-no">368</span><span id="line-368">    protected MediaType contentType(URI request) {</span>
-<span class="source-line-no">369</span><span id="line-369">        return HttpResponse.contentType(request);</span>
-<span class="source-line-no">370</span><span id="line-370">    }</span>
-<span class="source-line-no">371</span><span id="line-371"></span>
-<span class="source-line-no">372</span><span id="line-372">    /**</span>
-<span class="source-line-no">373</span><span id="line-373">     * Provides a resource bundle for localization.</span>
-<span class="source-line-no">374</span><span id="line-374">     * The default implementation looks up a bundle using the</span>
-<span class="source-line-no">375</span><span id="line-375">     * package name plus "l10n" as base name.</span>
-<span class="source-line-no">376</span><span id="line-376">     * </span>
-<span class="source-line-no">377</span><span id="line-377">     * @return the resource bundle</span>
-<span class="source-line-no">378</span><span id="line-378">     */</span>
-<span class="source-line-no">379</span><span id="line-379">    protected ResourceBundle resourceBundle(Locale locale) {</span>
-<span class="source-line-no">380</span><span id="line-380">        return ResourceBundle.getBundle(</span>
-<span class="source-line-no">381</span><span id="line-381">            contentPath.replace('/', '.') + ".l10n", locale,</span>
-<span class="source-line-no">382</span><span id="line-382">            contentLoader, ResourceBundle.Control.getNoFallbackControl(</span>
-<span class="source-line-no">383</span><span id="line-383">                ResourceBundle.Control.FORMAT_DEFAULT));</span>
-<span class="source-line-no">384</span><span id="line-384">    }</span>
-<span class="source-line-no">385</span><span id="line-385">}</span>
+<span class="source-line-no">201</span><span id="line-201">    protected void doRespond(Request.In event, IOSubchannel channel)</span>
+<span class="source-line-no">202</span><span id="line-202">            throws ParseException {</span>
+<span class="source-line-no">203</span><span id="line-203">        final HttpRequest request = event.httpRequest();</span>
+<span class="source-line-no">204</span><span id="line-204">        prefixPattern.pathRemainder(request.requestUri()).ifPresent(path -&gt; {</span>
+<span class="source-line-no">205</span><span id="line-205">            boolean success;</span>
+<span class="source-line-no">206</span><span id="line-206">            if (TEMPLATE_PATTERN.matcher(path).matches()) {</span>
+<span class="source-line-no">207</span><span id="line-207">                success = sendProcessedTemplate(event, channel, path);</span>
+<span class="source-line-no">208</span><span id="line-208">            } else {</span>
+<span class="source-line-no">209</span><span id="line-209">                success = ResponseCreationSupport.sendStaticContent(</span>
+<span class="source-line-no">210</span><span id="line-210">                    request, channel, requestPath -&gt; contentLoader</span>
+<span class="source-line-no">211</span><span id="line-211">                        .getResource(contentPath + "/" + path),</span>
+<span class="source-line-no">212</span><span id="line-212">                    maxAgeCalculator);</span>
+<span class="source-line-no">213</span><span id="line-213">            }</span>
+<span class="source-line-no">214</span><span id="line-214">            event.setResult(true);</span>
+<span class="source-line-no">215</span><span id="line-215">            event.stop();</span>
+<span class="source-line-no">216</span><span id="line-216">            if (!success) {</span>
+<span class="source-line-no">217</span><span id="line-217">                channel.respond(new Close());</span>
+<span class="source-line-no">218</span><span id="line-218">            }</span>
+<span class="source-line-no">219</span><span id="line-219">        });</span>
+<span class="source-line-no">220</span><span id="line-220">    }</span>
+<span class="source-line-no">221</span><span id="line-221"></span>
+<span class="source-line-no">222</span><span id="line-222">    /**</span>
+<span class="source-line-no">223</span><span id="line-223">     * Render a response using the given template. Send the </span>
+<span class="source-line-no">224</span><span id="line-224">     * {@link Response} and at least one {@link Output} event.</span>
+<span class="source-line-no">225</span><span id="line-225">     *</span>
+<span class="source-line-no">226</span><span id="line-226">     * If the method does not return `true`, the invoker should close</span>
+<span class="source-line-no">227</span><span id="line-227">     * the connection because it is most likely in an undefined state.</span>
+<span class="source-line-no">228</span><span id="line-228">     *</span>
+<span class="source-line-no">229</span><span id="line-229">     * @param event the request event</span>
+<span class="source-line-no">230</span><span id="line-230">     * @param channel the channel</span>
+<span class="source-line-no">231</span><span id="line-231">     * @param tpl the template</span>
+<span class="source-line-no">232</span><span id="line-232">     * @return false if an error occurred</span>
+<span class="source-line-no">233</span><span id="line-233">     */</span>
+<span class="source-line-no">234</span><span id="line-234">    protected boolean sendProcessedTemplate(</span>
+<span class="source-line-no">235</span><span id="line-235">            Request.In event, IOSubchannel channel, Template tpl) {</span>
+<span class="source-line-no">236</span><span id="line-236">        // Prepare response</span>
+<span class="source-line-no">237</span><span id="line-237">        HttpResponse response = event.httpRequest().response().get();</span>
+<span class="source-line-no">238</span><span id="line-238">        MediaType mediaType = contentType(</span>
+<span class="source-line-no">239</span><span id="line-239">            ResponseCreationSupport.uriFromPath(tpl.getSourceName()));</span>
+<span class="source-line-no">240</span><span id="line-240">        response.setContentType(mediaType);</span>
+<span class="source-line-no">241</span><span id="line-241"></span>
+<span class="source-line-no">242</span><span id="line-242">        // Send response</span>
+<span class="source-line-no">243</span><span id="line-243">        response.setStatus(HttpStatus.OK);</span>
+<span class="source-line-no">244</span><span id="line-244">        response.setField(HttpField.LAST_MODIFIED, Instant.now());</span>
+<span class="source-line-no">245</span><span id="line-245">        if (maxAgeCalculator == null) {</span>
+<span class="source-line-no">246</span><span id="line-246">            ResponseCreationSupport.setMaxAge(response, 0);</span>
+<span class="source-line-no">247</span><span id="line-247">        } else {</span>
+<span class="source-line-no">248</span><span id="line-248">            ResponseCreationSupport.setMaxAge(response,</span>
+<span class="source-line-no">249</span><span id="line-249">                maxAgeCalculator.maxAge(event.httpRequest(), mediaType));</span>
+<span class="source-line-no">250</span><span id="line-250">        }</span>
+<span class="source-line-no">251</span><span id="line-251">        channel.respond(new Response(response));</span>
+<span class="source-line-no">252</span><span id="line-252"></span>
+<span class="source-line-no">253</span><span id="line-253">        // Send content</span>
+<span class="source-line-no">254</span><span id="line-254">        try (@SuppressWarnings("resource")</span>
+<span class="source-line-no">255</span><span id="line-255">        Writer out = new ByteBufferWriter(channel).suppressClose()) {</span>
+<span class="source-line-no">256</span><span id="line-256">            Map&lt;String, Object&gt; model</span>
+<span class="source-line-no">257</span><span id="line-257">                = fmSessionModel(event.associatedGet(Session.class));</span>
+<span class="source-line-no">258</span><span id="line-258">            tpl.setLocale((Locale) model.get("locale"));</span>
+<span class="source-line-no">259</span><span id="line-259">            tpl.process(model, out);</span>
+<span class="source-line-no">260</span><span id="line-260">            return true;</span>
+<span class="source-line-no">261</span><span id="line-261">        } catch (IOException | TemplateException e) {</span>
+<span class="source-line-no">262</span><span id="line-262">            // Too late to do anything about this (header was sent).</span>
+<span class="source-line-no">263</span><span id="line-263">            fire(new Error(event, e), channel);</span>
+<span class="source-line-no">264</span><span id="line-264">        }</span>
+<span class="source-line-no">265</span><span id="line-265">        return false;</span>
+<span class="source-line-no">266</span><span id="line-266">    }</span>
+<span class="source-line-no">267</span><span id="line-267"></span>
+<span class="source-line-no">268</span><span id="line-268">    /**</span>
+<span class="source-line-no">269</span><span id="line-269">     * Render a response using the template obtained from the config with</span>
+<span class="source-line-no">270</span><span id="line-270">     * {@link Configuration#getTemplate(String)} and the given path.</span>
+<span class="source-line-no">271</span><span id="line-271">     *</span>
+<span class="source-line-no">272</span><span id="line-272">     * @param event</span>
+<span class="source-line-no">273</span><span id="line-273">     *            the event</span>
+<span class="source-line-no">274</span><span id="line-274">     * @param channel</span>
+<span class="source-line-no">275</span><span id="line-275">     *            the channel</span>
+<span class="source-line-no">276</span><span id="line-276">     * @param path</span>
+<span class="source-line-no">277</span><span id="line-277">     *            the path</span>
+<span class="source-line-no">278</span><span id="line-278">     */</span>
+<span class="source-line-no">279</span><span id="line-279">    protected boolean sendProcessedTemplate(</span>
+<span class="source-line-no">280</span><span id="line-280">            Request.In event, IOSubchannel channel, String path) {</span>
+<span class="source-line-no">281</span><span id="line-281">        try {</span>
+<span class="source-line-no">282</span><span id="line-282">            // Get template (no need to continue if this fails).</span>
+<span class="source-line-no">283</span><span id="line-283">            Template tpl = freemarkerConfig().getTemplate(path);</span>
+<span class="source-line-no">284</span><span id="line-284">            return sendProcessedTemplate(event, channel, tpl);</span>
+<span class="source-line-no">285</span><span id="line-285">        } catch (IOException e) {</span>
+<span class="source-line-no">286</span><span id="line-286">            fire(new Error(event, e), channel);</span>
+<span class="source-line-no">287</span><span id="line-287">            return false;</span>
+<span class="source-line-no">288</span><span id="line-288">        }</span>
+<span class="source-line-no">289</span><span id="line-289">    }</span>
+<span class="source-line-no">290</span><span id="line-290"></span>
+<span class="source-line-no">291</span><span id="line-291">    /**</span>
+<span class="source-line-no">292</span><span id="line-292">     * Creates the configuration for freemarker template processing.</span>
+<span class="source-line-no">293</span><span id="line-293">     * </span>
+<span class="source-line-no">294</span><span id="line-294">     * @return the configuration</span>
+<span class="source-line-no">295</span><span id="line-295">     */</span>
+<span class="source-line-no">296</span><span id="line-296">    protected Configuration freemarkerConfig() {</span>
+<span class="source-line-no">297</span><span id="line-297">        if (fmConfig == null) {</span>
+<span class="source-line-no">298</span><span id="line-298">            fmConfig = new Configuration(Configuration.VERSION_2_3_26);</span>
+<span class="source-line-no">299</span><span id="line-299">            fmConfig.setClassLoaderForTemplateLoading(</span>
+<span class="source-line-no">300</span><span id="line-300">                contentLoader, contentPath);</span>
+<span class="source-line-no">301</span><span id="line-301">            fmConfig.setDefaultEncoding("utf-8");</span>
+<span class="source-line-no">302</span><span id="line-302">            fmConfig.setTemplateExceptionHandler(</span>
+<span class="source-line-no">303</span><span id="line-303">                TemplateExceptionHandler.RETHROW_HANDLER);</span>
+<span class="source-line-no">304</span><span id="line-304">            fmConfig.setLogTemplateExceptions(false);</span>
+<span class="source-line-no">305</span><span id="line-305">        }</span>
+<span class="source-line-no">306</span><span id="line-306">        return fmConfig;</span>
+<span class="source-line-no">307</span><span id="line-307">    }</span>
+<span class="source-line-no">308</span><span id="line-308"></span>
+<span class="source-line-no">309</span><span id="line-309">    /**</span>
+<span class="source-line-no">310</span><span id="line-310">     * Build a freemarker model holding the information usually found in the</span>
+<span class="source-line-no">311</span><span id="line-311">     * session. Provides fallbacks in case no session is available.</span>
+<span class="source-line-no">312</span><span id="line-312">     * </span>
+<span class="source-line-no">313</span><span id="line-313">     * This model provides: </span>
+<span class="source-line-no">314</span><span id="line-314">     * </span>
+<span class="source-line-no">315</span><span id="line-315">     * * The `locale` (of type {@link Locale}) (falls back to </span>
+<span class="source-line-no">316</span><span id="line-316">     *   {@link Locale#getDefault()}. </span>
+<span class="source-line-no">317</span><span id="line-317">     * </span>
+<span class="source-line-no">318</span><span id="line-318">     * * The `resourceBundle` (of type {@link ResourceBundle})</span>
+<span class="source-line-no">319</span><span id="line-319">     *   obtained by calling {@link #resourceBundle(Locale)}. </span>
+<span class="source-line-no">320</span><span id="line-320">     * </span>
+<span class="source-line-no">321</span><span id="line-321">     * * A function "`_`" that looks up the given key in the </span>
+<span class="source-line-no">322</span><span id="line-322">     *   resource bundle.</span>
+<span class="source-line-no">323</span><span id="line-323">     * </span>
+<span class="source-line-no">324</span><span id="line-324">     * @param session</span>
+<span class="source-line-no">325</span><span id="line-325">     *            the session</span>
+<span class="source-line-no">326</span><span id="line-326">     * @return the model</span>
+<span class="source-line-no">327</span><span id="line-327">     */</span>
+<span class="source-line-no">328</span><span id="line-328">    protected Map&lt;String, Object&gt; fmSessionModel(Optional&lt;Session&gt; session) {</span>
+<span class="source-line-no">329</span><span id="line-329">        @SuppressWarnings("PMD.UseConcurrentHashMap")</span>
+<span class="source-line-no">330</span><span id="line-330">        final Map&lt;String, Object&gt; model = new HashMap&lt;&gt;();</span>
+<span class="source-line-no">331</span><span id="line-331">        Locale locale</span>
+<span class="source-line-no">332</span><span id="line-332">            = session.map(Session::locale).orElse(Locale.getDefault());</span>
+<span class="source-line-no">333</span><span id="line-333">        model.put("locale", locale);</span>
+<span class="source-line-no">334</span><span id="line-334">        final ResourceBundle resourceBundle = resourceBundle(locale);</span>
+<span class="source-line-no">335</span><span id="line-335">        model.put("resourceBundle", resourceBundle);</span>
+<span class="source-line-no">336</span><span id="line-336">        model.put("_", new TemplateMethodModelEx() {</span>
+<span class="source-line-no">337</span><span id="line-337">            @Override</span>
+<span class="source-line-no">338</span><span id="line-338">            @SuppressWarnings("PMD.EmptyCatchBlock")</span>
+<span class="source-line-no">339</span><span id="line-339">            public Object exec(@SuppressWarnings("rawtypes") List arguments)</span>
+<span class="source-line-no">340</span><span id="line-340">                    throws TemplateModelException {</span>
+<span class="source-line-no">341</span><span id="line-341">                @SuppressWarnings("unchecked")</span>
+<span class="source-line-no">342</span><span id="line-342">                List&lt;TemplateModel&gt; args = (List&lt;TemplateModel&gt;) arguments;</span>
+<span class="source-line-no">343</span><span id="line-343">                if (!(args.get(0) instanceof SimpleScalar)) {</span>
+<span class="source-line-no">344</span><span id="line-344">                    throw new TemplateModelException("Not a string.");</span>
+<span class="source-line-no">345</span><span id="line-345">                }</span>
+<span class="source-line-no">346</span><span id="line-346">                String key = ((SimpleScalar) args.get(0)).getAsString();</span>
+<span class="source-line-no">347</span><span id="line-347">                try {</span>
+<span class="source-line-no">348</span><span id="line-348">                    return resourceBundle.getString(key);</span>
+<span class="source-line-no">349</span><span id="line-349">                } catch (MissingResourceException e) {</span>
+<span class="source-line-no">350</span><span id="line-350">                    // no luck</span>
+<span class="source-line-no">351</span><span id="line-351">                }</span>
+<span class="source-line-no">352</span><span id="line-352">                return key;</span>
+<span class="source-line-no">353</span><span id="line-353">            }</span>
+<span class="source-line-no">354</span><span id="line-354">        });</span>
+<span class="source-line-no">355</span><span id="line-355">        return model;</span>
+<span class="source-line-no">356</span><span id="line-356">    }</span>
+<span class="source-line-no">357</span><span id="line-357"></span>
+<span class="source-line-no">358</span><span id="line-358">    /**</span>
+<span class="source-line-no">359</span><span id="line-359">     * Used to get the content type when generating a response with</span>
+<span class="source-line-no">360</span><span id="line-360">     * {@link #sendProcessedTemplate(Request.In, IOSubchannel, Template)}. </span>
+<span class="source-line-no">361</span><span id="line-361">     * May be overridden by derived classes. This implementation simply invokes</span>
+<span class="source-line-no">362</span><span id="line-362">     * {@link HttpResponse#contentType(URI)}.</span>
+<span class="source-line-no">363</span><span id="line-363">     *</span>
+<span class="source-line-no">364</span><span id="line-364">     * @param request the request</span>
+<span class="source-line-no">365</span><span id="line-365">     * @return the content type</span>
+<span class="source-line-no">366</span><span id="line-366">     */</span>
+<span class="source-line-no">367</span><span id="line-367">    protected MediaType contentType(URI request) {</span>
+<span class="source-line-no">368</span><span id="line-368">        return HttpResponse.contentType(request);</span>
+<span class="source-line-no">369</span><span id="line-369">    }</span>
+<span class="source-line-no">370</span><span id="line-370"></span>
+<span class="source-line-no">371</span><span id="line-371">    /**</span>
+<span class="source-line-no">372</span><span id="line-372">     * Provides a resource bundle for localization.</span>
+<span class="source-line-no">373</span><span id="line-373">     * The default implementation looks up a bundle using the</span>
+<span class="source-line-no">374</span><span id="line-374">     * package name plus "l10n" as base name.</span>
+<span class="source-line-no">375</span><span id="line-375">     * </span>
+<span class="source-line-no">376</span><span id="line-376">     * @return the resource bundle</span>
+<span class="source-line-no">377</span><span id="line-377">     */</span>
+<span class="source-line-no">378</span><span id="line-378">    protected ResourceBundle resourceBundle(Locale locale) {</span>
+<span class="source-line-no">379</span><span id="line-379">        return ResourceBundle.getBundle(</span>
+<span class="source-line-no">380</span><span id="line-380">            contentPath.replace('/', '.') + ".l10n", locale,</span>
+<span class="source-line-no">381</span><span id="line-381">            contentLoader, ResourceBundle.Control.getNoFallbackControl(</span>
+<span class="source-line-no">382</span><span id="line-382">                ResourceBundle.Control.FORMAT_DEFAULT));</span>
+<span class="source-line-no">383</span><span id="line-383">    }</span>
+<span class="source-line-no">384</span><span id="line-384">}</span>
 
 
 

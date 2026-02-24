@@ -88,7 +88,7 @@
 <span class="source-line-no">074</span><span id="line-74"> * with the process's exit value. Note that the sequence in which these</span>
 <span class="source-line-no">075</span><span id="line-75"> * events are sent is undefined.</span>
 <span class="source-line-no">076</span><span id="line-76"> */</span>
-<span class="source-line-no">077</span><span id="line-77">@SuppressWarnings("PMD.DataflowAnomalyAnalysis")</span>
+<span class="source-line-no">077</span><span id="line-77">@SuppressWarnings("PMD.AvoidSynchronizedStatement")</span>
 <span class="source-line-no">078</span><span id="line-78">public class ProcessManager extends Component {</span>
 <span class="source-line-no">079</span><span id="line-79"></span>
 <span class="source-line-no">080</span><span id="line-80">    private ExecutorService executorService</span>
@@ -100,7 +100,7 @@
 <span class="source-line-no">086</span><span id="line-86">     * Creates a new connector, using itself as component channel. </span>
 <span class="source-line-no">087</span><span id="line-87">     */</span>
 <span class="source-line-no">088</span><span id="line-88">    public ProcessManager() {</span>
-<span class="source-line-no">089</span><span id="line-89">        this(Channel.SELF);</span>
+<span class="source-line-no">089</span><span id="line-89">        this(SELF);</span>
 <span class="source-line-no">090</span><span id="line-90">    }</span>
 <span class="source-line-no">091</span><span id="line-91"></span>
 <span class="source-line-no">092</span><span id="line-92">    /**</span>
@@ -131,98 +131,98 @@
 <span class="source-line-no">117</span><span id="line-117">     * @param event the event</span>
 <span class="source-line-no">118</span><span id="line-118">     */</span>
 <span class="source-line-no">119</span><span id="line-119">    @Handler</span>
-<span class="source-line-no">120</span><span id="line-120">    public void onStartProcess(StartProcess event) {</span>
-<span class="source-line-no">121</span><span id="line-121">        var pbd = new ProcessBuilder(event.command());</span>
-<span class="source-line-no">122</span><span id="line-122">        if (event.directory() != null) {</span>
-<span class="source-line-no">123</span><span id="line-123">            pbd.directory(event.directory());</span>
-<span class="source-line-no">124</span><span id="line-124">        }</span>
-<span class="source-line-no">125</span><span id="line-125">        if (event.environment() != null) {</span>
-<span class="source-line-no">126</span><span id="line-126">            Map&lt;String, String&gt; env = pbd.environment();</span>
-<span class="source-line-no">127</span><span id="line-127">            for (var entry : event.environment().entrySet()) {</span>
-<span class="source-line-no">128</span><span id="line-128">                if (entry.getValue() == null) {</span>
-<span class="source-line-no">129</span><span id="line-129">                    env.remove(entry.getValue());</span>
-<span class="source-line-no">130</span><span id="line-130">                    continue;</span>
-<span class="source-line-no">131</span><span id="line-131">                }</span>
-<span class="source-line-no">132</span><span id="line-132">                env.put(entry.getKey(), entry.getValue());</span>
-<span class="source-line-no">133</span><span id="line-133">            }</span>
-<span class="source-line-no">134</span><span id="line-134">        }</span>
-<span class="source-line-no">135</span><span id="line-135">        try {</span>
-<span class="source-line-no">136</span><span id="line-136">            Process proc;</span>
-<span class="source-line-no">137</span><span id="line-137">            new ProcessChannel(event, proc = pbd.start());</span>
-<span class="source-line-no">138</span><span id="line-138">            logger.fine(() -&gt; "Started process pid=" + proc.toHandle().pid());</span>
-<span class="source-line-no">139</span><span id="line-139">        } catch (IOException e) {</span>
-<span class="source-line-no">140</span><span id="line-140">            fire(new StartProcessError(event, "Failed to start process.", e));</span>
-<span class="source-line-no">141</span><span id="line-141">        }</span>
-<span class="source-line-no">142</span><span id="line-142">    }</span>
-<span class="source-line-no">143</span><span id="line-143"></span>
-<span class="source-line-no">144</span><span id="line-144">    /**</span>
-<span class="source-line-no">145</span><span id="line-145">     * Writes the data passed in the event. </span>
-<span class="source-line-no">146</span><span id="line-146">     * </span>
-<span class="source-line-no">147</span><span id="line-147">     * The end of record flag is used to determine if a channel is </span>
-<span class="source-line-no">148</span><span id="line-148">     * eligible for purging. If the flag is set and all output has </span>
-<span class="source-line-no">149</span><span id="line-149">     * been processed, the channel is purgeable until input is </span>
-<span class="source-line-no">150</span><span id="line-150">     * received or another output event causes the state to be </span>
-<span class="source-line-no">151</span><span id="line-151">     * reevaluated. </span>
-<span class="source-line-no">152</span><span id="line-152">     *</span>
-<span class="source-line-no">153</span><span id="line-153">     * @param event the event</span>
-<span class="source-line-no">154</span><span id="line-154">     * @param channel the channel</span>
-<span class="source-line-no">155</span><span id="line-155">     * @throws InterruptedException the interrupted exception</span>
-<span class="source-line-no">156</span><span id="line-156">     * @throws IOException </span>
-<span class="source-line-no">157</span><span id="line-157">     */</span>
-<span class="source-line-no">158</span><span id="line-158">    @Handler</span>
-<span class="source-line-no">159</span><span id="line-159">    public void onOutput(Output&lt;ByteBuffer&gt; event,</span>
-<span class="source-line-no">160</span><span id="line-160">            ProcessChannel channel) throws InterruptedException, IOException {</span>
-<span class="source-line-no">161</span><span id="line-161">        if (channels.contains(channel)) {</span>
-<span class="source-line-no">162</span><span id="line-162">            channel.write(event);</span>
-<span class="source-line-no">163</span><span id="line-163">        }</span>
-<span class="source-line-no">164</span><span id="line-164">    }</span>
-<span class="source-line-no">165</span><span id="line-165"></span>
-<span class="source-line-no">166</span><span id="line-166">    /**</span>
-<span class="source-line-no">167</span><span id="line-167">     * Closes the output to the process (the process's stdin).</span>
-<span class="source-line-no">168</span><span id="line-168">     * </span>
-<span class="source-line-no">169</span><span id="line-169">     * If the event has an association with key {@link Process},</span>
-<span class="source-line-no">170</span><span id="line-170">     * the event additionally causes the process to be "closed",</span>
-<span class="source-line-no">171</span><span id="line-171">     * i.e. to be terminated (see {@link ProcessHandle#destroy}).</span>
-<span class="source-line-no">172</span><span id="line-172">     *</span>
-<span class="source-line-no">173</span><span id="line-173">     * @param event the event</span>
-<span class="source-line-no">174</span><span id="line-174">     * @throws IOException if an I/O exception occurred</span>
-<span class="source-line-no">175</span><span id="line-175">     * @throws InterruptedException if the execution was interrupted</span>
-<span class="source-line-no">176</span><span id="line-176">     */</span>
-<span class="source-line-no">177</span><span id="line-177">    @Handler</span>
-<span class="source-line-no">178</span><span id="line-178">    public void onClose(Close event) {</span>
-<span class="source-line-no">179</span><span id="line-179">        for (Channel channel : event.channels()) {</span>
-<span class="source-line-no">180</span><span id="line-180">            if (channel instanceof ProcessChannel</span>
-<span class="source-line-no">181</span><span id="line-181">                &amp;&amp; channels.contains(channel)) {</span>
-<span class="source-line-no">182</span><span id="line-182">                ((ProcessChannel) channel).close(event);</span>
-<span class="source-line-no">183</span><span id="line-183">            }</span>
-<span class="source-line-no">184</span><span id="line-184">        }</span>
-<span class="source-line-no">185</span><span id="line-185">    }</span>
-<span class="source-line-no">186</span><span id="line-186"></span>
-<span class="source-line-no">187</span><span id="line-187">    /**</span>
-<span class="source-line-no">188</span><span id="line-188">     * Stop all running processes.</span>
-<span class="source-line-no">189</span><span id="line-189">     * </span>
-<span class="source-line-no">190</span><span id="line-190">     * @param event</span>
-<span class="source-line-no">191</span><span id="line-191">     */</span>
-<span class="source-line-no">192</span><span id="line-192">    @Handler</span>
-<span class="source-line-no">193</span><span id="line-193">    public void onStop(Stop event) {</span>
-<span class="source-line-no">194</span><span id="line-194">        Set&lt;ProcessChannel&gt; copy;</span>
-<span class="source-line-no">195</span><span id="line-195">        synchronized (channels) {</span>
-<span class="source-line-no">196</span><span id="line-196">            copy = new HashSet&lt;&gt;(channels);</span>
-<span class="source-line-no">197</span><span id="line-197">        }</span>
-<span class="source-line-no">198</span><span id="line-198">        for (var channel : copy) {</span>
-<span class="source-line-no">199</span><span id="line-199">            channel.doClose(true);</span>
-<span class="source-line-no">200</span><span id="line-200">        }</span>
-<span class="source-line-no">201</span><span id="line-201">    }</span>
-<span class="source-line-no">202</span><span id="line-202"></span>
-<span class="source-line-no">203</span><span id="line-203">    /**</span>
-<span class="source-line-no">204</span><span id="line-204">     * Handles closed events from stdout and stderr.</span>
-<span class="source-line-no">205</span><span id="line-205">     *</span>
-<span class="source-line-no">206</span><span id="line-206">     * @param event the event</span>
-<span class="source-line-no">207</span><span id="line-207">     * @throws IOException if an I/O exception occurred</span>
-<span class="source-line-no">208</span><span id="line-208">     * @throws InterruptedException if the execution was interrupted</span>
-<span class="source-line-no">209</span><span id="line-209">     */</span>
-<span class="source-line-no">210</span><span id="line-210">    @Handler(priority = -100)</span>
-<span class="source-line-no">211</span><span id="line-211">    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")</span>
+<span class="source-line-no">120</span><span id="line-120">    @SuppressWarnings("PMD.AssignmentInOperand")</span>
+<span class="source-line-no">121</span><span id="line-121">    public void onStartProcess(StartProcess event) {</span>
+<span class="source-line-no">122</span><span id="line-122">        var pbd = new ProcessBuilder(event.command());</span>
+<span class="source-line-no">123</span><span id="line-123">        if (event.directory() != null) {</span>
+<span class="source-line-no">124</span><span id="line-124">            pbd.directory(event.directory());</span>
+<span class="source-line-no">125</span><span id="line-125">        }</span>
+<span class="source-line-no">126</span><span id="line-126">        if (event.environment() != null) {</span>
+<span class="source-line-no">127</span><span id="line-127">            Map&lt;String, String&gt; env = pbd.environment();</span>
+<span class="source-line-no">128</span><span id="line-128">            for (var entry : event.environment().entrySet()) {</span>
+<span class="source-line-no">129</span><span id="line-129">                if (entry.getValue() == null) {</span>
+<span class="source-line-no">130</span><span id="line-130">                    env.remove(entry.getValue());</span>
+<span class="source-line-no">131</span><span id="line-131">                    continue;</span>
+<span class="source-line-no">132</span><span id="line-132">                }</span>
+<span class="source-line-no">133</span><span id="line-133">                env.put(entry.getKey(), entry.getValue());</span>
+<span class="source-line-no">134</span><span id="line-134">            }</span>
+<span class="source-line-no">135</span><span id="line-135">        }</span>
+<span class="source-line-no">136</span><span id="line-136">        try {</span>
+<span class="source-line-no">137</span><span id="line-137">            Process proc;</span>
+<span class="source-line-no">138</span><span id="line-138">            new ProcessChannel(event, proc = pbd.start());</span>
+<span class="source-line-no">139</span><span id="line-139">            logger.fine(() -&gt; "Started process pid=" + proc.toHandle().pid());</span>
+<span class="source-line-no">140</span><span id="line-140">        } catch (IOException e) {</span>
+<span class="source-line-no">141</span><span id="line-141">            fire(new StartProcessError(event, "Failed to start process.", e));</span>
+<span class="source-line-no">142</span><span id="line-142">        }</span>
+<span class="source-line-no">143</span><span id="line-143">    }</span>
+<span class="source-line-no">144</span><span id="line-144"></span>
+<span class="source-line-no">145</span><span id="line-145">    /**</span>
+<span class="source-line-no">146</span><span id="line-146">     * Writes the data passed in the event. </span>
+<span class="source-line-no">147</span><span id="line-147">     * </span>
+<span class="source-line-no">148</span><span id="line-148">     * The end of record flag is used to determine if a channel is </span>
+<span class="source-line-no">149</span><span id="line-149">     * eligible for purging. If the flag is set and all output has </span>
+<span class="source-line-no">150</span><span id="line-150">     * been processed, the channel is purgeable until input is </span>
+<span class="source-line-no">151</span><span id="line-151">     * received or another output event causes the state to be </span>
+<span class="source-line-no">152</span><span id="line-152">     * reevaluated. </span>
+<span class="source-line-no">153</span><span id="line-153">     *</span>
+<span class="source-line-no">154</span><span id="line-154">     * @param event the event</span>
+<span class="source-line-no">155</span><span id="line-155">     * @param channel the channel</span>
+<span class="source-line-no">156</span><span id="line-156">     * @throws InterruptedException the interrupted exception</span>
+<span class="source-line-no">157</span><span id="line-157">     * @throws IOException </span>
+<span class="source-line-no">158</span><span id="line-158">     */</span>
+<span class="source-line-no">159</span><span id="line-159">    @Handler</span>
+<span class="source-line-no">160</span><span id="line-160">    public void onOutput(Output&lt;ByteBuffer&gt; event,</span>
+<span class="source-line-no">161</span><span id="line-161">            ProcessChannel channel) throws InterruptedException, IOException {</span>
+<span class="source-line-no">162</span><span id="line-162">        if (channels.contains(channel)) {</span>
+<span class="source-line-no">163</span><span id="line-163">            channel.write(event);</span>
+<span class="source-line-no">164</span><span id="line-164">        }</span>
+<span class="source-line-no">165</span><span id="line-165">    }</span>
+<span class="source-line-no">166</span><span id="line-166"></span>
+<span class="source-line-no">167</span><span id="line-167">    /**</span>
+<span class="source-line-no">168</span><span id="line-168">     * Closes the output to the process (the process's stdin).</span>
+<span class="source-line-no">169</span><span id="line-169">     * </span>
+<span class="source-line-no">170</span><span id="line-170">     * If the event has an association with key {@link Process},</span>
+<span class="source-line-no">171</span><span id="line-171">     * the event additionally causes the process to be "closed",</span>
+<span class="source-line-no">172</span><span id="line-172">     * i.e. to be terminated (see {@link ProcessHandle#destroy}).</span>
+<span class="source-line-no">173</span><span id="line-173">     *</span>
+<span class="source-line-no">174</span><span id="line-174">     * @param event the event</span>
+<span class="source-line-no">175</span><span id="line-175">     * @throws IOException if an I/O exception occurred</span>
+<span class="source-line-no">176</span><span id="line-176">     * @throws InterruptedException if the execution was interrupted</span>
+<span class="source-line-no">177</span><span id="line-177">     */</span>
+<span class="source-line-no">178</span><span id="line-178">    @Handler</span>
+<span class="source-line-no">179</span><span id="line-179">    public void onClose(Close event) {</span>
+<span class="source-line-no">180</span><span id="line-180">        for (Channel channel : event.channels()) {</span>
+<span class="source-line-no">181</span><span id="line-181">            if (channel instanceof ProcessChannel</span>
+<span class="source-line-no">182</span><span id="line-182">                &amp;&amp; channels.contains(channel)) {</span>
+<span class="source-line-no">183</span><span id="line-183">                ((ProcessChannel) channel).close(event);</span>
+<span class="source-line-no">184</span><span id="line-184">            }</span>
+<span class="source-line-no">185</span><span id="line-185">        }</span>
+<span class="source-line-no">186</span><span id="line-186">    }</span>
+<span class="source-line-no">187</span><span id="line-187"></span>
+<span class="source-line-no">188</span><span id="line-188">    /**</span>
+<span class="source-line-no">189</span><span id="line-189">     * Stop all running processes.</span>
+<span class="source-line-no">190</span><span id="line-190">     * </span>
+<span class="source-line-no">191</span><span id="line-191">     * @param event</span>
+<span class="source-line-no">192</span><span id="line-192">     */</span>
+<span class="source-line-no">193</span><span id="line-193">    @Handler</span>
+<span class="source-line-no">194</span><span id="line-194">    public void onStop(Stop event) {</span>
+<span class="source-line-no">195</span><span id="line-195">        Set&lt;ProcessChannel&gt; copy;</span>
+<span class="source-line-no">196</span><span id="line-196">        synchronized (channels) {</span>
+<span class="source-line-no">197</span><span id="line-197">            copy = new HashSet&lt;&gt;(channels);</span>
+<span class="source-line-no">198</span><span id="line-198">        }</span>
+<span class="source-line-no">199</span><span id="line-199">        for (var channel : copy) {</span>
+<span class="source-line-no">200</span><span id="line-200">            channel.doClose(true);</span>
+<span class="source-line-no">201</span><span id="line-201">        }</span>
+<span class="source-line-no">202</span><span id="line-202">    }</span>
+<span class="source-line-no">203</span><span id="line-203"></span>
+<span class="source-line-no">204</span><span id="line-204">    /**</span>
+<span class="source-line-no">205</span><span id="line-205">     * Handles closed events from stdout and stderr.</span>
+<span class="source-line-no">206</span><span id="line-206">     *</span>
+<span class="source-line-no">207</span><span id="line-207">     * @param event the event</span>
+<span class="source-line-no">208</span><span id="line-208">     * @throws IOException if an I/O exception occurred</span>
+<span class="source-line-no">209</span><span id="line-209">     * @throws InterruptedException if the execution was interrupted</span>
+<span class="source-line-no">210</span><span id="line-210">     */</span>
+<span class="source-line-no">211</span><span id="line-211">    @Handler(priority = -100)</span>
 <span class="source-line-no">212</span><span id="line-212">    public void onClosed(Closed&lt;?&gt; event)</span>
 <span class="source-line-no">213</span><span id="line-213">            throws IOException, InterruptedException {</span>
 <span class="source-line-no">214</span><span id="line-214">        for (Channel channel : event.channels()) {</span>

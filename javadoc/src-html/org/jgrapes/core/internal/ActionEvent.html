@@ -100,50 +100,52 @@
 <span class="source-line-no">086</span><span id="line-86">     *</span>
 <span class="source-line-no">087</span><span id="line-87">     * @param &lt;V&gt; the value type</span>
 <span class="source-line-no">088</span><span id="line-88">     */</span>
-<span class="source-line-no">089</span><span id="line-89">    private static class CallableActionEvent&lt;V&gt; extends ActionEvent&lt;V&gt; {</span>
-<span class="source-line-no">090</span><span id="line-90">        private final Callable&lt;V&gt; action;</span>
-<span class="source-line-no">091</span><span id="line-91"></span>
-<span class="source-line-no">092</span><span id="line-92">        /**</span>
-<span class="source-line-no">093</span><span id="line-93">         * Instantiates a new callable action event.</span>
-<span class="source-line-no">094</span><span id="line-94">         *</span>
-<span class="source-line-no">095</span><span id="line-95">         * @param name the name</span>
-<span class="source-line-no">096</span><span id="line-96">         * @param callable the callable</span>
-<span class="source-line-no">097</span><span id="line-97">         */</span>
-<span class="source-line-no">098</span><span id="line-98">        public CallableActionEvent(String name, Callable&lt;V&gt; callable) {</span>
-<span class="source-line-no">099</span><span id="line-99">            super(name);</span>
-<span class="source-line-no">100</span><span id="line-100">            this.action = callable;</span>
-<span class="source-line-no">101</span><span id="line-101">        }</span>
-<span class="source-line-no">102</span><span id="line-102"></span>
-<span class="source-line-no">103</span><span id="line-103">        @Override</span>
-<span class="source-line-no">104</span><span id="line-104">        /* default */ void execute() throws Exception {</span>
-<span class="source-line-no">105</span><span id="line-105">            setResult(action.call());</span>
-<span class="source-line-no">106</span><span id="line-106">        }</span>
-<span class="source-line-no">107</span><span id="line-107">    }</span>
-<span class="source-line-no">108</span><span id="line-108"></span>
-<span class="source-line-no">109</span><span id="line-109">    /**</span>
-<span class="source-line-no">110</span><span id="line-110">     * An {@link ActionEvent} that executes a {@link Runnable}.</span>
-<span class="source-line-no">111</span><span id="line-111">     */</span>
-<span class="source-line-no">112</span><span id="line-112">    private static class RunnableActionEvent extends ActionEvent&lt;Void&gt; {</span>
-<span class="source-line-no">113</span><span id="line-113">        private final Runnable action;</span>
-<span class="source-line-no">114</span><span id="line-114"></span>
-<span class="source-line-no">115</span><span id="line-115">        /**</span>
-<span class="source-line-no">116</span><span id="line-116">         * Instantiates a new runnable action event.</span>
-<span class="source-line-no">117</span><span id="line-117">         *</span>
-<span class="source-line-no">118</span><span id="line-118">         * @param name the name</span>
-<span class="source-line-no">119</span><span id="line-119">         * @param action the action</span>
-<span class="source-line-no">120</span><span id="line-120">         */</span>
-<span class="source-line-no">121</span><span id="line-121">        public RunnableActionEvent(String name, Runnable action) {</span>
-<span class="source-line-no">122</span><span id="line-122">            super(name);</span>
-<span class="source-line-no">123</span><span id="line-123">            this.action = action;</span>
-<span class="source-line-no">124</span><span id="line-124">        }</span>
-<span class="source-line-no">125</span><span id="line-125"></span>
-<span class="source-line-no">126</span><span id="line-126">        @Override</span>
-<span class="source-line-no">127</span><span id="line-127">        /* default */ void execute() throws Exception {</span>
-<span class="source-line-no">128</span><span id="line-128">            action.run();</span>
-<span class="source-line-no">129</span><span id="line-129">        }</span>
-<span class="source-line-no">130</span><span id="line-130"></span>
-<span class="source-line-no">131</span><span id="line-131">    }</span>
-<span class="source-line-no">132</span><span id="line-132">}</span>
+<span class="source-line-no">089</span><span id="line-89">    @SuppressWarnings("PMD.PublicMemberInNonPublicType")</span>
+<span class="source-line-no">090</span><span id="line-90">    private static class CallableActionEvent&lt;V&gt; extends ActionEvent&lt;V&gt; {</span>
+<span class="source-line-no">091</span><span id="line-91">        private final Callable&lt;V&gt; action;</span>
+<span class="source-line-no">092</span><span id="line-92"></span>
+<span class="source-line-no">093</span><span id="line-93">        /**</span>
+<span class="source-line-no">094</span><span id="line-94">         * Instantiates a new callable action event.</span>
+<span class="source-line-no">095</span><span id="line-95">         *</span>
+<span class="source-line-no">096</span><span id="line-96">         * @param name the name</span>
+<span class="source-line-no">097</span><span id="line-97">         * @param callable the callable</span>
+<span class="source-line-no">098</span><span id="line-98">         */</span>
+<span class="source-line-no">099</span><span id="line-99">        public CallableActionEvent(String name, Callable&lt;V&gt; callable) {</span>
+<span class="source-line-no">100</span><span id="line-100">            super(name);</span>
+<span class="source-line-no">101</span><span id="line-101">            this.action = callable;</span>
+<span class="source-line-no">102</span><span id="line-102">        }</span>
+<span class="source-line-no">103</span><span id="line-103"></span>
+<span class="source-line-no">104</span><span id="line-104">        @Override</span>
+<span class="source-line-no">105</span><span id="line-105">        /* default */ void execute() throws Exception {</span>
+<span class="source-line-no">106</span><span id="line-106">            setResult(action.call());</span>
+<span class="source-line-no">107</span><span id="line-107">        }</span>
+<span class="source-line-no">108</span><span id="line-108">    }</span>
+<span class="source-line-no">109</span><span id="line-109"></span>
+<span class="source-line-no">110</span><span id="line-110">    /**</span>
+<span class="source-line-no">111</span><span id="line-111">     * An {@link ActionEvent} that executes a {@link Runnable}.</span>
+<span class="source-line-no">112</span><span id="line-112">     */</span>
+<span class="source-line-no">113</span><span id="line-113">    @SuppressWarnings("PMD.PublicMemberInNonPublicType")</span>
+<span class="source-line-no">114</span><span id="line-114">    private static class RunnableActionEvent extends ActionEvent&lt;Void&gt; {</span>
+<span class="source-line-no">115</span><span id="line-115">        private final Runnable action;</span>
+<span class="source-line-no">116</span><span id="line-116"></span>
+<span class="source-line-no">117</span><span id="line-117">        /**</span>
+<span class="source-line-no">118</span><span id="line-118">         * Instantiates a new runnable action event.</span>
+<span class="source-line-no">119</span><span id="line-119">         *</span>
+<span class="source-line-no">120</span><span id="line-120">         * @param name the name</span>
+<span class="source-line-no">121</span><span id="line-121">         * @param action the action</span>
+<span class="source-line-no">122</span><span id="line-122">         */</span>
+<span class="source-line-no">123</span><span id="line-123">        public RunnableActionEvent(String name, Runnable action) {</span>
+<span class="source-line-no">124</span><span id="line-124">            super(name);</span>
+<span class="source-line-no">125</span><span id="line-125">            this.action = action;</span>
+<span class="source-line-no">126</span><span id="line-126">        }</span>
+<span class="source-line-no">127</span><span id="line-127"></span>
+<span class="source-line-no">128</span><span id="line-128">        @Override</span>
+<span class="source-line-no">129</span><span id="line-129">        /* default */ void execute() throws Exception {</span>
+<span class="source-line-no">130</span><span id="line-130">            action.run();</span>
+<span class="source-line-no">131</span><span id="line-131">        }</span>
+<span class="source-line-no">132</span><span id="line-132"></span>
+<span class="source-line-no">133</span><span id="line-133">    }</span>
+<span class="source-line-no">134</span><span id="line-134">}</span>
 
 
 

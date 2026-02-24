@@ -138,7 +138,7 @@
 <span class="source-line-no">124</span><span id="line-124">     * @return the writer</span>
 <span class="source-line-no">125</span><span id="line-125">     */</span>
 <span class="source-line-no">126</span><span id="line-126">    @SuppressWarnings({ "PMD.AvoidCatchingGenericException",</span>
-<span class="source-line-no">127</span><span id="line-127">        "PMD.EmptyCatchBlock", "PMD.DataflowAnomalyAnalysis" })</span>
+<span class="source-line-no">127</span><span id="line-127">        "PMD.EmptyCatchBlock" })</span>
 <span class="source-line-no">128</span><span id="line-128">    public ByteBufferWriter nativeCharset() {</span>
 <span class="source-line-no">129</span><span id="line-129">        Charset toSet = Charset.defaultCharset();</span>
 <span class="source-line-no">130</span><span id="line-130">        var toCheck = System.getProperty("native.encoding");</span>

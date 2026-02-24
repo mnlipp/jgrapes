@@ -36,41 +36,41 @@
 <span class="source-line-no">022</span><span id="line-22">import java.lang.ref.WeakReference;</span>
 <span class="source-line-no">023</span><span id="line-23">import java.util.HashSet;</span>
 <span class="source-line-no">024</span><span id="line-24">import java.util.Set;</span>
-<span class="source-line-no">025</span><span id="line-25"></span>
-<span class="source-line-no">026</span><span id="line-26">import org.jgrapes.core.Components;</span>
-<span class="source-line-no">027</span><span id="line-27"></span>
-<span class="source-line-no">028</span><span id="line-28">/**</span>
-<span class="source-line-no">029</span><span id="line-29"> * Cleans up threads if some object has been garbage collected.</span>
-<span class="source-line-no">030</span><span id="line-30"> * </span>
-<span class="source-line-no">031</span><span id="line-31"> * Sometimes it is necessary to create a thread that delivers data</span>
-<span class="source-line-no">032</span><span id="line-32"> * to a synchronous consumer. This thread keeps the consumer running</span>
-<span class="source-line-no">033</span><span id="line-33"> * until the consumer expects no more input and thus terminates</span>
-<span class="source-line-no">034</span><span id="line-34"> * the thread.</span>
-<span class="source-line-no">035</span><span id="line-35"> * </span>
-<span class="source-line-no">036</span><span id="line-36"> * Due to an error condition it may happen, however, that the terminating</span>
-<span class="source-line-no">037</span><span id="line-37"> * event never occurs and the thread runs forever. As a possible remedy,</span>
-<span class="source-line-no">038</span><span id="line-38"> * this class allows the thread to be associated with the lifetime of an</span>
-<span class="source-line-no">039</span><span id="line-39"> * arbitrary object. When the object is garbage collected, the thread is</span>
-<span class="source-line-no">040</span><span id="line-40"> * terminated automatically.</span>
-<span class="source-line-no">041</span><span id="line-41"> * </span>
-<span class="source-line-no">042</span><span id="line-42"> * @since 2.8.0</span>
-<span class="source-line-no">043</span><span id="line-43"> */</span>
-<span class="source-line-no">044</span><span id="line-44">public final class ThreadCleaner {</span>
-<span class="source-line-no">045</span><span id="line-45"></span>
-<span class="source-line-no">046</span><span id="line-46">    private static Set&lt;RefWithThread&gt; watched = new HashSet&lt;&gt;();</span>
-<span class="source-line-no">047</span><span id="line-47">    private static ReferenceQueue&lt;Object&gt; abandoned</span>
-<span class="source-line-no">048</span><span id="line-48">        = new ReferenceQueue&lt;&gt;();</span>
-<span class="source-line-no">049</span><span id="line-49"></span>
-<span class="source-line-no">050</span><span id="line-50">    private ThreadCleaner() {</span>
-<span class="source-line-no">051</span><span id="line-51">        // Utility class</span>
-<span class="source-line-no">052</span><span id="line-52">    }</span>
-<span class="source-line-no">053</span><span id="line-53"></span>
-<span class="source-line-no">054</span><span id="line-54">    /**</span>
-<span class="source-line-no">055</span><span id="line-55">     * Weak references to an object that interrupts the associated</span>
-<span class="source-line-no">056</span><span id="line-56">     * thread if the object has been garbage collected.</span>
-<span class="source-line-no">057</span><span id="line-57">     *</span>
-<span class="source-line-no">058</span><span id="line-58">     * @param &lt;T&gt; the generic type</span>
-<span class="source-line-no">059</span><span id="line-59">     */</span>
+<span class="source-line-no">025</span><span id="line-25">import org.jgrapes.core.Components;</span>
+<span class="source-line-no">026</span><span id="line-26"></span>
+<span class="source-line-no">027</span><span id="line-27">/**</span>
+<span class="source-line-no">028</span><span id="line-28"> * Cleans up threads if some object has been garbage collected.</span>
+<span class="source-line-no">029</span><span id="line-29"> * </span>
+<span class="source-line-no">030</span><span id="line-30"> * Sometimes it is necessary to create a thread that delivers data</span>
+<span class="source-line-no">031</span><span id="line-31"> * to a synchronous consumer. This thread keeps the consumer running</span>
+<span class="source-line-no">032</span><span id="line-32"> * until the consumer expects no more input and thus terminates</span>
+<span class="source-line-no">033</span><span id="line-33"> * the thread.</span>
+<span class="source-line-no">034</span><span id="line-34"> * </span>
+<span class="source-line-no">035</span><span id="line-35"> * Due to an error condition it may happen, however, that the terminating</span>
+<span class="source-line-no">036</span><span id="line-36"> * event never occurs and the thread runs forever. As a possible remedy,</span>
+<span class="source-line-no">037</span><span id="line-37"> * this class allows the thread to be associated with the lifetime of an</span>
+<span class="source-line-no">038</span><span id="line-38"> * arbitrary object. When the object is garbage collected, the thread is</span>
+<span class="source-line-no">039</span><span id="line-39"> * terminated automatically.</span>
+<span class="source-line-no">040</span><span id="line-40"> * </span>
+<span class="source-line-no">041</span><span id="line-41"> * @since 2.8.0</span>
+<span class="source-line-no">042</span><span id="line-42"> */</span>
+<span class="source-line-no">043</span><span id="line-43">public final class ThreadCleaner {</span>
+<span class="source-line-no">044</span><span id="line-44"></span>
+<span class="source-line-no">045</span><span id="line-45">    private static Set&lt;RefWithThread&gt; watched = new HashSet&lt;&gt;();</span>
+<span class="source-line-no">046</span><span id="line-46">    private static ReferenceQueue&lt;Object&gt; abandoned</span>
+<span class="source-line-no">047</span><span id="line-47">        = new ReferenceQueue&lt;&gt;();</span>
+<span class="source-line-no">048</span><span id="line-48"></span>
+<span class="source-line-no">049</span><span id="line-49">    private ThreadCleaner() {</span>
+<span class="source-line-no">050</span><span id="line-50">        // Utility class</span>
+<span class="source-line-no">051</span><span id="line-51">    }</span>
+<span class="source-line-no">052</span><span id="line-52"></span>
+<span class="source-line-no">053</span><span id="line-53">    /**</span>
+<span class="source-line-no">054</span><span id="line-54">     * Weak references to an object that interrupts the associated</span>
+<span class="source-line-no">055</span><span id="line-55">     * thread if the object has been garbage collected.</span>
+<span class="source-line-no">056</span><span id="line-56">     *</span>
+<span class="source-line-no">057</span><span id="line-57">     * @param &lt;T&gt; the generic type</span>
+<span class="source-line-no">058</span><span id="line-58">     */</span>
+<span class="source-line-no">059</span><span id="line-59">    @SuppressWarnings("PMD.PublicMemberInNonPublicType")</span>
 <span class="source-line-no">060</span><span id="line-60">    private static class RefWithThread extends WeakReference&lt;Object&gt; {</span>
 <span class="source-line-no">061</span><span id="line-61">        public final Thread watched;</span>
 <span class="source-line-no">062</span><span id="line-62"></span>

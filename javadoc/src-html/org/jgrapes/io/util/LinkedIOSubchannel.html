@@ -266,62 +266,61 @@
 <span class="source-line-no">252</span><span id="line-252">    /**</span>
 <span class="source-line-no">253</span><span id="line-253">     * Artificial key.</span>
 <span class="source-line-no">254</span><span id="line-254">     */</span>
-<span class="source-line-no">255</span><span id="line-255">    private static class KeyWrapper {</span>
-<span class="source-line-no">256</span><span id="line-256"></span>
-<span class="source-line-no">257</span><span id="line-257">        private final Manager hub;</span>
-<span class="source-line-no">258</span><span id="line-258"></span>
-<span class="source-line-no">259</span><span id="line-259">        /**</span>
-<span class="source-line-no">260</span><span id="line-260">         * @param hub</span>
-<span class="source-line-no">261</span><span id="line-261">         */</span>
-<span class="source-line-no">262</span><span id="line-262">        public KeyWrapper(Manager hub) {</span>
-<span class="source-line-no">263</span><span id="line-263">            super();</span>
-<span class="source-line-no">264</span><span id="line-264">            this.hub = hub;</span>
-<span class="source-line-no">265</span><span id="line-265">        }</span>
-<span class="source-line-no">266</span><span id="line-266"></span>
-<span class="source-line-no">267</span><span id="line-267">        /*</span>
-<span class="source-line-no">268</span><span id="line-268">         * (non-Javadoc)</span>
-<span class="source-line-no">269</span><span id="line-269">         * </span>
-<span class="source-line-no">270</span><span id="line-270">         * @see java.lang.Object#hashCode()</span>
-<span class="source-line-no">271</span><span id="line-271">         */</span>
-<span class="source-line-no">272</span><span id="line-272">        @Override</span>
-<span class="source-line-no">273</span><span id="line-273">        @SuppressWarnings("PMD.DataflowAnomalyAnalysis")</span>
+<span class="source-line-no">255</span><span id="line-255">    @SuppressWarnings("PMD.PublicMemberInNonPublicType")</span>
+<span class="source-line-no">256</span><span id="line-256">    private static class KeyWrapper {</span>
+<span class="source-line-no">257</span><span id="line-257"></span>
+<span class="source-line-no">258</span><span id="line-258">        private final Manager hub;</span>
+<span class="source-line-no">259</span><span id="line-259"></span>
+<span class="source-line-no">260</span><span id="line-260">        /**</span>
+<span class="source-line-no">261</span><span id="line-261">         * @param hub</span>
+<span class="source-line-no">262</span><span id="line-262">         */</span>
+<span class="source-line-no">263</span><span id="line-263">        public KeyWrapper(Manager hub) {</span>
+<span class="source-line-no">264</span><span id="line-264">            super();</span>
+<span class="source-line-no">265</span><span id="line-265">            this.hub = hub;</span>
+<span class="source-line-no">266</span><span id="line-266">        }</span>
+<span class="source-line-no">267</span><span id="line-267"></span>
+<span class="source-line-no">268</span><span id="line-268">        /*</span>
+<span class="source-line-no">269</span><span id="line-269">         * (non-Javadoc)</span>
+<span class="source-line-no">270</span><span id="line-270">         * </span>
+<span class="source-line-no">271</span><span id="line-271">         * @see java.lang.Object#hashCode()</span>
+<span class="source-line-no">272</span><span id="line-272">         */</span>
+<span class="source-line-no">273</span><span id="line-273">        @Override</span>
 <span class="source-line-no">274</span><span id="line-274">        public int hashCode() {</span>
-<span class="source-line-no">275</span><span id="line-275">            @SuppressWarnings("PMD.AvoidFinalLocalVariable")</span>
-<span class="source-line-no">276</span><span id="line-276">            final int prime = 31;</span>
-<span class="source-line-no">277</span><span id="line-277">            int result = 1;</span>
-<span class="source-line-no">278</span><span id="line-278">            result = prime * result + ((hub == null) ? 0</span>
-<span class="source-line-no">279</span><span id="line-279">                : hub.hashCode());</span>
-<span class="source-line-no">280</span><span id="line-280">            return result;</span>
-<span class="source-line-no">281</span><span id="line-281">        }</span>
-<span class="source-line-no">282</span><span id="line-282"></span>
-<span class="source-line-no">283</span><span id="line-283">        /*</span>
-<span class="source-line-no">284</span><span id="line-284">         * (non-Javadoc)</span>
-<span class="source-line-no">285</span><span id="line-285">         * </span>
-<span class="source-line-no">286</span><span id="line-286">         * @see java.lang.Object#equals(java.lang.Object)</span>
-<span class="source-line-no">287</span><span id="line-287">         */</span>
-<span class="source-line-no">288</span><span id="line-288">        @Override</span>
-<span class="source-line-no">289</span><span id="line-289">        public boolean equals(Object obj) {</span>
-<span class="source-line-no">290</span><span id="line-290">            if (this == obj) {</span>
-<span class="source-line-no">291</span><span id="line-291">                return true;</span>
-<span class="source-line-no">292</span><span id="line-292">            }</span>
-<span class="source-line-no">293</span><span id="line-293">            if (obj == null) {</span>
-<span class="source-line-no">294</span><span id="line-294">                return false;</span>
-<span class="source-line-no">295</span><span id="line-295">            }</span>
-<span class="source-line-no">296</span><span id="line-296">            if (getClass() != obj.getClass()) {</span>
-<span class="source-line-no">297</span><span id="line-297">                return false;</span>
-<span class="source-line-no">298</span><span id="line-298">            }</span>
-<span class="source-line-no">299</span><span id="line-299">            KeyWrapper other = (KeyWrapper) obj;</span>
-<span class="source-line-no">300</span><span id="line-300">            if (hub == null) {</span>
-<span class="source-line-no">301</span><span id="line-301">                if (other.hub != null) {</span>
-<span class="source-line-no">302</span><span id="line-302">                    return false;</span>
-<span class="source-line-no">303</span><span id="line-303">                }</span>
-<span class="source-line-no">304</span><span id="line-304">            } else if (!hub.equals(other.hub)) {</span>
-<span class="source-line-no">305</span><span id="line-305">                return false;</span>
-<span class="source-line-no">306</span><span id="line-306">            }</span>
-<span class="source-line-no">307</span><span id="line-307">            return true;</span>
-<span class="source-line-no">308</span><span id="line-308">        }</span>
-<span class="source-line-no">309</span><span id="line-309">    }</span>
-<span class="source-line-no">310</span><span id="line-310">}</span>
+<span class="source-line-no">275</span><span id="line-275">            final int prime = 31;</span>
+<span class="source-line-no">276</span><span id="line-276">            int result = 1;</span>
+<span class="source-line-no">277</span><span id="line-277">            result = prime * result + ((hub == null) ? 0</span>
+<span class="source-line-no">278</span><span id="line-278">                : hub.hashCode());</span>
+<span class="source-line-no">279</span><span id="line-279">            return result;</span>
+<span class="source-line-no">280</span><span id="line-280">        }</span>
+<span class="source-line-no">281</span><span id="line-281"></span>
+<span class="source-line-no">282</span><span id="line-282">        /*</span>
+<span class="source-line-no">283</span><span id="line-283">         * (non-Javadoc)</span>
+<span class="source-line-no">284</span><span id="line-284">         * </span>
+<span class="source-line-no">285</span><span id="line-285">         * @see java.lang.Object#equals(java.lang.Object)</span>
+<span class="source-line-no">286</span><span id="line-286">         */</span>
+<span class="source-line-no">287</span><span id="line-287">        @Override</span>
+<span class="source-line-no">288</span><span id="line-288">        public boolean equals(Object obj) {</span>
+<span class="source-line-no">289</span><span id="line-289">            if (this == obj) {</span>
+<span class="source-line-no">290</span><span id="line-290">                return true;</span>
+<span class="source-line-no">291</span><span id="line-291">            }</span>
+<span class="source-line-no">292</span><span id="line-292">            if (obj == null) {</span>
+<span class="source-line-no">293</span><span id="line-293">                return false;</span>
+<span class="source-line-no">294</span><span id="line-294">            }</span>
+<span class="source-line-no">295</span><span id="line-295">            if (getClass() != obj.getClass()) {</span>
+<span class="source-line-no">296</span><span id="line-296">                return false;</span>
+<span class="source-line-no">297</span><span id="line-297">            }</span>
+<span class="source-line-no">298</span><span id="line-298">            KeyWrapper other = (KeyWrapper) obj;</span>
+<span class="source-line-no">299</span><span id="line-299">            if (hub == null) {</span>
+<span class="source-line-no">300</span><span id="line-300">                if (other.hub != null) {</span>
+<span class="source-line-no">301</span><span id="line-301">                    return false;</span>
+<span class="source-line-no">302</span><span id="line-302">                }</span>
+<span class="source-line-no">303</span><span id="line-303">            } else if (!hub.equals(other.hub)) {</span>
+<span class="source-line-no">304</span><span id="line-304">                return false;</span>
+<span class="source-line-no">305</span><span id="line-305">            }</span>
+<span class="source-line-no">306</span><span id="line-306">            return true;</span>
+<span class="source-line-no">307</span><span id="line-307">        }</span>
+<span class="source-line-no">308</span><span id="line-308">    }</span>
+<span class="source-line-no">309</span><span id="line-309">}</span>
 
 
 

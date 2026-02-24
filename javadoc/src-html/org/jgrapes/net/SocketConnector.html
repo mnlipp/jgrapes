@@ -67,7 +67,7 @@
 <span class="source-line-no">053</span><span id="line-53">     * Creates a new connector, using itself as component channel. </span>
 <span class="source-line-no">054</span><span id="line-54">     */</span>
 <span class="source-line-no">055</span><span id="line-55">    public SocketConnector() {</span>
-<span class="source-line-no">056</span><span id="line-56">        this(Channel.SELF);</span>
+<span class="source-line-no">056</span><span id="line-56">        this(SELF);</span>
 <span class="source-line-no">057</span><span id="line-57">    }</span>
 <span class="source-line-no">058</span><span id="line-58"></span>
 <span class="source-line-no">059</span><span id="line-59">    @Override</span>
@@ -144,16 +144,15 @@
 <span class="source-line-no">130</span><span id="line-130">     * @throws InterruptedException if the execution was interrupted</span>
 <span class="source-line-no">131</span><span id="line-131">     */</span>
 <span class="source-line-no">132</span><span id="line-132">    @Handler</span>
-<span class="source-line-no">133</span><span id="line-133">    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")</span>
-<span class="source-line-no">134</span><span id="line-134">    public void onClose(Close event) throws IOException, InterruptedException {</span>
-<span class="source-line-no">135</span><span id="line-135">        for (Channel channel : event.channels()) {</span>
-<span class="source-line-no">136</span><span id="line-136">            if (channel instanceof SocketChannelImpl</span>
-<span class="source-line-no">137</span><span id="line-137">                &amp;&amp; channels.contains(channel)) {</span>
-<span class="source-line-no">138</span><span id="line-138">                ((SocketChannelImpl) channel).close();</span>
-<span class="source-line-no">139</span><span id="line-139">            }</span>
-<span class="source-line-no">140</span><span id="line-140">        }</span>
-<span class="source-line-no">141</span><span id="line-141">    }</span>
-<span class="source-line-no">142</span><span id="line-142">}</span>
+<span class="source-line-no">133</span><span id="line-133">    public void onClose(Close event) throws IOException, InterruptedException {</span>
+<span class="source-line-no">134</span><span id="line-134">        for (Channel channel : event.channels()) {</span>
+<span class="source-line-no">135</span><span id="line-135">            if (channel instanceof SocketChannelImpl</span>
+<span class="source-line-no">136</span><span id="line-136">                &amp;&amp; channels.contains(channel)) {</span>
+<span class="source-line-no">137</span><span id="line-137">                ((SocketChannelImpl) channel).close();</span>
+<span class="source-line-no">138</span><span id="line-138">            }</span>
+<span class="source-line-no">139</span><span id="line-139">        }</span>
+<span class="source-line-no">140</span><span id="line-140">    }</span>
+<span class="source-line-no">141</span><span id="line-141">}</span>
 
 
 

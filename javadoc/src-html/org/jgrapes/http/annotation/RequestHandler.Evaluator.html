@@ -245,7 +245,7 @@
 <span class="source-line-no">231</span><span id="line-231">            @SuppressWarnings({ "PMD.CyclomaticComplexity",</span>
 <span class="source-line-no">232</span><span id="line-232">                "PMD.NPathComplexity", "PMD.AvoidDeeplyNestedIfStmts",</span>
 <span class="source-line-no">233</span><span id="line-233">                "PMD.CollapsibleIfStatements", "PMD.CognitiveComplexity",</span>
-<span class="source-line-no">234</span><span id="line-234">                "PMD.AvoidInstantiatingObjectsInLoops", "PMD.NcssCount" })</span>
+<span class="source-line-no">234</span><span id="line-234">                "PMD.NcssCount" })</span>
 <span class="source-line-no">235</span><span id="line-235">            public Scope(ComponentType component,</span>
 <span class="source-line-no">236</span><span id="line-236">                    Method method, RequestHandler annotation,</span>
 <span class="source-line-no">237</span><span id="line-237">                    Map&lt;Class&lt;? extends Channel&gt;, Object[]&gt; channelReplacements,</span>
@@ -325,89 +325,88 @@
 <span class="source-line-no">311</span><span id="line-311">            }</span>
 <span class="source-line-no">312</span><span id="line-312"></span>
 <span class="source-line-no">313</span><span id="line-313">            @Override</span>
-<span class="source-line-no">314</span><span id="line-314">            @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",</span>
-<span class="source-line-no">315</span><span id="line-315">                "PMD.NPathComplexity", "PMD.CognitiveComplexity" })</span>
-<span class="source-line-no">316</span><span id="line-316">            public boolean includes(Eligible event, Eligible[] channels) {</span>
-<span class="source-line-no">317</span><span id="line-317">                boolean match = false;</span>
-<span class="source-line-no">318</span><span id="line-318">                for (Object eventType : handledEventTypes) {</span>
-<span class="source-line-no">319</span><span id="line-319">                    if (Class.class.isInstance(eventType)</span>
-<span class="source-line-no">320</span><span id="line-320">                        &amp;&amp; ((Class&lt;?&gt;) eventType)</span>
-<span class="source-line-no">321</span><span id="line-321">                            .isAssignableFrom(event.getClass())) {</span>
-<span class="source-line-no">322</span><span id="line-322">                        match = true;</span>
-<span class="source-line-no">323</span><span id="line-323">                        break;</span>
-<span class="source-line-no">324</span><span id="line-324">                    }</span>
-<span class="source-line-no">325</span><span id="line-325"></span>
-<span class="source-line-no">326</span><span id="line-326">                }</span>
-<span class="source-line-no">327</span><span id="line-327">                if (!match) {</span>
-<span class="source-line-no">328</span><span id="line-328">                    return false;</span>
-<span class="source-line-no">329</span><span id="line-329">                }</span>
-<span class="source-line-no">330</span><span id="line-330">                match = false;</span>
-<span class="source-line-no">331</span><span id="line-331">                // Try channels</span>
-<span class="source-line-no">332</span><span id="line-332">                for (Eligible channel : channels) {</span>
-<span class="source-line-no">333</span><span id="line-333">                    for (Object channelValue : handledChannels) {</span>
-<span class="source-line-no">334</span><span id="line-334">                        if (channel.isEligibleFor(channelValue)) {</span>
-<span class="source-line-no">335</span><span id="line-335">                            match = true;</span>
-<span class="source-line-no">336</span><span id="line-336">                            break;</span>
-<span class="source-line-no">337</span><span id="line-337">                        }</span>
-<span class="source-line-no">338</span><span id="line-338">                    }</span>
-<span class="source-line-no">339</span><span id="line-339">                }</span>
-<span class="source-line-no">340</span><span id="line-340">                if (!match) {</span>
-<span class="source-line-no">341</span><span id="line-341">                    return false;</span>
-<span class="source-line-no">342</span><span id="line-342">                }</span>
-<span class="source-line-no">343</span><span id="line-343">                if (!(event instanceof Request.In)) {</span>
-<span class="source-line-no">344</span><span id="line-344">                    return false;</span>
-<span class="source-line-no">345</span><span id="line-345">                }</span>
-<span class="source-line-no">346</span><span id="line-346">                for (ResourcePattern rp : handledPatterns) {</span>
-<span class="source-line-no">347</span><span id="line-347">                    if (((Request.In) event).isEligibleFor(</span>
-<span class="source-line-no">348</span><span id="line-348">                        Request.In.createMatchValue(Request.In.class, rp))) {</span>
-<span class="source-line-no">349</span><span id="line-349">                        return true;</span>
-<span class="source-line-no">350</span><span id="line-350">                    }</span>
-<span class="source-line-no">351</span><span id="line-351">                }</span>
-<span class="source-line-no">352</span><span id="line-352">                return false;</span>
-<span class="source-line-no">353</span><span id="line-353">            }</span>
-<span class="source-line-no">354</span><span id="line-354"></span>
-<span class="source-line-no">355</span><span id="line-355">            @Override</span>
-<span class="source-line-no">356</span><span id="line-356">            public boolean includes(EventBase&lt;?&gt; event) {</span>
-<span class="source-line-no">357</span><span id="line-357">                for (ResourcePattern rp : handledPatterns) {</span>
-<span class="source-line-no">358</span><span id="line-358">                    if (rp.matches(((Request.In) event).requestUri()) &gt;= 0) {</span>
-<span class="source-line-no">359</span><span id="line-359">                        return true;</span>
-<span class="source-line-no">360</span><span id="line-360">                    }</span>
-<span class="source-line-no">361</span><span id="line-361">                }</span>
-<span class="source-line-no">362</span><span id="line-362">                return false;</span>
-<span class="source-line-no">363</span><span id="line-363">            }</span>
-<span class="source-line-no">364</span><span id="line-364"></span>
-<span class="source-line-no">365</span><span id="line-365">            /*</span>
-<span class="source-line-no">366</span><span id="line-366">             * (non-Javadoc)</span>
-<span class="source-line-no">367</span><span id="line-367">             * </span>
-<span class="source-line-no">368</span><span id="line-368">             * @see java.lang.Object#toString()</span>
-<span class="source-line-no">369</span><span id="line-369">             */</span>
-<span class="source-line-no">370</span><span id="line-370">            @Override</span>
-<span class="source-line-no">371</span><span id="line-371">            public String toString() {</span>
-<span class="source-line-no">372</span><span id="line-372">                StringBuilder builder = new StringBuilder(100);</span>
-<span class="source-line-no">373</span><span id="line-373">                builder.append("Scope [");</span>
-<span class="source-line-no">374</span><span id="line-374">                if (handledEventTypes != null) {</span>
-<span class="source-line-no">375</span><span id="line-375">                    builder.append("handledEventTypes=")</span>
-<span class="source-line-no">376</span><span id="line-376">                        .append(handledEventTypes.stream().map(value -&gt; {</span>
-<span class="source-line-no">377</span><span id="line-377">                            if (value instanceof Class) {</span>
-<span class="source-line-no">378</span><span id="line-378">                                return Components.className((Class&lt;?&gt;) value);</span>
-<span class="source-line-no">379</span><span id="line-379">                            }</span>
-<span class="source-line-no">380</span><span id="line-380">                            return value.toString();</span>
-<span class="source-line-no">381</span><span id="line-381">                        }).collect(Collectors.toSet())).append(", ");</span>
-<span class="source-line-no">382</span><span id="line-382">                }</span>
-<span class="source-line-no">383</span><span id="line-383">                if (handledChannels != null) {</span>
-<span class="source-line-no">384</span><span id="line-384">                    builder.append("handledChannels=").append(handledChannels)</span>
-<span class="source-line-no">385</span><span id="line-385">                        .append(", ");</span>
-<span class="source-line-no">386</span><span id="line-386">                }</span>
-<span class="source-line-no">387</span><span id="line-387">                if (handledPatterns != null) {</span>
-<span class="source-line-no">388</span><span id="line-388">                    builder.append("handledPatterns=").append(handledPatterns);</span>
-<span class="source-line-no">389</span><span id="line-389">                }</span>
-<span class="source-line-no">390</span><span id="line-390">                builder.append(']');</span>
-<span class="source-line-no">391</span><span id="line-391">                return builder.toString();</span>
-<span class="source-line-no">392</span><span id="line-392">            }</span>
-<span class="source-line-no">393</span><span id="line-393"></span>
-<span class="source-line-no">394</span><span id="line-394">        }</span>
-<span class="source-line-no">395</span><span id="line-395">    }</span>
-<span class="source-line-no">396</span><span id="line-396">}</span>
+<span class="source-line-no">314</span><span id="line-314">            @SuppressWarnings({ "PMD.CognitiveComplexity" })</span>
+<span class="source-line-no">315</span><span id="line-315">            public boolean includes(Eligible event, Eligible[] channels) {</span>
+<span class="source-line-no">316</span><span id="line-316">                boolean match = false;</span>
+<span class="source-line-no">317</span><span id="line-317">                for (Object eventType : handledEventTypes) {</span>
+<span class="source-line-no">318</span><span id="line-318">                    if (Class.class.isInstance(eventType)</span>
+<span class="source-line-no">319</span><span id="line-319">                        &amp;&amp; ((Class&lt;?&gt;) eventType)</span>
+<span class="source-line-no">320</span><span id="line-320">                            .isAssignableFrom(event.getClass())) {</span>
+<span class="source-line-no">321</span><span id="line-321">                        match = true;</span>
+<span class="source-line-no">322</span><span id="line-322">                        break;</span>
+<span class="source-line-no">323</span><span id="line-323">                    }</span>
+<span class="source-line-no">324</span><span id="line-324"></span>
+<span class="source-line-no">325</span><span id="line-325">                }</span>
+<span class="source-line-no">326</span><span id="line-326">                if (!match) {</span>
+<span class="source-line-no">327</span><span id="line-327">                    return false;</span>
+<span class="source-line-no">328</span><span id="line-328">                }</span>
+<span class="source-line-no">329</span><span id="line-329">                match = false;</span>
+<span class="source-line-no">330</span><span id="line-330">                // Try channels</span>
+<span class="source-line-no">331</span><span id="line-331">                for (Eligible channel : channels) {</span>
+<span class="source-line-no">332</span><span id="line-332">                    for (Object channelValue : handledChannels) {</span>
+<span class="source-line-no">333</span><span id="line-333">                        if (channel.isEligibleFor(channelValue)) {</span>
+<span class="source-line-no">334</span><span id="line-334">                            match = true;</span>
+<span class="source-line-no">335</span><span id="line-335">                            break;</span>
+<span class="source-line-no">336</span><span id="line-336">                        }</span>
+<span class="source-line-no">337</span><span id="line-337">                    }</span>
+<span class="source-line-no">338</span><span id="line-338">                }</span>
+<span class="source-line-no">339</span><span id="line-339">                if (!match) {</span>
+<span class="source-line-no">340</span><span id="line-340">                    return false;</span>
+<span class="source-line-no">341</span><span id="line-341">                }</span>
+<span class="source-line-no">342</span><span id="line-342">                if (!(event instanceof Request.In)) {</span>
+<span class="source-line-no">343</span><span id="line-343">                    return false;</span>
+<span class="source-line-no">344</span><span id="line-344">                }</span>
+<span class="source-line-no">345</span><span id="line-345">                for (ResourcePattern rp : handledPatterns) {</span>
+<span class="source-line-no">346</span><span id="line-346">                    if (((Request.In) event).isEligibleFor(</span>
+<span class="source-line-no">347</span><span id="line-347">                        Request.In.createMatchValue(Request.In.class, rp))) {</span>
+<span class="source-line-no">348</span><span id="line-348">                        return true;</span>
+<span class="source-line-no">349</span><span id="line-349">                    }</span>
+<span class="source-line-no">350</span><span id="line-350">                }</span>
+<span class="source-line-no">351</span><span id="line-351">                return false;</span>
+<span class="source-line-no">352</span><span id="line-352">            }</span>
+<span class="source-line-no">353</span><span id="line-353"></span>
+<span class="source-line-no">354</span><span id="line-354">            @Override</span>
+<span class="source-line-no">355</span><span id="line-355">            public boolean includes(EventBase&lt;?&gt; event) {</span>
+<span class="source-line-no">356</span><span id="line-356">                for (ResourcePattern rp : handledPatterns) {</span>
+<span class="source-line-no">357</span><span id="line-357">                    if (rp.matches(((Request.In) event).requestUri()) &gt;= 0) {</span>
+<span class="source-line-no">358</span><span id="line-358">                        return true;</span>
+<span class="source-line-no">359</span><span id="line-359">                    }</span>
+<span class="source-line-no">360</span><span id="line-360">                }</span>
+<span class="source-line-no">361</span><span id="line-361">                return false;</span>
+<span class="source-line-no">362</span><span id="line-362">            }</span>
+<span class="source-line-no">363</span><span id="line-363"></span>
+<span class="source-line-no">364</span><span id="line-364">            /*</span>
+<span class="source-line-no">365</span><span id="line-365">             * (non-Javadoc)</span>
+<span class="source-line-no">366</span><span id="line-366">             * </span>
+<span class="source-line-no">367</span><span id="line-367">             * @see java.lang.Object#toString()</span>
+<span class="source-line-no">368</span><span id="line-368">             */</span>
+<span class="source-line-no">369</span><span id="line-369">            @Override</span>
+<span class="source-line-no">370</span><span id="line-370">            public String toString() {</span>
+<span class="source-line-no">371</span><span id="line-371">                StringBuilder builder = new StringBuilder(100);</span>
+<span class="source-line-no">372</span><span id="line-372">                builder.append("Scope [");</span>
+<span class="source-line-no">373</span><span id="line-373">                if (handledEventTypes != null) {</span>
+<span class="source-line-no">374</span><span id="line-374">                    builder.append("handledEventTypes=")</span>
+<span class="source-line-no">375</span><span id="line-375">                        .append(handledEventTypes.stream().map(value -&gt; {</span>
+<span class="source-line-no">376</span><span id="line-376">                            if (value instanceof Class) {</span>
+<span class="source-line-no">377</span><span id="line-377">                                return Components.className((Class&lt;?&gt;) value);</span>
+<span class="source-line-no">378</span><span id="line-378">                            }</span>
+<span class="source-line-no">379</span><span id="line-379">                            return value.toString();</span>
+<span class="source-line-no">380</span><span id="line-380">                        }).collect(Collectors.toSet())).append(", ");</span>
+<span class="source-line-no">381</span><span id="line-381">                }</span>
+<span class="source-line-no">382</span><span id="line-382">                if (handledChannels != null) {</span>
+<span class="source-line-no">383</span><span id="line-383">                    builder.append("handledChannels=").append(handledChannels)</span>
+<span class="source-line-no">384</span><span id="line-384">                        .append(", ");</span>
+<span class="source-line-no">385</span><span id="line-385">                }</span>
+<span class="source-line-no">386</span><span id="line-386">                if (handledPatterns != null) {</span>
+<span class="source-line-no">387</span><span id="line-387">                    builder.append("handledPatterns=").append(handledPatterns);</span>
+<span class="source-line-no">388</span><span id="line-388">                }</span>
+<span class="source-line-no">389</span><span id="line-389">                builder.append(']');</span>
+<span class="source-line-no">390</span><span id="line-390">                return builder.toString();</span>
+<span class="source-line-no">391</span><span id="line-391">            }</span>
+<span class="source-line-no">392</span><span id="line-392"></span>
+<span class="source-line-no">393</span><span id="line-393">        }</span>
+<span class="source-line-no">394</span><span id="line-394">    }</span>
+<span class="source-line-no">395</span><span id="line-395">}</span>
 
 
 

@@ -482,601 +482,603 @@
 <span class="source-line-no">468</span><span id="line-468">    /**</span>
 <span class="source-line-no">469</span><span id="line-469">     * A general purpose scheduler.</span>
 <span class="source-line-no">470</span><span id="line-470">     */</span>
-<span class="source-line-no">471</span><span id="line-471">    private static class Scheduler extends Thread {</span>
-<span class="source-line-no">472</span><span id="line-472"></span>
-<span class="source-line-no">473</span><span id="line-473">        private final Queue&lt;Timer&gt; timers = new PriorityQueue&lt;&gt;(10,</span>
-<span class="source-line-no">474</span><span id="line-474">            Comparator.comparing(Timer::scheduledFor));</span>
-<span class="source-line-no">475</span><span id="line-475"></span>
-<span class="source-line-no">476</span><span id="line-476">        /**</span>
-<span class="source-line-no">477</span><span id="line-477">         * Instantiates a new scheduler.</span>
-<span class="source-line-no">478</span><span id="line-478">         */</span>
-<span class="source-line-no">479</span><span id="line-479">        public Scheduler() {</span>
-<span class="source-line-no">480</span><span id="line-480">            (useVirtualThreads() ? ofVirtual() : ofPlatform())</span>
-<span class="source-line-no">481</span><span id="line-481">                .name("Components.Scheduler").start(this);</span>
-<span class="source-line-no">482</span><span id="line-482">        }</span>
-<span class="source-line-no">483</span><span id="line-483"></span>
-<span class="source-line-no">484</span><span id="line-484">        /**</span>
-<span class="source-line-no">485</span><span id="line-485">         * Schedule the handler and return the resulting timer.</span>
-<span class="source-line-no">486</span><span id="line-486">         *</span>
-<span class="source-line-no">487</span><span id="line-487">         * @param timeoutHandler the timeout handler</span>
-<span class="source-line-no">488</span><span id="line-488">         * @param scheduledFor the scheduled for</span>
-<span class="source-line-no">489</span><span id="line-489">         * @return the timer</span>
-<span class="source-line-no">490</span><span id="line-490">         */</span>
-<span class="source-line-no">491</span><span id="line-491">        public Timer schedule(</span>
-<span class="source-line-no">492</span><span id="line-492">                TimeoutHandler timeoutHandler, Instant scheduledFor) {</span>
-<span class="source-line-no">493</span><span id="line-493">            Timer timer = new Timer(this, timeoutHandler, scheduledFor);</span>
-<span class="source-line-no">494</span><span id="line-494">            synchronized (timers) {</span>
-<span class="source-line-no">495</span><span id="line-495">                timers.add(timer);</span>
-<span class="source-line-no">496</span><span id="line-496">                timers.notifyAll();</span>
-<span class="source-line-no">497</span><span id="line-497">            }</span>
-<span class="source-line-no">498</span><span id="line-498">            return timer;</span>
-<span class="source-line-no">499</span><span id="line-499">        }</span>
-<span class="source-line-no">500</span><span id="line-500"></span>
-<span class="source-line-no">501</span><span id="line-501">        private void reschedule(Timer timer, Instant scheduledFor) {</span>
-<span class="source-line-no">502</span><span id="line-502">            synchronized (timers) {</span>
-<span class="source-line-no">503</span><span id="line-503">                timers.remove(timer);</span>
-<span class="source-line-no">504</span><span id="line-504">                timer.scheduledFor = scheduledFor;</span>
-<span class="source-line-no">505</span><span id="line-505">                timers.add(timer);</span>
-<span class="source-line-no">506</span><span id="line-506">                timers.notifyAll();</span>
-<span class="source-line-no">507</span><span id="line-507">            }</span>
-<span class="source-line-no">508</span><span id="line-508">        }</span>
-<span class="source-line-no">509</span><span id="line-509"></span>
-<span class="source-line-no">510</span><span id="line-510">        private void cancel(Timer timer) {</span>
-<span class="source-line-no">511</span><span id="line-511">            synchronized (timers) {</span>
-<span class="source-line-no">512</span><span id="line-512">                if (timers.remove(timer)) {</span>
-<span class="source-line-no">513</span><span id="line-513">                    timers.notifyAll();</span>
-<span class="source-line-no">514</span><span id="line-514">                }</span>
-<span class="source-line-no">515</span><span id="line-515">                timer.scheduledFor = null;</span>
-<span class="source-line-no">516</span><span id="line-516">            }</span>
-<span class="source-line-no">517</span><span id="line-517">        }</span>
-<span class="source-line-no">518</span><span id="line-518"></span>
-<span class="source-line-no">519</span><span id="line-519">        @Override</span>
-<span class="source-line-no">520</span><span id="line-520">        public void run() {</span>
-<span class="source-line-no">521</span><span id="line-521">            while (true) {</span>
-<span class="source-line-no">522</span><span id="line-522">                while (true) {</span>
-<span class="source-line-no">523</span><span id="line-523">                    final Timer first;</span>
-<span class="source-line-no">524</span><span id="line-524">                    synchronized (timers) {</span>
-<span class="source-line-no">525</span><span id="line-525">                        first = timers.peek();</span>
-<span class="source-line-no">526</span><span id="line-526">                        if (first == null</span>
-<span class="source-line-no">527</span><span id="line-527">                            || first.scheduledFor().isAfter(Instant.now())) {</span>
-<span class="source-line-no">528</span><span id="line-528">                            break;</span>
-<span class="source-line-no">529</span><span id="line-529">                        }</span>
-<span class="source-line-no">530</span><span id="line-530">                        timers.poll();</span>
-<span class="source-line-no">531</span><span id="line-531">                    }</span>
-<span class="source-line-no">532</span><span id="line-532">                    timerExecutorService.submit(</span>
-<span class="source-line-no">533</span><span id="line-533">                        () -&gt; first.timeoutHandler().timeout(first));</span>
-<span class="source-line-no">534</span><span id="line-534">                }</span>
-<span class="source-line-no">535</span><span id="line-535">                try {</span>
-<span class="source-line-no">536</span><span id="line-536">                    synchronized (timers) {</span>
-<span class="source-line-no">537</span><span id="line-537">                        if (timers.isEmpty()) {</span>
-<span class="source-line-no">538</span><span id="line-538">                            timers.wait();</span>
-<span class="source-line-no">539</span><span id="line-539">                        } else {</span>
-<span class="source-line-no">540</span><span id="line-540">                            timers</span>
-<span class="source-line-no">541</span><span id="line-541">                                .wait(Math.max(1,</span>
-<span class="source-line-no">542</span><span id="line-542">                                    Duration.between(Instant.now(),</span>
-<span class="source-line-no">543</span><span id="line-543">                                        timers.peek().scheduledFor())</span>
-<span class="source-line-no">544</span><span id="line-544">                                        .toMillis()));</span>
-<span class="source-line-no">545</span><span id="line-545">                        }</span>
-<span class="source-line-no">546</span><span id="line-546">                    }</span>
-<span class="source-line-no">547</span><span id="line-547">                } catch (Exception e) { // NOPMD</span>
-<span class="source-line-no">548</span><span id="line-548">                    // Keep running.</span>
-<span class="source-line-no">549</span><span id="line-549">                }</span>
-<span class="source-line-no">550</span><span id="line-550">            }</span>
-<span class="source-line-no">551</span><span id="line-551">        }</span>
-<span class="source-line-no">552</span><span id="line-552">    }</span>
-<span class="source-line-no">553</span><span id="line-553"></span>
-<span class="source-line-no">554</span><span id="line-554">    @SuppressWarnings("PMD.FieldDeclarationsShouldBeAtStartOfClass")</span>
-<span class="source-line-no">555</span><span id="line-555">    private static Scheduler scheduler = new Scheduler();</span>
-<span class="source-line-no">556</span><span id="line-556"></span>
-<span class="source-line-no">557</span><span id="line-557">    /**</span>
-<span class="source-line-no">558</span><span id="line-558">     * Schedules the given timeout handler for the given instance. </span>
-<span class="source-line-no">559</span><span id="line-559">     * </span>
-<span class="source-line-no">560</span><span id="line-560">     * @param timeoutHandler the handler</span>
-<span class="source-line-no">561</span><span id="line-561">     * @param scheduledFor the instance in time</span>
-<span class="source-line-no">562</span><span id="line-562">     * @return the timer</span>
-<span class="source-line-no">563</span><span id="line-563">     */</span>
-<span class="source-line-no">564</span><span id="line-564">    public static Timer schedule(</span>
-<span class="source-line-no">565</span><span id="line-565">            TimeoutHandler timeoutHandler, Instant scheduledFor) {</span>
-<span class="source-line-no">566</span><span id="line-566">        return scheduler.schedule(timeoutHandler, scheduledFor);</span>
-<span class="source-line-no">567</span><span id="line-567">    }</span>
-<span class="source-line-no">568</span><span id="line-568"></span>
-<span class="source-line-no">569</span><span id="line-569">    /**</span>
-<span class="source-line-no">570</span><span id="line-570">     * Schedules the given timeout handler for the given </span>
-<span class="source-line-no">571</span><span id="line-571">     * offset from now. </span>
-<span class="source-line-no">572</span><span id="line-572">     * </span>
-<span class="source-line-no">573</span><span id="line-573">     * @param timeoutHandler the handler</span>
-<span class="source-line-no">574</span><span id="line-574">     * @param scheduledFor the time to wait</span>
-<span class="source-line-no">575</span><span id="line-575">     * @return the timer</span>
-<span class="source-line-no">576</span><span id="line-576">     */</span>
-<span class="source-line-no">577</span><span id="line-577">    public static Timer schedule(</span>
-<span class="source-line-no">578</span><span id="line-578">            TimeoutHandler timeoutHandler, Duration scheduledFor) {</span>
-<span class="source-line-no">579</span><span id="line-579">        return scheduler.schedule(</span>
-<span class="source-line-no">580</span><span id="line-580">            timeoutHandler, Instant.now().plus(scheduledFor));</span>
-<span class="source-line-no">581</span><span id="line-581">    }</span>
-<span class="source-line-no">582</span><span id="line-582"></span>
-<span class="source-line-no">583</span><span id="line-583">    /**</span>
-<span class="source-line-no">584</span><span id="line-584">     * Puts the given key and value in the given {@link Map} and</span>
-<span class="source-line-no">585</span><span id="line-585">     * returns the map. Looks ugly when nested, but comes in handy </span>
-<span class="source-line-no">586</span><span id="line-586">     * sometimes.</span>
-<span class="source-line-no">587</span><span id="line-587">     *</span>
-<span class="source-line-no">588</span><span id="line-588">     * @param &lt;K&gt; the key type</span>
-<span class="source-line-no">589</span><span id="line-589">     * @param &lt;V&gt; the value type</span>
-<span class="source-line-no">590</span><span id="line-590">     * @param map the map</span>
-<span class="source-line-no">591</span><span id="line-591">     * @param key the key</span>
-<span class="source-line-no">592</span><span id="line-592">     * @param value the value</span>
-<span class="source-line-no">593</span><span id="line-593">     * @return the map</span>
-<span class="source-line-no">594</span><span id="line-594">     */</span>
-<span class="source-line-no">595</span><span id="line-595">    public static &lt;K, V&gt; Map&lt;K, V&gt; put(Map&lt;K, V&gt; map, K key, V value) {</span>
-<span class="source-line-no">596</span><span id="line-596">        map.put(key, value);</span>
-<span class="source-line-no">597</span><span id="line-597">        return map;</span>
-<span class="source-line-no">598</span><span id="line-598">    }</span>
-<span class="source-line-no">599</span><span id="line-599"></span>
-<span class="source-line-no">600</span><span id="line-600">    /**</span>
-<span class="source-line-no">601</span><span id="line-601">     * Provisional replacement for method available in Java 9. </span>
-<span class="source-line-no">602</span><span id="line-602">     * </span>
-<span class="source-line-no">603</span><span id="line-603">     * @return an empty map</span>
-<span class="source-line-no">604</span><span id="line-604">     */</span>
-<span class="source-line-no">605</span><span id="line-605">    @Deprecated</span>
-<span class="source-line-no">606</span><span id="line-606">    public static &lt;K, V&gt; Map&lt;K, V&gt; mapOf() {</span>
-<span class="source-line-no">607</span><span id="line-607">        return new HashMap&lt;&gt;();</span>
-<span class="source-line-no">608</span><span id="line-608">    }</span>
-<span class="source-line-no">609</span><span id="line-609"></span>
-<span class="source-line-no">610</span><span id="line-610">    /**</span>
-<span class="source-line-no">611</span><span id="line-611">     * Provisional replacement for method available in Java 9. </span>
-<span class="source-line-no">612</span><span id="line-612">     * </span>
-<span class="source-line-no">613</span><span id="line-613">     * @return an immutable map filled with the given values</span>
-<span class="source-line-no">614</span><span id="line-614">     */</span>
-<span class="source-line-no">615</span><span id="line-615">    @Deprecated</span>
-<span class="source-line-no">616</span><span id="line-616">    @SuppressWarnings({ "PMD.ShortVariable", "PMD.AvoidDuplicateLiterals" })</span>
-<span class="source-line-no">617</span><span id="line-617">    public static &lt;K, V&gt; Map&lt;K, V&gt; mapOf(K k1, V v1) {</span>
-<span class="source-line-no">618</span><span id="line-618">        @SuppressWarnings("PMD.UseConcurrentHashMap")</span>
-<span class="source-line-no">619</span><span id="line-619">        Map&lt;K, V&gt; result = new HashMap&lt;&gt;();</span>
-<span class="source-line-no">620</span><span id="line-620">        result.put(k1, v1);</span>
-<span class="source-line-no">621</span><span id="line-621">        return Collections.unmodifiableMap(result);</span>
-<span class="source-line-no">622</span><span id="line-622">    }</span>
-<span class="source-line-no">623</span><span id="line-623"></span>
-<span class="source-line-no">624</span><span id="line-624">    /**</span>
-<span class="source-line-no">625</span><span id="line-625">     * Provisional replacement for method available in Java 9. </span>
-<span class="source-line-no">626</span><span id="line-626">     * </span>
-<span class="source-line-no">627</span><span id="line-627">     * @return an immutable map filled with the given values</span>
-<span class="source-line-no">628</span><span id="line-628">     */</span>
-<span class="source-line-no">629</span><span id="line-629">    @Deprecated</span>
-<span class="source-line-no">630</span><span id="line-630">    @SuppressWarnings("PMD.ShortVariable")</span>
-<span class="source-line-no">631</span><span id="line-631">    public static &lt;K, V&gt; Map&lt;K, V&gt; mapOf(K k1, V v1, K k2, V v2) {</span>
-<span class="source-line-no">632</span><span id="line-632">        @SuppressWarnings("PMD.UseConcurrentHashMap")</span>
-<span class="source-line-no">633</span><span id="line-633">        Map&lt;K, V&gt; result = new HashMap&lt;&gt;();</span>
-<span class="source-line-no">634</span><span id="line-634">        result.put(k1, v1);</span>
-<span class="source-line-no">635</span><span id="line-635">        result.put(k2, v2);</span>
-<span class="source-line-no">636</span><span id="line-636">        return Collections.unmodifiableMap(result);</span>
-<span class="source-line-no">637</span><span id="line-637">    }</span>
-<span class="source-line-no">638</span><span id="line-638"></span>
-<span class="source-line-no">639</span><span id="line-639">    /**</span>
-<span class="source-line-no">640</span><span id="line-640">     * Provisional replacement for method available in Java 9. </span>
-<span class="source-line-no">641</span><span id="line-641">     * </span>
-<span class="source-line-no">642</span><span id="line-642">     * @return an immutable map filled with the given values</span>
-<span class="source-line-no">643</span><span id="line-643">     */</span>
-<span class="source-line-no">644</span><span id="line-644">    @Deprecated</span>
-<span class="source-line-no">645</span><span id="line-645">    @SuppressWarnings("PMD.ShortVariable")</span>
-<span class="source-line-no">646</span><span id="line-646">    public static &lt;K, V&gt; Map&lt;K, V&gt; mapOf(K k1, V v1, K k2, V v2, K k3, V v3) {</span>
-<span class="source-line-no">647</span><span id="line-647">        @SuppressWarnings("PMD.UseConcurrentHashMap")</span>
-<span class="source-line-no">648</span><span id="line-648">        Map&lt;K, V&gt; result = new HashMap&lt;&gt;();</span>
-<span class="source-line-no">649</span><span id="line-649">        result.put(k1, v1);</span>
-<span class="source-line-no">650</span><span id="line-650">        result.put(k2, v2);</span>
-<span class="source-line-no">651</span><span id="line-651">        result.put(k3, v3);</span>
-<span class="source-line-no">652</span><span id="line-652">        return Collections.unmodifiableMap(result);</span>
-<span class="source-line-no">653</span><span id="line-653">    }</span>
-<span class="source-line-no">654</span><span id="line-654"></span>
-<span class="source-line-no">655</span><span id="line-655">    /**</span>
-<span class="source-line-no">656</span><span id="line-656">     * Provisional replacement for method available in Java 9. </span>
-<span class="source-line-no">657</span><span id="line-657">     * </span>
-<span class="source-line-no">658</span><span id="line-658">     * @return an immutable map filled with the given values</span>
-<span class="source-line-no">659</span><span id="line-659">     */</span>
-<span class="source-line-no">660</span><span id="line-660">    @Deprecated</span>
-<span class="source-line-no">661</span><span id="line-661">    @SuppressWarnings("PMD.ShortVariable")</span>
-<span class="source-line-no">662</span><span id="line-662">    public static &lt;K, V&gt; Map&lt;K, V&gt; mapOf(K k1, V v1, K k2, V v2, K k3, V v3,</span>
-<span class="source-line-no">663</span><span id="line-663">            K k4, V v4) {</span>
-<span class="source-line-no">664</span><span id="line-664">        @SuppressWarnings("PMD.UseConcurrentHashMap")</span>
-<span class="source-line-no">665</span><span id="line-665">        Map&lt;K, V&gt; result = new HashMap&lt;&gt;();</span>
-<span class="source-line-no">666</span><span id="line-666">        result.put(k1, v1);</span>
-<span class="source-line-no">667</span><span id="line-667">        result.put(k2, v2);</span>
-<span class="source-line-no">668</span><span id="line-668">        result.put(k3, v3);</span>
-<span class="source-line-no">669</span><span id="line-669">        result.put(k4, v4);</span>
-<span class="source-line-no">670</span><span id="line-670">        return Collections.unmodifiableMap(result);</span>
-<span class="source-line-no">671</span><span id="line-671">    }</span>
-<span class="source-line-no">672</span><span id="line-672"></span>
-<span class="source-line-no">673</span><span id="line-673">    /**</span>
-<span class="source-line-no">674</span><span id="line-674">     * Provisional replacement for method available in Java 9. </span>
-<span class="source-line-no">675</span><span id="line-675">     * </span>
-<span class="source-line-no">676</span><span id="line-676">     * @return an immutable map filled with the given values</span>
-<span class="source-line-no">677</span><span id="line-677">     */</span>
-<span class="source-line-no">678</span><span id="line-678">    @Deprecated</span>
-<span class="source-line-no">679</span><span id="line-679">    @SuppressWarnings({ "PMD.ExcessiveParameterList", "PMD.ShortVariable",</span>
-<span class="source-line-no">680</span><span id="line-680">        "PMD.AvoidDuplicateLiterals" })</span>
-<span class="source-line-no">681</span><span id="line-681">    public static &lt;K, V&gt; Map&lt;K, V&gt; mapOf(K k1, V v1, K k2, V v2, K k3, V v3,</span>
-<span class="source-line-no">682</span><span id="line-682">            K k4, V v4, K k5, V v5) {</span>
-<span class="source-line-no">683</span><span id="line-683">        @SuppressWarnings("PMD.UseConcurrentHashMap")</span>
-<span class="source-line-no">684</span><span id="line-684">        Map&lt;K, V&gt; result = new HashMap&lt;&gt;();</span>
-<span class="source-line-no">685</span><span id="line-685">        result.put(k1, v1);</span>
-<span class="source-line-no">686</span><span id="line-686">        result.put(k2, v2);</span>
-<span class="source-line-no">687</span><span id="line-687">        result.put(k3, v3);</span>
-<span class="source-line-no">688</span><span id="line-688">        result.put(k4, v4);</span>
-<span class="source-line-no">689</span><span id="line-689">        result.put(k5, v5);</span>
-<span class="source-line-no">690</span><span id="line-690">        return Collections.unmodifiableMap(result);</span>
-<span class="source-line-no">691</span><span id="line-691">    }</span>
-<span class="source-line-no">692</span><span id="line-692"></span>
-<span class="source-line-no">693</span><span id="line-693">    /**</span>
-<span class="source-line-no">694</span><span id="line-694">     * Provisional replacement for method available in Java 9. </span>
-<span class="source-line-no">695</span><span id="line-695">     * </span>
-<span class="source-line-no">696</span><span id="line-696">     * @return an immutable map filled with the given values</span>
-<span class="source-line-no">697</span><span id="line-697">     */</span>
-<span class="source-line-no">698</span><span id="line-698">    @Deprecated</span>
-<span class="source-line-no">699</span><span id="line-699">    @SuppressWarnings({ "PMD.ExcessiveParameterList", "PMD.ShortVariable" })</span>
-<span class="source-line-no">700</span><span id="line-700">    public static &lt;K, V&gt; Map&lt;K, V&gt; mapOf(K k1, V v1, K k2, V v2, K k3, V v3,</span>
-<span class="source-line-no">701</span><span id="line-701">            K k4, V v4, K k5, V v5, K k6, V v6) {</span>
-<span class="source-line-no">702</span><span id="line-702">        @SuppressWarnings("PMD.UseConcurrentHashMap")</span>
-<span class="source-line-no">703</span><span id="line-703">        Map&lt;K, V&gt; result = new HashMap&lt;&gt;();</span>
-<span class="source-line-no">704</span><span id="line-704">        result.put(k1, v1);</span>
-<span class="source-line-no">705</span><span id="line-705">        result.put(k2, v2);</span>
-<span class="source-line-no">706</span><span id="line-706">        result.put(k3, v3);</span>
-<span class="source-line-no">707</span><span id="line-707">        result.put(k4, v4);</span>
-<span class="source-line-no">708</span><span id="line-708">        result.put(k5, v5);</span>
-<span class="source-line-no">709</span><span id="line-709">        result.put(k6, v6);</span>
-<span class="source-line-no">710</span><span id="line-710">        return Collections.unmodifiableMap(result);</span>
-<span class="source-line-no">711</span><span id="line-711">    }</span>
-<span class="source-line-no">712</span><span id="line-712"></span>
-<span class="source-line-no">713</span><span id="line-713">    /**</span>
-<span class="source-line-no">714</span><span id="line-714">     * Provisional replacement for method available in Java 9. </span>
-<span class="source-line-no">715</span><span id="line-715">     * </span>
-<span class="source-line-no">716</span><span id="line-716">     * @return an immutable map filled with the given values</span>
-<span class="source-line-no">717</span><span id="line-717">     */</span>
-<span class="source-line-no">718</span><span id="line-718">    @Deprecated</span>
-<span class="source-line-no">719</span><span id="line-719">    @SuppressWarnings({ "PMD.ExcessiveParameterList", "PMD.ShortVariable" })</span>
-<span class="source-line-no">720</span><span id="line-720">    public static &lt;K, V&gt; Map&lt;K, V&gt; mapOf(K k1, V v1, K k2, V v2, K k3, V v3,</span>
-<span class="source-line-no">721</span><span id="line-721">            K k4, V v4, K k5, V v5, K k6, V v6, K k7, V v7) {</span>
-<span class="source-line-no">722</span><span id="line-722">        @SuppressWarnings("PMD.UseConcurrentHashMap")</span>
-<span class="source-line-no">723</span><span id="line-723">        Map&lt;K, V&gt; result = new HashMap&lt;&gt;();</span>
-<span class="source-line-no">724</span><span id="line-724">        result.put(k1, v1);</span>
-<span class="source-line-no">725</span><span id="line-725">        result.put(k2, v2);</span>
-<span class="source-line-no">726</span><span id="line-726">        result.put(k3, v3);</span>
-<span class="source-line-no">727</span><span id="line-727">        result.put(k4, v4);</span>
-<span class="source-line-no">728</span><span id="line-728">        result.put(k5, v5);</span>
-<span class="source-line-no">729</span><span id="line-729">        result.put(k6, v6);</span>
-<span class="source-line-no">730</span><span id="line-730">        result.put(k7, v7);</span>
-<span class="source-line-no">731</span><span id="line-731">        return Collections.unmodifiableMap(result);</span>
-<span class="source-line-no">732</span><span id="line-732">    }</span>
-<span class="source-line-no">733</span><span id="line-733"></span>
-<span class="source-line-no">734</span><span id="line-734">    /**</span>
-<span class="source-line-no">735</span><span id="line-735">     * Provisional replacement for method available in Java 9. </span>
-<span class="source-line-no">736</span><span id="line-736">     * </span>
-<span class="source-line-no">737</span><span id="line-737">     * @return an immutable map filled with the given values</span>
-<span class="source-line-no">738</span><span id="line-738">     */</span>
-<span class="source-line-no">739</span><span id="line-739">    @Deprecated</span>
-<span class="source-line-no">740</span><span id="line-740">    @SuppressWarnings({ "PMD.ExcessiveParameterList", "PMD.ShortVariable" })</span>
-<span class="source-line-no">741</span><span id="line-741">    public static &lt;K, V&gt; Map&lt;K, V&gt; mapOf(K k1, V v1, K k2, V v2, K k3, V v3,</span>
-<span class="source-line-no">742</span><span id="line-742">            K k4, V v4, K k5, V v5, K k6, V v6, K k7, V v7, K k8, V v8) {</span>
-<span class="source-line-no">743</span><span id="line-743">        @SuppressWarnings("PMD.UseConcurrentHashMap")</span>
-<span class="source-line-no">744</span><span id="line-744">        Map&lt;K, V&gt; result = new HashMap&lt;&gt;();</span>
-<span class="source-line-no">745</span><span id="line-745">        result.put(k1, v1);</span>
-<span class="source-line-no">746</span><span id="line-746">        result.put(k2, v2);</span>
-<span class="source-line-no">747</span><span id="line-747">        result.put(k3, v3);</span>
-<span class="source-line-no">748</span><span id="line-748">        result.put(k4, v4);</span>
-<span class="source-line-no">749</span><span id="line-749">        result.put(k5, v5);</span>
-<span class="source-line-no">750</span><span id="line-750">        result.put(k6, v6);</span>
-<span class="source-line-no">751</span><span id="line-751">        result.put(k7, v7);</span>
-<span class="source-line-no">752</span><span id="line-752">        result.put(k8, v8);</span>
-<span class="source-line-no">753</span><span id="line-753">        return Collections.unmodifiableMap(result);</span>
-<span class="source-line-no">754</span><span id="line-754">    }</span>
-<span class="source-line-no">755</span><span id="line-755"></span>
-<span class="source-line-no">756</span><span id="line-756">    /**</span>
-<span class="source-line-no">757</span><span id="line-757">     * Provisional replacement for method available in Java 9. </span>
-<span class="source-line-no">758</span><span id="line-758">     * </span>
-<span class="source-line-no">759</span><span id="line-759">     * @return an immutable map filled with the given values</span>
-<span class="source-line-no">760</span><span id="line-760">     */</span>
-<span class="source-line-no">761</span><span id="line-761">    @Deprecated</span>
-<span class="source-line-no">762</span><span id="line-762">    @SuppressWarnings({ "PMD.ExcessiveParameterList", "PMD.ShortVariable" })</span>
-<span class="source-line-no">763</span><span id="line-763">    public static &lt;K, V&gt; Map&lt;K, V&gt; mapOf(K k1, V v1, K k2, V v2, K k3, V v3,</span>
-<span class="source-line-no">764</span><span id="line-764">            K k4, V v4, K k5, V v5, K k6, V v6, K k7, V v7, K k8, V v8,</span>
-<span class="source-line-no">765</span><span id="line-765">            K k9, V v9) {</span>
-<span class="source-line-no">766</span><span id="line-766">        @SuppressWarnings("PMD.UseConcurrentHashMap")</span>
-<span class="source-line-no">767</span><span id="line-767">        Map&lt;K, V&gt; result = new HashMap&lt;&gt;();</span>
-<span class="source-line-no">768</span><span id="line-768">        result.put(k1, v1);</span>
-<span class="source-line-no">769</span><span id="line-769">        result.put(k2, v2);</span>
-<span class="source-line-no">770</span><span id="line-770">        result.put(k3, v3);</span>
-<span class="source-line-no">771</span><span id="line-771">        result.put(k4, v4);</span>
-<span class="source-line-no">772</span><span id="line-772">        result.put(k5, v5);</span>
-<span class="source-line-no">773</span><span id="line-773">        result.put(k6, v6);</span>
-<span class="source-line-no">774</span><span id="line-774">        result.put(k7, v7);</span>
-<span class="source-line-no">775</span><span id="line-775">        result.put(k8, v8);</span>
-<span class="source-line-no">776</span><span id="line-776">        result.put(k9, v9);</span>
-<span class="source-line-no">777</span><span id="line-777">        return Collections.unmodifiableMap(result);</span>
-<span class="source-line-no">778</span><span id="line-778">    }</span>
-<span class="source-line-no">779</span><span id="line-779"></span>
-<span class="source-line-no">780</span><span id="line-780">    /**</span>
-<span class="source-line-no">781</span><span id="line-781">     * Provisional replacement for method available in Java 9. </span>
-<span class="source-line-no">782</span><span id="line-782">     * </span>
-<span class="source-line-no">783</span><span id="line-783">     * @return an immutable map filled with the given values</span>
-<span class="source-line-no">784</span><span id="line-784">     */</span>
-<span class="source-line-no">785</span><span id="line-785">    @Deprecated</span>
-<span class="source-line-no">786</span><span id="line-786">    @SuppressWarnings({ "PMD.ExcessiveParameterList", "PMD.ShortVariable" })</span>
-<span class="source-line-no">787</span><span id="line-787">    public static &lt;K, V&gt; Map&lt;K, V&gt; mapOf(K k1, V v1, K k2, V v2, K k3, V v3,</span>
-<span class="source-line-no">788</span><span id="line-788">            K k4, V v4, K k5, V v5, K k6, V v6, K k7, V v7, K k8, V v8,</span>
-<span class="source-line-no">789</span><span id="line-789">            K k9, V v9, K k10, V v10) {</span>
-<span class="source-line-no">790</span><span id="line-790">        @SuppressWarnings("PMD.UseConcurrentHashMap")</span>
-<span class="source-line-no">791</span><span id="line-791">        Map&lt;K, V&gt; result = new HashMap&lt;&gt;();</span>
-<span class="source-line-no">792</span><span id="line-792">        result.put(k1, v1);</span>
-<span class="source-line-no">793</span><span id="line-793">        result.put(k2, v2);</span>
-<span class="source-line-no">794</span><span id="line-794">        result.put(k3, v3);</span>
-<span class="source-line-no">795</span><span id="line-795">        result.put(k4, v4);</span>
-<span class="source-line-no">796</span><span id="line-796">        result.put(k5, v5);</span>
-<span class="source-line-no">797</span><span id="line-797">        result.put(k6, v6);</span>
-<span class="source-line-no">798</span><span id="line-798">        result.put(k7, v7);</span>
-<span class="source-line-no">799</span><span id="line-799">        result.put(k8, v8);</span>
-<span class="source-line-no">800</span><span id="line-800">        result.put(k9, v9);</span>
-<span class="source-line-no">801</span><span id="line-801">        result.put(k10, v10);</span>
-<span class="source-line-no">802</span><span id="line-802">        return Collections.unmodifiableMap(result);</span>
-<span class="source-line-no">803</span><span id="line-803">    }</span>
-<span class="source-line-no">804</span><span id="line-804"></span>
-<span class="source-line-no">805</span><span id="line-805">    /**</span>
-<span class="source-line-no">806</span><span id="line-806">     * An index of pooled items. Each key is associated with a set</span>
-<span class="source-line-no">807</span><span id="line-807">     * of values. Values can be added or retrieved from the set.</span>
-<span class="source-line-no">808</span><span id="line-808">     *</span>
-<span class="source-line-no">809</span><span id="line-809">     * @param &lt;K&gt; the key type</span>
-<span class="source-line-no">810</span><span id="line-810">     * @param &lt;V&gt; the value type</span>
-<span class="source-line-no">811</span><span id="line-811">     */</span>
-<span class="source-line-no">812</span><span id="line-812">    public static class PoolingIndex&lt;K, V&gt; {</span>
-<span class="source-line-no">813</span><span id="line-813"></span>
-<span class="source-line-no">814</span><span id="line-814">        @SuppressWarnings("PMD.UseConcurrentHashMap")</span>
-<span class="source-line-no">815</span><span id="line-815">        private final Map&lt;K, Set&lt;ValueReference&gt;&gt; backing = new HashMap&lt;&gt;();</span>
-<span class="source-line-no">816</span><span id="line-816">        private final ReferenceQueue&lt;V&gt; orphanedEntries</span>
-<span class="source-line-no">817</span><span id="line-817">            = new ReferenceQueue&lt;&gt;();</span>
-<span class="source-line-no">818</span><span id="line-818"></span>
-<span class="source-line-no">819</span><span id="line-819">        @SuppressWarnings("PMD.CommentRequired")</span>
-<span class="source-line-no">820</span><span id="line-820">        private class ValueReference extends WeakReference&lt;V&gt; {</span>
-<span class="source-line-no">821</span><span id="line-821"></span>
-<span class="source-line-no">822</span><span id="line-822">            private final K key;</span>
+<span class="source-line-no">471</span><span id="line-471">    @SuppressWarnings("PMD.PublicMemberInNonPublicType")</span>
+<span class="source-line-no">472</span><span id="line-472">    private static class Scheduler extends Thread {</span>
+<span class="source-line-no">473</span><span id="line-473"></span>
+<span class="source-line-no">474</span><span id="line-474">        private final Queue&lt;Timer&gt; timers = new PriorityQueue&lt;&gt;(10,</span>
+<span class="source-line-no">475</span><span id="line-475">            Comparator.comparing(Timer::scheduledFor));</span>
+<span class="source-line-no">476</span><span id="line-476"></span>
+<span class="source-line-no">477</span><span id="line-477">        /**</span>
+<span class="source-line-no">478</span><span id="line-478">         * Instantiates a new scheduler.</span>
+<span class="source-line-no">479</span><span id="line-479">         */</span>
+<span class="source-line-no">480</span><span id="line-480">        public Scheduler() {</span>
+<span class="source-line-no">481</span><span id="line-481">            (useVirtualThreads() ? ofVirtual() : ofPlatform())</span>
+<span class="source-line-no">482</span><span id="line-482">                .name("Components.Scheduler").start(this);</span>
+<span class="source-line-no">483</span><span id="line-483">        }</span>
+<span class="source-line-no">484</span><span id="line-484"></span>
+<span class="source-line-no">485</span><span id="line-485">        /**</span>
+<span class="source-line-no">486</span><span id="line-486">         * Schedule the handler and return the resulting timer.</span>
+<span class="source-line-no">487</span><span id="line-487">         *</span>
+<span class="source-line-no">488</span><span id="line-488">         * @param timeoutHandler the timeout handler</span>
+<span class="source-line-no">489</span><span id="line-489">         * @param scheduledFor the scheduled for</span>
+<span class="source-line-no">490</span><span id="line-490">         * @return the timer</span>
+<span class="source-line-no">491</span><span id="line-491">         */</span>
+<span class="source-line-no">492</span><span id="line-492">        public Timer schedule(</span>
+<span class="source-line-no">493</span><span id="line-493">                TimeoutHandler timeoutHandler, Instant scheduledFor) {</span>
+<span class="source-line-no">494</span><span id="line-494">            Timer timer = new Timer(this, timeoutHandler, scheduledFor);</span>
+<span class="source-line-no">495</span><span id="line-495">            synchronized (timers) {</span>
+<span class="source-line-no">496</span><span id="line-496">                timers.add(timer);</span>
+<span class="source-line-no">497</span><span id="line-497">                timers.notifyAll();</span>
+<span class="source-line-no">498</span><span id="line-498">            }</span>
+<span class="source-line-no">499</span><span id="line-499">            return timer;</span>
+<span class="source-line-no">500</span><span id="line-500">        }</span>
+<span class="source-line-no">501</span><span id="line-501"></span>
+<span class="source-line-no">502</span><span id="line-502">        private void reschedule(Timer timer, Instant scheduledFor) {</span>
+<span class="source-line-no">503</span><span id="line-503">            synchronized (timers) {</span>
+<span class="source-line-no">504</span><span id="line-504">                timers.remove(timer);</span>
+<span class="source-line-no">505</span><span id="line-505">                timer.scheduledFor = scheduledFor;</span>
+<span class="source-line-no">506</span><span id="line-506">                timers.add(timer);</span>
+<span class="source-line-no">507</span><span id="line-507">                timers.notifyAll();</span>
+<span class="source-line-no">508</span><span id="line-508">            }</span>
+<span class="source-line-no">509</span><span id="line-509">        }</span>
+<span class="source-line-no">510</span><span id="line-510"></span>
+<span class="source-line-no">511</span><span id="line-511">        private void cancel(Timer timer) {</span>
+<span class="source-line-no">512</span><span id="line-512">            synchronized (timers) {</span>
+<span class="source-line-no">513</span><span id="line-513">                if (timers.remove(timer)) {</span>
+<span class="source-line-no">514</span><span id="line-514">                    timers.notifyAll();</span>
+<span class="source-line-no">515</span><span id="line-515">                }</span>
+<span class="source-line-no">516</span><span id="line-516">                timer.scheduledFor = null;</span>
+<span class="source-line-no">517</span><span id="line-517">            }</span>
+<span class="source-line-no">518</span><span id="line-518">        }</span>
+<span class="source-line-no">519</span><span id="line-519"></span>
+<span class="source-line-no">520</span><span id="line-520">        @Override</span>
+<span class="source-line-no">521</span><span id="line-521">        public void run() {</span>
+<span class="source-line-no">522</span><span id="line-522">            while (true) {</span>
+<span class="source-line-no">523</span><span id="line-523">                while (true) {</span>
+<span class="source-line-no">524</span><span id="line-524">                    final Timer first;</span>
+<span class="source-line-no">525</span><span id="line-525">                    synchronized (timers) {</span>
+<span class="source-line-no">526</span><span id="line-526">                        first = timers.peek();</span>
+<span class="source-line-no">527</span><span id="line-527">                        if (first == null</span>
+<span class="source-line-no">528</span><span id="line-528">                            || first.scheduledFor().isAfter(Instant.now())) {</span>
+<span class="source-line-no">529</span><span id="line-529">                            break;</span>
+<span class="source-line-no">530</span><span id="line-530">                        }</span>
+<span class="source-line-no">531</span><span id="line-531">                        timers.poll();</span>
+<span class="source-line-no">532</span><span id="line-532">                    }</span>
+<span class="source-line-no">533</span><span id="line-533">                    timerExecutorService.submit(</span>
+<span class="source-line-no">534</span><span id="line-534">                        () -&gt; first.timeoutHandler().timeout(first));</span>
+<span class="source-line-no">535</span><span id="line-535">                }</span>
+<span class="source-line-no">536</span><span id="line-536">                try {</span>
+<span class="source-line-no">537</span><span id="line-537">                    synchronized (timers) {</span>
+<span class="source-line-no">538</span><span id="line-538">                        if (timers.isEmpty()) {</span>
+<span class="source-line-no">539</span><span id="line-539">                            timers.wait();</span>
+<span class="source-line-no">540</span><span id="line-540">                        } else {</span>
+<span class="source-line-no">541</span><span id="line-541">                            timers</span>
+<span class="source-line-no">542</span><span id="line-542">                                .wait(Math.max(1,</span>
+<span class="source-line-no">543</span><span id="line-543">                                    Duration.between(Instant.now(),</span>
+<span class="source-line-no">544</span><span id="line-544">                                        timers.peek().scheduledFor())</span>
+<span class="source-line-no">545</span><span id="line-545">                                        .toMillis()));</span>
+<span class="source-line-no">546</span><span id="line-546">                        }</span>
+<span class="source-line-no">547</span><span id="line-547">                    }</span>
+<span class="source-line-no">548</span><span id="line-548">                } catch (Exception e) { // NOPMD</span>
+<span class="source-line-no">549</span><span id="line-549">                    // Keep running.</span>
+<span class="source-line-no">550</span><span id="line-550">                }</span>
+<span class="source-line-no">551</span><span id="line-551">            }</span>
+<span class="source-line-no">552</span><span id="line-552">        }</span>
+<span class="source-line-no">553</span><span id="line-553">    }</span>
+<span class="source-line-no">554</span><span id="line-554"></span>
+<span class="source-line-no">555</span><span id="line-555">    @SuppressWarnings("PMD.FieldDeclarationsShouldBeAtStartOfClass")</span>
+<span class="source-line-no">556</span><span id="line-556">    private static Scheduler scheduler = new Scheduler();</span>
+<span class="source-line-no">557</span><span id="line-557"></span>
+<span class="source-line-no">558</span><span id="line-558">    /**</span>
+<span class="source-line-no">559</span><span id="line-559">     * Schedules the given timeout handler for the given instance. </span>
+<span class="source-line-no">560</span><span id="line-560">     * </span>
+<span class="source-line-no">561</span><span id="line-561">     * @param timeoutHandler the handler</span>
+<span class="source-line-no">562</span><span id="line-562">     * @param scheduledFor the instance in time</span>
+<span class="source-line-no">563</span><span id="line-563">     * @return the timer</span>
+<span class="source-line-no">564</span><span id="line-564">     */</span>
+<span class="source-line-no">565</span><span id="line-565">    public static Timer schedule(</span>
+<span class="source-line-no">566</span><span id="line-566">            TimeoutHandler timeoutHandler, Instant scheduledFor) {</span>
+<span class="source-line-no">567</span><span id="line-567">        return scheduler.schedule(timeoutHandler, scheduledFor);</span>
+<span class="source-line-no">568</span><span id="line-568">    }</span>
+<span class="source-line-no">569</span><span id="line-569"></span>
+<span class="source-line-no">570</span><span id="line-570">    /**</span>
+<span class="source-line-no">571</span><span id="line-571">     * Schedules the given timeout handler for the given </span>
+<span class="source-line-no">572</span><span id="line-572">     * offset from now. </span>
+<span class="source-line-no">573</span><span id="line-573">     * </span>
+<span class="source-line-no">574</span><span id="line-574">     * @param timeoutHandler the handler</span>
+<span class="source-line-no">575</span><span id="line-575">     * @param scheduledFor the time to wait</span>
+<span class="source-line-no">576</span><span id="line-576">     * @return the timer</span>
+<span class="source-line-no">577</span><span id="line-577">     */</span>
+<span class="source-line-no">578</span><span id="line-578">    public static Timer schedule(</span>
+<span class="source-line-no">579</span><span id="line-579">            TimeoutHandler timeoutHandler, Duration scheduledFor) {</span>
+<span class="source-line-no">580</span><span id="line-580">        return scheduler.schedule(</span>
+<span class="source-line-no">581</span><span id="line-581">            timeoutHandler, Instant.now().plus(scheduledFor));</span>
+<span class="source-line-no">582</span><span id="line-582">    }</span>
+<span class="source-line-no">583</span><span id="line-583"></span>
+<span class="source-line-no">584</span><span id="line-584">    /**</span>
+<span class="source-line-no">585</span><span id="line-585">     * Puts the given key and value in the given {@link Map} and</span>
+<span class="source-line-no">586</span><span id="line-586">     * returns the map. Looks ugly when nested, but comes in handy </span>
+<span class="source-line-no">587</span><span id="line-587">     * sometimes.</span>
+<span class="source-line-no">588</span><span id="line-588">     *</span>
+<span class="source-line-no">589</span><span id="line-589">     * @param &lt;K&gt; the key type</span>
+<span class="source-line-no">590</span><span id="line-590">     * @param &lt;V&gt; the value type</span>
+<span class="source-line-no">591</span><span id="line-591">     * @param map the map</span>
+<span class="source-line-no">592</span><span id="line-592">     * @param key the key</span>
+<span class="source-line-no">593</span><span id="line-593">     * @param value the value</span>
+<span class="source-line-no">594</span><span id="line-594">     * @return the map</span>
+<span class="source-line-no">595</span><span id="line-595">     */</span>
+<span class="source-line-no">596</span><span id="line-596">    public static &lt;K, V&gt; Map&lt;K, V&gt; put(Map&lt;K, V&gt; map, K key, V value) {</span>
+<span class="source-line-no">597</span><span id="line-597">        map.put(key, value);</span>
+<span class="source-line-no">598</span><span id="line-598">        return map;</span>
+<span class="source-line-no">599</span><span id="line-599">    }</span>
+<span class="source-line-no">600</span><span id="line-600"></span>
+<span class="source-line-no">601</span><span id="line-601">    /**</span>
+<span class="source-line-no">602</span><span id="line-602">     * Provisional replacement for method available in Java 9. </span>
+<span class="source-line-no">603</span><span id="line-603">     * </span>
+<span class="source-line-no">604</span><span id="line-604">     * @return an empty map</span>
+<span class="source-line-no">605</span><span id="line-605">     */</span>
+<span class="source-line-no">606</span><span id="line-606">    @Deprecated</span>
+<span class="source-line-no">607</span><span id="line-607">    public static &lt;K, V&gt; Map&lt;K, V&gt; mapOf() {</span>
+<span class="source-line-no">608</span><span id="line-608">        return new HashMap&lt;&gt;();</span>
+<span class="source-line-no">609</span><span id="line-609">    }</span>
+<span class="source-line-no">610</span><span id="line-610"></span>
+<span class="source-line-no">611</span><span id="line-611">    /**</span>
+<span class="source-line-no">612</span><span id="line-612">     * Provisional replacement for method available in Java 9. </span>
+<span class="source-line-no">613</span><span id="line-613">     * </span>
+<span class="source-line-no">614</span><span id="line-614">     * @return an immutable map filled with the given values</span>
+<span class="source-line-no">615</span><span id="line-615">     */</span>
+<span class="source-line-no">616</span><span id="line-616">    @Deprecated</span>
+<span class="source-line-no">617</span><span id="line-617">    @SuppressWarnings({ "PMD.ShortVariable", "PMD.AvoidDuplicateLiterals" })</span>
+<span class="source-line-no">618</span><span id="line-618">    public static &lt;K, V&gt; Map&lt;K, V&gt; mapOf(K k1, V v1) {</span>
+<span class="source-line-no">619</span><span id="line-619">        @SuppressWarnings("PMD.UseConcurrentHashMap")</span>
+<span class="source-line-no">620</span><span id="line-620">        Map&lt;K, V&gt; result = new HashMap&lt;&gt;();</span>
+<span class="source-line-no">621</span><span id="line-621">        result.put(k1, v1);</span>
+<span class="source-line-no">622</span><span id="line-622">        return Collections.unmodifiableMap(result);</span>
+<span class="source-line-no">623</span><span id="line-623">    }</span>
+<span class="source-line-no">624</span><span id="line-624"></span>
+<span class="source-line-no">625</span><span id="line-625">    /**</span>
+<span class="source-line-no">626</span><span id="line-626">     * Provisional replacement for method available in Java 9. </span>
+<span class="source-line-no">627</span><span id="line-627">     * </span>
+<span class="source-line-no">628</span><span id="line-628">     * @return an immutable map filled with the given values</span>
+<span class="source-line-no">629</span><span id="line-629">     */</span>
+<span class="source-line-no">630</span><span id="line-630">    @Deprecated</span>
+<span class="source-line-no">631</span><span id="line-631">    @SuppressWarnings("PMD.ShortVariable")</span>
+<span class="source-line-no">632</span><span id="line-632">    public static &lt;K, V&gt; Map&lt;K, V&gt; mapOf(K k1, V v1, K k2, V v2) {</span>
+<span class="source-line-no">633</span><span id="line-633">        @SuppressWarnings("PMD.UseConcurrentHashMap")</span>
+<span class="source-line-no">634</span><span id="line-634">        Map&lt;K, V&gt; result = new HashMap&lt;&gt;();</span>
+<span class="source-line-no">635</span><span id="line-635">        result.put(k1, v1);</span>
+<span class="source-line-no">636</span><span id="line-636">        result.put(k2, v2);</span>
+<span class="source-line-no">637</span><span id="line-637">        return Collections.unmodifiableMap(result);</span>
+<span class="source-line-no">638</span><span id="line-638">    }</span>
+<span class="source-line-no">639</span><span id="line-639"></span>
+<span class="source-line-no">640</span><span id="line-640">    /**</span>
+<span class="source-line-no">641</span><span id="line-641">     * Provisional replacement for method available in Java 9. </span>
+<span class="source-line-no">642</span><span id="line-642">     * </span>
+<span class="source-line-no">643</span><span id="line-643">     * @return an immutable map filled with the given values</span>
+<span class="source-line-no">644</span><span id="line-644">     */</span>
+<span class="source-line-no">645</span><span id="line-645">    @Deprecated</span>
+<span class="source-line-no">646</span><span id="line-646">    @SuppressWarnings("PMD.ShortVariable")</span>
+<span class="source-line-no">647</span><span id="line-647">    public static &lt;K, V&gt; Map&lt;K, V&gt; mapOf(K k1, V v1, K k2, V v2, K k3, V v3) {</span>
+<span class="source-line-no">648</span><span id="line-648">        @SuppressWarnings("PMD.UseConcurrentHashMap")</span>
+<span class="source-line-no">649</span><span id="line-649">        Map&lt;K, V&gt; result = new HashMap&lt;&gt;();</span>
+<span class="source-line-no">650</span><span id="line-650">        result.put(k1, v1);</span>
+<span class="source-line-no">651</span><span id="line-651">        result.put(k2, v2);</span>
+<span class="source-line-no">652</span><span id="line-652">        result.put(k3, v3);</span>
+<span class="source-line-no">653</span><span id="line-653">        return Collections.unmodifiableMap(result);</span>
+<span class="source-line-no">654</span><span id="line-654">    }</span>
+<span class="source-line-no">655</span><span id="line-655"></span>
+<span class="source-line-no">656</span><span id="line-656">    /**</span>
+<span class="source-line-no">657</span><span id="line-657">     * Provisional replacement for method available in Java 9. </span>
+<span class="source-line-no">658</span><span id="line-658">     * </span>
+<span class="source-line-no">659</span><span id="line-659">     * @return an immutable map filled with the given values</span>
+<span class="source-line-no">660</span><span id="line-660">     */</span>
+<span class="source-line-no">661</span><span id="line-661">    @Deprecated</span>
+<span class="source-line-no">662</span><span id="line-662">    @SuppressWarnings("PMD.ShortVariable")</span>
+<span class="source-line-no">663</span><span id="line-663">    public static &lt;K, V&gt; Map&lt;K, V&gt; mapOf(K k1, V v1, K k2, V v2, K k3, V v3,</span>
+<span class="source-line-no">664</span><span id="line-664">            K k4, V v4) {</span>
+<span class="source-line-no">665</span><span id="line-665">        @SuppressWarnings("PMD.UseConcurrentHashMap")</span>
+<span class="source-line-no">666</span><span id="line-666">        Map&lt;K, V&gt; result = new HashMap&lt;&gt;();</span>
+<span class="source-line-no">667</span><span id="line-667">        result.put(k1, v1);</span>
+<span class="source-line-no">668</span><span id="line-668">        result.put(k2, v2);</span>
+<span class="source-line-no">669</span><span id="line-669">        result.put(k3, v3);</span>
+<span class="source-line-no">670</span><span id="line-670">        result.put(k4, v4);</span>
+<span class="source-line-no">671</span><span id="line-671">        return Collections.unmodifiableMap(result);</span>
+<span class="source-line-no">672</span><span id="line-672">    }</span>
+<span class="source-line-no">673</span><span id="line-673"></span>
+<span class="source-line-no">674</span><span id="line-674">    /**</span>
+<span class="source-line-no">675</span><span id="line-675">     * Provisional replacement for method available in Java 9. </span>
+<span class="source-line-no">676</span><span id="line-676">     * </span>
+<span class="source-line-no">677</span><span id="line-677">     * @return an immutable map filled with the given values</span>
+<span class="source-line-no">678</span><span id="line-678">     */</span>
+<span class="source-line-no">679</span><span id="line-679">    @Deprecated</span>
+<span class="source-line-no">680</span><span id="line-680">    @SuppressWarnings({ "PMD.ExcessiveParameterList", "PMD.ShortVariable",</span>
+<span class="source-line-no">681</span><span id="line-681">        "PMD.AvoidDuplicateLiterals" })</span>
+<span class="source-line-no">682</span><span id="line-682">    public static &lt;K, V&gt; Map&lt;K, V&gt; mapOf(K k1, V v1, K k2, V v2, K k3, V v3,</span>
+<span class="source-line-no">683</span><span id="line-683">            K k4, V v4, K k5, V v5) {</span>
+<span class="source-line-no">684</span><span id="line-684">        @SuppressWarnings("PMD.UseConcurrentHashMap")</span>
+<span class="source-line-no">685</span><span id="line-685">        Map&lt;K, V&gt; result = new HashMap&lt;&gt;();</span>
+<span class="source-line-no">686</span><span id="line-686">        result.put(k1, v1);</span>
+<span class="source-line-no">687</span><span id="line-687">        result.put(k2, v2);</span>
+<span class="source-line-no">688</span><span id="line-688">        result.put(k3, v3);</span>
+<span class="source-line-no">689</span><span id="line-689">        result.put(k4, v4);</span>
+<span class="source-line-no">690</span><span id="line-690">        result.put(k5, v5);</span>
+<span class="source-line-no">691</span><span id="line-691">        return Collections.unmodifiableMap(result);</span>
+<span class="source-line-no">692</span><span id="line-692">    }</span>
+<span class="source-line-no">693</span><span id="line-693"></span>
+<span class="source-line-no">694</span><span id="line-694">    /**</span>
+<span class="source-line-no">695</span><span id="line-695">     * Provisional replacement for method available in Java 9. </span>
+<span class="source-line-no">696</span><span id="line-696">     * </span>
+<span class="source-line-no">697</span><span id="line-697">     * @return an immutable map filled with the given values</span>
+<span class="source-line-no">698</span><span id="line-698">     */</span>
+<span class="source-line-no">699</span><span id="line-699">    @Deprecated</span>
+<span class="source-line-no">700</span><span id="line-700">    @SuppressWarnings({ "PMD.ExcessiveParameterList", "PMD.ShortVariable" })</span>
+<span class="source-line-no">701</span><span id="line-701">    public static &lt;K, V&gt; Map&lt;K, V&gt; mapOf(K k1, V v1, K k2, V v2, K k3, V v3,</span>
+<span class="source-line-no">702</span><span id="line-702">            K k4, V v4, K k5, V v5, K k6, V v6) {</span>
+<span class="source-line-no">703</span><span id="line-703">        @SuppressWarnings("PMD.UseConcurrentHashMap")</span>
+<span class="source-line-no">704</span><span id="line-704">        Map&lt;K, V&gt; result = new HashMap&lt;&gt;();</span>
+<span class="source-line-no">705</span><span id="line-705">        result.put(k1, v1);</span>
+<span class="source-line-no">706</span><span id="line-706">        result.put(k2, v2);</span>
+<span class="source-line-no">707</span><span id="line-707">        result.put(k3, v3);</span>
+<span class="source-line-no">708</span><span id="line-708">        result.put(k4, v4);</span>
+<span class="source-line-no">709</span><span id="line-709">        result.put(k5, v5);</span>
+<span class="source-line-no">710</span><span id="line-710">        result.put(k6, v6);</span>
+<span class="source-line-no">711</span><span id="line-711">        return Collections.unmodifiableMap(result);</span>
+<span class="source-line-no">712</span><span id="line-712">    }</span>
+<span class="source-line-no">713</span><span id="line-713"></span>
+<span class="source-line-no">714</span><span id="line-714">    /**</span>
+<span class="source-line-no">715</span><span id="line-715">     * Provisional replacement for method available in Java 9. </span>
+<span class="source-line-no">716</span><span id="line-716">     * </span>
+<span class="source-line-no">717</span><span id="line-717">     * @return an immutable map filled with the given values</span>
+<span class="source-line-no">718</span><span id="line-718">     */</span>
+<span class="source-line-no">719</span><span id="line-719">    @Deprecated</span>
+<span class="source-line-no">720</span><span id="line-720">    @SuppressWarnings({ "PMD.ExcessiveParameterList", "PMD.ShortVariable" })</span>
+<span class="source-line-no">721</span><span id="line-721">    public static &lt;K, V&gt; Map&lt;K, V&gt; mapOf(K k1, V v1, K k2, V v2, K k3, V v3,</span>
+<span class="source-line-no">722</span><span id="line-722">            K k4, V v4, K k5, V v5, K k6, V v6, K k7, V v7) {</span>
+<span class="source-line-no">723</span><span id="line-723">        @SuppressWarnings("PMD.UseConcurrentHashMap")</span>
+<span class="source-line-no">724</span><span id="line-724">        Map&lt;K, V&gt; result = new HashMap&lt;&gt;();</span>
+<span class="source-line-no">725</span><span id="line-725">        result.put(k1, v1);</span>
+<span class="source-line-no">726</span><span id="line-726">        result.put(k2, v2);</span>
+<span class="source-line-no">727</span><span id="line-727">        result.put(k3, v3);</span>
+<span class="source-line-no">728</span><span id="line-728">        result.put(k4, v4);</span>
+<span class="source-line-no">729</span><span id="line-729">        result.put(k5, v5);</span>
+<span class="source-line-no">730</span><span id="line-730">        result.put(k6, v6);</span>
+<span class="source-line-no">731</span><span id="line-731">        result.put(k7, v7);</span>
+<span class="source-line-no">732</span><span id="line-732">        return Collections.unmodifiableMap(result);</span>
+<span class="source-line-no">733</span><span id="line-733">    }</span>
+<span class="source-line-no">734</span><span id="line-734"></span>
+<span class="source-line-no">735</span><span id="line-735">    /**</span>
+<span class="source-line-no">736</span><span id="line-736">     * Provisional replacement for method available in Java 9. </span>
+<span class="source-line-no">737</span><span id="line-737">     * </span>
+<span class="source-line-no">738</span><span id="line-738">     * @return an immutable map filled with the given values</span>
+<span class="source-line-no">739</span><span id="line-739">     */</span>
+<span class="source-line-no">740</span><span id="line-740">    @Deprecated</span>
+<span class="source-line-no">741</span><span id="line-741">    @SuppressWarnings({ "PMD.ExcessiveParameterList", "PMD.ShortVariable" })</span>
+<span class="source-line-no">742</span><span id="line-742">    public static &lt;K, V&gt; Map&lt;K, V&gt; mapOf(K k1, V v1, K k2, V v2, K k3, V v3,</span>
+<span class="source-line-no">743</span><span id="line-743">            K k4, V v4, K k5, V v5, K k6, V v6, K k7, V v7, K k8, V v8) {</span>
+<span class="source-line-no">744</span><span id="line-744">        @SuppressWarnings("PMD.UseConcurrentHashMap")</span>
+<span class="source-line-no">745</span><span id="line-745">        Map&lt;K, V&gt; result = new HashMap&lt;&gt;();</span>
+<span class="source-line-no">746</span><span id="line-746">        result.put(k1, v1);</span>
+<span class="source-line-no">747</span><span id="line-747">        result.put(k2, v2);</span>
+<span class="source-line-no">748</span><span id="line-748">        result.put(k3, v3);</span>
+<span class="source-line-no">749</span><span id="line-749">        result.put(k4, v4);</span>
+<span class="source-line-no">750</span><span id="line-750">        result.put(k5, v5);</span>
+<span class="source-line-no">751</span><span id="line-751">        result.put(k6, v6);</span>
+<span class="source-line-no">752</span><span id="line-752">        result.put(k7, v7);</span>
+<span class="source-line-no">753</span><span id="line-753">        result.put(k8, v8);</span>
+<span class="source-line-no">754</span><span id="line-754">        return Collections.unmodifiableMap(result);</span>
+<span class="source-line-no">755</span><span id="line-755">    }</span>
+<span class="source-line-no">756</span><span id="line-756"></span>
+<span class="source-line-no">757</span><span id="line-757">    /**</span>
+<span class="source-line-no">758</span><span id="line-758">     * Provisional replacement for method available in Java 9. </span>
+<span class="source-line-no">759</span><span id="line-759">     * </span>
+<span class="source-line-no">760</span><span id="line-760">     * @return an immutable map filled with the given values</span>
+<span class="source-line-no">761</span><span id="line-761">     */</span>
+<span class="source-line-no">762</span><span id="line-762">    @Deprecated</span>
+<span class="source-line-no">763</span><span id="line-763">    @SuppressWarnings({ "PMD.ExcessiveParameterList", "PMD.ShortVariable" })</span>
+<span class="source-line-no">764</span><span id="line-764">    public static &lt;K, V&gt; Map&lt;K, V&gt; mapOf(K k1, V v1, K k2, V v2, K k3, V v3,</span>
+<span class="source-line-no">765</span><span id="line-765">            K k4, V v4, K k5, V v5, K k6, V v6, K k7, V v7, K k8, V v8,</span>
+<span class="source-line-no">766</span><span id="line-766">            K k9, V v9) {</span>
+<span class="source-line-no">767</span><span id="line-767">        @SuppressWarnings("PMD.UseConcurrentHashMap")</span>
+<span class="source-line-no">768</span><span id="line-768">        Map&lt;K, V&gt; result = new HashMap&lt;&gt;();</span>
+<span class="source-line-no">769</span><span id="line-769">        result.put(k1, v1);</span>
+<span class="source-line-no">770</span><span id="line-770">        result.put(k2, v2);</span>
+<span class="source-line-no">771</span><span id="line-771">        result.put(k3, v3);</span>
+<span class="source-line-no">772</span><span id="line-772">        result.put(k4, v4);</span>
+<span class="source-line-no">773</span><span id="line-773">        result.put(k5, v5);</span>
+<span class="source-line-no">774</span><span id="line-774">        result.put(k6, v6);</span>
+<span class="source-line-no">775</span><span id="line-775">        result.put(k7, v7);</span>
+<span class="source-line-no">776</span><span id="line-776">        result.put(k8, v8);</span>
+<span class="source-line-no">777</span><span id="line-777">        result.put(k9, v9);</span>
+<span class="source-line-no">778</span><span id="line-778">        return Collections.unmodifiableMap(result);</span>
+<span class="source-line-no">779</span><span id="line-779">    }</span>
+<span class="source-line-no">780</span><span id="line-780"></span>
+<span class="source-line-no">781</span><span id="line-781">    /**</span>
+<span class="source-line-no">782</span><span id="line-782">     * Provisional replacement for method available in Java 9. </span>
+<span class="source-line-no">783</span><span id="line-783">     * </span>
+<span class="source-line-no">784</span><span id="line-784">     * @return an immutable map filled with the given values</span>
+<span class="source-line-no">785</span><span id="line-785">     */</span>
+<span class="source-line-no">786</span><span id="line-786">    @Deprecated</span>
+<span class="source-line-no">787</span><span id="line-787">    @SuppressWarnings({ "PMD.ExcessiveParameterList", "PMD.ShortVariable" })</span>
+<span class="source-line-no">788</span><span id="line-788">    public static &lt;K, V&gt; Map&lt;K, V&gt; mapOf(K k1, V v1, K k2, V v2, K k3, V v3,</span>
+<span class="source-line-no">789</span><span id="line-789">            K k4, V v4, K k5, V v5, K k6, V v6, K k7, V v7, K k8, V v8,</span>
+<span class="source-line-no">790</span><span id="line-790">            K k9, V v9, K k10, V v10) {</span>
+<span class="source-line-no">791</span><span id="line-791">        @SuppressWarnings("PMD.UseConcurrentHashMap")</span>
+<span class="source-line-no">792</span><span id="line-792">        Map&lt;K, V&gt; result = new HashMap&lt;&gt;();</span>
+<span class="source-line-no">793</span><span id="line-793">        result.put(k1, v1);</span>
+<span class="source-line-no">794</span><span id="line-794">        result.put(k2, v2);</span>
+<span class="source-line-no">795</span><span id="line-795">        result.put(k3, v3);</span>
+<span class="source-line-no">796</span><span id="line-796">        result.put(k4, v4);</span>
+<span class="source-line-no">797</span><span id="line-797">        result.put(k5, v5);</span>
+<span class="source-line-no">798</span><span id="line-798">        result.put(k6, v6);</span>
+<span class="source-line-no">799</span><span id="line-799">        result.put(k7, v7);</span>
+<span class="source-line-no">800</span><span id="line-800">        result.put(k8, v8);</span>
+<span class="source-line-no">801</span><span id="line-801">        result.put(k9, v9);</span>
+<span class="source-line-no">802</span><span id="line-802">        result.put(k10, v10);</span>
+<span class="source-line-no">803</span><span id="line-803">        return Collections.unmodifiableMap(result);</span>
+<span class="source-line-no">804</span><span id="line-804">    }</span>
+<span class="source-line-no">805</span><span id="line-805"></span>
+<span class="source-line-no">806</span><span id="line-806">    /**</span>
+<span class="source-line-no">807</span><span id="line-807">     * An index of pooled items. Each key is associated with a set</span>
+<span class="source-line-no">808</span><span id="line-808">     * of values. Values can be added or retrieved from the set.</span>
+<span class="source-line-no">809</span><span id="line-809">     *</span>
+<span class="source-line-no">810</span><span id="line-810">     * @param &lt;K&gt; the key type</span>
+<span class="source-line-no">811</span><span id="line-811">     * @param &lt;V&gt; the value type</span>
+<span class="source-line-no">812</span><span id="line-812">     */</span>
+<span class="source-line-no">813</span><span id="line-813">    public static class PoolingIndex&lt;K, V&gt; {</span>
+<span class="source-line-no">814</span><span id="line-814"></span>
+<span class="source-line-no">815</span><span id="line-815">        @SuppressWarnings("PMD.UseConcurrentHashMap")</span>
+<span class="source-line-no">816</span><span id="line-816">        private final Map&lt;K, Set&lt;ValueReference&gt;&gt; backing = new HashMap&lt;&gt;();</span>
+<span class="source-line-no">817</span><span id="line-817">        private final ReferenceQueue&lt;V&gt; orphanedEntries</span>
+<span class="source-line-no">818</span><span id="line-818">            = new ReferenceQueue&lt;&gt;();</span>
+<span class="source-line-no">819</span><span id="line-819"></span>
+<span class="source-line-no">820</span><span id="line-820">        @SuppressWarnings({ "PMD.CommentRequired",</span>
+<span class="source-line-no">821</span><span id="line-821">            "PMD.PublicMemberInNonPublicType" })</span>
+<span class="source-line-no">822</span><span id="line-822">        private class ValueReference extends WeakReference&lt;V&gt; {</span>
 <span class="source-line-no">823</span><span id="line-823"></span>
-<span class="source-line-no">824</span><span id="line-824">            public ValueReference(K key, V referent) {</span>
-<span class="source-line-no">825</span><span id="line-825">                super(referent, orphanedEntries);</span>
-<span class="source-line-no">826</span><span id="line-826">                this.key = key;</span>
-<span class="source-line-no">827</span><span id="line-827">            }</span>
-<span class="source-line-no">828</span><span id="line-828"></span>
-<span class="source-line-no">829</span><span id="line-829">            /*</span>
-<span class="source-line-no">830</span><span id="line-830">             * (non-Javadoc)</span>
-<span class="source-line-no">831</span><span id="line-831">             * </span>
-<span class="source-line-no">832</span><span id="line-832">             * @see java.lang.Object#hashCode()</span>
-<span class="source-line-no">833</span><span id="line-833">             */</span>
-<span class="source-line-no">834</span><span id="line-834">            @Override</span>
-<span class="source-line-no">835</span><span id="line-835">            public int hashCode() {</span>
-<span class="source-line-no">836</span><span id="line-836">                V value = get();</span>
-<span class="source-line-no">837</span><span id="line-837">                if (value == null) {</span>
-<span class="source-line-no">838</span><span id="line-838">                    return 0;</span>
-<span class="source-line-no">839</span><span id="line-839">                }</span>
-<span class="source-line-no">840</span><span id="line-840">                return value.hashCode();</span>
-<span class="source-line-no">841</span><span id="line-841">            }</span>
-<span class="source-line-no">842</span><span id="line-842"></span>
-<span class="source-line-no">843</span><span id="line-843">            /*</span>
-<span class="source-line-no">844</span><span id="line-844">             * (non-Javadoc)</span>
-<span class="source-line-no">845</span><span id="line-845">             * </span>
-<span class="source-line-no">846</span><span id="line-846">             * @see java.lang.Object#equals(java.lang.Object)</span>
-<span class="source-line-no">847</span><span id="line-847">             */</span>
-<span class="source-line-no">848</span><span id="line-848">            @Override</span>
-<span class="source-line-no">849</span><span id="line-849">            public boolean equals(Object obj) {</span>
-<span class="source-line-no">850</span><span id="line-850">                if (obj == null) {</span>
-<span class="source-line-no">851</span><span id="line-851">                    return false;</span>
-<span class="source-line-no">852</span><span id="line-852">                }</span>
-<span class="source-line-no">853</span><span id="line-853">                if (!obj.getClass().equals(ValueReference.class)) {</span>
-<span class="source-line-no">854</span><span id="line-854">                    return false;</span>
-<span class="source-line-no">855</span><span id="line-855">                }</span>
-<span class="source-line-no">856</span><span id="line-856">                V value1 = get();</span>
-<span class="source-line-no">857</span><span id="line-857">                @SuppressWarnings("unchecked")</span>
-<span class="source-line-no">858</span><span id="line-858">                V value2 = ((ValueReference) obj).get();</span>
-<span class="source-line-no">859</span><span id="line-859">                if (value1 == null || value2 == null) {</span>
-<span class="source-line-no">860</span><span id="line-860">                    return false;</span>
-<span class="source-line-no">861</span><span id="line-861">                }</span>
-<span class="source-line-no">862</span><span id="line-862">                return value1.equals(value2);</span>
-<span class="source-line-no">863</span><span id="line-863">            }</span>
-<span class="source-line-no">864</span><span id="line-864">        }</span>
-<span class="source-line-no">865</span><span id="line-865"></span>
-<span class="source-line-no">866</span><span id="line-866">        @SuppressWarnings({ "PMD.CompareObjectsWithEquals" })</span>
-<span class="source-line-no">867</span><span id="line-867">        private void cleanOrphaned() {</span>
-<span class="source-line-no">868</span><span id="line-868">            while (true) {</span>
-<span class="source-line-no">869</span><span id="line-869">                @SuppressWarnings("unchecked")</span>
-<span class="source-line-no">870</span><span id="line-870">                ValueReference orphaned</span>
-<span class="source-line-no">871</span><span id="line-871">                    = (ValueReference) orphanedEntries.poll();</span>
-<span class="source-line-no">872</span><span id="line-872">                if (orphaned == null) {</span>
-<span class="source-line-no">873</span><span id="line-873">                    return;</span>
-<span class="source-line-no">874</span><span id="line-874">                }</span>
-<span class="source-line-no">875</span><span id="line-875">                synchronized (this) {</span>
-<span class="source-line-no">876</span><span id="line-876">                    Set&lt;ValueReference&gt; set = backing.get(orphaned.key);</span>
-<span class="source-line-no">877</span><span id="line-877">                    if (set == null) {</span>
-<span class="source-line-no">878</span><span id="line-878">                        continue;</span>
-<span class="source-line-no">879</span><span id="line-879">                    }</span>
-<span class="source-line-no">880</span><span id="line-880">                    Iterator&lt;ValueReference&gt; iter = set.iterator();</span>
-<span class="source-line-no">881</span><span id="line-881">                    while (iter.hasNext()) {</span>
-<span class="source-line-no">882</span><span id="line-882">                        ValueReference ref = iter.next();</span>
-<span class="source-line-no">883</span><span id="line-883">                        if (ref == orphaned) {</span>
-<span class="source-line-no">884</span><span id="line-884">                            iter.remove();</span>
-<span class="source-line-no">885</span><span id="line-885">                            if (set.isEmpty()) {</span>
-<span class="source-line-no">886</span><span id="line-886">                                backing.remove(orphaned.key);</span>
-<span class="source-line-no">887</span><span id="line-887">                            }</span>
-<span class="source-line-no">888</span><span id="line-888">                            break;</span>
-<span class="source-line-no">889</span><span id="line-889">                        }</span>
-<span class="source-line-no">890</span><span id="line-890">                    }</span>
-<span class="source-line-no">891</span><span id="line-891">                }</span>
-<span class="source-line-no">892</span><span id="line-892">            }</span>
-<span class="source-line-no">893</span><span id="line-893">        }</span>
-<span class="source-line-no">894</span><span id="line-894"></span>
-<span class="source-line-no">895</span><span id="line-895">        /**</span>
-<span class="source-line-no">896</span><span id="line-896">         * Remove all entries.</span>
-<span class="source-line-no">897</span><span id="line-897">         */</span>
-<span class="source-line-no">898</span><span id="line-898">        public void clear() {</span>
-<span class="source-line-no">899</span><span id="line-899">            backing.clear();</span>
-<span class="source-line-no">900</span><span id="line-900">            cleanOrphaned();</span>
-<span class="source-line-no">901</span><span id="line-901">        }</span>
-<span class="source-line-no">902</span><span id="line-902"></span>
-<span class="source-line-no">903</span><span id="line-903">        /**</span>
-<span class="source-line-no">904</span><span id="line-904">         * Checks if the key is in the index.</span>
-<span class="source-line-no">905</span><span id="line-905">         *</span>
-<span class="source-line-no">906</span><span id="line-906">         * @param key the key</span>
-<span class="source-line-no">907</span><span id="line-907">         * @return true, if successful</span>
-<span class="source-line-no">908</span><span id="line-908">         */</span>
-<span class="source-line-no">909</span><span id="line-909">        public boolean containsKey(Object key) {</span>
-<span class="source-line-no">910</span><span id="line-910">            return backing.containsKey(key);</span>
-<span class="source-line-no">911</span><span id="line-911">        }</span>
-<span class="source-line-no">912</span><span id="line-912"></span>
-<span class="source-line-no">913</span><span id="line-913">        /**</span>
-<span class="source-line-no">914</span><span id="line-914">         * Checks if the index is empty.</span>
-<span class="source-line-no">915</span><span id="line-915">         *</span>
-<span class="source-line-no">916</span><span id="line-916">         * @return true, if is empty</span>
-<span class="source-line-no">917</span><span id="line-917">         */</span>
-<span class="source-line-no">918</span><span id="line-918">        public boolean isEmpty() {</span>
-<span class="source-line-no">919</span><span id="line-919">            return backing.isEmpty();</span>
-<span class="source-line-no">920</span><span id="line-920">        }</span>
-<span class="source-line-no">921</span><span id="line-921"></span>
-<span class="source-line-no">922</span><span id="line-922">        /**</span>
-<span class="source-line-no">923</span><span id="line-923">         * Returns all keys.</span>
-<span class="source-line-no">924</span><span id="line-924">         *</span>
-<span class="source-line-no">925</span><span id="line-925">         * @return the sets the</span>
-<span class="source-line-no">926</span><span id="line-926">         */</span>
-<span class="source-line-no">927</span><span id="line-927">        public Set&lt;K&gt; keySet() {</span>
-<span class="source-line-no">928</span><span id="line-928">            synchronized (this) {</span>
-<span class="source-line-no">929</span><span id="line-929">                return backing.keySet();</span>
-<span class="source-line-no">930</span><span id="line-930">            }</span>
-<span class="source-line-no">931</span><span id="line-931">        }</span>
-<span class="source-line-no">932</span><span id="line-932"></span>
-<span class="source-line-no">933</span><span id="line-933">        /**</span>
-<span class="source-line-no">934</span><span id="line-934">         * Adds the value to the pool of values associated with the key.</span>
-<span class="source-line-no">935</span><span id="line-935">         *</span>
-<span class="source-line-no">936</span><span id="line-936">         * @param key the key</span>
-<span class="source-line-no">937</span><span id="line-937">         * @param value the value</span>
-<span class="source-line-no">938</span><span id="line-938">         * @return the v</span>
-<span class="source-line-no">939</span><span id="line-939">         */</span>
-<span class="source-line-no">940</span><span id="line-940">        public V add(K key, V value) {</span>
-<span class="source-line-no">941</span><span id="line-941">            synchronized (this) {</span>
-<span class="source-line-no">942</span><span id="line-942">                cleanOrphaned();</span>
-<span class="source-line-no">943</span><span id="line-943">                backing.computeIfAbsent(key, k -&gt; new HashSet&lt;&gt;())</span>
-<span class="source-line-no">944</span><span id="line-944">                    .add(new ValueReference(key, value));</span>
-<span class="source-line-no">945</span><span id="line-945">                return value;</span>
-<span class="source-line-no">946</span><span id="line-946">            }</span>
-<span class="source-line-no">947</span><span id="line-947">        }</span>
-<span class="source-line-no">948</span><span id="line-948"></span>
-<span class="source-line-no">949</span><span id="line-949">        /**</span>
-<span class="source-line-no">950</span><span id="line-950">         * Retrives and removes an item from the pool associated with the key.</span>
-<span class="source-line-no">951</span><span id="line-951">         *</span>
-<span class="source-line-no">952</span><span id="line-952">         * @param key the key</span>
-<span class="source-line-no">953</span><span id="line-953">         * @return the removed item or `null` if the pool is empty</span>
-<span class="source-line-no">954</span><span id="line-954">         */</span>
-<span class="source-line-no">955</span><span id="line-955">        @SuppressWarnings("PMD.AvoidBranchingStatementAsLastInLoop")</span>
-<span class="source-line-no">956</span><span id="line-956">        public V poll(K key) {</span>
-<span class="source-line-no">957</span><span id="line-957">            synchronized (this) {</span>
-<span class="source-line-no">958</span><span id="line-958">                cleanOrphaned();</span>
-<span class="source-line-no">959</span><span id="line-959">                Set&lt;ValueReference&gt; set = backing.get(key);</span>
-<span class="source-line-no">960</span><span id="line-960">                if (set == null) {</span>
-<span class="source-line-no">961</span><span id="line-961">                    return null;</span>
-<span class="source-line-no">962</span><span id="line-962">                }</span>
-<span class="source-line-no">963</span><span id="line-963">                Iterator&lt;ValueReference&gt; iter = set.iterator();</span>
-<span class="source-line-no">964</span><span id="line-964">                while (iter.hasNext()) {</span>
-<span class="source-line-no">965</span><span id="line-965">                    ValueReference ref = iter.next();</span>
-<span class="source-line-no">966</span><span id="line-966">                    V value = ref.get();</span>
-<span class="source-line-no">967</span><span id="line-967">                    iter.remove();</span>
-<span class="source-line-no">968</span><span id="line-968">                    if (value == null) {</span>
-<span class="source-line-no">969</span><span id="line-969">                        continue;</span>
-<span class="source-line-no">970</span><span id="line-970">                    }</span>
-<span class="source-line-no">971</span><span id="line-971">                    if (set.isEmpty()) {</span>
-<span class="source-line-no">972</span><span id="line-972">                        backing.remove(key);</span>
-<span class="source-line-no">973</span><span id="line-973">                    }</span>
-<span class="source-line-no">974</span><span id="line-974">                    return value;</span>
-<span class="source-line-no">975</span><span id="line-975">                }</span>
-<span class="source-line-no">976</span><span id="line-976">            }</span>
-<span class="source-line-no">977</span><span id="line-977">            return null;</span>
-<span class="source-line-no">978</span><span id="line-978">        }</span>
-<span class="source-line-no">979</span><span id="line-979"></span>
-<span class="source-line-no">980</span><span id="line-980">        /**</span>
-<span class="source-line-no">981</span><span id="line-981">         * Removes all values associated with the key.</span>
-<span class="source-line-no">982</span><span id="line-982">         *</span>
-<span class="source-line-no">983</span><span id="line-983">         * @param key the key</span>
-<span class="source-line-no">984</span><span id="line-984">         */</span>
-<span class="source-line-no">985</span><span id="line-985">        public void removeAll(K key) {</span>
-<span class="source-line-no">986</span><span id="line-986">            synchronized (this) {</span>
-<span class="source-line-no">987</span><span id="line-987">                cleanOrphaned();</span>
-<span class="source-line-no">988</span><span id="line-988">                backing.remove(key);</span>
-<span class="source-line-no">989</span><span id="line-989">            }</span>
-<span class="source-line-no">990</span><span id="line-990">        }</span>
-<span class="source-line-no">991</span><span id="line-991"></span>
-<span class="source-line-no">992</span><span id="line-992">        /**</span>
-<span class="source-line-no">993</span><span id="line-993">         * Removes the given value from the pool associated with the given key.</span>
-<span class="source-line-no">994</span><span id="line-994">         *</span>
-<span class="source-line-no">995</span><span id="line-995">         * @param key the key</span>
-<span class="source-line-no">996</span><span id="line-996">         * @param value the value</span>
-<span class="source-line-no">997</span><span id="line-997">         * @return the v</span>
-<span class="source-line-no">998</span><span id="line-998">         */</span>
-<span class="source-line-no">999</span><span id="line-999">        public V remove(K key, V value) {</span>
-<span class="source-line-no">1000</span><span id="line-1000">            synchronized (this) {</span>
-<span class="source-line-no">1001</span><span id="line-1001">                cleanOrphaned();</span>
-<span class="source-line-no">1002</span><span id="line-1002">                Set&lt;ValueReference&gt; set = backing.get(key);</span>
-<span class="source-line-no">1003</span><span id="line-1003">                if (set == null) {</span>
-<span class="source-line-no">1004</span><span id="line-1004">                    return null;</span>
-<span class="source-line-no">1005</span><span id="line-1005">                }</span>
-<span class="source-line-no">1006</span><span id="line-1006">                Iterator&lt;ValueReference&gt; iter = set.iterator();</span>
-<span class="source-line-no">1007</span><span id="line-1007">                while (iter.hasNext()) {</span>
-<span class="source-line-no">1008</span><span id="line-1008">                    ValueReference ref = iter.next();</span>
-<span class="source-line-no">1009</span><span id="line-1009">                    V stored = ref.get();</span>
-<span class="source-line-no">1010</span><span id="line-1010">                    boolean found = false;</span>
-<span class="source-line-no">1011</span><span id="line-1011">                    if (stored == null) {</span>
-<span class="source-line-no">1012</span><span id="line-1012">                        iter.remove();</span>
-<span class="source-line-no">1013</span><span id="line-1013">                    }</span>
-<span class="source-line-no">1014</span><span id="line-1014">                    if (stored.equals(value)) {</span>
-<span class="source-line-no">1015</span><span id="line-1015">                        iter.remove();</span>
-<span class="source-line-no">1016</span><span id="line-1016">                        found = true;</span>
-<span class="source-line-no">1017</span><span id="line-1017">                    }</span>
-<span class="source-line-no">1018</span><span id="line-1018">                    if (set.isEmpty()) {</span>
-<span class="source-line-no">1019</span><span id="line-1019">                        backing.remove(key);</span>
-<span class="source-line-no">1020</span><span id="line-1020">                    }</span>
-<span class="source-line-no">1021</span><span id="line-1021">                    if (found) {</span>
-<span class="source-line-no">1022</span><span id="line-1022">                        return value;</span>
-<span class="source-line-no">1023</span><span id="line-1023">                    }</span>
-<span class="source-line-no">1024</span><span id="line-1024">                }</span>
-<span class="source-line-no">1025</span><span id="line-1025">            }</span>
-<span class="source-line-no">1026</span><span id="line-1026">            return null;</span>
-<span class="source-line-no">1027</span><span id="line-1027">        }</span>
-<span class="source-line-no">1028</span><span id="line-1028"></span>
-<span class="source-line-no">1029</span><span id="line-1029">        /**</span>
-<span class="source-line-no">1030</span><span id="line-1030">         * Removes the value from the first pool in which it is found.</span>
-<span class="source-line-no">1031</span><span id="line-1031">         *</span>
-<span class="source-line-no">1032</span><span id="line-1032">         * @param value the value</span>
-<span class="source-line-no">1033</span><span id="line-1033">         * @return the value or `null` if the value is not found</span>
-<span class="source-line-no">1034</span><span id="line-1034">         */</span>
-<span class="source-line-no">1035</span><span id="line-1035">        public V remove(V value) {</span>
-<span class="source-line-no">1036</span><span id="line-1036">            synchronized (this) {</span>
-<span class="source-line-no">1037</span><span id="line-1037">                for (Set&lt;ValueReference&gt; set : backing.values()) {</span>
-<span class="source-line-no">1038</span><span id="line-1038">                    Iterator&lt;ValueReference&gt; iter = set.iterator();</span>
-<span class="source-line-no">1039</span><span id="line-1039">                    while (iter.hasNext()) {</span>
-<span class="source-line-no">1040</span><span id="line-1040">                        ValueReference ref = iter.next();</span>
-<span class="source-line-no">1041</span><span id="line-1041">                        V stored = ref.get();</span>
-<span class="source-line-no">1042</span><span id="line-1042">                        if (stored == null) {</span>
-<span class="source-line-no">1043</span><span id="line-1043">                            iter.remove();</span>
-<span class="source-line-no">1044</span><span id="line-1044">                        }</span>
-<span class="source-line-no">1045</span><span id="line-1045">                        if (stored.equals(value)) {</span>
-<span class="source-line-no">1046</span><span id="line-1046">                            iter.remove();</span>
-<span class="source-line-no">1047</span><span id="line-1047">                            return value;</span>
-<span class="source-line-no">1048</span><span id="line-1048">                        }</span>
-<span class="source-line-no">1049</span><span id="line-1049">                    }</span>
-<span class="source-line-no">1050</span><span id="line-1050">                }</span>
-<span class="source-line-no">1051</span><span id="line-1051">            }</span>
-<span class="source-line-no">1052</span><span id="line-1052">            return null;</span>
-<span class="source-line-no">1053</span><span id="line-1053">        }</span>
-<span class="source-line-no">1054</span><span id="line-1054"></span>
-<span class="source-line-no">1055</span><span id="line-1055">        /**</span>
-<span class="source-line-no">1056</span><span id="line-1056">         * Returns the number of keys in the index.</span>
-<span class="source-line-no">1057</span><span id="line-1057">         *</span>
-<span class="source-line-no">1058</span><span id="line-1058">         * @return the numer of keys</span>
-<span class="source-line-no">1059</span><span id="line-1059">         */</span>
-<span class="source-line-no">1060</span><span id="line-1060">        public int keysSize() {</span>
-<span class="source-line-no">1061</span><span id="line-1061">            return backing.size();</span>
-<span class="source-line-no">1062</span><span id="line-1062">        }</span>
-<span class="source-line-no">1063</span><span id="line-1063"></span>
-<span class="source-line-no">1064</span><span id="line-1064">    }</span>
-<span class="source-line-no">1065</span><span id="line-1065">}</span>
+<span class="source-line-no">824</span><span id="line-824">            private final K key;</span>
+<span class="source-line-no">825</span><span id="line-825"></span>
+<span class="source-line-no">826</span><span id="line-826">            public ValueReference(K key, V referent) {</span>
+<span class="source-line-no">827</span><span id="line-827">                super(referent, orphanedEntries);</span>
+<span class="source-line-no">828</span><span id="line-828">                this.key = key;</span>
+<span class="source-line-no">829</span><span id="line-829">            }</span>
+<span class="source-line-no">830</span><span id="line-830"></span>
+<span class="source-line-no">831</span><span id="line-831">            /*</span>
+<span class="source-line-no">832</span><span id="line-832">             * (non-Javadoc)</span>
+<span class="source-line-no">833</span><span id="line-833">             * </span>
+<span class="source-line-no">834</span><span id="line-834">             * @see java.lang.Object#hashCode()</span>
+<span class="source-line-no">835</span><span id="line-835">             */</span>
+<span class="source-line-no">836</span><span id="line-836">            @Override</span>
+<span class="source-line-no">837</span><span id="line-837">            public int hashCode() {</span>
+<span class="source-line-no">838</span><span id="line-838">                V value = get();</span>
+<span class="source-line-no">839</span><span id="line-839">                if (value == null) {</span>
+<span class="source-line-no">840</span><span id="line-840">                    return 0;</span>
+<span class="source-line-no">841</span><span id="line-841">                }</span>
+<span class="source-line-no">842</span><span id="line-842">                return value.hashCode();</span>
+<span class="source-line-no">843</span><span id="line-843">            }</span>
+<span class="source-line-no">844</span><span id="line-844"></span>
+<span class="source-line-no">845</span><span id="line-845">            /*</span>
+<span class="source-line-no">846</span><span id="line-846">             * (non-Javadoc)</span>
+<span class="source-line-no">847</span><span id="line-847">             * </span>
+<span class="source-line-no">848</span><span id="line-848">             * @see java.lang.Object#equals(java.lang.Object)</span>
+<span class="source-line-no">849</span><span id="line-849">             */</span>
+<span class="source-line-no">850</span><span id="line-850">            @Override</span>
+<span class="source-line-no">851</span><span id="line-851">            public boolean equals(Object obj) {</span>
+<span class="source-line-no">852</span><span id="line-852">                if (obj == null) {</span>
+<span class="source-line-no">853</span><span id="line-853">                    return false;</span>
+<span class="source-line-no">854</span><span id="line-854">                }</span>
+<span class="source-line-no">855</span><span id="line-855">                if (!obj.getClass().equals(ValueReference.class)) {</span>
+<span class="source-line-no">856</span><span id="line-856">                    return false;</span>
+<span class="source-line-no">857</span><span id="line-857">                }</span>
+<span class="source-line-no">858</span><span id="line-858">                V value1 = get();</span>
+<span class="source-line-no">859</span><span id="line-859">                @SuppressWarnings("unchecked")</span>
+<span class="source-line-no">860</span><span id="line-860">                V value2 = ((ValueReference) obj).get();</span>
+<span class="source-line-no">861</span><span id="line-861">                if (value1 == null || value2 == null) {</span>
+<span class="source-line-no">862</span><span id="line-862">                    return false;</span>
+<span class="source-line-no">863</span><span id="line-863">                }</span>
+<span class="source-line-no">864</span><span id="line-864">                return value1.equals(value2);</span>
+<span class="source-line-no">865</span><span id="line-865">            }</span>
+<span class="source-line-no">866</span><span id="line-866">        }</span>
+<span class="source-line-no">867</span><span id="line-867"></span>
+<span class="source-line-no">868</span><span id="line-868">        @SuppressWarnings({ "PMD.CompareObjectsWithEquals" })</span>
+<span class="source-line-no">869</span><span id="line-869">        private void cleanOrphaned() {</span>
+<span class="source-line-no">870</span><span id="line-870">            while (true) {</span>
+<span class="source-line-no">871</span><span id="line-871">                @SuppressWarnings("unchecked")</span>
+<span class="source-line-no">872</span><span id="line-872">                ValueReference orphaned</span>
+<span class="source-line-no">873</span><span id="line-873">                    = (ValueReference) orphanedEntries.poll();</span>
+<span class="source-line-no">874</span><span id="line-874">                if (orphaned == null) {</span>
+<span class="source-line-no">875</span><span id="line-875">                    return;</span>
+<span class="source-line-no">876</span><span id="line-876">                }</span>
+<span class="source-line-no">877</span><span id="line-877">                synchronized (this) {</span>
+<span class="source-line-no">878</span><span id="line-878">                    Set&lt;ValueReference&gt; set = backing.get(orphaned.key);</span>
+<span class="source-line-no">879</span><span id="line-879">                    if (set == null) {</span>
+<span class="source-line-no">880</span><span id="line-880">                        continue;</span>
+<span class="source-line-no">881</span><span id="line-881">                    }</span>
+<span class="source-line-no">882</span><span id="line-882">                    Iterator&lt;ValueReference&gt; iter = set.iterator();</span>
+<span class="source-line-no">883</span><span id="line-883">                    while (iter.hasNext()) {</span>
+<span class="source-line-no">884</span><span id="line-884">                        ValueReference ref = iter.next();</span>
+<span class="source-line-no">885</span><span id="line-885">                        if (ref == orphaned) {</span>
+<span class="source-line-no">886</span><span id="line-886">                            iter.remove();</span>
+<span class="source-line-no">887</span><span id="line-887">                            if (set.isEmpty()) {</span>
+<span class="source-line-no">888</span><span id="line-888">                                backing.remove(orphaned.key);</span>
+<span class="source-line-no">889</span><span id="line-889">                            }</span>
+<span class="source-line-no">890</span><span id="line-890">                            break;</span>
+<span class="source-line-no">891</span><span id="line-891">                        }</span>
+<span class="source-line-no">892</span><span id="line-892">                    }</span>
+<span class="source-line-no">893</span><span id="line-893">                }</span>
+<span class="source-line-no">894</span><span id="line-894">            }</span>
+<span class="source-line-no">895</span><span id="line-895">        }</span>
+<span class="source-line-no">896</span><span id="line-896"></span>
+<span class="source-line-no">897</span><span id="line-897">        /**</span>
+<span class="source-line-no">898</span><span id="line-898">         * Remove all entries.</span>
+<span class="source-line-no">899</span><span id="line-899">         */</span>
+<span class="source-line-no">900</span><span id="line-900">        public void clear() {</span>
+<span class="source-line-no">901</span><span id="line-901">            backing.clear();</span>
+<span class="source-line-no">902</span><span id="line-902">            cleanOrphaned();</span>
+<span class="source-line-no">903</span><span id="line-903">        }</span>
+<span class="source-line-no">904</span><span id="line-904"></span>
+<span class="source-line-no">905</span><span id="line-905">        /**</span>
+<span class="source-line-no">906</span><span id="line-906">         * Checks if the key is in the index.</span>
+<span class="source-line-no">907</span><span id="line-907">         *</span>
+<span class="source-line-no">908</span><span id="line-908">         * @param key the key</span>
+<span class="source-line-no">909</span><span id="line-909">         * @return true, if successful</span>
+<span class="source-line-no">910</span><span id="line-910">         */</span>
+<span class="source-line-no">911</span><span id="line-911">        public boolean containsKey(Object key) {</span>
+<span class="source-line-no">912</span><span id="line-912">            return backing.containsKey(key);</span>
+<span class="source-line-no">913</span><span id="line-913">        }</span>
+<span class="source-line-no">914</span><span id="line-914"></span>
+<span class="source-line-no">915</span><span id="line-915">        /**</span>
+<span class="source-line-no">916</span><span id="line-916">         * Checks if the index is empty.</span>
+<span class="source-line-no">917</span><span id="line-917">         *</span>
+<span class="source-line-no">918</span><span id="line-918">         * @return true, if is empty</span>
+<span class="source-line-no">919</span><span id="line-919">         */</span>
+<span class="source-line-no">920</span><span id="line-920">        public boolean isEmpty() {</span>
+<span class="source-line-no">921</span><span id="line-921">            return backing.isEmpty();</span>
+<span class="source-line-no">922</span><span id="line-922">        }</span>
+<span class="source-line-no">923</span><span id="line-923"></span>
+<span class="source-line-no">924</span><span id="line-924">        /**</span>
+<span class="source-line-no">925</span><span id="line-925">         * Returns all keys.</span>
+<span class="source-line-no">926</span><span id="line-926">         *</span>
+<span class="source-line-no">927</span><span id="line-927">         * @return the sets the</span>
+<span class="source-line-no">928</span><span id="line-928">         */</span>
+<span class="source-line-no">929</span><span id="line-929">        public Set&lt;K&gt; keySet() {</span>
+<span class="source-line-no">930</span><span id="line-930">            synchronized (this) {</span>
+<span class="source-line-no">931</span><span id="line-931">                return backing.keySet();</span>
+<span class="source-line-no">932</span><span id="line-932">            }</span>
+<span class="source-line-no">933</span><span id="line-933">        }</span>
+<span class="source-line-no">934</span><span id="line-934"></span>
+<span class="source-line-no">935</span><span id="line-935">        /**</span>
+<span class="source-line-no">936</span><span id="line-936">         * Adds the value to the pool of values associated with the key.</span>
+<span class="source-line-no">937</span><span id="line-937">         *</span>
+<span class="source-line-no">938</span><span id="line-938">         * @param key the key</span>
+<span class="source-line-no">939</span><span id="line-939">         * @param value the value</span>
+<span class="source-line-no">940</span><span id="line-940">         * @return the v</span>
+<span class="source-line-no">941</span><span id="line-941">         */</span>
+<span class="source-line-no">942</span><span id="line-942">        public V add(K key, V value) {</span>
+<span class="source-line-no">943</span><span id="line-943">            synchronized (this) {</span>
+<span class="source-line-no">944</span><span id="line-944">                cleanOrphaned();</span>
+<span class="source-line-no">945</span><span id="line-945">                backing.computeIfAbsent(key, k -&gt; new HashSet&lt;&gt;())</span>
+<span class="source-line-no">946</span><span id="line-946">                    .add(new ValueReference(key, value));</span>
+<span class="source-line-no">947</span><span id="line-947">                return value;</span>
+<span class="source-line-no">948</span><span id="line-948">            }</span>
+<span class="source-line-no">949</span><span id="line-949">        }</span>
+<span class="source-line-no">950</span><span id="line-950"></span>
+<span class="source-line-no">951</span><span id="line-951">        /**</span>
+<span class="source-line-no">952</span><span id="line-952">         * Retrives and removes an item from the pool associated with the key.</span>
+<span class="source-line-no">953</span><span id="line-953">         *</span>
+<span class="source-line-no">954</span><span id="line-954">         * @param key the key</span>
+<span class="source-line-no">955</span><span id="line-955">         * @return the removed item or `null` if the pool is empty</span>
+<span class="source-line-no">956</span><span id="line-956">         */</span>
+<span class="source-line-no">957</span><span id="line-957">        @SuppressWarnings("PMD.AvoidBranchingStatementAsLastInLoop")</span>
+<span class="source-line-no">958</span><span id="line-958">        public V poll(K key) {</span>
+<span class="source-line-no">959</span><span id="line-959">            synchronized (this) {</span>
+<span class="source-line-no">960</span><span id="line-960">                cleanOrphaned();</span>
+<span class="source-line-no">961</span><span id="line-961">                Set&lt;ValueReference&gt; set = backing.get(key);</span>
+<span class="source-line-no">962</span><span id="line-962">                if (set == null) {</span>
+<span class="source-line-no">963</span><span id="line-963">                    return null;</span>
+<span class="source-line-no">964</span><span id="line-964">                }</span>
+<span class="source-line-no">965</span><span id="line-965">                Iterator&lt;ValueReference&gt; iter = set.iterator();</span>
+<span class="source-line-no">966</span><span id="line-966">                while (iter.hasNext()) {</span>
+<span class="source-line-no">967</span><span id="line-967">                    ValueReference ref = iter.next();</span>
+<span class="source-line-no">968</span><span id="line-968">                    V value = ref.get();</span>
+<span class="source-line-no">969</span><span id="line-969">                    iter.remove();</span>
+<span class="source-line-no">970</span><span id="line-970">                    if (value == null) {</span>
+<span class="source-line-no">971</span><span id="line-971">                        continue;</span>
+<span class="source-line-no">972</span><span id="line-972">                    }</span>
+<span class="source-line-no">973</span><span id="line-973">                    if (set.isEmpty()) {</span>
+<span class="source-line-no">974</span><span id="line-974">                        backing.remove(key);</span>
+<span class="source-line-no">975</span><span id="line-975">                    }</span>
+<span class="source-line-no">976</span><span id="line-976">                    return value;</span>
+<span class="source-line-no">977</span><span id="line-977">                }</span>
+<span class="source-line-no">978</span><span id="line-978">            }</span>
+<span class="source-line-no">979</span><span id="line-979">            return null;</span>
+<span class="source-line-no">980</span><span id="line-980">        }</span>
+<span class="source-line-no">981</span><span id="line-981"></span>
+<span class="source-line-no">982</span><span id="line-982">        /**</span>
+<span class="source-line-no">983</span><span id="line-983">         * Removes all values associated with the key.</span>
+<span class="source-line-no">984</span><span id="line-984">         *</span>
+<span class="source-line-no">985</span><span id="line-985">         * @param key the key</span>
+<span class="source-line-no">986</span><span id="line-986">         */</span>
+<span class="source-line-no">987</span><span id="line-987">        public void removeAll(K key) {</span>
+<span class="source-line-no">988</span><span id="line-988">            synchronized (this) {</span>
+<span class="source-line-no">989</span><span id="line-989">                cleanOrphaned();</span>
+<span class="source-line-no">990</span><span id="line-990">                backing.remove(key);</span>
+<span class="source-line-no">991</span><span id="line-991">            }</span>
+<span class="source-line-no">992</span><span id="line-992">        }</span>
+<span class="source-line-no">993</span><span id="line-993"></span>
+<span class="source-line-no">994</span><span id="line-994">        /**</span>
+<span class="source-line-no">995</span><span id="line-995">         * Removes the given value from the pool associated with the given key.</span>
+<span class="source-line-no">996</span><span id="line-996">         *</span>
+<span class="source-line-no">997</span><span id="line-997">         * @param key the key</span>
+<span class="source-line-no">998</span><span id="line-998">         * @param value the value</span>
+<span class="source-line-no">999</span><span id="line-999">         * @return the v</span>
+<span class="source-line-no">1000</span><span id="line-1000">         */</span>
+<span class="source-line-no">1001</span><span id="line-1001">        public V remove(K key, V value) {</span>
+<span class="source-line-no">1002</span><span id="line-1002">            synchronized (this) {</span>
+<span class="source-line-no">1003</span><span id="line-1003">                cleanOrphaned();</span>
+<span class="source-line-no">1004</span><span id="line-1004">                Set&lt;ValueReference&gt; set = backing.get(key);</span>
+<span class="source-line-no">1005</span><span id="line-1005">                if (set == null) {</span>
+<span class="source-line-no">1006</span><span id="line-1006">                    return null;</span>
+<span class="source-line-no">1007</span><span id="line-1007">                }</span>
+<span class="source-line-no">1008</span><span id="line-1008">                Iterator&lt;ValueReference&gt; iter = set.iterator();</span>
+<span class="source-line-no">1009</span><span id="line-1009">                while (iter.hasNext()) {</span>
+<span class="source-line-no">1010</span><span id="line-1010">                    ValueReference ref = iter.next();</span>
+<span class="source-line-no">1011</span><span id="line-1011">                    V stored = ref.get();</span>
+<span class="source-line-no">1012</span><span id="line-1012">                    boolean found = false;</span>
+<span class="source-line-no">1013</span><span id="line-1013">                    if (stored == null) {</span>
+<span class="source-line-no">1014</span><span id="line-1014">                        iter.remove();</span>
+<span class="source-line-no">1015</span><span id="line-1015">                    }</span>
+<span class="source-line-no">1016</span><span id="line-1016">                    if (stored.equals(value)) {</span>
+<span class="source-line-no">1017</span><span id="line-1017">                        iter.remove();</span>
+<span class="source-line-no">1018</span><span id="line-1018">                        found = true;</span>
+<span class="source-line-no">1019</span><span id="line-1019">                    }</span>
+<span class="source-line-no">1020</span><span id="line-1020">                    if (set.isEmpty()) {</span>
+<span class="source-line-no">1021</span><span id="line-1021">                        backing.remove(key);</span>
+<span class="source-line-no">1022</span><span id="line-1022">                    }</span>
+<span class="source-line-no">1023</span><span id="line-1023">                    if (found) {</span>
+<span class="source-line-no">1024</span><span id="line-1024">                        return value;</span>
+<span class="source-line-no">1025</span><span id="line-1025">                    }</span>
+<span class="source-line-no">1026</span><span id="line-1026">                }</span>
+<span class="source-line-no">1027</span><span id="line-1027">            }</span>
+<span class="source-line-no">1028</span><span id="line-1028">            return null;</span>
+<span class="source-line-no">1029</span><span id="line-1029">        }</span>
+<span class="source-line-no">1030</span><span id="line-1030"></span>
+<span class="source-line-no">1031</span><span id="line-1031">        /**</span>
+<span class="source-line-no">1032</span><span id="line-1032">         * Removes the value from the first pool in which it is found.</span>
+<span class="source-line-no">1033</span><span id="line-1033">         *</span>
+<span class="source-line-no">1034</span><span id="line-1034">         * @param value the value</span>
+<span class="source-line-no">1035</span><span id="line-1035">         * @return the value or `null` if the value is not found</span>
+<span class="source-line-no">1036</span><span id="line-1036">         */</span>
+<span class="source-line-no">1037</span><span id="line-1037">        public V remove(V value) {</span>
+<span class="source-line-no">1038</span><span id="line-1038">            synchronized (this) {</span>
+<span class="source-line-no">1039</span><span id="line-1039">                for (Set&lt;ValueReference&gt; set : backing.values()) {</span>
+<span class="source-line-no">1040</span><span id="line-1040">                    Iterator&lt;ValueReference&gt; iter = set.iterator();</span>
+<span class="source-line-no">1041</span><span id="line-1041">                    while (iter.hasNext()) {</span>
+<span class="source-line-no">1042</span><span id="line-1042">                        ValueReference ref = iter.next();</span>
+<span class="source-line-no">1043</span><span id="line-1043">                        V stored = ref.get();</span>
+<span class="source-line-no">1044</span><span id="line-1044">                        if (stored == null) {</span>
+<span class="source-line-no">1045</span><span id="line-1045">                            iter.remove();</span>
+<span class="source-line-no">1046</span><span id="line-1046">                        }</span>
+<span class="source-line-no">1047</span><span id="line-1047">                        if (stored.equals(value)) {</span>
+<span class="source-line-no">1048</span><span id="line-1048">                            iter.remove();</span>
+<span class="source-line-no">1049</span><span id="line-1049">                            return value;</span>
+<span class="source-line-no">1050</span><span id="line-1050">                        }</span>
+<span class="source-line-no">1051</span><span id="line-1051">                    }</span>
+<span class="source-line-no">1052</span><span id="line-1052">                }</span>
+<span class="source-line-no">1053</span><span id="line-1053">            }</span>
+<span class="source-line-no">1054</span><span id="line-1054">            return null;</span>
+<span class="source-line-no">1055</span><span id="line-1055">        }</span>
+<span class="source-line-no">1056</span><span id="line-1056"></span>
+<span class="source-line-no">1057</span><span id="line-1057">        /**</span>
+<span class="source-line-no">1058</span><span id="line-1058">         * Returns the number of keys in the index.</span>
+<span class="source-line-no">1059</span><span id="line-1059">         *</span>
+<span class="source-line-no">1060</span><span id="line-1060">         * @return the numer of keys</span>
+<span class="source-line-no">1061</span><span id="line-1061">         */</span>
+<span class="source-line-no">1062</span><span id="line-1062">        public int keysSize() {</span>
+<span class="source-line-no">1063</span><span id="line-1063">            return backing.size();</span>
+<span class="source-line-no">1064</span><span id="line-1064">        }</span>
+<span class="source-line-no">1065</span><span id="line-1065"></span>
+<span class="source-line-no">1066</span><span id="line-1066">    }</span>
+<span class="source-line-no">1067</span><span id="line-1067">}</span>
 
 
 

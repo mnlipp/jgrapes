@@ -139,32 +139,33 @@
 <span class="source-line-no">125</span><span id="line-125">    /**</span>
 <span class="source-line-no">126</span><span id="line-126">     * A sub-channel for mail connections.</span>
 <span class="source-line-no">127</span><span id="line-127">     */</span>
-<span class="source-line-no">128</span><span id="line-128">    protected abstract class AbstractMailChannel</span>
-<span class="source-line-no">129</span><span id="line-129">            extends ConnectionManager&lt;C&gt;.Connection implements MailChannel {</span>
-<span class="source-line-no">130</span><span id="line-130"></span>
-<span class="source-line-no">131</span><span id="line-131">        private final O openEvent;</span>
-<span class="source-line-no">132</span><span id="line-132"></span>
-<span class="source-line-no">133</span><span id="line-133">        /**</span>
-<span class="source-line-no">134</span><span id="line-134">         * Instantiates a new mail channel instance.</span>
-<span class="source-line-no">135</span><span id="line-135">         *</span>
-<span class="source-line-no">136</span><span id="line-136">         * @param event the main channel</span>
-<span class="source-line-no">137</span><span id="line-137">         */</span>
-<span class="source-line-no">138</span><span id="line-138">        public AbstractMailChannel(O event, Channel channel) {</span>
-<span class="source-line-no">139</span><span id="line-139">            super(channel);</span>
-<span class="source-line-no">140</span><span id="line-140">            openEvent = event;</span>
-<span class="source-line-no">141</span><span id="line-141">        }</span>
-<span class="source-line-no">142</span><span id="line-142"></span>
-<span class="source-line-no">143</span><span id="line-143">        /**</span>
-<span class="source-line-no">144</span><span id="line-144">         * Returns the event that caused this connection to be opened.</span>
-<span class="source-line-no">145</span><span id="line-145">         * </span>
-<span class="source-line-no">146</span><span id="line-146">         * @return the event</span>
-<span class="source-line-no">147</span><span id="line-147">         */</span>
-<span class="source-line-no">148</span><span id="line-148">        public O openEvent() {</span>
-<span class="source-line-no">149</span><span id="line-149">            return openEvent;</span>
-<span class="source-line-no">150</span><span id="line-150">        }</span>
-<span class="source-line-no">151</span><span id="line-151"></span>
-<span class="source-line-no">152</span><span id="line-152">    }</span>
-<span class="source-line-no">153</span><span id="line-153">}</span>
+<span class="source-line-no">128</span><span id="line-128">    @SuppressWarnings("PMD.PublicMemberInNonPublicType")</span>
+<span class="source-line-no">129</span><span id="line-129">    protected abstract class AbstractMailChannel</span>
+<span class="source-line-no">130</span><span id="line-130">            extends ConnectionManager&lt;C&gt;.Connection implements MailChannel {</span>
+<span class="source-line-no">131</span><span id="line-131"></span>
+<span class="source-line-no">132</span><span id="line-132">        private final O openEvent;</span>
+<span class="source-line-no">133</span><span id="line-133"></span>
+<span class="source-line-no">134</span><span id="line-134">        /**</span>
+<span class="source-line-no">135</span><span id="line-135">         * Instantiates a new mail channel instance.</span>
+<span class="source-line-no">136</span><span id="line-136">         *</span>
+<span class="source-line-no">137</span><span id="line-137">         * @param event the main channel</span>
+<span class="source-line-no">138</span><span id="line-138">         */</span>
+<span class="source-line-no">139</span><span id="line-139">        public AbstractMailChannel(O event, Channel channel) {</span>
+<span class="source-line-no">140</span><span id="line-140">            super(channel);</span>
+<span class="source-line-no">141</span><span id="line-141">            openEvent = event;</span>
+<span class="source-line-no">142</span><span id="line-142">        }</span>
+<span class="source-line-no">143</span><span id="line-143"></span>
+<span class="source-line-no">144</span><span id="line-144">        /**</span>
+<span class="source-line-no">145</span><span id="line-145">         * Returns the event that caused this connection to be opened.</span>
+<span class="source-line-no">146</span><span id="line-146">         * </span>
+<span class="source-line-no">147</span><span id="line-147">         * @return the event</span>
+<span class="source-line-no">148</span><span id="line-148">         */</span>
+<span class="source-line-no">149</span><span id="line-149">        public O openEvent() {</span>
+<span class="source-line-no">150</span><span id="line-150">            return openEvent;</span>
+<span class="source-line-no">151</span><span id="line-151">        }</span>
+<span class="source-line-no">152</span><span id="line-152"></span>
+<span class="source-line-no">153</span><span id="line-153">    }</span>
+<span class="source-line-no">154</span><span id="line-154">}</span>
 
 
 
