@@ -18,6 +18,8 @@
 
 package org.jgrapes.examples.mail;
 
+import jakarta.mail.Flags.Flag;
+import jakarta.mail.MessagingException;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
@@ -36,9 +38,6 @@ import org.jgrapes.util.ConfigurationStore;
 import org.jgrapes.util.Password;
 import org.jgrapes.util.TomlConfigurationStore;
 
-import jakarta.mail.MessagingException;
-import jakarta.mail.Flags.Flag;
-
 /**
  * An application that deletes all received mails.
  */
@@ -49,6 +48,7 @@ public class CleanUserMailsUntilStop extends Component {
     /**
      * Wait for mail with subject stop. Delete all other mails.
      */
+    @SuppressWarnings("PMD.CommentRequired")
     public static class WaitForStopMail extends Component {
 
         public WaitForStopMail(Channel componentChannel) {
@@ -61,6 +61,9 @@ public class CleanUserMailsUntilStop extends Component {
         }
 
         @Handler
+        @SuppressWarnings({ "PMD.SystemPrintln",
+            "PMD.AvoidInstantiatingObjectsInLoops",
+            "PMD.AvoidLiteralsInIfCondition" })
         public void onMail(MailFoldersUpdated event, MailChannel channel)
                 throws MessagingException {
             var msgs = MailFoldersUpdated.messages(event.folders().get(0));

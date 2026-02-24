@@ -52,8 +52,6 @@ import org.jgrapes.util.events.InitialPreferences;
  * the component also listens for {@link ConfigurationUpdate} events
  * on its channel and updates the TOML file (may be suppressed).
  */
-@SuppressWarnings({ "PMD.DataflowAnomalyAnalysis", "PMD.AvoidDuplicateLiterals",
-    "PMD.GodClass" })
 public class TomlConfigurationStore extends NightConfigStore {
 
     /**
@@ -86,7 +84,6 @@ public class TomlConfigurationStore extends NightConfigStore {
      * @param update if the configuration file is to be updated
      * @throws IOException Signals that an I/O exception has occurred.
      */
-    @SuppressWarnings("PMD.ShortVariable")
     public TomlConfigurationStore(Channel componentChannel, File file,
             boolean update) throws IOException {
         this(componentChannel, file, update, true);
@@ -110,7 +107,6 @@ public class TomlConfigurationStore extends NightConfigStore {
      * @param watch if {@link FileChanged} events are to be processed
      * @throws IOException Signals that an I/O exception has occurred.
      */
-    @SuppressWarnings("PMD.ShortVariable")
     public TomlConfigurationStore(Channel componentChannel, File file,
             boolean update, boolean watch) throws IOException {
         super(componentChannel, file, update, watch);

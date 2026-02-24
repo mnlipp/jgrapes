@@ -84,12 +84,10 @@ import org.jgrapes.io.events.Output;
  * @param <W> the type of the wrapped (managed) buffer
  * @param <T> the type of the content buffer that is wrapped
  */
-@SuppressWarnings({ "PMD.ExcessiveImports", "PMD.NcssCount",
-    "PMD.EmptyCatchBlock", "PMD.CouplingBetweenObjects" })
+@SuppressWarnings({ "PMD.EmptyCatchBlock", "PMD.CouplingBetweenObjects" })
 public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
         implements BufferCollector<W> {
 
-    @SuppressWarnings("PMD.FieldNamingConventions")
     protected final Logger logger
         = Logger.getLogger(ManagedBufferPool.class.getName());
 
@@ -245,11 +243,9 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
      * @return the acquired buffer
      * @throws InterruptedException if the current thread is interrupted
      */
-    @SuppressWarnings("PMD.GuardLogStatement")
     public W acquire() throws InterruptedException {
         // Stop draining, because we obviously need this kind of buffers
-        Optional.ofNullable(idleTimer.getAndSet(null)).ifPresent(
-            timer -> timer.cancel());
+        Optional.ofNullable(idleTimer.getAndSet(null)).ifPresent(Timer::cancel);
         if (createdBufs.get() < maximumBufs) {
             // Haven't reached maximum, so if no buffer is queued, create one.
             W buffer = queue.poll();
@@ -284,6 +280,7 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
      * @see org.jgrapes.io.util.BufferCollector#recollect(org.jgrapes.io.util.ManagedBuffer)
      */
     @Override
+    @SuppressWarnings("PMD.AvoidDeeplyNestedIfStmts")
     public void recollect(W buffer) {
         if (queue.size() < preservedBufs) {
             long effectiveDrainDelay
@@ -304,8 +301,7 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
         removeBuffer(buffer);
     }
 
-    @SuppressWarnings({ "PMD.UnusedFormalParameter",
-        "PMD.UnusedPrivateMethod" })
+    @SuppressWarnings({ "PMD.UnusedFormalParameter" })
     private void drain(Timer timer) {
         idleTimer.set(null);
         while (true) {
@@ -336,6 +332,8 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
     /**
      * Buffer properties.
      */
+    @SuppressWarnings({ "PMD.PublicMemberInNonPublicType",
+        "PMD.AvoidDuplicateLiterals" })
     private class BufferProperties {
 
         private final StackTraceElement[] createdBy;
@@ -367,7 +365,8 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
      * because there is no "hook" into the collection of orphaned
      * references, which is what we want here.
      */
-    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
+    @SuppressWarnings({ "PMD.PublicMemberInNonPublicType",
+        "PMD.AvoidSynchronizedStatement" })
     private class BufferMonitor {
 
         private final Entry<W>[] data;
@@ -415,14 +414,15 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 
             @Override
             public BufferProperties setValue(BufferProperties props) {
-                return this.props = props;
+                this.props = props;
+                return props;
             }
         }
 
         /**
          * @param data
          */
-        @SuppressWarnings("unchecked")
+        @SuppressWarnings({ "unchecked", "PMD.PublicMemberInNonPublicType" })
         public BufferMonitor(int maxBuffers) {
             int lists = 1;
             while (lists < maxBuffers) {
@@ -439,7 +439,7 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
          * @param properties the properties
          * @return the buffer properties
          */
-        @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
+        @SuppressWarnings({ "PMD.AvoidInstantiatingObjectsInLoops" })
         public BufferProperties put(W buffer, BufferProperties properties) {
             check();
             int index = buffer.hashCode() & indexMask;
@@ -476,7 +476,7 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
          * @param buffer the buffer
          * @return the buffer properties
          */
-        @SuppressWarnings("unused")
+        @SuppressWarnings({ "unused", "PMD.CompareObjectsWithEquals" })
         public BufferProperties get(ManagedBuffer<?> buffer) {
             check();
             int index = buffer.hashCode() & indexMask;
@@ -498,6 +498,7 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
          * @param buffer the buffer
          * @return the buffer properties
          */
+        @SuppressWarnings("PMD.CompareObjectsWithEquals")
         public BufferProperties remove(ManagedBuffer<?> buffer) {
             check();
             int index = buffer.hashCode() & indexMask;
@@ -794,6 +795,7 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
     /**
      * The MBean view
      */
+    @SuppressWarnings("PMD.PublicMemberInNonPublicType")
     private static final class MBeanView implements ManagedBufferPoolMXBean {
 
         private static Set<ManagedBufferPool<?, ?>> allPools

@@ -124,7 +124,7 @@ public class ByteBufferWriter extends AbstractBufferWriter<ByteBuffer> {
      * @return the writer
      */
     @SuppressWarnings({ "PMD.AvoidCatchingGenericException",
-        "PMD.EmptyCatchBlock", "PMD.DataflowAnomalyAnalysis" })
+        "PMD.EmptyCatchBlock" })
     public ByteBufferWriter nativeCharset() {
         Charset toSet = Charset.defaultCharset();
         var toCheck = System.getProperty("native.encoding");

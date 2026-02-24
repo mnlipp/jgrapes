@@ -74,7 +74,7 @@ import org.jgrapes.io.util.ManagedBufferPool;
  * with the process's exit value. Note that the sequence in which these
  * events are sent is undefined.
  */
-@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
+@SuppressWarnings("PMD.AvoidSynchronizedStatement")
 public class ProcessManager extends Component {
 
     private ExecutorService executorService
@@ -86,7 +86,7 @@ public class ProcessManager extends Component {
      * Creates a new connector, using itself as component channel. 
      */
     public ProcessManager() {
-        this(Channel.SELF);
+        this(SELF);
     }
 
     /**
@@ -117,6 +117,7 @@ public class ProcessManager extends Component {
      * @param event the event
      */
     @Handler
+    @SuppressWarnings("PMD.AssignmentInOperand")
     public void onStartProcess(StartProcess event) {
         var pbd = new ProcessBuilder(event.command());
         if (event.directory() != null) {
@@ -208,7 +209,6 @@ public class ProcessManager extends Component {
      * @throws InterruptedException if the execution was interrupted
      */
     @Handler(priority = -100)
-    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
     public void onClosed(Closed<?> event)
             throws IOException, InterruptedException {
         for (Channel channel : event.channels()) {

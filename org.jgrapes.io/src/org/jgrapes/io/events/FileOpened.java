@@ -36,6 +36,7 @@ public class FileOpened extends Opened<OpenFile> {
      *
      * @param event the event that caused opening the file
      */
+    @SuppressWarnings("PMD.ConstructorCallsOverridableMethod")
     public FileOpened(OpenFile event) {
         setResult(event);
         this.path = event.path();
@@ -50,6 +51,7 @@ public class FileOpened extends Opened<OpenFile> {
      * @param path the path
      * @param options the options
      */
+    @SuppressWarnings("PMD.ConstructorCallsOverridableMethod")
     public FileOpened(OpenFile event, Path path, OpenOption... options) {
         setResult(event);
         this.path = path;

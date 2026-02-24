@@ -36,6 +36,7 @@ import org.jgrapes.core.EventPipeline;
  * If there are no channels associated with the event, use the broadcast 
  * channel.
  */
+@SuppressWarnings("PMD.PublicMemberInNonPublicType")
 class CheckingPipelineFilter
         implements EventPipeline, InternalEventPipelineWrapper, IdInfoProvider {
 

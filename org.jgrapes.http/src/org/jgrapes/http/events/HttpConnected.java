@@ -39,6 +39,7 @@ public class HttpConnected extends Opened<Request.Out> {
      * @param localAddress the local address
      * @param remoteAddress the remote address
      */
+    @SuppressWarnings("PMD.ConstructorCallsOverridableMethod")
     public HttpConnected(Request.Out request,
             SocketAddress localAddress, SocketAddress remoteAddress) {
         setResult(request);

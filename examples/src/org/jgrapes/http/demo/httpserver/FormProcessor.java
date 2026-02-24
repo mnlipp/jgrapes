@@ -45,7 +45,7 @@ import org.jgrapes.io.util.ManagedBuffer;
 /**
  * 
  */
-@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
+@SuppressWarnings("PMD.PublicMemberInNonPublicType")
 public class FormProcessor extends Component {
 
     /**

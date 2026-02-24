@@ -44,7 +44,7 @@ import org.jgrapes.util.ConfigurationStore;
  * the implementation's structure as the filtering is completely up
  * to the component.
  */
-@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
+@SuppressWarnings("PMD.AvoidSynchronizedStatement")
 public class ConfigurationUpdate extends Event<Void> {
 
     @SuppressWarnings("PMD.UseConcurrentHashMap")
@@ -58,7 +58,6 @@ public class ConfigurationUpdate extends Event<Void> {
      * 
      * @return the paths
      */
-    @SuppressWarnings("PMD.ConfusingTernary")
     public Set<String> paths() {
         synchronized (structuredValues) {
             return new HashSet<>(structuredValues.keySet());
@@ -173,9 +172,8 @@ public class ConfigurationUpdate extends Event<Void> {
             throw new IllegalArgumentException("Path must start with \"/\".");
         }
         synchronized (structuredValues) {
-            @SuppressWarnings("PMD.UseConcurrentHashMap")
             Map<String, Object> scoped = structuredValues
-                .computeIfAbsent(path, newKey -> new HashMap<String, Object>());
+                .computeIfAbsent(path, newKey -> new HashMap<>());
             ConfigurationStore.mergeValue(scoped, selector, value);
             flattenedCache.remove(path);
         }

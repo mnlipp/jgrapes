@@ -22,7 +22,6 @@ import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
 import java.util.HashSet;
 import java.util.Set;
-
 import org.jgrapes.core.Components;
 
 /**
@@ -57,6 +56,7 @@ public final class ThreadCleaner {
      *
      * @param <T> the generic type
      */
+    @SuppressWarnings("PMD.PublicMemberInNonPublicType")
     private static class RefWithThread extends WeakReference<Object> {
         public final Thread watched;
 

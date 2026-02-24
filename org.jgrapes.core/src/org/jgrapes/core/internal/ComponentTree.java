@@ -38,7 +38,8 @@ import org.jgrapes.core.events.Error;
  * This class represents the component tree. It holds all properties that 
  * are common to all nodes of a component tree (the {@link ComponentVertex}s).
  */
-@SuppressWarnings("PMD.AvoidSynchronizedStatement")
+@SuppressWarnings({ "PMD.AvoidSynchronizedStatement",
+    "PMD.PublicMemberInNonPublicType" })
 class ComponentTree {
 
     @SuppressWarnings("PMD.FieldNamingConventions")

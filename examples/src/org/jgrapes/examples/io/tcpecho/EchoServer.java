@@ -88,7 +88,7 @@ public class EchoServer extends Component {
         Component app = new EchoServer(networkChannel)
             .attach(new NioDispatcher())
             .attach(new SocketServer(networkChannel).setServerAddress(
-                new InetSocketAddress(8888)).setBufferSize(120000));
+                new InetSocketAddress(8888)).setBufferSize(120_000));
         Components.start(app);
         Components.awaitExhaustion();
     }

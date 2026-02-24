@@ -24,7 +24,6 @@ import org.jgrapes.io.events.OpenSocketConnection;
 /**
  * This event signals that a new connection has been made by a client.
  */
-@SuppressWarnings("PMD.DataClass")
 public class ClientConnected extends Connected<OpenSocketConnection> {
 
     /**
@@ -35,6 +34,7 @@ public class ClientConnected extends Connected<OpenSocketConnection> {
      * @param remoteAddress the remote address
      * (in case of a TLS connection)
      */
+    @SuppressWarnings("PMD.ConstructorCallsOverridableMethod")
     public ClientConnected(OpenSocketConnection openEvent,
             SocketAddress localAddress, SocketAddress remoteAddress) {
         super(localAddress, remoteAddress);

@@ -98,8 +98,7 @@ public class Accepted extends Opened<Void> {
             .append(remoteAddress)
             .append(", ");
         if (channels().length > 0) {
-            builder.append("channels=");
-            builder.append(Channel.toString(channels()));
+            builder.append("channels=").append(Channel.toString(channels()));
         }
         builder.append(", secure=")
             .append(secure)

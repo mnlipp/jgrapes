@@ -125,6 +125,7 @@ public abstract class MailConnectionManager<
     /**
      * A sub-channel for mail connections.
      */
+    @SuppressWarnings("PMD.PublicMemberInNonPublicType")
     protected abstract class AbstractMailChannel
             extends ConnectionManager<C>.Connection implements MailChannel {
 

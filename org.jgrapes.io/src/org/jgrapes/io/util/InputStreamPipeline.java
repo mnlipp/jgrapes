@@ -46,7 +46,6 @@ import org.jgrapes.io.events.Output;
  * {@link Input} events is used when an input stream generates events
  * that should be processed as requests by the application.
  */
-@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 public class InputStreamPipeline implements Runnable {
 
     private InputStream inStream;
@@ -129,7 +128,7 @@ public class InputStreamPipeline implements Runnable {
                 defaultTransfer();
             }
             if (sendClosed) {
-                eventPipeline.fire(associate(new Closed<Void>()), channel);
+                eventPipeline.fire(associate(new Closed<>()), channel);
             }
         } catch (InterruptedException e) { // NOPMD
             // Just stop

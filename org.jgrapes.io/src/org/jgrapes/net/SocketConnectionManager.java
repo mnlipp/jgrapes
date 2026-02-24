@@ -52,9 +52,7 @@ import org.jgrapes.io.util.ManagedBufferPool;
  * Provides a base class for the {@link SocketServer} and the 
  * {@link SocketConnector}.
  */
-@SuppressWarnings({ "PMD.ExcessiveImports", "PMD.ExcessivePublicCount",
-    "PMD.NcssCount", "PMD.EmptyCatchBlock", "PMD.AvoidDuplicateLiterals",
-    "PMD.ExcessiveClassLength" })
+@SuppressWarnings("PMD.AvoidSynchronizedStatement")
 public abstract class SocketConnectionManager extends Component {
 
     private int bufferSize = 32_768;
@@ -177,10 +175,7 @@ public abstract class SocketConnectionManager extends Component {
     /**
      * The internal representation of a connection. 
      */
-    /**
-     * 
-     */
-    @SuppressWarnings("PMD.GodClass")
+    @SuppressWarnings({ "PMD.GodClass", "PMD.PublicMemberInNonPublicType" })
     protected class SocketChannelImpl
             extends DefaultIOSubchannel implements NioHandler, SocketIOChannel {
 
@@ -204,6 +199,7 @@ public abstract class SocketConnectionManager extends Component {
          * @param nioChannel the channel
          * @throws IOException if an I/O error occurred
          */
+        @SuppressWarnings("PMD.ConstructorCallsOverridableMethod")
         public SocketChannelImpl(OpenSocketConnection openEvent,
                 SocketChannel nioChannel) throws IOException {
             super(channel(), newEventPipeline());
@@ -245,7 +241,7 @@ public abstract class SocketConnectionManager extends Component {
             SocketConnectionManager.this.fire(
                 new NioRegistration(this, nioChannel, 0,
                     SocketConnectionManager.this),
-                Channel.BROADCAST);
+                BROADCAST);
         }
 
         /**
@@ -315,6 +311,7 @@ public abstract class SocketConnectionManager extends Component {
          *
          * @return true, if is purgeable
          */
+        @Override
         public boolean isPurgeable() {
             return purgeable == PurgeableState.YES;
         }
@@ -324,6 +321,7 @@ public abstract class SocketConnectionManager extends Component {
          *
          * @return the time
          */
+        @Override
         public long purgeableSince() {
             return becamePurgeableAt;
         }
@@ -420,7 +418,7 @@ public abstract class SocketConnectionManager extends Component {
                         // Ignored for close
                     }
                     connState = ConnectionState.CLOSED;
-                    downPipeline.fire(new Closed<Void>(), this);
+                    downPipeline.fire(new Closed<>(), this);
                     return;
                 }
             }
@@ -433,7 +431,7 @@ public abstract class SocketConnectionManager extends Component {
                     newEventPipeline().fire(new HalfClosed(), this).get();
                     // All settled.
                     removeChannel(this);
-                    downPipeline.fire(new Closed<Void>(), this);
+                    downPipeline.fire(new Closed<>(), this);
                     // Close our end if everything has been written.
                     synchronized (pendingWrites) {
                         synchronized (nioChannel) {
@@ -465,9 +463,9 @@ public abstract class SocketConnectionManager extends Component {
          * @throws IOException
          * @throws InterruptedException 
          */
-        @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",
-            "PMD.EmptyCatchBlock", "PMD.AvoidBranchingStatementAsLastInLoop",
-            "PMD.CognitiveComplexity" })
+        @SuppressWarnings({ "PMD.EmptyCatchBlock", "PMD.CognitiveComplexity",
+            "PMD.AvoidBranchingStatementAsLastInLoop",
+            "PMD.AvoidDeeplyNestedIfStmts" })
         private void handleWriteOp() throws InterruptedException {
             while (true) {
                 ManagedBuffer<ByteBuffer>.ByteBufferView head;
@@ -568,7 +566,6 @@ public abstract class SocketConnectionManager extends Component {
          * @see org.jgrapes.io.IOSubchannel.DefaultSubchannel#toString()
          */
         @Override
-        @SuppressWarnings("PMD.CommentRequired")
         public String toString() {
             return Subchannel.toString(this);
         }

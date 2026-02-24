@@ -32,6 +32,7 @@ import java.util.concurrent.Semaphore;
  * Listeners are added using {@link WeakReference}, so removing
  * them isn't strictly necessary.
  */
+@SuppressWarnings("PMD.AvoidSynchronizedStatement")
 public class PermitsPool {
 
     private final MySemaphore delegee;
@@ -42,6 +43,7 @@ public class PermitsPool {
     /**
      * A variant of {@link Semaphore}.
      */
+    @SuppressWarnings("PMD.PublicMemberInNonPublicType")
     private static class MySemaphore extends Semaphore {
         private static final long serialVersionUID = 8758302721594300704L;
 
@@ -55,7 +57,6 @@ public class PermitsPool {
         }
 
         @Override
-        @SuppressWarnings("PMD.UselessOverridingMethod")
         public void reducePermits(int reduction) {
             super.reducePermits(reduction);
         }
@@ -120,6 +121,7 @@ public class PermitsPool {
      * @param listener the AvailabilityListener
      * @return the permits pool
      */
+    @SuppressWarnings("PMD.CompareObjectsWithEquals")
     public PermitsPool removeListener(AvailabilityListener listener) {
         synchronized (listeners) {
             for (Iterator<WeakReference<AvailabilityListener>> iter

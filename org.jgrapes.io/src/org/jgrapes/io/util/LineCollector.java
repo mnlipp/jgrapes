@@ -37,7 +37,6 @@ import java.util.function.Consumer;
  * If no more input is expected and characters without trailing LF
  * remain, these remaining character are returned as a line as well.   
  */
-@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 public class LineCollector implements InputConsumer {
     private boolean isEof;
     private CharsetDecoder decoder;
@@ -133,6 +132,7 @@ public class LineCollector implements InputConsumer {
      *
      * @param buffer the buffer
      */
+    @Override
     public <W extends Buffer> void feed(ManagedBuffer<W> buffer) {
         if (buffer == null) {
             feed((W) null);
@@ -179,8 +179,7 @@ public class LineCollector implements InputConsumer {
     }
 
     @SuppressWarnings({ "PMD.CognitiveComplexity", "PMD.NcssCount",
-        "PMD.NPathComplexity", "PMD.AvoidLiteralsInIfCondition",
-        "PMD.AvoidReassigningLoopVariables",
+        "PMD.AvoidLiteralsInIfCondition", "PMD.AvoidReassigningLoopVariables",
         "PMD.AvoidBranchingStatementAsLastInLoop", "PMD.CyclomaticComplexity",
         "PMD.AvoidInstantiatingObjectsInLoops" })
     private void extractLines() {

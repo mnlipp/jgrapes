@@ -47,7 +47,7 @@ import org.jgrapes.util.events.InitialConfiguration;
  * {@link #values(String)} as the default implementations of either
  * calls the other. 
  */
-@SuppressWarnings({ "PMD.DataflowAnomalyAnalysis", "PMD.GodClass" })
+@SuppressWarnings({ "PMD.GodClass" })
 public abstract class ConfigurationStore extends Component {
 
     public static final Pattern NUMBER = Pattern.compile("^\\d+$");
@@ -85,6 +85,7 @@ public abstract class ConfigurationStore extends Component {
      * @param channelReplacements the channel replacements to apply
      * to the `channels` elements of the {@link Handler} annotations
      */
+    @SuppressWarnings("PMD.LooseCoupling")
     public ConfigurationStore(Channel componentChannel,
             ChannelReplacements channelReplacements) {
         super(componentChannel, channelReplacements);
@@ -115,7 +116,8 @@ public abstract class ConfigurationStore extends Component {
         return result;
     }
 
-    @SuppressWarnings({ "unchecked", "PMD.AvoidDuplicateLiterals" })
+    @SuppressWarnings({ "unchecked", "PMD.AvoidDuplicateLiterals",
+        "PMD.AssignmentInOperand" })
     private static void flattenObject(Map<String, Object> result,
             String prefix, Object value) {
         if (value instanceof Map) {
@@ -147,8 +149,6 @@ public abstract class ConfigurationStore extends Component {
      * @param flatProperties the flat properties
      * @return a map with structured values
      */
-    @SuppressWarnings({ "PMD.AvoidInstantiatingObjectsInLoops",
-        "PMD.ReturnEmptyCollectionRatherThanNull" })
     public static Map<String, Object> structure(Map<String, ?> flatProperties) {
         return structure(flatProperties, false);
     }
@@ -264,7 +264,7 @@ public abstract class ConfigurationStore extends Component {
         mergeValue((Map<Object, Object>) newTarget, parts, value);
     }
 
-    @SuppressWarnings({ "unchecked", "PMD.ConfusingTernary" })
+    @SuppressWarnings({ "unchecked" })
     private static Object maybeConvert(Object value, boolean convertSparse) {
         if (!(value instanceof TreeMap)) {
             return value;
@@ -331,8 +331,7 @@ public abstract class ConfigurationStore extends Component {
      * 
      * @return the value
      */
-    @SuppressWarnings({ "unchecked", "PMD.ShortMethodName",
-        "PMD.NPathComplexity" })
+    @SuppressWarnings({ "unchecked", "PMD.ShortMethodName" })
     public static <T> Optional<T> as(Object value, Class<T> requested) {
         // Handle null.
         if (value == null) {

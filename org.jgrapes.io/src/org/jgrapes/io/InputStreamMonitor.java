@@ -47,16 +47,13 @@ import org.jgrapes.util.events.ConfigurationUpdate;
  * lifetime of the application. A typical usage is
  * to make data from `System.in` available as events.
  */
-@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
+@SuppressWarnings("PMD.AvoidSynchronizedStatement")
 public class InputStreamMonitor extends Component implements Runnable {
 
-    @SuppressWarnings("PMD.SingularField")
     private Channel dataChannel;
-    @SuppressWarnings("PMD.SingularField")
     private InputStream input;
     private boolean registered;
     private Thread runner;
-    @SuppressWarnings("PMD.SingularField")
     private ManagedBufferPool<ManagedBuffer<ByteBuffer>, ByteBuffer> buffers;
     private int bufferSize = 2048;
 

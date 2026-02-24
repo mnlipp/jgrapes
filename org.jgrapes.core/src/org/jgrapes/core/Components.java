@@ -468,6 +468,7 @@ public class Components {
     /**
      * A general purpose scheduler.
      */
+    @SuppressWarnings("PMD.PublicMemberInNonPublicType")
     private static class Scheduler extends Thread {
 
         private final Queue<Timer> timers = new PriorityQueue<>(10,
@@ -816,7 +817,8 @@ public class Components {
         private final ReferenceQueue<V> orphanedEntries
             = new ReferenceQueue<>();
 
-        @SuppressWarnings("PMD.CommentRequired")
+        @SuppressWarnings({ "PMD.CommentRequired",
+            "PMD.PublicMemberInNonPublicType" })
         private class ValueReference extends WeakReference<V> {
 
             private final K key;

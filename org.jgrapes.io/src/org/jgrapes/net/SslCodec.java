@@ -74,7 +74,7 @@ import org.jgrapes.net.events.Connected;
  * encrypted data and are decoded to {@link Output} events on
  * the plain channel ("downstream") and vice versa.
  */
-@SuppressWarnings({ "PMD.ExcessiveImports", "PMD.CouplingBetweenObjects" })
+@SuppressWarnings({ "PMD.CouplingBetweenObjects" })
 public class SslCodec extends Component {
 
     private final Channel encryptedChannel;
@@ -108,9 +108,7 @@ public class SslCodec extends Component {
      * @param encryptedChannel the channel with the encrypted data
      * @param dontValidate if `true` accept all kinds of certificates
      */
-    @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis", "PMD.CommentRequired",
-        "PMD.ReturnEmptyArrayRatherThanNull", "PMD.UncommentedEmptyMethodBody",
-        "PMD.AvoidDuplicateLiterals" })
+    @SuppressWarnings({ "PMD.UncommentedEmptyMethodBody" })
     public SslCodec(Channel plainChannel, Channel encryptedChannel,
             boolean dontValidate) {
         super(plainChannel, ChannelReplacements.create()
@@ -310,6 +308,7 @@ public class SslCodec extends Component {
      * @throws ExecutionException 
      */
     @Handler
+    @SuppressWarnings("PMD.CompareObjectsWithEquals")
     public void onOutput(Output<ByteBuffer> event, PlainChannel plainChannel)
             throws InterruptedException, SSLException, ExecutionException {
         if (plainChannel.hub() != this) {
@@ -327,6 +326,7 @@ public class SslCodec extends Component {
      * @throws InterruptedException if the execution was interrupted
      */
     @Handler
+    @SuppressWarnings("PMD.CompareObjectsWithEquals")
     public void onClose(Close event, PlainChannel plainChannel)
             throws InterruptedException, SSLException {
         if (plainChannel.hub() != this) {
@@ -338,7 +338,8 @@ public class SslCodec extends Component {
     /**
      * Represents the plain channel.
      */
-    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
+    @SuppressWarnings({ "PMD.PublicMemberInNonPublicType",
+        "PMD.AvoidSynchronizedStatement" })
     private class PlainChannel extends LinkedIOSubchannel
             implements SocketIOChannel {
         public final SocketAddress localAddress;
@@ -356,6 +357,7 @@ public class SslCodec extends Component {
          * @param event the event
          * @param upstreamChannel the upstream channel
          */
+        @SuppressWarnings("PMD.ConstructorCallsOverridableMethod")
         public PlainChannel(Accepted event, IOSubchannel upstreamChannel) {
             super(SslCodec.this, channel(), upstreamChannel,
                 newEventPipeline());
@@ -371,6 +373,7 @@ public class SslCodec extends Component {
          * @param event the event
          * @param upstreamChannel the upstream channel
          */
+        @SuppressWarnings("PMD.ConstructorCallsOverridableMethod")
         public PlainChannel(Connected<?> event, IOSubchannel upstreamChannel) {
             super(SslCodec.this, channel(), upstreamChannel,
                 newEventPipeline());
@@ -387,7 +390,7 @@ public class SslCodec extends Component {
                     event.localAddress(), event.remoteAddress()), this);
 
             } else {
-                downPipeline.fire(new Connected<Void>(
+                downPipeline.fire(new Connected<>(
                     event.localAddress(), event.remoteAddress()), this);
             }
         }
@@ -462,8 +465,7 @@ public class SslCodec extends Component {
         }
 
         @SuppressWarnings({ "PMD.CyclomaticComplexity", "PMD.NcssCount",
-            "PMD.AvoidInstantiatingObjectsInLoops", "PMD.ExcessiveMethodLength",
-            "PMD.NPathComplexity", "PMD.CognitiveComplexity" })
+            "PMD.CognitiveComplexity" })
         private SSLEngineResult processInput(ByteBuffer input)
                 throws SSLException, InterruptedException, ExecutionException {
             SSLEngineResult unwrapResult;
@@ -556,7 +558,6 @@ public class SslCodec extends Component {
             return unwrapResult;
         }
 
-        @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
         private void fireAccepted() {
             List<SNIServerName> snis = Collections.emptyList();
             if (sslEngine.getSession() instanceof ExtendedSSLSession) {
@@ -581,9 +582,7 @@ public class SslCodec extends Component {
             processOutput(output, event.isEndOfRecord());
         }
 
-        @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis", "PMD.NcssCount",
-            "PMD.CyclomaticComplexity", "PMD.NPathComplexity",
-            "PMD.CognitiveComplexity" })
+        @SuppressWarnings("PMD.CognitiveComplexity")
         private void processOutput(ByteBuffer output, boolean eor)
                 throws InterruptedException, SSLException, ExecutionException {
             ManagedBuffer<ByteBuffer> wrapped = acquireUpstreamBuffer();
@@ -725,7 +724,7 @@ public class SslCodec extends Component {
          */
         public void upstreamClosed()
                 throws SSLException, InterruptedException {
-            downPipeline.fire(new Closed<Void>(), this);
+            downPipeline.fire(new Closed<>(), this);
         }
 
         private ManagedBuffer<ByteBuffer> acquireUpstreamBuffer()

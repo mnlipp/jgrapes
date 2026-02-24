@@ -64,7 +64,6 @@ import org.jgrapes.io.util.ByteBufferWriter;
  * A base class for components that generate responses to
  * HTTP requests which are based on a FreeMarker template.
  */
-@SuppressWarnings("PMD.DataClass")
 public class FreeMarkerRequestHandler extends Component {
     public static final Pattern TEMPLATE_PATTERN
         = Pattern.compile(".*\\.ftl\\.[a-z]+$");
@@ -92,6 +91,7 @@ public class FreeMarkerRequestHandler extends Component {
      * @param contentPath the content path
      * @param prefix the prefix used in requests
      */
+    @SuppressWarnings("PMD.LooseCoupling")
     public FreeMarkerRequestHandler(Channel componentChannel,
             ChannelReplacements channelReplacements,
             ClassLoader contentLoader, String contentPath, URI prefix) {
@@ -198,7 +198,6 @@ public class FreeMarkerRequestHandler extends Component {
      * @param channel the channel
      * @throws ParseException the parse exception
      */
-    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
     protected void doRespond(Request.In event, IOSubchannel channel)
             throws ParseException {
         final HttpRequest request = event.httpRequest();
@@ -329,8 +328,8 @@ public class FreeMarkerRequestHandler extends Component {
     protected Map<String, Object> fmSessionModel(Optional<Session> session) {
         @SuppressWarnings("PMD.UseConcurrentHashMap")
         final Map<String, Object> model = new HashMap<>();
-        Locale locale = session.map(
-            sess -> sess.locale()).orElse(Locale.getDefault());
+        Locale locale
+            = session.map(Session::locale).orElse(Locale.getDefault());
         model.put("locale", locale);
         final ResourceBundle resourceBundle = resourceBundle(locale);
         model.put("resourceBundle", resourceBundle);

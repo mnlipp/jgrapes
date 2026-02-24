@@ -27,6 +27,7 @@ import org.jgrapes.io.events.Input;
  * 
  * @since 2.8.0
  */
+@SuppressWarnings("PMD.ImplicitFunctionalInterface")
 public interface InputConsumer {
 
     /**

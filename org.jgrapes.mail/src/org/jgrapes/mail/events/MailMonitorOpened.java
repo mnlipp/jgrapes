@@ -24,6 +24,7 @@ import org.jgrapes.io.events.Opened;
 /**
  * Fired when the requested connection has been established.
  */
+@SuppressWarnings("PMD.ConstructorCallsOverridableMethod")
 public class MailMonitorOpened extends Opened<OpenMailMonitor> {
 
     private final Store store;

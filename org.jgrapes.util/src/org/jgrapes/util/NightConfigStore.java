@@ -42,11 +42,9 @@ import org.jgrapes.util.events.InitialConfiguration;
  * A base class for configuration stored based on the 
  * [night config library](https://github.com/TheElectronWill/night-config).
  */
-@SuppressWarnings({ "PMD.DataflowAnomalyAnalysis", "PMD.AvoidDuplicateLiterals",
-    "PMD.GodClass" })
+@SuppressWarnings({ "PMD.GodClass" })
 public abstract class NightConfigStore extends ConfigurationStore {
 
-    @SuppressWarnings("PMD.FieldNamingConventions")
     protected static final Logger logger
         = Logger.getLogger(NightConfigStore.class.getName());
 
@@ -85,7 +83,6 @@ public abstract class NightConfigStore extends ConfigurationStore {
      * @throws IOException Signals that an I/O exception has occurred.
      */
     @Deprecated
-    @SuppressWarnings("PMD.ShortVariable")
     public NightConfigStore(Channel componentChannel, File file,
             boolean update) throws IOException {
         this(componentChannel, file, update, true);
@@ -109,7 +106,7 @@ public abstract class NightConfigStore extends ConfigurationStore {
      * @param watch if {@link FileChanged} events are to be processed
      * @throws IOException Signals that an I/O exception has occurred.
      */
-    @SuppressWarnings("PMD.ShortVariable")
+    @SuppressWarnings("PMD.ConstructorCallsOverridableMethod")
     public NightConfigStore(Channel componentChannel, File file,
             boolean update, boolean watch) throws IOException {
         super(componentChannel);
@@ -148,8 +145,8 @@ public abstract class NightConfigStore extends ConfigurationStore {
     }
 
     @Override
-    @SuppressWarnings({ "PMD.AvoidLiteralsInIfCondition",
-        "PMD.AvoidBranchingStatementAsLastInLoop", "PMD.CloseResource" })
+    @SuppressWarnings({ "PMD.AvoidBranchingStatementAsLastInLoop",
+        "PMD.CloseResource" })
     public Optional<Map<String, Object>> structured(String path) {
         if (!path.startsWith("/")) {
             throw new IllegalArgumentException("Path must start with \"/\".");
@@ -157,7 +154,6 @@ public abstract class NightConfigStore extends ConfigurationStore {
 
         // Walk down to node.
         var segs = new StringTokenizer(path, "/");
-        @SuppressWarnings("PMD.CloseResource")
         Config cur = config;
         while (segs.hasMoreTokens()) {
             var nextSeg = segs.nextToken();
@@ -227,7 +223,6 @@ public abstract class NightConfigStore extends ConfigurationStore {
      * @throws InterruptedException the interrupted exception
      */
     @Handler(priority = 999_999, channels = Channel.class)
-    @SuppressWarnings("PMD.CognitiveComplexity")
     public void onStart(Start event)
             throws BackingStoreException, InterruptedException {
         ConfigurationUpdate updEvt = new InitialConfiguration();
@@ -266,9 +261,7 @@ public abstract class NightConfigStore extends ConfigurationStore {
      * @throws IOException Signals that an I/O exception has occurred.
      */
     @Handler(dynamic = true)
-    @SuppressWarnings({ "PMD.CognitiveComplexity", "PMD.NPathComplexity",
-        "PMD.AvoidLiteralsInIfCondition",
-        "PMD.AvoidInstantiatingObjectsInLoops" })
+    @SuppressWarnings({ "PMD.AvoidInstantiatingObjectsInLoops" })
     public void onConfigurationUpdate(ConfigurationUpdate event)
             throws IOException {
         if (event instanceof InitialConfiguration) {
@@ -293,7 +286,6 @@ public abstract class NightConfigStore extends ConfigurationStore {
         }
     }
 
-    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
     private boolean handleSegment(Config config,
             StringTokenizer tokenizer, Optional<Map<String, Object>> values) {
         if (!tokenizer.hasMoreTokens()) {
@@ -328,8 +320,7 @@ public abstract class NightConfigStore extends ConfigurationStore {
         return handleSegment((Config) subConfig, tokenizer, values) || changed;
     }
 
-    @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",
-        "PMD.CognitiveComplexity" })
+    @SuppressWarnings({ "PMD.CognitiveComplexity" })
     private boolean mergeValues(Config config, Map<String, Object> values) {
         boolean changed = false;
         Map<String, Object> curValues = flatten(toValueMap(config));

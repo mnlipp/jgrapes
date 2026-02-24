@@ -60,7 +60,6 @@ import org.jgrapes.util.events.InitialPreferences;
  * the component also listens for {@link ConfigurationUpdate} events
  * on its channel and updates the preferences store (may be suppressed).
  */
-@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 public class PreferencesStore extends ConfigurationStore {
 
     private Preferences preferences;
@@ -92,6 +91,7 @@ public class PreferencesStore extends ConfigurationStore {
      * 
      * @see #PreferencesStore(Channel, Class)
      */
+    @SuppressWarnings("PMD.ConstructorCallsOverridableMethod")
     public PreferencesStore(
             Channel componentChannel, Class<?> appClass, boolean update) {
         super(componentChannel);
@@ -111,7 +111,6 @@ public class PreferencesStore extends ConfigurationStore {
      * @throws BackingStoreException the backing store exception
      * @throws InterruptedException the interrupted exception
      */
-    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
     @Handler(priority = 999_999, channels = Channel.class)
     public void onStart(Start event)
             throws BackingStoreException, InterruptedException {
@@ -121,7 +120,6 @@ public class PreferencesStore extends ConfigurationStore {
         newEventPipeline().fire(updEvt, event.channels()).get();
     }
 
-    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
     private void addPrefs(
             InitialPreferences updEvt, String rootPath, Preferences node)
             throws BackingStoreException {
@@ -132,7 +130,7 @@ public class PreferencesStore extends ConfigurationStore {
         for (String key : node.keys()) {
             props.put(key, node.get(key, null));
         }
-        updEvt.set(relPath, ConfigurationStore.structure(props));
+        updEvt.set(relPath, structure(props));
         for (String child : node.childrenNames()) {
             addPrefs(updEvt, rootPath, node.node(child));
         }

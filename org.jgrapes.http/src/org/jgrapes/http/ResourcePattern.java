@@ -192,9 +192,6 @@ public class ResourcePattern {
      * @return -1 if the resource does not match, else the number
      * of prefix segments (which may be 0)
      */
-    @SuppressWarnings({ "PMD.CyclomaticComplexity", "PMD.NPathComplexity",
-        "PMD.CollapsibleIfStatements", "PMD.DataflowAnomalyAnalysis",
-        "PMD.AvoidDuplicateLiterals" })
     public int matches(URI resource) {
         return matches(resource, Integer.MAX_VALUE);
     }
@@ -209,8 +206,8 @@ public class ResourcePattern {
      * of prefix segments (which may be 0)
      */
     @SuppressWarnings({ "PMD.CyclomaticComplexity", "PMD.NPathComplexity",
-        "PMD.CollapsibleIfStatements", "PMD.DataflowAnomalyAnalysis",
-        "PMD.CognitiveComplexity" })
+        "PMD.CollapsibleIfStatements", "PMD.CognitiveComplexity",
+        "PMD.AvoidDeeplyNestedIfStmts" })
     public int matches(URI resource, int pathSegs) {
         if (protocol != null && !"*".equals(protocol)) {
             if (resource.getScheme() == null) {
@@ -297,9 +294,7 @@ public class ResourcePattern {
             && elements[elements.length - 1].length() == 0;
     }
 
-    @SuppressWarnings({ "PMD.UseVarargs", "PMD.DataflowAnomalyAnalysis",
-        "PMD.PositionLiteralsFirstInComparisons",
-        "PMD.AvoidLiteralsInIfCondition" })
+    @SuppressWarnings({ "PMD.AvoidLiteralsInIfCondition" })
     private boolean matchPath(String[] patternElements, String[] reqElements,
             int maxSegs) {
         int pathIdx = 0;
@@ -317,11 +312,14 @@ public class ResourcePattern {
                 // means no match.
                 return false;
             }
+            @SuppressWarnings({ "PMD.AssignmentInOperand",
+                "PMD.AvoidDuplicateLiterals" })
             String matchElement = patternElements[pathIdx++];
             if ("**".equals(matchElement)) {
                 // Accept anything left means match.
                 return true;
             }
+            @SuppressWarnings("PMD.AssignmentInOperand")
             String reqElement = reqElements[reqIdx++];
             if (!"*".equals(matchElement) && !matchElement.equals(reqElement)) {
                 // If not equal (or wildcard) we have no match.
@@ -442,9 +440,7 @@ public class ResourcePattern {
      * @see java.lang.Object#hashCode()
      */
     @Override
-    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
     public int hashCode() {
-        @SuppressWarnings("PMD.AvoidFinalLocalVariable")
         final int prime = 31;
         int result = 1;
         result = prime * result + ((pattern == null) ? 0 : pattern.hashCode());

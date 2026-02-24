@@ -26,7 +26,6 @@ import org.jgrapes.core.events.Error;
  * 
  * @see Closed
  */
-@SuppressWarnings("PMD.DoNotExtendJavaLangError")
 public class IOError extends Error {
 
     /**

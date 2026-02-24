@@ -53,7 +53,7 @@ public class SocketConnector extends SocketConnectionManager {
      * Creates a new connector, using itself as component channel. 
      */
     public SocketConnector() {
-        this(Channel.SELF);
+        this(SELF);
     }
 
     @Override
@@ -130,7 +130,6 @@ public class SocketConnector extends SocketConnectionManager {
      * @throws InterruptedException if the execution was interrupted
      */
     @Handler
-    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
     public void onClose(Close event) throws IOException, InterruptedException {
         for (Channel channel : event.channels()) {
             if (channel instanceof SocketChannelImpl

@@ -72,7 +72,6 @@ public class Request<R> extends MessageReceived<R> {
     @SuppressWarnings("PMD.ShortClassName")
     public static class In extends Request<Boolean> {
 
-        @SuppressWarnings("PMD.AvoidFieldNameMatchingTypeName")
         private final HttpRequest request;
         private final int matchLevels;
         private final MatchValue matchValue;
@@ -90,8 +89,7 @@ public class Request<R> extends MessageReceived<R> {
          * @param channels the channels associated with this event
          * @throws URISyntaxException 
          */
-        @SuppressWarnings({ "PMD.UselessParentheses",
-            "PMD.ConstructorCallsOverridableMethod" })
+        @SuppressWarnings({ "PMD.ConstructorCallsOverridableMethod" })
         public In(String protocol, HttpRequest request,
                 int matchLevels, Channel... channels)
                 throws URISyntaxException {
@@ -147,8 +145,7 @@ public class Request<R> extends MessageReceived<R> {
                     requestUri().getPath(), "Must be absolute");
             }
             // Remove dot segments and check for "...//..."
-            @SuppressWarnings({ "PMD.LooseCoupling",
-                "PMD.ReplaceVectorWithList" })
+            @SuppressWarnings({ "PMD.LooseCoupling" })
             Stack<String> segs = new Stack<>();
             while (origSegs.hasNext()) {
                 if (!segs.isEmpty() && segs.peek().isEmpty()) {
@@ -307,7 +304,7 @@ public class Request<R> extends MessageReceived<R> {
          * @return true, if fulfilled
          */
         public boolean fulfilled() {
-            return currentResults().size() > 0 && currentResults().get(0);
+            return !currentResults().isEmpty() && currentResults().get(0);
         }
 
         /*
@@ -331,8 +328,8 @@ public class Request<R> extends MessageReceived<R> {
             }
             builder.append('\"');
             if (channels().length > 0) {
-                builder.append(", channels=");
-                builder.append(Channel.toString(channels()));
+                builder.append(", channels=")
+                    .append(Channel.toString(channels()));
             }
             builder.append(']');
             return builder.toString();
@@ -353,6 +350,7 @@ public class Request<R> extends MessageReceived<R> {
         /**
          * Represents a match value.
          */
+        @SuppressWarnings("PMD.PublicMemberInNonPublicType")
         private static class MatchValue {
             private final Class<?> type;
             private final Object resource;
@@ -373,9 +371,7 @@ public class Request<R> extends MessageReceived<R> {
              * @see java.lang.Object#hashCode()
              */
             @Override
-            @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
             public int hashCode() {
-                @SuppressWarnings("PMD.AvoidFinalLocalVariable")
                 final int prime = 31;
                 int result = 1;
                 result = prime * result
@@ -734,8 +730,8 @@ public class Request<R> extends MessageReceived<R> {
             builder.append(Components.objectName(this))
                 .append(" [").append(request.toString());
             if (channels().length > 0) {
-                builder.append(", channels=");
-                builder.append(Channel.toString(channels()));
+                builder.append(", channels=")
+                    .append(Channel.toString(channels()));
             }
             builder.append(']');
             return builder.toString();

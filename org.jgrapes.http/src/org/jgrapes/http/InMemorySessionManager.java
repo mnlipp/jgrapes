@@ -31,10 +31,9 @@ import org.jgrapes.http.events.Request;
 /**
  * A in memory session manager. 
  */
-@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 public class InMemorySessionManager extends SessionManager {
 
-    @SuppressWarnings({ "serial", "PMD.UseConcurrentHashMap" })
+    @SuppressWarnings({ "PMD.UseConcurrentHashMap", "PMD.LooseCoupling" })
     private final Map<String, InMemorySession> sessionsById
         = new LinkedHashMap<>(16, 0.75f, true) {
 
@@ -68,7 +67,7 @@ public class InMemorySessionManager extends SessionManager {
      * @param path the path
      */
     public InMemorySessionManager(String path) {
-        this(Channel.SELF, path);
+        this(SELF, path);
     }
 
     /**
@@ -114,8 +113,9 @@ public class InMemorySessionManager extends SessionManager {
     }
 
     @Override
-    @SuppressWarnings({ "PMD.CognitiveComplexity",
-        "PMD.AvoidInstantiatingObjectsInLoops" })
+    @SuppressWarnings({ "PMD.CognitiveComplexity", "PMD.LooseCoupling",
+        "PMD.AvoidInstantiatingObjectsInLoops",
+        "PMD.AvoidSynchronizedStatement", "PMD.AvoidDuplicateLiterals" })
     protected Optional<Instant> startDiscarding(long absoluteTimeout,
             long idleTimeout) {
         synchronized (this) {
@@ -149,7 +149,9 @@ public class InMemorySessionManager extends SessionManager {
     }
 
     @Override
+    @SuppressWarnings("PMD.AvoidSynchronizedStatement")
     protected Session createSession(String sessionId) {
+        @SuppressWarnings("PMD.LooseCoupling")
         InMemorySession session = new InMemorySession(sessionId);
         synchronized (this) {
             sessionsById.put(sessionId, session);
@@ -158,6 +160,7 @@ public class InMemorySessionManager extends SessionManager {
     }
 
     @Override
+    @SuppressWarnings("PMD.AvoidSynchronizedStatement")
     protected Optional<Session> lookupSession(String sessionId) {
         synchronized (this) {
             return Optional.ofNullable(sessionsById.get(sessionId));
@@ -165,6 +168,7 @@ public class InMemorySessionManager extends SessionManager {
     }
 
     @Override
+    @SuppressWarnings("PMD.AvoidSynchronizedStatement")
     protected void removeSession(String sessionId) {
         synchronized (this) {
             sessionsById.remove(sessionId);
@@ -177,6 +181,7 @@ public class InMemorySessionManager extends SessionManager {
      * @see org.jgrapes.http.SessionManager#sessionCount()
      */
     @Override
+    @SuppressWarnings("PMD.AvoidSynchronizedStatement")
     protected int sessionCount() {
         synchronized (this) {
             return sessionsById.size();

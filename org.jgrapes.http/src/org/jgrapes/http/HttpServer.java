@@ -144,6 +144,7 @@ public class HttpServer extends Component {
      * @param fallbacks fall backs
      */
     @SafeVarargs
+    @SuppressWarnings("PMD.ConstructorCallsOverridableMethod")
     public HttpServer(Channel appChannel, InetSocketAddress serverAddress,
             Class<? extends Request.In>... fallbacks) {
         this(appChannel, new SocketServer().setServerAddress(serverAddress),
@@ -414,7 +415,7 @@ public class HttpServer extends Component {
     /**
      * An application layer channel.
      */
-    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
+    @SuppressWarnings("PMD.PublicMemberInNonPublicType")
     private class WebAppMsgChannel extends LinkedIOSubchannel {
         // Starts as ServerEngine<HttpRequest,HttpResponse> but may change
         private final ServerEngine<?, ?> engine;
@@ -436,7 +437,8 @@ public class HttpServer extends Component {
          * @param event the event
          * @param netChannel the net channel
          */
-        @SuppressWarnings("PMD.AvoidLiteralsInIfCondition")
+        @SuppressWarnings({ "PMD.AvoidLiteralsInIfCondition",
+            "PMD.ConstructorCallsOverridableMethod" })
         public WebAppMsgChannel(Accepted event, IOSubchannel netChannel) {
             super(HttpServer.this, channel(), netChannel, newEventPipeline());
             engine = new ServerEngine<>(
@@ -491,10 +493,9 @@ public class HttpServer extends Component {
          * @throws ProtocolException the protocol exception
          * @throws InterruptedException the interrupted exception
          */
-        @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",
-            "PMD.AvoidInstantiatingObjectsInLoops",
-            "PMD.AvoidDeeplyNestedIfStmts", "PMD.CollapsibleIfStatements",
-            "PMD.CognitiveComplexity", "PMD.AvoidDuplicateLiterals" })
+        @SuppressWarnings({ "PMD.AvoidInstantiatingObjectsInLoops",
+            "PMD.CollapsibleIfStatements", "PMD.CognitiveComplexity",
+            "PMD.AvoidDuplicateLiterals" })
         public void handleNetInput(Input<ByteBuffer> event)
                 throws ProtocolException, InterruptedException {
             // Send the data from the event through the decoder.
@@ -551,7 +552,7 @@ public class HttpServer extends Component {
         }
 
         @SuppressWarnings({ "PMD.CollapsibleIfStatements",
-            "PMD.CognitiveComplexity" })
+            "PMD.CognitiveComplexity", "PMD.AvoidDeeplyNestedIfStmts" })
         private boolean handleRequestHeader(MessageHeader request) {
             if (request instanceof HttpRequest) {
                 HttpRequest httpRequest = (HttpRequest) request;
@@ -601,8 +602,6 @@ public class HttpServer extends Component {
             return true;
         }
 
-        @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",
-            "PMD.UseStringBufferForStringAppends" })
         private void convertHostToNumerical(HttpRequest request) {
             int port = request.port();
             String host;
@@ -705,9 +704,8 @@ public class HttpServer extends Component {
          * @param event the event
          * @throws InterruptedException the interrupted exception
          */
-        @SuppressWarnings({ "PMD.CyclomaticComplexity", "PMD.NcssCount",
-            "PMD.NPathComplexity", "PMD.AvoidInstantiatingObjectsInLoops",
-            "PMD.CognitiveComplexity" })
+        @SuppressWarnings({ "PMD.CyclomaticComplexity", "PMD.NPathComplexity",
+            "PMD.AvoidInstantiatingObjectsInLoops", "PMD.CognitiveComplexity" })
         public void handleAppOutput(Output<?> event)
                 throws InterruptedException {
             Buffer eventData = event.data();
@@ -784,7 +782,7 @@ public class HttpServer extends Component {
          * @param event the event
          */
         public void handleClosed(Closed<?> event) {
-            downPipeline.fire(new Closed<Void>(), this);
+            downPipeline.fire(new Closed<>(), this);
         }
 
         /**

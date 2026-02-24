@@ -39,8 +39,8 @@ import org.jgrapes.http.events.Request;
 import org.jgrapes.io.FileStorage;
 import org.jgrapes.io.NioDispatcher;
 import org.jgrapes.io.util.PermitsPool;
-import org.jgrapes.net.SslCodec;
 import org.jgrapes.net.SocketServer;
+import org.jgrapes.net.SslCodec;
 import org.jgrapes.util.PreferencesStore;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -101,7 +101,7 @@ public class HttpServerDemo extends Component implements BundleActivator {
         // Build application layer
         app.attach(new InMemorySessionManager(app.channel()));
         app.attach(new LanguageSelector(app.channel()));
-        app.attach(new FileStorage(app.channel(), 65536));
+        app.attach(new FileStorage(app.channel(), 65_536));
         app.attach(new StaticContentDispatcher(app.channel(),
             "/**", Paths.get("demo-resources/static-content").toUri()));
         app.attach(new StaticContentDispatcher(app.channel(),
@@ -119,7 +119,7 @@ public class HttpServerDemo extends Component implements BundleActivator {
      */
     @Override
     public void stop(BundleContext context) throws Exception {
-        app.fire(new Stop(), Channel.BROADCAST);
+        app.fire(new Stop(), BROADCAST);
         Components.awaitExhaustion();
     }
 

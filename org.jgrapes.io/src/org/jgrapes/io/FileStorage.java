@@ -57,15 +57,14 @@ import org.jgrapes.io.util.ManagedBufferPool;
 /**
  * A component that reads from or writes to a file.
  */
-@SuppressWarnings({ "PMD.ExcessiveImports", "PMD.CouplingBetweenObjects" })
+@SuppressWarnings({ "PMD.CouplingBetweenObjects",
+    "PMD.AvoidSynchronizedStatement" })
 public class FileStorage extends Component {
 
     private int bufferSize;
 
-    @SuppressWarnings("PMD.UseConcurrentHashMap")
     private final Map<Channel, Writer> inputWriters = Collections
         .synchronizedMap(new WeakHashMap<>());
-    @SuppressWarnings("PMD.UseConcurrentHashMap")
     private final Map<Channel, Writer> outputWriters = Collections
         .synchronizedMap(new WeakHashMap<>());
 
@@ -102,8 +101,7 @@ public class FileStorage extends Component {
      * @throws InterruptedException if the execution was interrupted
      */
     @Handler
-    @SuppressWarnings({ "PMD.AvoidInstantiatingObjectsInLoops",
-        "PMD.AccessorClassGeneration", "PMD.AvoidDuplicateLiterals" })
+    @SuppressWarnings({ "PMD.AvoidInstantiatingObjectsInLoops" })
     public void onStreamFile(StreamFile event)
             throws InterruptedException {
         if (Arrays.asList(event.options())
@@ -179,10 +177,9 @@ public class FileStorage extends Component {
         private final class ReadCompletionHandler implements
                 CompletionHandler<Integer, ManagedBuffer<ByteBuffer>> {
             @Override
-            @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",
-                "PMD.EmptyCatchBlock", "PMD.AvoidDuplicateLiterals" })
-            public void completed(
-                    Integer result, ManagedBuffer<ByteBuffer> buffer) {
+            @SuppressWarnings("PMD.EmptyCatchBlock")
+            public void completed(Integer result,
+                    ManagedBuffer<ByteBuffer> buffer) {
                 if (result >= 0) {
                     offset += result;
                     boolean eof = true;
@@ -216,14 +213,14 @@ public class FileStorage extends Component {
                 } catch (IOException e) {
                     ioExc = e;
                 }
-                channel.respond(new Closed<Void>(ioExc));
+                channel.respond(new Closed<>(ioExc));
                 unregisterAsGenerator();
             }
 
             @Override
-            public void failed(
-                    Throwable exc, ManagedBuffer<ByteBuffer> context) {
-                channel.respond(new Closed<Void>(exc));
+            public void failed(Throwable exc,
+                    ManagedBuffer<ByteBuffer> context) {
+                channel.respond(new Closed<>(exc));
                 unregisterAsGenerator();
             }
         }
@@ -266,7 +263,7 @@ public class FileStorage extends Component {
                     } catch (IOException e) {
                         ioExc = e;
                     }
-                    channel.respond(new Closed<Void>(ioExc));
+                    channel.respond(new Closed<>(ioExc));
                 }
             });
         }
@@ -281,9 +278,8 @@ public class FileStorage extends Component {
             StringBuilder builder = new StringBuilder(50);
             builder.append("FileStreamer [");
             if (channel != null) {
-                builder.append("channel=");
-                builder.append(Channel.toString(channel));
-                builder.append(", ");
+                builder.append("channel=").append(Channel.toString(channel))
+                    .append(", ");
             }
             if (path != null) {
                 builder.append("path=").append(path).append(", ");
@@ -420,6 +416,7 @@ public class FileStorage extends Component {
     /**
      * A writer.
      */
+    @SuppressWarnings("PMD.PublicMemberInNonPublicType")
     private class Writer {
 
         private final IOSubchannel channel;
@@ -567,8 +564,7 @@ public class FileStorage extends Component {
          * @param event the event
          * @throws InterruptedException the interrupted exception
          */
-        @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",
-            "PMD.EmptyCatchBlock" })
+        @SuppressWarnings({ "PMD.EmptyCatchBlock" })
         public void close(Event<?> event)
                 throws InterruptedException {
             IOException ioExc = null;
@@ -584,7 +580,7 @@ public class FileStorage extends Component {
             } catch (IOException e) {
                 ioExc = e;
             }
-            channel.respond(new Closed<Void>(ioExc));
+            channel.respond(new Closed<>(ioExc));
             inputWriters.remove(channel);
             outputWriters.remove(channel);
         }
@@ -627,9 +623,8 @@ public class FileStorage extends Component {
         builder.append(Components.objectName(this))
             .append(" [");
         if (inputWriters != null) {
-            builder.append(inputWriters.values().stream()
-                .map(chnl -> Components.objectName(chnl))
-                .collect(Collectors.toList()));
+            builder.append(inputWriters.values().stream().map(
+                Components::objectName).collect(Collectors.toList()));
         }
         builder.append(']');
         return builder.toString();

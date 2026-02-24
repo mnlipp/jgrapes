@@ -24,6 +24,7 @@ import java.util.EventListener;
  * Used to notify interested objects about the changed availability
  * of permits.
  */
+@SuppressWarnings("PMD.ImplicitFunctionalInterface")
 public interface AvailabilityListener extends EventListener {
 
     /**

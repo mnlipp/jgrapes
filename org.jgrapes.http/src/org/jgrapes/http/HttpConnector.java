@@ -67,7 +67,7 @@ import org.jgrapes.net.events.ClientConnected;
  * A converter component that receives and sends web application
  * layer messages and byte buffers on associated network channels.
  */
-@SuppressWarnings({ "PMD.ExcessiveImports", "PMD.CouplingBetweenObjects" })
+@SuppressWarnings({ "PMD.CouplingBetweenObjects" })
 public class HttpConnector extends Component {
 
     private int applicationBufferSize = -1;
@@ -184,11 +184,11 @@ public class HttpConnector extends Component {
      * @throws IOException Signals that an I/O exception has occurred.
      */
     @Handler(channels = NetworkChannel.class)
-    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
     public void onConnected(ClientConnected event,
             SocketIOChannel netConnChannel)
             throws InterruptedException, IOException {
         // Check if this is a response to our request
+        @SuppressWarnings("PMD.CompareObjectsWithEquals")
         var appChannel = event.openEvent().associated(WebAppMsgChannel.class)
             .filter(c -> c.httpConnector() == this);
         if (appChannel.isPresent()) {
@@ -258,6 +258,7 @@ public class HttpConnector extends Component {
      * @param netConnChannel the net conn channel
      */
     @Handler(channels = NetworkChannel.class)
+    @SuppressWarnings("PMD.CompareObjectsWithEquals")
     public void onClosed(Closed<?> event, SocketIOChannel netConnChannel) {
         netConnChannel.associated(WebAppMsgChannel.class)
             .filter(c -> c.httpConnector() == this).ifPresent(
@@ -284,6 +285,7 @@ public class HttpConnector extends Component {
     /**
      * An application layer channel.
      */
+    @SuppressWarnings("PMD.PublicMemberInNonPublicType")
     private class WebAppMsgChannel extends DefaultIOSubchannel {
         // Starts as ClientEngine<HttpRequest,HttpResponse> but may change
         private final ClientEngine<?, ?> engine
@@ -309,7 +311,9 @@ public class HttpConnector extends Component {
          * @throws InterruptedException 
          * @throws IOException 
          */
-        @SuppressWarnings("PMD.AvoidLiteralsInIfCondition")
+        @SuppressWarnings({ "PMD.PublicMemberInNonPublicType",
+            "PMD.ConstructorCallsOverridableMethod",
+            "PMD.AvoidLiteralsInIfCondition" })
         public WebAppMsgChannel(Request.Out event)
                 throws InterruptedException, IOException {
             super(channel(), newEventPipeline());
@@ -344,6 +348,7 @@ public class HttpConnector extends Component {
 
             // Fire on network channel (targeting the network connector)
             // as a follow up event (using the current pipeline).
+            @SuppressWarnings("PMD.LiteralsFirstInComparisons")
             var useSecure = uri.getScheme().equalsIgnoreCase("https")
                 && netSecureChannel != null;
             fire(new OpenSocketConnection(serverAddress)
@@ -429,8 +434,8 @@ public class HttpConnector extends Component {
                 this);
         }
 
-        @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",
-            "PMD.CognitiveComplexity", "PMD.AvoidDuplicateLiterals" })
+        @SuppressWarnings({ "PMD.CognitiveComplexity",
+            "PMD.AvoidDuplicateLiterals" })
         private void sendMessageUpstream(MessageHeader message,
                 SocketIOChannel netConnChannel) {
             // Now send request as if it came from downstream (to
@@ -440,9 +445,8 @@ public class HttpConnector extends Component {
                 new Callable<Void>() {
 
                     @Override
-                    @SuppressWarnings({ "PMD.CommentRequired",
+                    @SuppressWarnings({
                         "PMD.AvoidBranchingStatementAsLastInLoop",
-                        "PMD.AvoidDuplicateLiterals",
                         "PMD.AvoidInstantiatingObjectsInLoops" })
                     public Void call() throws InterruptedException {
                         @SuppressWarnings("unchecked")
@@ -543,8 +547,7 @@ public class HttpConnector extends Component {
             }
         }
 
-        @SuppressWarnings({ "PMD.CommentRequired",
-            "PMD.DataflowAnomalyAnalysis", "PMD.CognitiveComplexity" })
+        @SuppressWarnings({ "PMD.CommentRequired", "PMD.CognitiveComplexity" })
         public void handleNetInput(Input<ByteBuffer> event,
                 SocketIOChannel netConnChannel)
                 throws InterruptedException, ProtocolException {
@@ -593,7 +596,8 @@ public class HttpConnector extends Component {
             }
         }
 
-        @SuppressWarnings("PMD.CognitiveComplexity")
+        @SuppressWarnings({ "PMD.CognitiveComplexity",
+            "PMD.AvoidDeeplyNestedIfStmts" })
         private boolean handleResponseHeader(MessageHeader response) {
             if (response instanceof HttpResponse) {
                 HttpResponse httpResponse = (HttpResponse) response;
@@ -642,7 +646,7 @@ public class HttpConnector extends Component {
                     return;
                 }
                 // Is web socket close, inform application layer
-                downPipeline.fire(new Closed<Void>(), this);
+                downPipeline.fire(new Closed<>(), this);
             }
             netConnChannel.setAssociated(WebAppMsgChannel.class, null);
             if (!result.closeConnection()) {
@@ -663,7 +667,7 @@ public class HttpConnector extends Component {
         @SuppressWarnings("PMD.CommentRequired")
         public void handleClosed(Closed<?> event) {
             if (engine.switchedTo().equals(Optional.of("websocket"))) {
-                downPipeline.fire(new Closed<Void>(), this);
+                downPipeline.fire(new Closed<>(), this);
             }
         }
 

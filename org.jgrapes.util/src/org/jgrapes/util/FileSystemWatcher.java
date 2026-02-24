@@ -52,10 +52,9 @@ import org.jgrapes.util.events.WatchFile;
  * A component that watches paths in the file system for changes
  * and sends events if such changes occur. 
  */
-@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
+@SuppressWarnings("PMD.AvoidSynchronizedStatement")
 public class FileSystemWatcher extends Component {
 
-    @SuppressWarnings("PMD.FieldNamingConventions")
     protected static final Logger logger
         = Logger.getLogger(FileSystemWatcher.class.getName());
 
@@ -138,12 +137,12 @@ public class FileSystemWatcher extends Component {
     /**
      * The Class WatcherRegistry.
      */
+    @SuppressWarnings("PMD.PublicMemberInNonPublicType")
     private final class WatcherRegistry {
         private final Map<FileSystem, Watcher> watchers
             = new ConcurrentHashMap<>();
 
         private Watcher watcher(Path path) {
-            @SuppressWarnings("PMD.CloseResource")
             Watcher watcher = watchers.get(path.getFileSystem());
             if (watcher == null) {
                 try {
@@ -222,6 +221,7 @@ public class FileSystemWatcher extends Component {
     /**
      * The Class DirectorySubscription.
      */
+    @SuppressWarnings("PMD.PublicMemberInNonPublicType")
     private class DirectorySubscription {
         private final WatchKey watchKey;
         private final List<Subscription> watched;
@@ -271,6 +271,7 @@ public class FileSystemWatcher extends Component {
     /**
      * The Class Registree.
      */
+    @SuppressWarnings("PMD.PublicMemberInNonPublicType")
     private class Subscription {
         private WeakReference<Channel> notifyOn;
         private final Path path;
@@ -284,7 +285,6 @@ public class FileSystemWatcher extends Component {
          * @param path the path
          * @param notifyOn the notify on
          */
-        @SuppressWarnings("PMD.UseVarargs")
         public Subscription(Path path, Channel notifyOn) {
             this.notifyOn = new WeakReference<>(notifyOn);
             this.path = path;

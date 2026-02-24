@@ -32,7 +32,6 @@ import org.jgrapes.io.events.Output;
  * Forwards the lines from a {@link BufferedReader} as a sequence of 
  * {@link Output} (or optionally {@link Input}) events.
  */
-@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 public class BufferedReaderPipeline implements Runnable {
 
     private BufferedReader reader;

@@ -383,6 +383,7 @@ public abstract class ComponentVertex implements Manager, Channel {
      * A simple wrapper that converts a component vertex iterator
      * to a component (type) iterator.
      */
+    @SuppressWarnings("PMD.PublicMemberInNonPublicType")
     private static class ComponentIterator implements Iterator<ComponentType> {
 
         private final TreeIterator baseIterator;
@@ -409,6 +410,7 @@ public abstract class ComponentVertex implements Manager, Channel {
     /**
      * An iterator for getting all nodes of the tree.
      */
+    @SuppressWarnings("PMD.PublicMemberInNonPublicType")
     private static class TreeIterator implements Iterator<ComponentVertex> {
 
         @SuppressWarnings({ "PMD.LooseCoupling" })

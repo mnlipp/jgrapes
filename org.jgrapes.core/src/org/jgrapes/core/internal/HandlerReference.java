@@ -32,6 +32,7 @@ import org.jgrapes.core.InvocationFilter;
 /**
  * A reference to a method that handles an event.
  */
+@SuppressWarnings("PMD.PublicMemberInNonPublicType")
 class HandlerReference implements Comparable<HandlerReference> {
 
     @SuppressWarnings("PMD.FieldNamingConventions")

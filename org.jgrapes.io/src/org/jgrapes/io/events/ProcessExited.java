@@ -31,6 +31,7 @@ public class ProcessExited extends Closed<Integer> {
      * @param startedBy the event that started the process
      * @param exitValue the exit value
      */
+    @SuppressWarnings("PMD.ConstructorCallsOverridableMethod")
     public ProcessExited(StartProcess startedBy, int exitValue) {
         setResult(exitValue);
         this.startedBy = startedBy;

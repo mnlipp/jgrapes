@@ -34,6 +34,7 @@ import org.jgrapes.mail.events.SendMailMessage;
 /**
  * Wait for mail with subject stop. Delete all other mails.
  */
+@SuppressWarnings("PMD.CommentRequired")
 public class ReplyGenerator extends Component {
 
     public ReplyGenerator(Channel componentChannel) {
@@ -41,6 +42,7 @@ public class ReplyGenerator extends Component {
     }
 
     @Handler
+    @SuppressWarnings("PMD.AvoidLiteralsInIfCondition")
     public void onMail(MailFoldersUpdated event, Subchannel channel)
             throws MessagingException {
         if (event.newMessages().isEmpty()) {

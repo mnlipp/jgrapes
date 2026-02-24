@@ -73,8 +73,7 @@ public class FileChanged extends Event<Void> {
         builder.append(Components.objectName(this))
             .append(" [").append(change).append(": ").append(path);
         if (channels() != null) {
-            builder.append(", channels=");
-            builder.append(Channel.toString(channels()));
+            builder.append(", channels=").append(Channel.toString(channels()));
         }
         builder.append(']');
         return builder.toString();

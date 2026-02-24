@@ -49,7 +49,6 @@ public class CopyReader extends FilterReader {
      * @param size the size
      * @return the copy reader
      */
-    @SuppressWarnings("PMD.LinguisticNaming")
     public CopyReader setCopyBufferSize(int size) {
         copyBufferSize = size;
         return this;

@@ -51,7 +51,7 @@ import org.jgrapes.util.Password;
  * Additional connections can be created by firing events of type 
  * {@link OpenMailSender}.
  */
-@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
+@SuppressWarnings("PMD.AvoidSynchronizedStatement")
 public class MailSender
         extends MailConnectionManager<MailSender.SenderChannel, Event<?>> {
 
@@ -86,6 +86,7 @@ public class MailSender
      * @param props the props
      * @return the mail monitor
      */
+    @Override
     public MailSender setMailProperties(Map<String, String> props) {
         mailProps.putAll(props);
         return this;
@@ -171,6 +172,7 @@ public class MailSender
     /**
      * The specific implementation of the {@link MailChannel}.
      */
+    @SuppressWarnings("PMD.PublicMemberInNonPublicType")
     protected class SenderChannel extends MailConnectionManager<
             MailSender.SenderChannel, Event<?>>.AbstractMailChannel {
 
@@ -220,6 +222,7 @@ public class MailSender
          * @param event the event
          * @throws MessagingException 
          */
+        @SuppressWarnings("PMD.ReplaceJavaUtilDate")
         protected void sendMessage(SendMailMessage event)
                 throws MessagingException {
             synchronized (transport) {

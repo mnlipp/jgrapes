@@ -24,6 +24,7 @@ import java.nio.channels.SelectionKey;
  * Defines the contract between a component using non blocking I/O
  * and the {@link NioDispatcher}.
  */
+@SuppressWarnings("PMD.ImplicitFunctionalInterface")
 public interface NioHandler {
 
     /**

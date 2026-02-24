@@ -23,6 +23,7 @@ package org.jgrapes.io.util;
  *
  * @param <B> the type of buffer that can be collected
  */
+@SuppressWarnings("PMD.ImplicitFunctionalInterface")
 public interface BufferCollector<B extends ManagedBuffer<?>> {
 
     /**

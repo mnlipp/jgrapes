@@ -64,11 +64,11 @@ public class EchoUntilQuit extends Component {
      * @param event the event
      */
     @Handler
-    @SuppressWarnings("PMD.SystemPrintln")
+    @SuppressWarnings({ "PMD.SystemPrintln", "PMD.AvoidLiteralsInIfCondition" })
     public void onInput(Input<ByteBuffer> event) {
         String data = Charset.defaultCharset().decode(event.data()).toString();
         System.out.print(data);
-        if (data.trim().equals("QUIT")) {
+        if ("QUIT".equals(data.trim())) {
             fire(new Stop());
         }
     }

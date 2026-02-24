@@ -75,7 +75,7 @@ public class ManagedBuffer<T extends Buffer> {
      * @return the managed buffer
      */
     public static <B extends Buffer> ManagedBuffer<B> wrap(B buffer) {
-        return new ManagedBuffer<B>(buffer, BufferCollector.noopCollector());
+        return new ManagedBuffer<>(buffer, BufferCollector.noopCollector());
     }
 
     /**
@@ -375,7 +375,6 @@ public class ManagedBuffer<T extends Buffer> {
      *
      * @return the byte buffer view
      */
-    @SuppressWarnings("PMD.AccessorClassGeneration")
     public ByteBufferView newByteBufferView() {
         return new ByteBufferView();
     }
@@ -421,7 +420,6 @@ public class ManagedBuffer<T extends Buffer> {
      *
      * @return the byte buffer view
      */
-    @SuppressWarnings("PMD.AccessorClassGeneration")
     public CharBufferView newCharBufferView() {
         return new CharBufferView();
     }

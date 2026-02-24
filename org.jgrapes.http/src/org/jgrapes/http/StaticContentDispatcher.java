@@ -99,7 +99,7 @@ public class StaticContentDispatcher extends Component {
      * @param contentRoot the location with content to serve 
      */
     public StaticContentDispatcher(String resourcePattern, URI contentRoot) {
-        this(Channel.SELF, resourcePattern, contentRoot);
+        this(SELF, resourcePattern, contentRoot);
     }
 
     /**
@@ -146,7 +146,6 @@ public class StaticContentDispatcher extends Component {
         }
     }
 
-    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
     private boolean getFromFileSystem(Request.In.Get event,
             IOSubchannel channel, int prefixSegs)
             throws IOException, ParseException {

@@ -55,8 +55,7 @@ import org.jgrapes.io.util.InputStreamPipeline;
 /**
  * Provides methods that support the creation of a {@link Response} events.
  */
-@SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",
-    "PMD.AbstractClassWithoutAbstractMethod" })
+@SuppressWarnings({ "PMD.AbstractClassWithoutAbstractMethod" })
 public abstract class ResponseCreationSupport {
 
     /** A default implementation for the max-age calculator. */

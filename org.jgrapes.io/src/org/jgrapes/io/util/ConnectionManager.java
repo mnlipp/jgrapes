@@ -39,6 +39,7 @@ import org.jgrapes.io.events.Close;
  *
  * @param <C> the type of the managed connections
  */
+@SuppressWarnings("PMD.AvoidSynchronizedStatement")
 public abstract class ConnectionManager<
         C extends ConnectionManager<C>.Connection>
         extends Component {
@@ -66,6 +67,7 @@ public abstract class ConnectionManager<
      * handlers listen on by default and that 
      * {@link Manager#fire(Event, Channel...)} sends the event to
      */
+    @SuppressWarnings("PMD.LooseCoupling")
     public ConnectionManager(Channel componentChannel,
             ChannelReplacements channelReplacements) {
         super(componentChannel, channelReplacements);

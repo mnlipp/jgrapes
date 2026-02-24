@@ -36,10 +36,9 @@ import org.jgrapes.mail.MailMonitor;
  * Signals the retrieval of mails (update) by a {@link MailMonitor}.
  * Must be fired on a {@link MailChannel}.
  */
-@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
+@SuppressWarnings("PMD.AvoidSynchronizedStatement")
 public class MailFoldersUpdated extends Event<Void> {
 
-    @SuppressWarnings("PMD.FieldNamingConventions")
     private static final Logger logger
         = Logger.getLogger(MailFoldersUpdated.class.getName());
 
@@ -84,7 +83,7 @@ public class MailFoldersUpdated extends Event<Void> {
      * @param action the action
      * @throws MessagingException the messaging exception
      */
-    @SuppressWarnings("PMD.GuardLogStatement")
+    @SuppressWarnings({ "PMD.GuardLogStatement" })
     public static <R> R withFolder(Folder folder, Function<Folder, R> action)
             throws MessagingException {
         synchronized (folder) {
@@ -122,8 +121,7 @@ public class MailFoldersUpdated extends Event<Void> {
     public static List<Message> messages(Folder folder, int max)
             throws MessagingException {
         MessagingException[] exception = { null };
-        @SuppressWarnings({ "PMD.PrematureDeclaration",
-            "PMD.GuardLogStatement" })
+        @SuppressWarnings("PMD.GuardLogStatement")
         var result = withFolder(folder, f -> {
             List<Message> msgs = new LinkedList<>();
             try {
@@ -142,6 +140,7 @@ public class MailFoldersUpdated extends Event<Void> {
                 }
                 // Adds older messages to fill until max
                 while (start > 1 && msgs.size() < max) {
+                    @SuppressWarnings("PMD.AssignmentInOperand")
                     Message msg = f.getMessage(--start);
                     if (canBeAdded(msg)) {
                         msgs.add(msg);

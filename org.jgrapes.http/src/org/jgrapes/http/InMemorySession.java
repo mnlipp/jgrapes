@@ -54,6 +54,7 @@ public class InMemorySession
      * @return the id
      */
     @SuppressWarnings("PMD.ShortMethodName")
+    @Override
     public String id() {
         return id;
     }
@@ -63,6 +64,7 @@ public class InMemorySession
      * 
      * @return the creation time stamp
      */
+    @Override
     public Instant createdAt() {
         return createdAt;
     }
@@ -72,6 +74,7 @@ public class InMemorySession
      * 
      * @return the last used timestamp
      */
+    @Override
     public Instant lastUsedAt() {
         return lastUsedAt;
     }
@@ -79,6 +82,7 @@ public class InMemorySession
     /**
      * Updates the last used time stamp.
      */
+    @Override
     public void updateLastUsedAt() {
         this.lastUsedAt = Instant.now();
     }

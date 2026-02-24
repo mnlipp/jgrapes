@@ -42,7 +42,6 @@ public class UpdateMailFolders extends Event<List<Folder>> {
      *
      * @param folderNames the folder names
      */
-    @SuppressWarnings("PMD.ArrayIsStoredDirectly")
     public UpdateMailFolders(String... folderNames) {
         this.folderNames = Arrays.copyOf(folderNames, folderNames.length);
     }

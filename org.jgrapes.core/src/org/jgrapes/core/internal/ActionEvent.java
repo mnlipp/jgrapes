@@ -86,6 +86,7 @@ public abstract class ActionEvent<T> extends Event<T> {
      *
      * @param <V> the value type
      */
+    @SuppressWarnings("PMD.PublicMemberInNonPublicType")
     private static class CallableActionEvent<V> extends ActionEvent<V> {
         private final Callable<V> action;
 
@@ -109,6 +110,7 @@ public abstract class ActionEvent<T> extends Event<T> {
     /**
      * An {@link ActionEvent} that executes a {@link Runnable}.
      */
+    @SuppressWarnings("PMD.PublicMemberInNonPublicType")
     private static class RunnableActionEvent extends ActionEvent<Void> {
         private final Runnable action;
 

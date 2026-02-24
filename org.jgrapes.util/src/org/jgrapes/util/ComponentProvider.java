@@ -52,7 +52,7 @@ import org.jgrapes.util.events.ConfigurationUpdate;
  * 
  * @since 1.3
  */
-@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
+@SuppressWarnings("PMD.AvoidSynchronizedStatement")
 public class ComponentProvider extends Component {
 
     /** The entry name for the component's type. */
@@ -71,7 +71,7 @@ public class ComponentProvider extends Component {
      * Creates a new component with its channel set to this object. 
      */
     public ComponentProvider() {
-        this(Channel.SELF);
+        this(SELF);
     }
 
     /**
@@ -198,7 +198,6 @@ public class ComponentProvider extends Component {
      * @param evt the event
      * @return the collection
      */
-    @SuppressWarnings("PMD.AvoidDuplicateLiterals")
     protected List<Map<Object, Object>>
             componentConfigurations(ConfigurationUpdate evt) {
         if (componentsEntry == null) {
@@ -239,8 +238,7 @@ public class ComponentProvider extends Component {
             // Calculate starters for to be added/to be removed
             var toBeAdded = new LinkedList<>(requested);
             toBeAdded.addAll(pinnedConfigurations);
-            var toBeRemoved = children().stream()
-                .map(c -> Components.manager(c))
+            var toBeRemoved = children().stream().map(Components::manager)
                 .collect(Collectors.toCollection(LinkedList::new));
 
             // Don't attempt to add something that we have no factory for.
@@ -252,7 +250,6 @@ public class ComponentProvider extends Component {
             // from both, thus leaving what their names say.
             for (var childIter = toBeRemoved.iterator(); childIter.hasNext();) {
                 var child = childIter.next();
-                @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
                 var childComp = child.component().getClass().getName();
                 var childName = child.name();
                 for (var confIter = toBeAdded.iterator();
@@ -277,8 +274,7 @@ public class ComponentProvider extends Component {
                     .create(channel(), config).map(
                         c -> ComponentFactory.setStandardProperties(c, config))
                     .stream();
-            }).flatMap(Function.identity())
-                .forEach(component -> attach(component));
+            }).flatMap(Function.identity()).forEach(this::attach);
 
             // Save configuration as current
             currentConfig = requested;

@@ -49,6 +49,7 @@ import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.Components.Timer;
 import org.jgrapes.core.annotation.Handler;
+import org.jgrapes.core.internal.ComponentVertex;
 import org.jgrapes.core.internal.EventBase;
 import org.jgrapes.http.annotation.RequestHandler;
 import org.jgrapes.http.events.DiscardSession;
@@ -84,15 +85,13 @@ import org.jgrapes.io.IOSubchannel;
  * @see EventBase#setAssociated(Object, Object)
  * @see "[OWASP Session Management Cheat Sheet](https://www.owasp.org/index.php/Session_Management_Cheat_Sheet)"
  */
-@SuppressWarnings({ "PMD.DataClass", "PMD.AvoidPrintStackTrace",
-    "PMD.DataflowAnomalyAnalysis", "PMD.TooManyMethods",
-    "PMD.CouplingBetweenObjects" })
+@SuppressWarnings({ "PMD.AvoidPrintStackTrace", "PMD.TooManyMethods",
+    "PMD.CouplingBetweenObjects", "PMD.AvoidSynchronizedStatement" })
 public abstract class SessionManager extends Component {
 
     private static SecureRandom secureRandom = new SecureRandom();
 
     private String idName = "id";
-    @SuppressWarnings("PMD.ImmutableField")
     private String path = "/";
     private long absoluteTimeout = 9 * 60 * 60 * 1000;
     private long idleTimeout = 30 * 60 * 1000;
@@ -118,7 +117,7 @@ public abstract class SessionManager extends Component {
      * @param path the path
      */
     public SessionManager(String path) {
-        this(Channel.SELF, path);
+        this(SELF, path);
     }
 
     /**
@@ -160,8 +159,7 @@ public abstract class SessionManager extends Component {
      * @param path the path
      * @return the pattern
      */
-    @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",
-        "PMD.AvoidLiteralsInIfCondition" })
+    @SuppressWarnings({ "PMD.AvoidLiteralsInIfCondition" })
     protected static String derivePattern(String path) {
         String pattern;
         if ("/".equals(path)) {
@@ -219,8 +217,7 @@ public abstract class SessionManager extends Component {
         }
     }
 
-    @SuppressWarnings({ "PMD.UnusedFormalParameter",
-        "PMD.UnusedPrivateMethod" })
+    @SuppressWarnings({ "PMD.UnusedFormalParameter" })
     private void purgeAction(Timer timer) {
         nextPurge = startDiscarding(absoluteTimeout, idleTimeout)
             .map(nextAt -> Components.schedule(this::purgeAction, nextAt))
@@ -363,6 +360,7 @@ public abstract class SessionManager extends Component {
     /**
      * Supports obtaining a {@link Session} from an {@link IOSubchannel}. 
      */
+    @SuppressWarnings("PMD.PublicMemberInNonPublicType")
     private class SessionSupplier implements Supplier<Optional<Session>> {
 
         private final Associator holder;
@@ -518,6 +516,7 @@ public abstract class SessionManager extends Component {
      * @param channel the channel
      */
     @Handler(priority = 1000)
+    @SuppressWarnings("PMD.CompareObjectsWithEquals")
     public void onProtocolSwitchAccepted(
             ProtocolSwitchAccepted event, IOSubchannel channel) {
         Request.In request = event.requestEvent();
@@ -592,8 +591,7 @@ public abstract class SessionManager extends Component {
          *
          * @return the optional session manager
          */
-        @SuppressWarnings({ "PMD.AvoidCatchingGenericException",
-            "PMD.EmptyCatchBlock" })
+        @SuppressWarnings({ "PMD.EmptyCatchBlock" })
         public Optional<SessionManager> manager() {
             SessionManager manager = sessionManagerRef.get();
             if (manager == null) {
@@ -609,7 +607,7 @@ public abstract class SessionManager extends Component {
 
         @Override
         public String getComponentPath() {
-            return manager().map(mgr -> mgr.componentPath())
+            return manager().map(ComponentVertex::componentPath)
                 .orElse("<removed>");
         }
 
@@ -649,6 +647,7 @@ public abstract class SessionManager extends Component {
      * invocation of {@link SessionManagerSummaryMXBean#getManagers()} ensures
      * that entries for removed {@link SessionManager}s are unregistered.
      */
+    @SuppressWarnings("PMD.ImplicitFunctionalInterface")
     public interface SessionManagerSummaryMXBean {
 
         /**
@@ -662,6 +661,7 @@ public abstract class SessionManager extends Component {
     /**
      * The MBean view.
      */
+    @SuppressWarnings("PMD.PublicMemberInNonPublicType")
     private static final class MBeanView
             implements SessionManagerSummaryMXBean {
         private static Set<SessionManagerInfo> managerInfos = new HashSet<>();

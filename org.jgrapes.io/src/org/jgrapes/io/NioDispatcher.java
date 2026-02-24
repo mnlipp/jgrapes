@@ -36,6 +36,7 @@ import org.jgrapes.io.events.NioRegistration;
  * I/O components. Exactly one {@code NioDispatcher} must exist in
  * any tree with {@link NioHandler} components. 
  */
+@SuppressWarnings("PMD.AvoidSynchronizedStatement")
 public class NioDispatcher extends Component implements Runnable {
 
     private final Selector selector;
@@ -99,8 +100,8 @@ public class NioDispatcher extends Component implements Runnable {
      * all events from the underlying {@link Selector}.  
      */
     @Override
-    @SuppressWarnings({ "PMD.EmptySynchronizedBlock", "PMD.EmptyCatchBlock",
-        "PMD.AvoidCatchingThrowable", "PMD.EmptyControlStatement" })
+    @SuppressWarnings({ "PMD.EmptyCatchBlock", "PMD.EmptyControlStatement",
+        "PMD.AvoidCatchingGenericException" })
     public void run() {
         try {
             registerAsGenerator();

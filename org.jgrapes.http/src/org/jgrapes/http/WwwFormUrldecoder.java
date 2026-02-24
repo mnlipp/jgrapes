@@ -38,7 +38,6 @@ import org.jgrapes.io.util.ManagedBuffer;
 /**
  * Decodes www-form-urlencoded data.
  */
-@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 public class WwwFormUrldecoder implements InputConsumer {
     private boolean isEof;
     private CharsetDecoder decoder;
@@ -104,6 +103,7 @@ public class WwwFormUrldecoder implements InputConsumer {
      *
      * @param buffer the buffer
      */
+    @Override
     public <W extends Buffer> void feed(ManagedBuffer<W> buffer) {
         if (buffer == null) {
             isEof = true;
@@ -175,8 +175,7 @@ public class WwwFormUrldecoder implements InputConsumer {
     @SuppressWarnings({ "PMD.AvoidReassigningLoopVariables",
         "PMD.AvoidInstantiatingObjectsInLoops",
         "PMD.AvoidLiteralsInIfCondition",
-        "PMD.AvoidBranchingStatementAsLastInLoop", "PMD.NcssCount",
-        "PMD.NPathComplexity" })
+        "PMD.AvoidBranchingStatementAsLastInLoop", "PMD.NcssCount" })
     private void processPending() {
         pending.flip();
         if (!pending.hasRemaining()) {

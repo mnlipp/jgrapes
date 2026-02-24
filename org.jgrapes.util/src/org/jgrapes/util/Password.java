@@ -23,13 +23,13 @@ import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
 import java.util.Arrays;
 import java.util.Optional;
-
 import org.jgrapes.core.Components;
 
 /**
  * Stores a password in such a way that it can be cleared. Automatically 
  * clears the storage if an object of this type becomes weakly reachable.
  */
+@SuppressWarnings("PMD.AvoidSynchronizedStatement")
 public class Password {
 
     private static ReferenceQueue<Password> toBeCleared
@@ -39,7 +39,7 @@ public class Password {
 
     @SuppressWarnings("PMD.AvoidFieldNameMatchingTypeName")
     private char[] password;
-    @SuppressWarnings({ "PMD.SingularField", "unused" })
+    @SuppressWarnings({ "unused" })
     private final WeakReference<Password> passwordRef;
 
     /**

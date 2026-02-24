@@ -31,7 +31,6 @@ import org.jgrapes.io.util.events.JsonParsingError;
  * 
  * @since 2.8
  */
-@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 public class JsonReader extends ManagedBufferStreamer {
 
     /**
@@ -50,7 +49,7 @@ public class JsonReader extends ManagedBufferStreamer {
             EventPipeline pipeline, Channel channel) {
         super(r -> {
             try {
-                pipeline.fire(new DataInput<R>(mapper.readValue(r, resultType)),
+                pipeline.fire(new DataInput<>(mapper.readValue(r, resultType)),
                     channel);
             } catch (Exception e) {
                 pipeline.fire(new JsonParsingError(e), channel);

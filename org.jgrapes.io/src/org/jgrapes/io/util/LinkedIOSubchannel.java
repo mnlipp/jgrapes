@@ -252,6 +252,7 @@ public class LinkedIOSubchannel extends DefaultIOSubchannel {
     /**
      * Artificial key.
      */
+    @SuppressWarnings("PMD.PublicMemberInNonPublicType")
     private static class KeyWrapper {
 
         private final Manager hub;
@@ -270,9 +271,7 @@ public class LinkedIOSubchannel extends DefaultIOSubchannel {
          * @see java.lang.Object#hashCode()
          */
         @Override
-        @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
         public int hashCode() {
-            @SuppressWarnings("PMD.AvoidFinalLocalVariable")
             final int prime = 31;
             int result = 1;
             result = prime * result + ((hub == null) ? 0

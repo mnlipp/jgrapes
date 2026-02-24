@@ -22,8 +22,8 @@ import java.io.File;
 import java.io.IOException;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
-import org.jgrapes.mail.MailSender;
 import org.jgrapes.mail.MailMonitor;
+import org.jgrapes.mail.MailSender;
 import org.jgrapes.mail.events.OpenMailMonitor;
 import org.jgrapes.util.JsonConfigurationStore;
 

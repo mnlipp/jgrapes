@@ -35,6 +35,7 @@ import java.util.Objects;
  * fed to it to a consumer. This class is intended to be used as a pipe 
  * between two threads.  
  */
+@SuppressWarnings("PMD.AvoidSynchronizedStatement")
 public class ManagedBufferReader extends Reader implements InputConsumer {
 
     private boolean isEndOfFeed;
@@ -89,7 +90,7 @@ public class ManagedBufferReader extends Reader implements InputConsumer {
      * @return the managed buffer reader
      */
     @SuppressWarnings({ "PMD.AvoidCatchingGenericException",
-        "PMD.EmptyCatchBlock", "PMD.DataflowAnomalyAnalysis" })
+        "PMD.EmptyCatchBlock" })
     public ManagedBufferReader nativeCharset() {
         Charset toSet = Charset.defaultCharset();
         var toCheck = System.getProperty("native.encoding");
@@ -117,6 +118,7 @@ public class ManagedBufferReader extends Reader implements InputConsumer {
      * @param buffer the buffer
      * @throws IOException Signals that an I/O exception has occurred.
      */
+    @Override
     @SuppressWarnings({ "PMD.PreserveStackTrace" })
     public <W extends Buffer> void feed(ManagedBuffer<W> buffer) {
         synchronized (lock) {
@@ -165,8 +167,7 @@ public class ManagedBufferReader extends Reader implements InputConsumer {
 
     @Override
     @SuppressWarnings({ "PMD.PreserveStackTrace", "unchecked",
-        "PMD.CognitiveComplexity", "PMD.DataflowAnomalyAnalysis",
-        "PMD.NcssCount" })
+        "PMD.CognitiveComplexity", "PMD.NcssCount" })
     public int read(char[] cbuf, int off, int len) throws IOException {
         Objects.checkFromIndexSize(off, len, cbuf.length);
         synchronized (lock) {

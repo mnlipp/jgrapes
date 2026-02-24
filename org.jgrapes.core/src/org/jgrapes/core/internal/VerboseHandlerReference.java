@@ -32,6 +32,7 @@ import org.jgrapes.core.InvocationFilter;
  * the cost of some cpu cycles).
  *
  */
+@SuppressWarnings("PMD.PublicMemberInNonPublicType")
 class VerboseHandlerReference extends HandlerReference {
 
     private static AtomicLong invocationCounter = new AtomicLong(1);

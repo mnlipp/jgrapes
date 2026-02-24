@@ -27,6 +27,7 @@ import org.jgrapes.core.Event;
  * added event to the associated pipeline. Else forward added events to
  * a fall back pipeline.
  */
+@SuppressWarnings("PMD.PublicMemberInNonPublicType")
 class FeedBackPipelineFilter implements InternalEventPipeline {
 
     private final ComponentTree componentTree;

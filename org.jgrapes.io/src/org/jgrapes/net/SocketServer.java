@@ -55,6 +55,7 @@ import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Error;
 import org.jgrapes.core.events.Start;
 import org.jgrapes.core.events.Stop;
+import org.jgrapes.core.internal.ComponentVertex;
 import org.jgrapes.io.NioHandler;
 import org.jgrapes.io.events.Close;
 import org.jgrapes.io.events.Closed;
@@ -99,9 +100,8 @@ import org.jgrapes.util.events.ConfigurationUpdate;
  * level components support the {@link Purge} event. Else, it may become
  * impossible to establish new connections.
  */
-@SuppressWarnings({ "PMD.ExcessiveImports", "PMD.ExcessivePublicCount",
-    "PMD.NcssCount", "PMD.EmptyCatchBlock", "PMD.AvoidDuplicateLiterals",
-    "PMD.ExcessiveClassLength", "PMD.CouplingBetweenObjects" })
+@SuppressWarnings({ "PMD.ExcessiveImports", "PMD.EmptyCatchBlock",
+    "PMD.CouplingBetweenObjects", "PMD.AvoidSynchronizedStatement" })
 public class SocketServer extends SocketConnectionManager
         implements NioHandler {
 
@@ -111,13 +111,14 @@ public class SocketServer extends SocketConnectionManager
     private int backlog;
     private PermitsPool connLimiter;
     private Registration registration;
-    @SuppressWarnings("PMD.SingularField")
     private Thread purger;
     private long minimumPurgeableTime;
 
     /**
      * The purger thread.
      */
+    @SuppressWarnings({ "PMD.PublicMemberInNonPublicType",
+        "PMD.AvoidSynchronizedStatement" })
     private class Purger extends Thread implements AvailabilityListener {
 
         private boolean permitsAvailable = true;
@@ -146,7 +147,7 @@ public class SocketServer extends SocketConnectionManager
 
         @Override
         @SuppressWarnings({ "PMD.AvoidInstantiatingObjectsInLoops",
-            "PMD.DataflowAnomalyAnalysis", "PMD.CognitiveComplexity" })
+            "PMD.CognitiveComplexity" })
         public void run() {
             if (connLimiter == null) {
                 return;
@@ -212,7 +213,7 @@ public class SocketServer extends SocketConnectionManager
      * Creates a new server, using itself as component channel. 
      */
     public SocketServer() {
-        this(Channel.SELF);
+        this(SELF);
     }
 
     /**
@@ -275,7 +276,6 @@ public class SocketServer extends SocketConnectionManager
      * @param event the event
      */
     @Handler
-    @SuppressWarnings("PMD.ConfusingTernary")
     public void onConfigurationUpdate(ConfigurationUpdate event) {
         event.values(componentPath()).ifPresent(values -> {
             String hostname = values.get("hostname");
@@ -396,7 +396,7 @@ public class SocketServer extends SocketConnectionManager
         serverSocketChannel.bind(serverAddress, backlog);
         MBeanView.addServer(this);
         fire(new NioRegistration(this, serverSocketChannel,
-            SelectionKey.OP_ACCEPT, this), Channel.BROADCAST);
+            SelectionKey.OP_ACCEPT, this), BROADCAST);
     }
 
     /**
@@ -407,6 +407,7 @@ public class SocketServer extends SocketConnectionManager
      * @throws IOException Signals that an I/O exception has occurred.
      */
     @Handler(channels = Self.class)
+    @SuppressWarnings("PMD.CompareObjectsWithEquals")
     public void onRegistered(NioRegistration.Completed event)
             throws InterruptedException, IOException {
         NioHandler handler = event.event().handler();
@@ -492,7 +493,6 @@ public class SocketServer extends SocketConnectionManager
      * @throws InterruptedException if the execution was interrupted
      */
     @Handler
-    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
     public void onClose(Close event) throws IOException, InterruptedException {
         boolean closeServer = false;
         for (Channel channel : event.channels()) {
@@ -513,7 +513,7 @@ public class SocketServer extends SocketConnectionManager
         }
         if (!serverSocketChannel.isOpen()) {
             // Closed already
-            fire(new Closed<Void>());
+            fire(new Closed<>());
             return;
         }
         synchronized (channels) {
@@ -530,7 +530,7 @@ public class SocketServer extends SocketConnectionManager
         serverSocketChannel.close();
         purger.interrupt();
         closing = false;
-        fire(new Closed<Void>());
+        fire(new Closed<>());
     }
 
     /**
@@ -639,8 +639,7 @@ public class SocketServer extends SocketConnectionManager
          * @param server the server
          */
         @SuppressWarnings({ "PMD.EmptyCatchBlock",
-            "PMD.AvoidCatchingGenericException",
-            "PMD.ConstructorCallsOverridableMethod" })
+            "PMD.AvoidCatchingGenericException" })
         public SocketServerInfo(SocketServer server) {
             serverRef = new WeakReference<>(server);
             try {
@@ -692,7 +691,8 @@ public class SocketServer extends SocketConnectionManager
 
         @Override
         public String getComponentPath() {
-            return server().map(mgr -> mgr.componentPath()).orElse("<removed>");
+            return server()
+                .map(ComponentVertex::componentPath).orElse("<removed>");
         }
 
         @Override
@@ -739,6 +739,7 @@ public class SocketServer extends SocketConnectionManager
     /**
      * The MBeanView.
      */
+    @SuppressWarnings("PMD.PublicMemberInNonPublicType")
     private static final class MBeanView implements SocketServerSummaryMXBean {
         private static Set<SocketServerInfo> serverInfos = new HashSet<>();
 

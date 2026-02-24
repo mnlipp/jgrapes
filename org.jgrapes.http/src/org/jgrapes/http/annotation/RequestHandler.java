@@ -231,7 +231,7 @@ public @interface RequestHandler {
             @SuppressWarnings({ "PMD.CyclomaticComplexity",
                 "PMD.NPathComplexity", "PMD.AvoidDeeplyNestedIfStmts",
                 "PMD.CollapsibleIfStatements", "PMD.CognitiveComplexity",
-                "PMD.AvoidInstantiatingObjectsInLoops", "PMD.NcssCount" })
+                "PMD.NcssCount" })
             public Scope(ComponentType component,
                     Method method, RequestHandler annotation,
                     Map<Class<? extends Channel>, Object[]> channelReplacements,
@@ -311,8 +311,7 @@ public @interface RequestHandler {
             }
 
             @Override
-            @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",
-                "PMD.NPathComplexity", "PMD.CognitiveComplexity" })
+            @SuppressWarnings({ "PMD.CognitiveComplexity" })
             public boolean includes(Eligible event, Eligible[] channels) {
                 boolean match = false;
                 for (Object eventType : handledEventTypes) {

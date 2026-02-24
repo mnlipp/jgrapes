@@ -34,6 +34,7 @@ public class Upgraded extends Event<String> {
      * @param resourceName the resource for which the upgrade was requested
      * @param channels
      */
+    @SuppressWarnings("PMD.ConstructorCallsOverridableMethod")
     public Upgraded(URI resourceName, String result, Channel... channels) {
         super(channels);
         this.resourceName = resourceName;

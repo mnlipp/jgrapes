@@ -91,9 +91,8 @@ import org.jgrapes.util.Password;
  * If required, the monitor function may be reestablished any time
  * by firing a {@link UpdateMailFolders} event for the folders used.
  */
-@SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",
-    "PMD.DataflowAnomalyAnalysis", "PMD.ExcessiveImports",
-    "PMD.CouplingBetweenObjects" })
+@SuppressWarnings({ "PMD.CouplingBetweenObjects",
+    "PMD.AvoidSynchronizedStatement" })
 public class MailMonitor extends MailConnectionManager<
         MailMonitor.MonitorChannel, OpenMailMonitor> {
 
@@ -168,13 +167,13 @@ public class MailMonitor extends MailConnectionManager<
             // See https://github.com/eclipse-ee4j/mail/issues/631
             new Authenticator() {
                 @Override
-                @SuppressWarnings("PMD.StringInstantiation")
                 protected PasswordAuthentication
                         getPasswordAuthentication() {
                     return new PasswordAuthentication(
                         sessionProps.getProperty("mail.user"),
-                        new String(event.password().or(() -> password())
-                            .map(Password::password).orElse(new char[0])));
+                        new String(
+                            event.password().or(MailMonitor.this::password)
+                                .map(Password::password).orElse(new char[0])));
                 }
             });
 
@@ -215,7 +214,8 @@ public class MailMonitor extends MailConnectionManager<
     /**
      * The Enum ChannelState.
      */
-    @SuppressWarnings("PMD.FieldNamingConventions")
+    @SuppressWarnings({ "PMD.FieldNamingConventions",
+        "PMD.PublicMemberInNonPublicType" })
     private enum ChannelState {
         Opening {
             @Override
@@ -266,6 +266,7 @@ public class MailMonitor extends MailConnectionManager<
     /**
      * The specific implementation of the {@link MailChannel}.
      */
+    @SuppressWarnings("PMD.PublicMemberInNonPublicType")
     protected class MonitorChannel extends
             MailConnectionManager<MailMonitor.MonitorChannel,
                     OpenMailMonitor>.AbstractMailChannel
@@ -290,6 +291,7 @@ public class MailMonitor extends MailConnectionManager<
          * @param user the user
          * @param password the password
          */
+        @SuppressWarnings("PMD.ConstructorCallsOverridableMethod")
         public MonitorChannel(OpenMailMonitor event, Channel mainChannel,
                 Store store, String user, Password password) {
             super(event, mainChannel);
@@ -303,9 +305,8 @@ public class MailMonitor extends MailConnectionManager<
             idleTimer = Components.schedule(t -> {
                 requestPipeline.fire(new UpdateMailFolders(), this);
             }, maxIdleTime);
-            connect(
-                t -> downPipeline().fire(new ConnectError(event, t),
-                    mainChannel));
+            connect(t -> downPipeline().fire(new ConnectError(event, t),
+                mainChannel));
         }
 
         /**
@@ -340,8 +341,7 @@ public class MailMonitor extends MailConnectionManager<
          * @param onOpenFailed the on open failed
          * @throws InterruptedException the interrupted exception
          */
-        @SuppressWarnings({ "PMD.AvoidInstanceofChecksInCatchClause",
-            "PMD.StringInstantiation" })
+        @SuppressWarnings({ "PMD.AvoidInstanceofChecksInCatchClause" })
         private void attemptConnect(Consumer<Throwable> onOpenFailed)
                 throws InterruptedException {
             try {
@@ -405,8 +405,6 @@ public class MailMonitor extends MailConnectionManager<
          * @param event the event
          */
         @Override
-        @SuppressWarnings({ "PMD.GuardLogStatement",
-            "PMD.AvoidDuplicateLiterals" })
         public void opened(ConnectionEvent event) {
             folderCache.clear();
             if (state == ChannelState.Reopened) {
@@ -470,7 +468,7 @@ public class MailMonitor extends MailConnectionManager<
                 state = ChannelState.Closed;
                 folderCache.clear();
             }
-            downPipeline().fire(new Closed<Void>(), this);
+            downPipeline().fire(new Closed<>(), this);
             super.close();
         }
 
@@ -494,9 +492,6 @@ public class MailMonitor extends MailConnectionManager<
          * 
          * @param event
          */
-        @SuppressWarnings({ "PMD.CognitiveComplexity",
-            "PMD.AvoidInstantiatingObjectsInLoops",
-            "PMD.AvoidDuplicateLiterals" })
         public void onUpdateFolders(UpdateMailFolders event) {
             List<Folder> folders = new ArrayList<>();
             List<Message> newMsgs = new ArrayList<>();
@@ -528,8 +523,7 @@ public class MailMonitor extends MailConnectionManager<
                 this));
         }
 
-        @SuppressWarnings({ "PMD.GuardLogStatement",
-            "PMD.AvoidRethrowingException", "PMD.CloseResource" })
+        @SuppressWarnings({ "PMD.GuardLogStatement", "PMD.CloseResource" })
         private Folder getFolder(String folderName)
                 throws FolderClosedException {
             synchronized (folderCache) {
@@ -573,8 +567,6 @@ public class MailMonitor extends MailConnectionManager<
             }
         }
 
-        @SuppressWarnings({ "PMD.AvoidInstantiatingObjectsInLoops",
-            "PMD.GuardLogStatement" })
         private void updateFolders(MessageCountEvent event) {
             List<Message> newMsgs = new ArrayList<>();
             if (event.getType() == MessageCountEvent.ADDED) {
@@ -596,7 +588,7 @@ public class MailMonitor extends MailConnectionManager<
          *
          * @param event the event
          */
-        @SuppressWarnings({ "PMD.CloseResource", "PMD.UnusedPrivateMethod" })
+        @SuppressWarnings("PMD.CloseResource")
         private void refreshWatches(MailFoldersUpdated event) {
             if (!state.isOpen()) {
                 return;

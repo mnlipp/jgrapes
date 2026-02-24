@@ -28,6 +28,7 @@ public class ProcessStarted extends Opened<StartProcess> {
      *
      * @param startEvent the start event
      */
+    @SuppressWarnings("PMD.ConstructorCallsOverridableMethod")
     public ProcessStarted(StartProcess startEvent) {
         setResult(startEvent);
     }

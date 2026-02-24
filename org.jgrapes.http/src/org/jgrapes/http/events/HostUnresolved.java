@@ -24,7 +24,6 @@ import org.jgrapes.core.events.Error;
 /**
  * Indicates that a host name could not be resolved.
  */
-@SuppressWarnings("PMD.DoNotExtendJavaLangError")
 public class HostUnresolved extends Error {
 
     /**

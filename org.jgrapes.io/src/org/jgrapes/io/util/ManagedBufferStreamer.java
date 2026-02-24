@@ -23,7 +23,6 @@ import java.io.Reader;
 import java.nio.Buffer;
 import java.nio.charset.Charset;
 import java.util.function.Consumer;
-
 import org.jgrapes.core.Components;
 import org.jgrapes.io.events.Input;
 
@@ -72,9 +71,8 @@ public class ManagedBufferStreamer implements InputConsumer {
      * @param buffer the buffer
      * @throws IOException Signals that an I/O exception has occurred.
      */
-    @SuppressWarnings({ "PMD.PreserveStackTrace" })
+    @Override
     public <W extends Buffer> void feed(ManagedBuffer<W> buffer) {
         reader.feed(buffer);
     }
-
 }

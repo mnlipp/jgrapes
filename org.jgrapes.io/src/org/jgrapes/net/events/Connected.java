@@ -26,7 +26,6 @@ import org.jgrapes.io.events.Opened;
 /**
  * This event signals that a new connection has been established.
  */
-@SuppressWarnings("PMD.DataClass")
 public class Connected<T> extends Opened<T> {
 
     private final SocketAddress localAddress;
@@ -73,8 +72,7 @@ public class Connected<T> extends Opened<T> {
             .append(remoteAddress)
             .append(", ");
         if (channels().length > 0) {
-            builder.append("channels=");
-            builder.append(Channel.toString(channels()));
+            builder.append("channels=").append(Channel.toString(channels()));
         }
         return builder.toString();
     }

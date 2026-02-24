@@ -105,7 +105,7 @@ public class LanguageSelector extends Component {
      * @param scope the scope
      */
     public LanguageSelector(String scope) {
-        this(Channel.SELF, scope);
+        this(SELF, scope);
     }
 
     /**
@@ -127,7 +127,6 @@ public class LanguageSelector extends Component {
      * @param componentChannel the component channel
      * @param scope the scope
      */
-    @SuppressWarnings("PMD.AvoidLiteralsInIfCondition")
     public LanguageSelector(Channel componentChannel, String scope) {
         this(componentChannel, scope, 990);
     }
@@ -229,13 +228,12 @@ public class LanguageSelector extends Component {
      * 
      * @param event the event
      */
-    @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis", "PMD.EmptyCatchBlock" })
+    @SuppressWarnings({ "PMD.EmptyCatchBlock" })
     @RequestHandler(dynamic = true)
     public void onRequest(Request.In event) {
         if (event.fulfilled()) {
             return;
         }
-        @SuppressWarnings("PMD.AccessorClassGeneration")
         final Selection selection
             = (Selection) Session.from(event).computeIfAbsent(Selection.class,
                 newKey -> new Selection(cookieName, path, cookieMaxAge,
@@ -305,7 +303,7 @@ public class LanguageSelector extends Component {
     /**
      * Represents a locale selection.
      */
-    @SuppressWarnings({ "serial", "PMD.DataflowAnomalyAnalysis" })
+    @SuppressWarnings({ "serial" })
     public static final class Selection implements Serializable {
         private transient WeakReference<Request.In> currentEvent;
         private final String cookieName;

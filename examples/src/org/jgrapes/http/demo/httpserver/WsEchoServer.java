@@ -45,7 +45,7 @@ import org.jgrapes.io.util.ManagedBuffer;
 public class WsEchoServer extends Component {
 
     private final Set<IOSubchannel> openChannels
-        = Collections.newSetFromMap(new WeakHashMap<IOSubchannel, Boolean>());
+        = Collections.newSetFromMap(new WeakHashMap<>());
 
     /**
      * @param componentChannel
@@ -97,6 +97,7 @@ public class WsEchoServer extends Component {
      * @param channel the channel
      */
     @Handler
+    @SuppressWarnings("PMD.LiteralsFirstInComparisons")
     public void onInput(Input<CharBuffer> event, IOSubchannel channel) {
         if (!openChannels.contains(channel)) {
             return;

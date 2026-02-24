@@ -62,8 +62,7 @@ public class Ready extends Opened<Void> {
             .append(listenAddress)
             .append(", ");
         if (channels().length > 0) {
-            builder.append("channels=");
-            builder.append(Channel.toString(channels()));
+            builder.append("channels=").append(Channel.toString(channels()));
         }
         builder.append(']');
         return builder.toString();

@@ -56,8 +56,6 @@ import org.jgrapes.util.events.InitialPreferences;
  * the component also listens for {@link ConfigurationUpdate} events
  * on its channel and updates the JSON file (may be suppressed).
  */
-@SuppressWarnings({ "PMD.DataflowAnomalyAnalysis", "PMD.AvoidDuplicateLiterals",
-    "PMD.GodClass" })
 public class JsonConfigurationStore extends NightConfigStore {
 
     /**
@@ -90,7 +88,6 @@ public class JsonConfigurationStore extends NightConfigStore {
      * @param update if the configuration file is to be updated
      * @throws IOException Signals that an I/O exception has occurred.
      */
-    @SuppressWarnings("PMD.ShortVariable")
     public JsonConfigurationStore(Channel componentChannel, File file,
             boolean update) throws IOException {
         this(componentChannel, file, update, true);
@@ -114,7 +111,6 @@ public class JsonConfigurationStore extends NightConfigStore {
      * @param watch if {@link FileChanged} events are to be processed
      * @throws IOException Signals that an I/O exception has occurred.
      */
-    @SuppressWarnings("PMD.ShortVariable")
     public JsonConfigurationStore(Channel componentChannel, File file,
             boolean update, boolean watch) throws IOException {
         super(componentChannel, file, update, watch);
