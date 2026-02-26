@@ -129,7 +129,7 @@
 <span class="source-line-no">115</span><span id="line-115">            .add(EncryptedChannel.class, encryptedChannel));</span>
 <span class="source-line-no">116</span><span id="line-116">        this.encryptedChannel = encryptedChannel;</span>
 <span class="source-line-no">117</span><span id="line-117">        try {</span>
-<span class="source-line-no">118</span><span id="line-118">            final SSLContext sslContext = SSLContext.getInstance("SSL");</span>
+<span class="source-line-no">118</span><span id="line-118">            final SSLContext sslContext = SSLContext.getInstance("TLSv1.3");</span>
 <span class="source-line-no">119</span><span id="line-119">            if (dontValidate) {</span>
 <span class="source-line-no">120</span><span id="line-120">                // Create a trust manager that does not validate certificate</span>
 <span class="source-line-no">121</span><span id="line-121">                // chains</span>
