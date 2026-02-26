@@ -19,9 +19,13 @@
 package jdbld;
 
 import static org.jdrupes.builder.api.Intent.*;
+
+import java.nio.file.Path;
+
 import org.jdrupes.builder.core.AbstractProject;
 import org.jdrupes.builder.java.JavaExecutor;
 import org.jdrupes.builder.java.JavaLibraryProject;
+import org.jdrupes.builder.java.JavaResourceCollector;
 import org.jdrupes.builder.mvnrepo.MvnRepoLookup;
 
 public class Examples extends AbstractProject implements JavaLibraryProject {
@@ -41,6 +45,11 @@ public class Examples extends AbstractProject implements JavaLibraryProject {
         dependency(Supply, JavaExecutor::new).name("EchoServer")
             .addFrom(providers().select(Supply, Reveal))
             .mainClass("org.jgrapes.examples.io.tcpecho.EchoServer");
+        dependency(Supply, JavaExecutor::new).name("HttpServerDemo")
+            .addFrom(providers().select(Supply, Reveal))
+            .addFrom(new JavaResourceCollector(this)
+                .add(Path.of("demo-resources"), "**/*"))
+            .mainClass("org.jgrapes.http.demo.httpserver.HttpServerDemo");
 
 //        runtimeOnly 'org.apache.felix:org.apache.felix.framework:6.0.5'
 //        runtimeOnly ('org.apache.aries.spifly:org.apache.aries.spifly.dynamic.bundle:1.3.4') {

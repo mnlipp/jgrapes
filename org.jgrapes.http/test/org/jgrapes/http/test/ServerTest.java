@@ -101,7 +101,7 @@ public class ServerTest {
             KeyManagerFactory kmf = KeyManagerFactory.getInstance(
                 KeyManagerFactory.getDefaultAlgorithm());
             kmf.init(serverStore, "nopass".toCharArray());
-            SSLContext sslContext = SSLContext.getInstance("TLS");
+            SSLContext sslContext = SSLContext.getInstance("TLSv1.3");
             sslContext.init(kmf.getKeyManagers(), null, new SecureRandom());
 
             // Network level unencrypted channel.
@@ -175,7 +175,7 @@ public class ServerTest {
             }
         };
 
-        SSLContext sc = SSLContext.getInstance("SSL");
+        SSLContext sc = SSLContext.getInstance("TLSv1.3");
         sc.init(null, trustAllCerts, null);
         HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
 

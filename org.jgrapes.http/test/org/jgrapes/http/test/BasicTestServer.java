@@ -76,7 +76,7 @@ public class BasicTestServer extends Component {
         KeyManagerFactory kmf = KeyManagerFactory.getInstance(
             KeyManagerFactory.getDefaultAlgorithm());
         kmf.init(serverStore, "nopass".toCharArray());
-        SSLContext sslContext = SSLContext.getInstance("TLS");
+        SSLContext sslContext = SSLContext.getInstance("TLSv1.3");
         sslContext.init(kmf.getKeyManagers(), null, new SecureRandom());
 
         // Create a TCP server for SSL

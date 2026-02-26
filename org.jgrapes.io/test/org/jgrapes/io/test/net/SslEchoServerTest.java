@@ -122,7 +122,7 @@ public class SslEchoServerTest {
         KeyManagerFactory kmf = KeyManagerFactory.getInstance(
             KeyManagerFactory.getDefaultAlgorithm());
         kmf.init(serverStore, "nopass".toCharArray());
-        SSLContext sslContext = SSLContext.getInstance("TLS");
+        SSLContext sslContext = SSLContext.getInstance("TLSv1.3");
         sslContext.init(kmf.getKeyManagers(), null, new SecureRandom());
 
         // Create a TCP server for SSL
@@ -156,7 +156,7 @@ public class SslEchoServerTest {
                 }
             }
         };
-        SSLContext clientContext = SSLContext.getInstance("SSL");
+        SSLContext clientContext = SSLContext.getInstance("TLSv1.3");
         clientContext.init(null, trustAllCerts, null);
         SSLSocketFactory sslsocketfactory = clientContext.getSocketFactory();
         try (SSLSocket client = (SSLSocket) sslsocketfactory.createSocket(

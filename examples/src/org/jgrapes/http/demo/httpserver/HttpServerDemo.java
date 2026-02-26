@@ -20,7 +20,7 @@ package org.jgrapes.http.demo.httpserver;
 
 import java.io.InputStream;
 import java.net.InetSocketAddress;
-import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.KeyStore;
 import java.security.SecureRandom;
@@ -77,14 +77,14 @@ public class HttpServerDemo extends Component implements BundleActivator {
 
         // Create TLS "converter"
         KeyStore serverStore = KeyStore.getInstance("JKS");
-        try (InputStream keyFile
-            = Files.newInputStream(Paths.get("demo-resources/localhost.jks"))) {
+        try (InputStream keyFile = getClass()
+            .getResourceAsStream("/localhost.jks")) {
             serverStore.load(keyFile, "nopass".toCharArray());
         }
         KeyManagerFactory kmf = KeyManagerFactory.getInstance(
             KeyManagerFactory.getDefaultAlgorithm());
         kmf.init(serverStore, "nopass".toCharArray());
-        SSLContext sslContext = SSLContext.getInstance("TLS");
+        SSLContext sslContext = SSLContext.getInstance("TLSv1.3");
         sslContext.init(kmf.getKeyManagers(), null, new SecureRandom());
         // Create a TCP server for SSL
         Channel securedNetwork = app.attach(
@@ -103,7 +103,9 @@ public class HttpServerDemo extends Component implements BundleActivator {
         app.attach(new LanguageSelector(app.channel()));
         app.attach(new FileStorage(app.channel(), 65_536));
         app.attach(new StaticContentDispatcher(app.channel(),
-            "/**", Paths.get("demo-resources/static-content").toUri()));
+            "/**", Path.of(getClass().getResource(
+                "/static-content/ws/index.html").getPath()).getParent()
+                .getParent().toUri()));
         app.attach(new StaticContentDispatcher(app.channel(),
             "/doc|**", Paths.get("../../jgrapes.gh-pages/javadoc").toUri()));
         app.attach(new FormProcessor(app.channel()));

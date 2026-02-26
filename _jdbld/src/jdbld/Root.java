@@ -114,6 +114,8 @@ public class Root extends AbstractRootProject {
             .resources(of(ExecResult.class).withName("EchoUntilQuit"));
         commandAlias("runEchoServer")
             .resources(of(ExecResult.class).withName("EchoServer"));
+        commandAlias("runHttpServerDemo")
+            .resources(of(ExecResult.class).withName("HttpServerDemo"));
         commandAlias("baseline").resources(of(BndBaselineEvaluation.class));
         commandAlias("ghPagesPublication")
             .resources(of(GhPagesPublication.class));

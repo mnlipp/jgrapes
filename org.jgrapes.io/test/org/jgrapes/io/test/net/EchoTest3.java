@@ -301,7 +301,7 @@ public class EchoTest3 {
         KeyManagerFactory kmf = KeyManagerFactory.getInstance(
             KeyManagerFactory.getDefaultAlgorithm());
         kmf.init(serverStore, "nopass".toCharArray());
-        SSLContext sslSrvContext = SSLContext.getInstance("TLS");
+        SSLContext sslSrvContext = SSLContext.getInstance("TLSv1.3");
         sslSrvContext.init(kmf.getKeyManagers(), null, new SecureRandom());
 
         // Create a TCP server for SSL

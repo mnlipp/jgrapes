@@ -115,7 +115,7 @@ public class SslCodec extends Component {
             .add(EncryptedChannel.class, encryptedChannel));
         this.encryptedChannel = encryptedChannel;
         try {
-            final SSLContext sslContext = SSLContext.getInstance("SSL");
+            final SSLContext sslContext = SSLContext.getInstance("TLSv1.3");
             if (dontValidate) {
                 // Create a trust manager that does not validate certificate
                 // chains
