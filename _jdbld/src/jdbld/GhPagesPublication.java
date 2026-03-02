@@ -18,10 +18,20 @@
 
 package jdbld;
 
+import org.jdrupes.builder.api.ResourceFactory;
+import org.jdrupes.builder.api.ResourceType;
 import org.jdrupes.builder.api.VirtualResource;
 
 /// Defines the resource GhPagesPublication.
 ///
 public interface GhPagesPublication extends VirtualResource {
+
+    /// Creates a new github pages publication resource.
+    ///
+    /// @return the virtual resource
+    ///
+    static GhPagesPublication create() {
+        return ResourceFactory.create(new ResourceType<>() {});
+    }
 
 }

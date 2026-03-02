@@ -39,6 +39,8 @@ import org.jdrupes.builder.core.AbstractGenerator;
 import org.jdrupes.builder.java.ClassTree;
 import org.jdrupes.builder.java.ClasspathElement;
 import org.jdrupes.builder.java.JarFile;
+import org.jdrupes.builder.java.JavadocDirectory;
+
 import static org.jdrupes.builder.java.JavaTypes.*;
 import org.jdrupes.builder.mvnrepo.MvnRepoLookup;
 
@@ -68,9 +70,9 @@ public class JGrapesJavadoc extends AbstractGenerator implements Renamable {
 
         // Get destination and check if we only have to cleanup.
         var destDir = project().buildDirectory().resolve("javadoc");
-        var generated = project().newResource(ClassTreeType, destDir, "**/*");
+        var generated = ClassTree.from(project(), destDir);
         if (requested.accepts(CleanlinessType)) {
-            generated.delete();
+            generated.cleanup();
             destDir.toFile().delete();
             return Stream.empty();
         }
@@ -152,7 +154,7 @@ public class JGrapesJavadoc extends AbstractGenerator implements Renamable {
             }
             @SuppressWarnings("unchecked")
             var result = (Stream<T>) Stream
-                .of(newResource(JavadocDirectoryType, destDir));
+                .of(JavadocDirectory.from(project(), destDir));
             return result;
         } catch (IOException | InterruptedException e) {
             throw new BuildException().from(this).cause(e);
