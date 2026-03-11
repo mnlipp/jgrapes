@@ -213,7 +213,7 @@ public class Root extends AbstractRootProject {
                         .resolve(project.name())
                         .resolve("pom.xml"), pomFile)))
                 .add(Path.of("OSGI-OPT/src"), project.resources(
-                    project.of(JavaSourceTreeType).using(Supply, Expose)));
+                    project.of(JavaSourceTreeType).using(Supply)));
             var git = project.<Git> get(GitApi);
             try {
                 gen.attributes(
