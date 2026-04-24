@@ -22,6 +22,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.stream.Stream;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -38,6 +41,7 @@ import org.jdrupes.builder.api.ResourceRequest;
 import org.jdrupes.builder.api.ResourceType;
 import org.jdrupes.builder.core.AbstractGenerator;
 import org.jdrupes.builder.java.JavadocDirectory;
+import static org.jdrupes.builder.java.JavaTypes.*;
 
 /// The Class GhPagesPublisher.
 ///
@@ -53,15 +57,15 @@ public class GhPagesPublisher extends AbstractGenerator {
     }
 
     @Override
-    protected <T extends Resource> Stream<T>
+    protected <T extends Resource> Collection<T>
             doProvide(ResourceRequest<T> request) {
         if (!request.accepts(new ResourceType<GhPagesPublication>() {})) {
-            return Stream.empty();
+            return Collections.emptyList();
         }
 
         // Prepare javadocs
         var javadocs = project().rootProject()
-            .resources(of(JavadocDirectory.class).using(Intent.Supply));
+            .resources(of(JavadocDirectoryType).using(Intent.Supply));
 
         // Clone, copy, publish
         var workDir = project().buildDirectory().resolve("gh-pages");
@@ -83,14 +87,14 @@ public class GhPagesPublisher extends AbstractGenerator {
 
         @SuppressWarnings("unchecked")
         var result = (T) GhPagesPublication.create();
-        return Stream.of(result);
+        return List.of(result);
     }
 
     private Git cloneRepository(Path workDir)
             throws GitAPIException, InvalidRemoteException, TransportException {
         // Start with a clean Clone
         workDir.toFile().mkdir();
-        var files = FileTree.from(project(), workDir, "**/*");
+        var files = FileTree.of(project(), workDir, "**/*");
         context().statusLine().update("%s cleaning %s", this, workDir);
         files.cleanup();
         var repoUri = "https://github.com/mnlipp/jgrapes.git";
@@ -107,12 +111,12 @@ public class GhPagesPublisher extends AbstractGenerator {
             throws IOException {
         // Copy javadocs
         context().statusLine().update("%s copying javadocs", this);
-        var javadocDir = javadocs.findFirst().map(r -> r.path());
+        var javadocDir = javadocs.findFirst().map(r -> r.root());
         if (javadocDir.isEmpty()) {
             throw new BuildException().from(this)
                 .message("Javadoc not available");
         }
-        var javadocFiles = FileTree.from(project(), javadocDir.get(), "**/*");
+        var javadocFiles = FileTree.of(project(), javadocDir.get(), "**/*");
         for (var iter = javadocFiles.entries().iterator();
                 iter.hasNext();) {
             var relPath = iter.next();

@@ -24,6 +24,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Path;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -40,7 +42,6 @@ import org.jdrupes.builder.java.ClassTree;
 import org.jdrupes.builder.java.ClasspathElement;
 import org.jdrupes.builder.java.JarFile;
 import org.jdrupes.builder.java.JavadocDirectory;
-
 import static org.jdrupes.builder.java.JavaTypes.*;
 import org.jdrupes.builder.mvnrepo.MvnRepoLookup;
 
@@ -61,20 +62,20 @@ public class JGrapesJavadoc extends AbstractGenerator implements Renamable {
     }
 
     @Override
-    protected <T extends Resource> Stream<T>
+    protected <T extends Resource> Collection<T>
             doProvide(ResourceRequest<T> requested) {
         if (!requested.accepts(JavadocDirectoryType)
             && !requested.accepts(CleanlinessType)) {
-            return Stream.empty();
+            return Collections.emptyList();
         }
 
         // Get destination and check if we only have to cleanup.
         var destDir = project().buildDirectory().resolve("javadoc");
-        var generated = ClassTree.from(project(), destDir);
+        var generated = ClassTree.of(project(), destDir);
         if (requested.accepts(CleanlinessType)) {
             generated.cleanup();
             destDir.toFile().delete();
-            return Stream.empty();
+            return Collections.emptyList();
         }
 
         // Sources
@@ -84,7 +85,7 @@ public class JGrapesJavadoc extends AbstractGenerator implements Renamable {
 
         // Classpath
         var classpath = elementsToPath(project().resources(
-            of(ClasspathElement.class).using(Consume, Reveal, Expose)));
+            of(ClasspathElementType).using(Consume, Reveal, Expose)));
 
         // Build command
         List<String> command = List.of(
@@ -153,8 +154,8 @@ public class JGrapesJavadoc extends AbstractGenerator implements Renamable {
                     .message("Process javadoc returned: %d", ret);
             }
             @SuppressWarnings("unchecked")
-            var result = (Stream<T>) Stream
-                .of(JavadocDirectory.from(project(), destDir));
+            var result = (Collection<T>) List
+                .of(JavadocDirectory.of(project(), destDir));
             return result;
         } catch (IOException | InterruptedException e) {
             throw new BuildException().from(this).cause(e);

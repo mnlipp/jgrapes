@@ -3,6 +3,7 @@
 
 # Eclipse
 **/bin
+**/test-bin
 **/.classpath
 **/.project
 # **/.settings/
