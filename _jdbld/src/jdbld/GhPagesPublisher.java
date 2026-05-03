@@ -119,9 +119,9 @@ public class GhPagesPublisher extends AbstractGenerator {
         var javadocFiles = FileTree.of(project(), javadocDir.get(), "**/*");
         for (var iter = javadocFiles.entries().iterator();
                 iter.hasNext();) {
-            var relPath = iter.next();
-            Files.copy(javadocFiles.root().resolve(relPath),
-                workDir.resolve("javadoc").resolve(relPath),
+            var entry = iter.next();
+            Files.copy(javadocFiles.root().resolve(entry.path()),
+                workDir.resolve("javadoc").resolve(entry.path()),
                 StandardCopyOption.REPLACE_EXISTING);
         }
     }

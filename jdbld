@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-releaseVersion="0.0.25"
+releaseVersion="0.0.28"
 propertiesFile=".jdbld.properties"
 
 if [ ! -r "$propertiesFile" ]; then
@@ -91,4 +91,5 @@ if [ ! -z "$JAVA_HOME" ]; then
   javaCmd="$JAVA_HOME/bin/java"
 fi
 
-$javaCmd -Duser.language=en_US $JAVA_OPTS -jar "$builderJar" "$@"
+$javaCmd -Duser.language=en_US --enable-native-access=ALL-UNNAMED \
+    $JAVA_OPTS -jar "$builderJar" "$@"
