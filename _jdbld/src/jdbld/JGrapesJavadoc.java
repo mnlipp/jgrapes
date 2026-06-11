@@ -32,7 +32,7 @@ import java.util.stream.Stream;
 import org.jdrupes.builder.api.BuildException;
 import static org.jdrupes.builder.api.Intent.*;
 import org.jdrupes.builder.api.Project;
-import static org.jdrupes.builder.api.Project.Properties.*;
+import static org.jdrupes.builder.api.CoreProperties.*;
 import org.jdrupes.builder.api.Renamable;
 import org.jdrupes.builder.api.Resource;
 import org.jdrupes.builder.api.ResourceRequest;
