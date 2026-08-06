@@ -82,7 +82,8 @@ public class GeneratorRegistry {
             if (running == 1) { // NOPMD, no, not using a constant for this.
                 keepAlive = new Thread("GeneratorRegistry") {
                     @Override
-                    @SuppressWarnings("PMD.EmptyCatchBlock")
+                    @SuppressWarnings({ "PMD.EmptyCatchBlock",
+                        "PMD.OverridingThreadRun" })
                     public void run() {
                         try {
                             while (true) {

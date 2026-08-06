@@ -432,7 +432,7 @@ public @interface Handler {
             @SuppressWarnings({ "PMD.CyclomaticComplexity", "PMD.NcssCount",
                 "PMD.NPathComplexity", "PMD.UseVarargs",
                 "PMD.AvoidDeeplyNestedIfStmts", "PMD.CollapsibleIfStatements",
-                "PMD.CognitiveComplexity" })
+                "PMD.CognitiveComplexity", "PMD.PublicMemberInNonPublicType" })
             public Scope(ComponentType component, Method method,
                     Handler annotation,
                     Map<Class<? extends Channel>, Object[]> channelReplacements,

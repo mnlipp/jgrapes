@@ -7,5 +7,17 @@
     
 -sources: true
 
+-javac.source: 21
+-javac.target: 21
+
+testbin: test-bin
+
 # JUnit
-junit: org.apache.servicemix.bundles.junit; version=4.12
+# junit: org.apache.servicemix.bundles.junit; version=4.12
+
+-fixupmessages: \
+    "The .classpath contains a library that will not be available during continuous integration.*", \
+    "The build path does not refer to the bnd container 'aQute.bnd.classpath.container'", \
+    "The .JRE container is set to JavaSE-21 but bnd is compiling against 25", \
+    "javac.source inconsistency between bnd & Eclipse.", \
+    "javac.target inconsistency between bnd & Eclipse."

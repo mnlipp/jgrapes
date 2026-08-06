@@ -41,7 +41,7 @@ import org.jgrapes.core.internal.ComponentVertex;
  * @see ComponentType
  */
 public abstract class Component extends ComponentVertex
-        implements ComponentType, Channel {
+        implements ComponentType {
 
     protected final Logger logger = Logger.getLogger(getClass().getName());
     private final Channel componentChannel;

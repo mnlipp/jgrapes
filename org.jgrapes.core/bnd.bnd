@@ -1,6 +1,6 @@
 Bundle-Name: JGrapes Core
 Bundle-SymbolicName: org.jgrapes.core
-Bundle-Copyright: Michael N. Lipp (c) 2016, 2022
+Bundle-Copyright: Michael N. Lipp (c) 2016, 2026
 Bundle-License: http://www.gnu.org/licenses/agpl-3.0.txt
 
 api_version = 1.7.1.${tstamp}
@@ -11,8 +11,6 @@ Export-Package: \
 	org.jgrapes.core.events;version="${api_version}",\
 	org.jgrapes.core.internal;version="${api_version}"
 
--sources: true
-
 -dsannotations: 
 
 Require-Capability: \
@@ -22,7 +20,3 @@ Require-Capability: \
 -diffignore: OSGI-OPT/src/*, \
     META-INF/maven/org.jgrapes/org.jgrapes.core/pom.xml
     
--fixupmessages: \
-    "Found source folder 'resources' that is not on bnd's source path 'src'", \
-    "The .classpath contains an unknown container: GROOVY_DSL_SUPPORT. This could make your build less portable.", \
-    "The .classpath contains an unknown container: org.eclipse.buildship.core.gradleclasspathcontainer."

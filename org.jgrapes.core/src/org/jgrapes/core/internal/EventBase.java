@@ -354,7 +354,7 @@ public abstract class EventBase<T>
         event.addCompletionEvent(new ActionEvent<Event<T>>(
             event.getClass().getSimpleName() + "CompletionAction") {
             @Override
-            public void execute() throws Exception {
+            /* default */ void execute() throws Exception {
                 consumer.accept(event);
             }
         });

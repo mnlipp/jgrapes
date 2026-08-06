@@ -518,6 +518,7 @@ public class Components {
         }
 
         @Override
+        @SuppressWarnings("PMD.OverridingThreadRun")
         public void run() {
             while (true) {
                 while (true) {

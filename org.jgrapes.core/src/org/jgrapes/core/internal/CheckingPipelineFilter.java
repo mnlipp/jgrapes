@@ -25,7 +25,6 @@ import java.util.concurrent.Future;
 import java.util.logging.Level;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Components;
-import org.jgrapes.core.Components.IdInfoProvider;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.EventPipeline;
 
@@ -38,7 +37,7 @@ import org.jgrapes.core.EventPipeline;
  */
 @SuppressWarnings("PMD.PublicMemberInNonPublicType")
 class CheckingPipelineFilter
-        implements EventPipeline, InternalEventPipelineWrapper, IdInfoProvider {
+        implements EventPipeline, InternalEventPipelineWrapper {
 
     private final ComponentTree componentTree;
     private final InternalEventPipeline sink;

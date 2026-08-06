@@ -215,7 +215,8 @@ class ComponentTree {
      * @param event the event
      * @param channels the channels the event is sent to
      */
-    @SuppressWarnings({ "PMD.UseVarargs", "PMD.LooseCoupling" })
+    @SuppressWarnings({ "PMD.UseVarargs", "PMD.LooseCoupling",
+        "PMD.AvoidDeeplyNestedIfStmts" })
     /* default */ HandlerList getEventHandlers(
             EventBase<?> event, Channel[] channels) {
         CacheKey key = new CacheKey(event, channels);
