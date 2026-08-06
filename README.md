@@ -69,13 +69,9 @@ dependencies {
 Building
 --------
 
-The libraries can be built with `gradle build`. For working with 
-the project in Eclipse run `gradle eclipse` before importing the 
-project. 
+The project uses the [JDrupes Builder](https://builder.jdrupes.org)
+as build automation tool.
 
-If you want to use 
-[buildship](https://projects.eclipse.org/projects/tools.buildship),
-import the project as "Gradle / Existing Gradle Project". Should you
-encounter the (in)famous 
-["sync problem"](https://github.com/eclipse/buildship/issues/478),
-simply restart Eclipse.
+The libraries can be built with `./jdbld build`. For working with 
+the project in Eclipse run `./jdbld eclipse` before importing the 
+project. 
