@@ -1,5 +1,10 @@
 -diffignore: Git-Descriptor, Git-SHA
 
+-plugin.repo = \
+    aQute.bnd.repository.osgi.OSGiRepository; \
+    name=JDrupes-Wrappers; \
+    locations=https://raw.githubusercontent.com/mnlipp/jdrupes-osgi-wrappers/refs/heads/main/repository/index.xml
+    
 -sources: true
 
 # JUnit
