@@ -39,7 +39,7 @@ import org.jdrupes.builder.api.ResourceRequest;
 import static org.jdrupes.builder.api.ResourceType.*;
 import org.jdrupes.builder.core.AbstractGenerator;
 import org.jdrupes.builder.java.ClassTree;
-import org.jdrupes.builder.java.ClasspathElement;
+import org.jdrupes.builder.java.CodeContribution;
 import org.jdrupes.builder.java.JarFile;
 import org.jdrupes.builder.java.JavadocDirectory;
 import static org.jdrupes.builder.java.JavaTypes.*;
@@ -85,7 +85,7 @@ public class JGrapesJavadoc extends AbstractGenerator implements Renamable {
 
         // Classpath
         var classpath = elementsToPath(project().resources(
-            of(ClasspathElementType).using(Consume, Reveal, Expose)));
+            of(CodeContributionType).using(Consume, Reveal, Expose)));
 
         // Build command
         List<String> command = List.of(
@@ -121,14 +121,14 @@ public class JGrapesJavadoc extends AbstractGenerator implements Renamable {
             "-doclet", "org.jdrupes.mdoclet.MDoclet",
             "-docletpath", elementsToPath(new MvnRepoLookup()
                 .resolve("org.jdrupes.mdoclet:doclet:4.2.0")
-                .resources(of(ClasspathElementType).using(Supply, Expose))),
+                .resources(of(CodeContributionType).using(Supply, Expose))),
             "--disable-auto-highlight",
             "-taglet", "org.jdrupes.taglets.plantUml.PlantUml",
             "-taglet", "org.jdrupes.taglets.plantUml.StartUml",
             "-taglet", "org.jdrupes.taglets.plantUml.EndUml",
             "-tagletpath", elementsToPath(new MvnRepoLookup()
                 .resolve("org.jdrupes.taglets:plantuml-taglet:3.1.0")
-                .resources(of(ClasspathElementType).using(Supply, Expose))),
+                .resources(of(CodeContributionType).using(Supply, Expose))),
             "-overview", project().rootProject()
                 .directory().resolve("overview.md").toString(),
             "-bottom", project().rootProject()
@@ -162,7 +162,7 @@ public class JGrapesJavadoc extends AbstractGenerator implements Renamable {
         }
     }
 
-    private String elementsToPath(Stream<ClasspathElement> elements) {
+    private String elementsToPath(Stream<CodeContribution> elements) {
         return elements.<Path> mapMulti((e, consumer) -> {
             if (e instanceof ClassTree classTree) {
                 consumer.accept(classTree.root());
