@@ -1,0 +1,272 @@
+<!DOCTYPE html><html class="default" lang="en" data-base="../"><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>Web component Pattern | Components for AaSH (ARIA augmented Semantic HTML)</title><meta name="description" content="Documentation for Components for AaSH (ARIA augmented Semantic HTML)"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script defer src="../assets/main.js"></script><script async src="../assets/icons.js" id="tsd-icons-script"></script><script async src="../assets/search.js" id="tsd-search-script"></script><script async src="../assets/navigation.js" id="tsd-nav-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os";document.body.style.display="none";setTimeout(() => window.app?app.showPage():document.body.style.removeProperty("display"),500)</script><header class="tsd-page-toolbar">
+<div class="tsd-toolbar-contents container"><a href="../index.html" class="title">Components for AaSH (ARIA augmented Semantic HTML)</a>
+<div id="tsd-toolbar-links"></div><button id="tsd-search-trigger" class="tsd-widget" aria-label="Search"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-search"></use></svg></button><dialog id="tsd-search" aria-label="Search"><input role="combobox" id="tsd-search-input" aria-controls="tsd-search-results" aria-autocomplete="list" aria-expanded="true" autocapitalize="off" autocomplete="off" placeholder="Search the docs" maxLength="100"/>
+<ul role="listbox" id="tsd-search-results"></ul>
+<div id="tsd-search-status" aria-live="polite" aria-atomic="true">
+<div>Preparing search index...</div></div></dialog><a href="#" class="tsd-widget menu" id="tsd-toolbar-menu-trigger" data-toggle="menu" aria-label="Menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-menu"></use></svg></a></div></header>
+<div class="container container-main">
+<div class="col-content">
+<div class="tsd-page-title">
+<ul class="tsd-breadcrumb" aria-label="Breadcrumb">
+<li><a href="" aria-current="page">Web component Pattern</a></li></ul></div>
+<div class="tsd-panel tsd-typography"><h1 id="web-component-pattern" class="tsd-anchor-link">Web Component Pattern<a href="#web-component-pattern" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h1>
+<p>Alpine JS does not have a standard pattern for implementing web
+components. Therefore the library uses its own approach.
+Each component follows this pattern for creating Alpine JS-based
+custom elements.</p>
+<h2 id="class-structure" class="tsd-anchor-link">Class Structure<a href="#class-structure" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<pre><code class="ts"><span class="hl-0">import</span><span class="hl-1"> </span><span class="hl-2">Alpine</span><span class="hl-1"> </span><span class="hl-0">from</span><span class="hl-1"> </span><span class="hl-3">&#39;alpinejs&#39;</span><span class="hl-1">;</span><br/><span class="hl-0">import</span><span class="hl-1"> {</span><br/><span class="hl-1">  </span><span class="hl-2">AashComponent</span><span class="hl-1">, </span><span class="hl-2">Attribute</span><span class="hl-1">, </span><span class="hl-2">Renderer</span><span class="hl-1">, </span><span class="hl-2">booleanConverter</span><span class="hl-1">, </span><span class="hl-2">functionConverter</span><br/><span class="hl-1">} </span><span class="hl-0">from</span><span class="hl-1"> </span><span class="hl-3">&#39;../../AashUtil&#39;</span><span class="hl-1">;</span><br/><br/><span class="hl-1">@</span><span class="hl-4">AashComponent</span><span class="hl-1">()</span><br/><span class="hl-0">export</span><span class="hl-1"> </span><span class="hl-5">class</span><span class="hl-1"> </span><span class="hl-6">MyComponent</span><span class="hl-1"> </span><span class="hl-5">extends</span><span class="hl-1"> </span><span class="hl-6">HTMLElement</span><span class="hl-1"> {</span><br/><br/><span class="hl-1">  </span><span class="hl-5">private</span><span class="hl-1"> </span><span class="hl-5">readonly</span><span class="hl-1"> </span><span class="hl-2">ajsData</span><span class="hl-1">: </span><span class="hl-6">MyComponentData</span><span class="hl-1">;</span><br/><br/><span class="hl-1">  </span><span class="hl-5">constructor</span><span class="hl-1">() {</span><br/><span class="hl-1">    </span><span class="hl-5">super</span><span class="hl-1">();</span><br/><span class="hl-1">    </span><span class="hl-5">this</span><span class="hl-1">.</span><span class="hl-2">ajsData</span><span class="hl-1"> = </span><span class="hl-2">Alpine</span><span class="hl-1">.</span><span class="hl-4">reactive</span><span class="hl-1">({</span><br/><span class="hl-1">      </span><span class="hl-2">someProperty:</span><span class="hl-1"> </span><span class="hl-3">&#39;&#39;</span><span class="hl-1">,</span><br/><span class="hl-1">      </span><span class="hl-4">someMethod</span><span class="hl-1">(): </span><span class="hl-6">void</span><span class="hl-1"> { ... }</span><br/><span class="hl-1">    } </span><span class="hl-0">satisfies</span><span class="hl-1"> </span><span class="hl-6">MyComponentData</span><span class="hl-1">);</span><br/><span class="hl-1">  }</span><br/><br/><span class="hl-1">  @</span><span class="hl-4">Data</span><span class="hl-1">()</span><br/><span class="hl-1">  </span><span class="hl-5">protected</span><span class="hl-1"> </span><span class="hl-4">data</span><span class="hl-1">() {</span><br/><span class="hl-1">    </span><span class="hl-0">return</span><span class="hl-1"> </span><span class="hl-5">this</span><span class="hl-1">.</span><span class="hl-2">ajsData</span><span class="hl-1">;</span><br/><span class="hl-1">  }</span><br/><br/><span class="hl-1">  @</span><span class="hl-4">Renderer</span><span class="hl-1">()</span><br/><span class="hl-1">  </span><span class="hl-5">protected</span><span class="hl-1"> </span><span class="hl-4">render</span><span class="hl-1">() {</span><br/><span class="hl-1">    </span><span class="hl-5">this</span><span class="hl-1">.</span><span class="hl-2">innerHTML</span><span class="hl-1"> = </span><span class="hl-3">`&lt;span x-text=&quot;someProperty&quot;&gt;&lt;/span&gt;`</span><span class="hl-1">;</span><br/><span class="hl-1">  }</span><br/><br/><span class="hl-1">  @</span><span class="hl-4">Attribute</span><span class="hl-1">(</span><span class="hl-3">&#39;some-prop&#39;</span><span class="hl-1">)</span><br/><span class="hl-1">  </span><span class="hl-5">set</span><span class="hl-1"> </span><span class="hl-4">someProperty</span><span class="hl-1">(</span><span class="hl-2">value</span><span class="hl-1">: </span><span class="hl-6">string</span><span class="hl-1">) {</span><br/><span class="hl-1">    </span><span class="hl-5">this</span><span class="hl-1">.</span><span class="hl-2">ajsData</span><span class="hl-1">.</span><span class="hl-2">someProperty</span><span class="hl-1"> = </span><span class="hl-2">value</span><span class="hl-1">;</span><br/><span class="hl-1">  }</span><br/><span class="hl-1">}</span><br/><br/><span class="hl-2">customElements</span><span class="hl-1">.</span><span class="hl-4">define</span><span class="hl-1">(</span><span class="hl-3">&#39;my-component&#39;</span><span class="hl-1">, </span><span class="hl-2">MyComponent</span><span class="hl-1">);</span>
+</code><button type="button">Copy</button></pre>
+
+<h2 id="key-elements" class="tsd-anchor-link">Key Elements<a href="#key-elements" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<ol>
+<li>
+<p><strong>Reactive data</strong> — <code>ajsData</code> holds an <code>Alpine.reactive()</code> object
+containing all state and methods that Alpine templates reference.</p>
+</li>
+<li>
+<p><strong>Lifecycle</strong> — <code>connectedCallback</code> (provided by the class decorator)
+sets the attribute <code>x-data</code> (if missing) to the object returned
+by the method decorated with <code>@Data()</code>. It then calls the method
+decorated with <code>@Renderer()</code>. If the component defines its own
+<code>connectedCallback</code>, the decorator invokes it before setting the
+attribute. This allows the component to initialize controller state
+before rendering.</p>
+</li>
+<li>
+<p><strong>Data</strong> — The method decorated with <code>@Data()</code> is called to get the
+object with the component's data (Alpine's <code>x-data</code> attribute).</p>
+</li>
+<li>
+<p><strong>Render</strong> — The method decorated with <code>@Renderer()</code> creates the
+<code>innerHTML</code> of the web component. The <code>innerHTML</code> uses Alpine directives
+(<code>x-text</code>, <code>x-bind</code>, <code>x-for</code>, <code>x-show</code>, <code>x-init</code>, <code>x-cloak</code>, etc.) for
+reactive rendering. The directives can reference the data provided
+for the instance by the method decorated with <code>@Data()</code>.</p>
+</li>
+<li>
+<p><strong>Property setters</strong> — Public setters mutate the component's data,
+triggering Alpine's reactivity. Use <code>@Attribute</code> to bind setters to HTML
+attributes. For programmatic API usage, expose plain setters without
+<code>@Attribute</code> (e.g. <code>onAction</code> on <code>AashModalDialog</code>).</p>
+</li>
+<li>
+<p><strong>Cleanup</strong> — Override <code>disconnectedCallback</code> to release resources
+(remove event listeners, disconnect <code>MutationObserver</code>s). The
+decorator chains the user's callback after its own setup, so
+cleanup code should not interfere with the decorator's lifecycle.</p>
+</li>
+</ol>
+<h2 id="decorator-usage" class="tsd-anchor-link">Decorator Usage<a href="#decorator-usage" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<h3 id="_" class="tsd-anchor-link"><code>@AashComponent()</code><a href="#_" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<p>Class decorator that generates:</p>
+<ul>
+<li><code>static get observedAttributes()</code> — lists all <code>@Attribute</code> decorated
+setters</li>
+<li><code>attributeChangedCallback(name, oldVal, newVal)</code> — converts attribute
+string via the setter's converter and calls the setter</li>
+<li>Component preparation in <code>connectedCallback</code> — calls the component's
+own <code>connectedCallback</code> if it exists and then sets the attributes
+<code>x-data</code> (if missing).</li>
+</ul>
+<p>Usage:</p>
+<pre><code class="ts"><span class="hl-1">@</span><span class="hl-4">AashComponent</span><span class="hl-1">()</span><br/><span class="hl-5">class</span><span class="hl-1"> </span><span class="hl-6">MyComponent</span><span class="hl-1"> </span><span class="hl-5">extends</span><span class="hl-1"> </span><span class="hl-6">HTMLElement</span><span class="hl-1"> { ... }</span>
+</code><button type="button">Copy</button></pre>
+
+<h3 id="_-1" class="tsd-anchor-link"><code>@Attribute(name?, converter?)</code><a href="#_-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<p>Method decorator on a setter.</p>
+<ul>
+<li><code>name</code> — HTML attribute name. Defaults to the setter property name.</li>
+<li><code>converter</code> — Converter object with <code>fromAttribute</code> and <code>toAttribute</code>
+methods. Defaults to <code>defaultConverter</code> (auto-detects type).</li>
+</ul>
+<p>Usage:</p>
+<pre><code class="ts"><span class="hl-7">/* Default converter auto-detects string/number/boolean/object/array */</span><br/><span class="hl-1">@</span><span class="hl-4">Attribute</span><span class="hl-1">(</span><span class="hl-3">&#39;my-prop&#39;</span><span class="hl-1">)</span><br/><span class="hl-2">set</span><span class="hl-1"> </span><span class="hl-4">myProp</span><span class="hl-1">(</span><span class="hl-2">value</span><span class="hl-1">: </span><span class="hl-2">string</span><span class="hl-1">) { </span><span class="hl-5">this</span><span class="hl-1">.</span><span class="hl-2">ajsData</span><span class="hl-1">.</span><span class="hl-2">myProp</span><span class="hl-1"> = </span><span class="hl-2">value</span><span class="hl-1">; }</span><br/><br/><span class="hl-7">/* Number auto-detected from attribute value &quot;42&quot; */</span><br/><span class="hl-1">@</span><span class="hl-4">Attribute</span><span class="hl-1">()</span><br/><span class="hl-2">set</span><span class="hl-1"> </span><span class="hl-4">count</span><span class="hl-1">(</span><span class="hl-2">value</span><span class="hl-1">: </span><span class="hl-2">number</span><span class="hl-1">) { </span><span class="hl-5">this</span><span class="hl-1">.</span><span class="hl-2">ajsData</span><span class="hl-1">.</span><span class="hl-2">count</span><span class="hl-1"> = </span><span class="hl-2">value</span><span class="hl-1">; }</span><br/><br/><span class="hl-7">/* Boolean via &quot;true&quot;/&quot;false&quot; string or presence-based */</span><br/><span class="hl-1">@</span><span class="hl-4">Attribute</span><span class="hl-1">(</span><span class="hl-3">&#39;enabled&#39;</span><span class="hl-1">)</span><br/><span class="hl-2">set</span><span class="hl-1"> </span><span class="hl-4">enabled</span><span class="hl-1">(</span><span class="hl-2">value</span><span class="hl-1">: </span><span class="hl-2">boolean</span><span class="hl-1">) { </span><span class="hl-5">this</span><span class="hl-1">.</span><span class="hl-2">ajsData</span><span class="hl-1">.</span><span class="hl-2">enabled</span><span class="hl-1"> = </span><span class="hl-2">value</span><span class="hl-1">; }</span><br/><br/><span class="hl-1">@</span><span class="hl-4">Attribute</span><span class="hl-1">(</span><span class="hl-3">&#39;show-cancel&#39;</span><span class="hl-1">, </span><span class="hl-2">booleanConverter</span><span class="hl-1">)</span><br/><span class="hl-2">set</span><span class="hl-1"> </span><span class="hl-4">showCancel</span><span class="hl-1">(</span><span class="hl-2">value</span><span class="hl-1">: </span><span class="hl-2">boolean</span><span class="hl-1">) { </span><span class="hl-5">this</span><span class="hl-1">.</span><span class="hl-2">ajsData</span><span class="hl-1">.</span><span class="hl-2">showCancel</span><span class="hl-1"> = </span><span class="hl-2">value</span><span class="hl-1">; }</span><br/><br/><span class="hl-7">/* Object/array auto-detected from JSON in attribute value */</span><br/><span class="hl-1">@</span><span class="hl-4">Attribute</span><span class="hl-1">(</span><span class="hl-3">&#39;config&#39;</span><span class="hl-1">)</span><br/><span class="hl-2">set</span><span class="hl-1"> </span><span class="hl-4">config</span><span class="hl-1">(</span><span class="hl-2">value</span><span class="hl-1">: </span><span class="hl-2">object</span><span class="hl-1">) { </span><span class="hl-5">this</span><span class="hl-1">.</span><span class="hl-2">ajsData</span><span class="hl-1">.</span><span class="hl-2">config</span><span class="hl-1"> = </span><span class="hl-2">value</span><span class="hl-1">; }</span><br/><br/><span class="hl-7">/* Function converter for callback attributes */</span><br/><span class="hl-1">@</span><span class="hl-4">Attribute</span><span class="hl-1">(</span><span class="hl-3">&#39;on-action&#39;</span><span class="hl-1">, </span><span class="hl-2">expressionConverter</span><span class="hl-1">)</span><br/><span class="hl-2">set</span><span class="hl-1"> </span><span class="hl-4">onAction</span><span class="hl-1">(</span><span class="hl-2">value</span><span class="hl-1">: ((...</span><span class="hl-2">args</span><span class="hl-1">: </span><span class="hl-6">any</span><span class="hl-1">[]) </span><span class="hl-5">=&gt;</span><span class="hl-1"> </span><span class="hl-2">any</span><span class="hl-1">) | </span><span class="hl-5">null</span><span class="hl-1">) {</span><br/><span class="hl-1">  </span><span class="hl-5">this</span><span class="hl-1">.</span><span class="hl-2">ajsData</span><span class="hl-1">.</span><span class="hl-2">onAction</span><span class="hl-1"> = </span><span class="hl-2">value</span><span class="hl-1">;</span><br/><span class="hl-1">}</span>
+</code><button type="button">Copy</button></pre>
+
+<h3 id="built-in-converters" class="tsd-anchor-link">Built-in Converters<a href="#built-in-converters" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<table>
+<thead>
+<tr>
+<th>Converter</th>
+<th>Type</th>
+<th>fromAttribute</th>
+<th>toAttribute</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>defaultConverter</code></td>
+<td>auto-detect</td>
+<td>see below</td>
+<td>type-dependent</td>
+</tr>
+<tr>
+<td><code>booleanConverter</code></td>
+<td><code>boolean</code></td>
+<td><code>v !== null</code> (presence)</td>
+<td><code>v ? '' : null</code></td>
+</tr>
+<tr>
+<td><code>expressionConverter</code></td>
+<td><code>fn || null</code></td>
+<td>Alpine-evaluated</td>
+<td><code>v.toString()</code></td>
+</tr>
+</tbody>
+</table>
+<p><code>expressionConverter</code> converts the attribute string to a function. If called
+with an <code>HTMLElement</code> argument (as done by the framework internally), it uses
+<code>Alpine.evaluate(el, value)</code> to evaluate the expression within Alpine's
+reactive context, allowing references to Alpine data properties. Without an
+element argument it falls back to <code>new Function(...)</code>.</p>
+<p>Typical usage for callback attributes:</p>
+<pre><code class="ts"><span class="hl-1">@</span><span class="hl-4">Attribute</span><span class="hl-1">(</span><span class="hl-3">&#39;on-action&#39;</span><span class="hl-1">, </span><span class="hl-2">expressionConverter</span><span class="hl-1">)</span><br/><span class="hl-2">set</span><span class="hl-1"> </span><span class="hl-4">onAction</span><span class="hl-1">(</span><span class="hl-2">value</span><span class="hl-1">: ((...</span><span class="hl-2">args</span><span class="hl-1">: </span><span class="hl-6">any</span><span class="hl-1">[]) </span><span class="hl-5">=&gt;</span><span class="hl-1"> </span><span class="hl-2">any</span><span class="hl-1">) | </span><span class="hl-5">null</span><span class="hl-1">) {</span><br/><span class="hl-1">  </span><span class="hl-5">this</span><span class="hl-1">.</span><span class="hl-2">ajsData</span><span class="hl-1">.</span><span class="hl-2">onAction</span><span class="hl-1"> = </span><span class="hl-2">value</span><span class="hl-1">;</span><br/><span class="hl-1">}</span>
+</code><button type="button">Copy</button></pre>
+
+<p><code>defaultConverter</code> auto-detects type from the attribute value:</p>
+<table>
+<thead>
+<tr>
+<th>Value pattern</th>
+<th>Result type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>null</code> / absent</td>
+<td><code>''</code> (empty string)</td>
+</tr>
+<tr>
+<td>starts with <code>[</code></td>
+<td>JSON array</td>
+</tr>
+<tr>
+<td>starts with <code>{</code></td>
+<td>JSON object</td>
+</tr>
+<tr>
+<td>literal <code>true</code> / <code>false</code></td>
+<td>boolean</td>
+</tr>
+<tr>
+<td>matches <code>-?\d+(\.\d+)?</code></td>
+<td>number</td>
+</tr>
+<tr>
+<td>anything else</td>
+<td>string</td>
+</tr>
+</tbody>
+</table>
+<p>For presence-based boolean attributes (e.g. <code>show-cancel</code>) use
+<code>booleanConverter</code> instead.</p>
+<h3 id="_-2" class="tsd-anchor-link"><code>@Data()</code><a href="#_-2" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<p>Method decorator that marks a method as the supplier for the componet's data.</p>
+<h3 id="_-3" class="tsd-anchor-link"><code>@Renderer()</code><a href="#_-3" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<p>Method decorator that marks a method as the component's renderer.</p>
+<p>Usage:</p>
+<pre><code class="ts"><span class="hl-1">@</span><span class="hl-4">Renderer</span><span class="hl-1">()</span><br/><span class="hl-2">protected</span><span class="hl-1"> </span><span class="hl-4">render</span><span class="hl-1">() {</span><br/><span class="hl-1">  </span><span class="hl-5">this</span><span class="hl-1">.</span><span class="hl-2">innerHTML</span><span class="hl-1"> = </span><span class="hl-3">`&lt;span x-text=&quot;someProperty&quot;&gt;&lt;/span&gt;`</span><span class="hl-1">;</span><br/><span class="hl-1">}</span>
+</code><button type="button">Copy</button></pre>
+
+<h2 id="content-injection-via-x-teleport" class="tsd-anchor-link">Content Injection via x-teleport<a href="#content-injection-via-x-teleport" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>Components that embed user-provided HTML fragments use a pattern based on
+<code>&lt;template&gt;</code> elements and AlpineJS's <code>x-teleport</code> directive.</p>
+<h3 id="template" class="tsd-anchor-link">Template<a href="#template" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<p>The consumer places <code>&lt;template&gt;</code> children inside the web component with a
+<code>provides</code> attribute to declare what part of the widget the content fills:</p>
+<pre><code class="html"><span class="hl-8">&lt;</span><span class="hl-9">aash-dropdown-menu</span><span class="hl-1"> </span><span class="hl-10">id</span><span class="hl-1">=</span><span class="hl-11">&quot;lang-select&quot;</span><span class="hl-8">&gt;</span><br/><span class="hl-1">  </span><span class="hl-8">&lt;</span><span class="hl-9">template</span><span class="hl-1"> </span><span class="hl-10">provides</span><span class="hl-1">=</span><span class="hl-11">&quot;label&quot;</span><span class="hl-8">&gt;</span><br/><span class="hl-1">    </span><span class="hl-8">&lt;</span><span class="hl-9">span</span><span class="hl-8">&gt;</span><span class="hl-1">Language</span><span class="hl-8">&lt;/</span><span class="hl-9">span</span><span class="hl-8">&gt;</span><br/><span class="hl-1">  </span><span class="hl-8">&lt;/</span><span class="hl-9">template</span><span class="hl-8">&gt;</span><br/><span class="hl-1">  </span><span class="hl-8">&lt;</span><span class="hl-9">template</span><span class="hl-1"> </span><span class="hl-10">provides</span><span class="hl-1">=</span><span class="hl-11">&quot;item&quot;</span><span class="hl-1"> </span><span class="hl-10">with-value</span><span class="hl-1">=</span><span class="hl-11">&quot;en&quot;</span><span class="hl-8">&gt;</span><br/><span class="hl-1">    </span><span class="hl-8">&lt;</span><span class="hl-9">span</span><span class="hl-8">&gt;</span><span class="hl-1">English</span><span class="hl-8">&lt;/</span><span class="hl-9">span</span><span class="hl-8">&gt;</span><br/><span class="hl-1">  </span><span class="hl-8">&lt;/</span><span class="hl-9">template</span><span class="hl-8">&gt;</span><br/><span class="hl-1">  </span><span class="hl-8">&lt;</span><span class="hl-9">template</span><span class="hl-1"> </span><span class="hl-10">provides</span><span class="hl-1">=</span><span class="hl-11">&quot;item&quot;</span><span class="hl-1"> </span><span class="hl-10">with-value</span><span class="hl-1">=</span><span class="hl-11">&quot;de&quot;</span><span class="hl-8">&gt;</span><br/><span class="hl-1">    </span><span class="hl-8">&lt;</span><span class="hl-9">span</span><span class="hl-8">&gt;</span><span class="hl-1">German</span><span class="hl-8">&lt;/</span><span class="hl-9">span</span><span class="hl-8">&gt;</span><br/><span class="hl-1">  </span><span class="hl-8">&lt;/</span><span class="hl-9">template</span><span class="hl-8">&gt;</span><br/><span class="hl-8">&lt;/</span><span class="hl-9">aash-dropdown-menu</span><span class="hl-8">&gt;</span>
+</code><button type="button">Copy</button></pre>
+
+<p>The <code>provides</code> attribute tells the component which role the template
+serves. Additional attributes (e.g. <code>with-value</code>) are component-specific.</p>
+<h3 id="implementation" class="tsd-anchor-link">Implementation<a href="#implementation" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<p>In <code>render</code> the component creates its structural HTML, assigning
+a unique <code>id</code> (via <code>aashId()</code>) to every element that should receive user
+content:</p>
+<pre><code class="ts"><span class="hl-5">const</span><span class="hl-1"> </span><span class="hl-12">labelTarget</span><span class="hl-1"> = </span><span class="hl-4">aashId</span><span class="hl-1">();</span><br/><span class="hl-5">this</span><span class="hl-1">.</span><span class="hl-4">prepend</span><span class="hl-1">(</span><br/><span class="hl-1">  </span><span class="hl-5">this</span><span class="hl-1">.</span><span class="hl-2">ownerDocument</span><span class="hl-1">.</span><span class="hl-4">createRange</span><span class="hl-1">().</span><span class="hl-4">createContextualFragment</span><span class="hl-1">(</span><br/><span class="hl-1">    </span><span class="hl-3">`&lt;button id=&quot;</span><span class="hl-5">${</span><span class="hl-2">labelTarget</span><span class="hl-5">}</span><span class="hl-3">&quot; aria-haspopup=&quot;menu&quot;&gt;</span><br/><span class="hl-3">     &lt;/button&gt;`</span><span class="hl-1">));</span>
+</code><button type="button">Copy</button></pre>
+
+<p>For repeated slots (e.g. menu items), the preferred approach is to
+use a <code>&lt;template x-for=...&gt;</code> in the template that generates the component's
+DOM. The value that <code>x-for</code> iterates over must be reactive data and is
+updated by <code>updateContent()</code> based on the <code>&lt;template provides=&quot;...&quot;&gt;</code> children
+found.</p>
+<p>The <code>x-init</code> directive of elements generated in the loop is used to
+set an <code>x-teleport</code> attribute pointing to the corresponding target.
+The teleport must be scheduled via <code>Alpine.nextTick()</code> because setting
+<code>x-teleport</code> during <code>x-init</code> evaluation is too early — Alpine has not
+yet registered the target element. The <code>teleportItem</code> method in
+AashDropdownMenu demonstrates this pattern.</p>
+<p>Alpine's <code>x-teleport</code> moves the template's inner content into the target
+element at initialization time (when the <code>render</code> method is called).
+If the component supports dynamic changes of the injected content,
+it must define a <code>MutationObserver</code> watching <code>childList</code>. The observer
+re-runs <code>updateContent()</code> when templates are added or removed,
+keeping the rendered structure in sync.</p>
+<p>To avoid the observer firing on the DOM mutations caused by <code>updateContent</code>
+itself, the observer must be disconnected before the update and re-connected
+afterward.</p>
+<h3 id="static-teleport-no-loop" class="tsd-anchor-link">Static Teleport (no loop)<a href="#static-teleport-no-loop" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<p>For non-repeated slots (a single title, label, or content area), the
+component sets <code>x-teleport</code> on the <code>&lt;template&gt;</code> directly in
+<code>updateContent()</code>. The target element gets its content cleared first
+so the teleported content replaces any default text. AashModalDialog
+demonstrates this for its title, cancel-label, apply-label, okay-label,
+and content slots.</p>
+<h3 id="rules" class="tsd-anchor-link">Rules<a href="#rules" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ol>
+<li><strong>Templates stay as direct children</strong> — the component never removes or
+moves the original <code>&lt;template&gt;</code> elements.</li>
+<li><strong>Teleport targets are unique</strong> — each injection point gets its own
+<code>aashId()</code> so teleported content goes to the right place.</li>
+<li><strong>Observer is childList-only</strong> — watching <code>childList: true</code> on the host
+catches added/removed templates without triggering on inner changes.</li>
+</ol>
+<h2 id="building" class="tsd-anchor-link">Building<a href="#building" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<pre><code class="bash"><span class="hl-4">npm</span><span class="hl-1"> </span><span class="hl-3">run</span><span class="hl-1"> </span><span class="hl-3">build</span>
+</code><button type="button">Copy</button></pre>
+
+<p>Output lands in <code>lib/</code> and is consumed by the provider module
+<code>org.jgrapes.webconsole.provider.aashalpinejs</code>.</p>
+</div></div>
+<div class="col-sidebar">
+<div class="page-menu">
+<div class="tsd-navigation settings">
+<details class="tsd-accordion"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
+<h3>Settings</h3></summary>
+<div class="tsd-accordion-details">
+<div class="tsd-filter-visibility"><span class="settings-label">Member Visibility</span>
+<ul id="tsd-filter-options">
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-protected" name="protected"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Protected</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-inherited" name="inherited" checked/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Inherited</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-external" name="external"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>External</span></label></li></ul></div>
+<div class="tsd-theme-toggle"><label class="settings-label" for="tsd-theme">Theme</label><select id="tsd-theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></div></div></details></div>
+<details open class="tsd-accordion tsd-page-navigation"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
+<h3>On This Page</h3></summary>
+<div class="tsd-accordion-details"><a href="#web-component-pattern"><span>Web <wbr/>Component <wbr/>Pattern</span></a>
+<ul>
+<li><a href="#class-structure"><span>Class <wbr/>Structure</span></a></li>
+<li><a href="#key-elements"><span>Key <wbr/>Elements</span></a></li>
+<li><a href="#decorator-usage"><span>Decorator <wbr/>Usage</span></a></li>
+<li>
+<ul>
+<li><a href="#_"><span></span></a></li>
+<li><a href="#_-1"><span></span></a></li>
+<li><a href="#built-in-converters"><span>Built-<wbr/>in <wbr/>Converters</span></a></li>
+<li><a href="#_-2"><span></span></a></li>
+<li><a href="#_-3"><span></span></a></li></ul></li>
+<li><a href="#content-injection-via-x-teleport"><span>Content <wbr/>Injection via x-<wbr/>teleport</span></a></li>
+<li>
+<ul>
+<li><a href="#template"><span>Template</span></a></li>
+<li><a href="#implementation"><span>Implementation</span></a></li>
+<li><a href="#static-teleport-no-loop"><span>Static <wbr/>Teleport (no loop)</span></a></li>
+<li><a href="#rules"><span>Rules</span></a></li></ul></li>
+<li><a href="#building"><span>Building</span></a></li></ul></div></details></div>
+<div class="site-menu">
+<nav class="tsd-navigation"><a href="../modules.html">Components for AaSH (ARIA augmented Semantic HTML)</a>
+<ul class="tsd-small-nested-navigation" id="tsd-nav-container">
+<li>Loading...</li></ul></nav></div></div></div><footer>
+<p class="tsd-generator">Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></footer>
+<div class="overlay"></div></body></html>

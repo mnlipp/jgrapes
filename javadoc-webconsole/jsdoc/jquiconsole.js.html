@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: jquiconsole.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: jquiconsole.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/*
+ * JGrapes Event Driven Framework
+ * Copyright (C) 2016, 2019  Michael N. Lipp
+ *
+ * This program is free software; you can redistribute it and/or modify it 
+ * under the terms of the GNU Affero General Public License as published by 
+ * the Free Software Foundation; either version 3 of the License, or 
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License 
+ * for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License along 
+ * with this program; if not, see &lt;http://www.gnu.org/licenses/>.
+ */
+
+'use strict';
+
+import JGConsole, { RenderMode } from "../console-base-resource/jgconsole.js"
+
+/**
+ * @module jquiconsole
+ */ 
+export const JQUIConsole = {};
+export default JQUIConsole;
+
+var log = JGConsole.Log;
+
+JQUIConsole.Renderer = class extends JGConsole.Renderer {
+
+    constructor(console) {
+        super(console);
+        this._connectionLostNotification = null;
+        this._lastPreviewLayout = [];
+        this._lastTabsLayout = [];
+        this._lastXtraInfo = {};
+        this._tabTemplate = "&lt;li>&lt;a href='@{href}'>@{label}&lt;/a> " +
+            "&lt;span class='ui-icon ui-icon-close' role='presentation'>Remove Tab&lt;/span>&lt;/li>";
+        this._tabCounter = 1;
+        this._conletDisplayNames = {};
+    }
+
+    init() {
+        let _this = this;
+        log.debug("Locking screen");
+        $("body").faLoading({
+            icon: "fa-circle-o-notch",
+            spin: true,
+            text: false
+        });
+
+        // Top bar
+        $("#theme-menu").on("click", "[data-theme-id]", function() {
+            _this.console.send("setTheme", $(this).data("theme-id"));
+            $("#theme-menu").jqDropdown("hide");
+        });
+
+        $("#language-menu").on("click", "[data-locale]", function() {
+            _this.console.setLocale($(this).data("locale"), true);
+            $("#theme-menu").jqDropdown("hide");
+        });
+
+        $("#addon-menu").on("click", "[data-conlet-type]", function() {
+            _this.console.addConlet($(this).data("conlet-type"),
+                $(this).data("render-modes"));
+            $("#theme-menu").jqDropdown("hide");
+        });
+
+        // Tabs
+        $("#conlet-tabs").tabs();
+
+        // AddTab button
+        var tabs = $("#conlet-tabs").tabs();
+
+        // Close icon: removing the tab on click
+        tabs.on("click", "span.ui-icon-close", function() {
+            var panelId = $(this).closest("li").remove().attr("aria-controls");
+            $("#" + panelId).remove();
+            tabs.tabs("refresh");
+            _this._layoutChanged();
+        });
+
+        // Dialogs
+        $("#console-session-suspended-dialog").dialog({
+            autoOpen: false,
+            modal: true,
+        });
+
+        //
+        // Conlet Grid
+        //
+
+        // Prepare columns
+        $(".preview-area").sortable({
+            handle: ".conlet-header",
+            cancel: ".conlet-toggle",
+            placeholder: "conlet-placeholder ui-corner-all",
+            stop: function(event, ui) { _this._layoutChanged(); }
+        });
+    }
+
+    connectionLost() {
+        if (this._connectionLostNotification == null) {
+            this._connectionLostNotification =
+                $("#server-connection-lost-notification").notification({
+                    error: true,
+                    icon: "alert",
+                    destroyOnClose: false,
+                });
+        } else {
+            this._connectionLostNotification.notification("open");
+        }
+    }
+
+    connectionRestored() {
+        if (this._connectionLostNotification != null) {
+            this._connectionLostNotification.notification("close");
+        }
+        $("#server-connection-restored-notification").notification({
+            autoClose: 2000,
+        });
+    }
+
+    connectionSuspended(resume) {
+        $("#console-session-suspended-dialog").dialog("option", "buttons", {
+            Ok: function() {
+                $(this).dialog("close");
+                resume();
+            }
+        });
+        $("#console-session-suspended-dialog").dialog("open");
+    }
+
+    consoleConfigured() {
+        this._layoutChanged();
+        log.debug("Unlocking screen");
+        $("body").faLoading('remove');
+    }
+
+    addConletType(conletType, displayNames, renderModes, pageComponents) {
+        let _this = this;
+        // Add embedded to area(s)
+        let parent = document.querySelector("#jq-console-top-bar");
+        for (let item of pageComponents) {
+            if (item.area === "headerIcons") {
+                _this._embedAsHeaderIcon(parent, conletType, item);
+            }
+        }
+        _this._conletDisplayNames[conletType] = displayNames;
+        _this._addConletTypeToMenu(conletType, renderModes);
+    }
+
+    _embedAsHeaderIcon(parent, conletType, spec) {
+        let conlet = document.createElement("span");
+        conlet.setAttribute("class", "conlet conlet-content");
+        conlet.dataset["conletType"] = conletType;
+        for (let prop in spec.properties) {
+            conlet.dataset["conlet" + prop.substring(0,1).toUpperCase()
+                + prop.substring(1)] = spec.properties[prop];
+        }
+        let conletPrio = spec.properties["priority"] || 0;
+        let beforeRef = null;
+        for (let idx = parent.children.length - 1; idx >= 0; idx--) {
+            let ref = parent.children.item(idx);
+            if (!("conletType" in ref.dataset)) {
+                beforeRef = ref;
+                continue;
+            }
+            let refPrio = ref.dataset["conletPriority"] || 0;
+            if (conletPrio &lt; refPrio || conletPrio === refPrio 
+                    &amp;&amp; conletType &lt; ref.dataset["conletType"]) {
+                parent.insertBefore(conlet, beforeRef);
+                return;
+            }
+            beforeRef = ref;
+        }
+        parent.prepend(conlet);
+    }        
+
+    _addConletTypeToMenu(conletType, renderModes) {
+        let _this = this;
+        if (!renderModes.includes(RenderMode.Preview)
+            &amp;&amp; !renderModes.includes(RenderMode.View)) {
+            return;
+        }
+
+        // Add to menu
+        let lang = document.querySelector("html").getAttribute('lang');
+        let displayNames = _this._conletDisplayNames[conletType];
+        let displayName = JGConsole.forLang(displayNames, lang);
+        let item = $('&lt;li class="ui-menu-item">'
+            + '&lt;div class="ui-menu-item-wrapper" data-conlet-type="'
+            + conletType + '">' + displayName + '&lt;/div>&lt;/li>');
+        item.find("div").data("render-modes", renderModes);
+        let inserted = false;
+        $("#addon-menu-list").find(".ui-menu-item").each(function(index, el) {
+            if (displayName &lt; $(el).find(".ui-menu-item-wrapper").text()) {
+                $(el).before(item);
+                inserted = true;
+                return false;
+            }
+        });
+        if (!inserted) {
+            $("#addon-menu-list").append(item);
+        }
+    }
+
+    updateConletType(conletType, renderModes) {
+        // Remove from menu
+        let item = $("#addon-menu-list").find(
+            'li div[data-conlet-type="' + conletType + '"]');
+        item.parent().remove();
+        // Add to menu
+        this._addConletTypeToMenu(conletType, renderModes, displayNames);
+    }
+
+    lastConsoleLayout(previewLayout, tabsLayout, xtraInfo) {
+        this._lastPreviewLayout = previewLayout;
+        this._lastTabsLayout = tabsLayout;
+        this._lastXtraInfo = xtraInfo;
+    }
+
+    updateConletPreview(isNew, conlet, modes, content, foreground) {
+        // Container is:
+        //     &lt;section class='conlet conlet-preview' data-conlet-id='...' 
+        //     data-conlet-grid-columns='...' data-conlet-grid-rows='   '>&lt;/section>"
+        let _this = this;
+        let container = $(conlet.element());
+        if (isNew) {
+            container.addClass('ui-widget ui-widget-content ui-helper-clearfix ui-corner-all');
+            container.append('&lt;div class="conlet-header ui-widget-header">&lt;span class="conlet-header-text">&lt;/span>&lt;/div>'
+                + '&lt;div class="conlet-body ui-widget-content">&lt;/div>');
+
+            let conletHeader = container.find(".conlet-header");
+            conletHeader.addClass("ui-widget-header ui-corner-all");
+            this._setModeIcons(container, modes);
+            let previewArea = $(".preview-area");
+            let inserted = false;
+            // Hack to check if conletId is in
+            // lastPreviewLayout
+            let conletId = container.attr("data-conlet-id");
+            if (_this._isBefore(_this._lastPreviewLayout, conletId, conletId)) {
+                previewArea.find(".conlet").each(
+                    function(conletIndex) {
+                        let item = $(this);
+                        let itemId = item.attr("data-conlet-id");
+                        if (!_this._isBefore(_this._lastPreviewLayout,
+                            itemId, conletId)) {
+                            item.before(conlet);
+                            inserted = true;
+                            return false;
+                        }
+                    });
+                if (!inserted) {
+                    previewArea.append(container);
+                }
+                inserted = true;
+            }
+            if (!inserted) {
+                previewArea.first().prepend(container);
+            }
+            this._layoutChanged();
+        }
+        let newContent = $(content);
+        let conletHeaderText = container.find(".conlet-header-text");
+        conletHeaderText.text(this._evaluateTitle(container, newContent));
+        let conletContent = container.find(".conlet-body");
+        conletContent.children().detach();
+        conletContent.append(newContent);
+        if (foreground) {
+            $("#conlet-tabs").tabs("option", "active", 0);
+        }
+    }
+
+    _isBefore(items, x, limit) {
+        for (let i = 0; i &lt; items.length; i++) {
+            if (items[i] === x) {
+                return true;
+            }
+            if (items[i] === limit) {
+                return false;
+            }
+        }
+        return false;
+    }
+
+    _setModeIcons(conlet, modes) {
+        let _this = this;
+        let conletHeader = conlet.find(".conlet-header");
+        conletHeader.find(".ui-icon").remove();
+        if (modes.includes(RenderMode.Edit)) {
+            conletHeader.prepend("&lt;span class='ui-icon ui-icon-wrench conlet-edit'>&lt;/span>");
+            conletHeader.find(".conlet-edit").on("click", function() {
+                let icon = $(this);
+                let conletId = icon.closest(".conlet").attr("data-conlet-id");
+                _this.console.renderConlet(conletId, [RenderMode.Edit, RenderMode.Foreground]);
+            });
+        }
+        if (!modes.includes(RenderMode.StickyPreview)) {
+            conletHeader.prepend("&lt;span class='ui-icon ui-icon-delete conlet-delete'>&lt;/span>");
+            conletHeader.find(".conlet-delete").on("click", function() {
+                let icon = $(this);
+                let conletId = icon.closest(".conlet").attr("data-conlet-id");
+                _this.console.removePreview(conletId);
+            });
+        }
+        if (modes.includes("View")) {
+            conletHeader.prepend("&lt;span class='ui-icon ui-icon-fullscreen conlet-expand'>&lt;/span>");
+            conletHeader.find(".conlet-expand").on("click", function() {
+                let icon = $(this);
+                let conletId = icon.closest(".conlet").attr("data-conlet-id");
+                let conletView = _this.findConletView(conletId);
+                if (conletView) {
+                    _this._activateConletView($(conletView.element()));
+                } else {
+                    _this.console.renderConlet(conletId, ["View", "Foreground"]);
+                }
+            });
+        }
+    }
+
+    _activateConletView(conlet) {
+        let tabs = $("#conlet-tabs").tabs();
+        let conletIndex = conlet.index();
+        if (conletIndex) {
+            tabs.tabs("option", "active", conletIndex - 1);
+        }
+    }
+
+    updateConletView(isNew, conlet, modes, content, foreground) {
+        // Container is 
+        //     &lt;article class="conlet conlet-view 
+        //              data-conlet-id='...'">&lt;/article>"
+        let container = $(conlet.element());
+        let newContent = $(content);
+        if (!isNew) {
+            // "conlet-body" is also used for styling
+            container.classList.add("conlet-body")
+            container.children().detach();
+            container.append(newContent);
+        } else {
+            let tabs = $("#conlet-tabs").tabs();
+            this._tabCounter += 1;
+            let id = "conlet-tabs-" + this._tabCounter;
+            let li = $(this._tabTemplate.replace(/@\{href\}/g, "#" + id)
+                .replace(/@\{label\}/g, this._evaluateTitle(container, newContent)));
+            let tabItems = tabs.find(".ui-tabs-nav");
+            tabItems.append(li);
+            container.attr("id", id);
+            container.append(newContent);
+            tabs.append(container);
+            tabs.tabs("refresh");
+            this._layoutChanged();
+        }
+        if (foreground) {
+            this._activateConletView(container);
+        }
+    }
+
+    _evaluateTitle(container, content) {
+        let title = content.attr("data-conlet-title");
+        if (!title) {
+            let conletType = container.attr("data-conlet-type");
+            let lang = document.querySelector("html").getAttribute('lang');
+            title = JGConsole.forLang(this._conletDisplayNames[conletType], lang);
+        }
+        return title;
+    }
+
+    removeConletDisplays(conlets) {
+        conlets.forEach(function(conlet) {
+            let container = $(conlet.element());
+            if (container.hasClass('conlet-view')) {
+                let panelId = container.closest(".ui-tabs-panel").remove().attr("id");
+                let tabs = $("#conlet-tabs").tabs();
+                tabs.find("li[aria-controls='" + panelId + "']").remove();
+                $("#conlet-tabs").tabs().tabs("refresh");
+            }
+            if (container.hasClass('conlet-preview')) {
+                container.remove();
+            }
+        });
+        this._layoutChanged();
+    }
+
+    notification(content, options) {
+        // Handle "pure" text.
+        let html = $("&lt;div>&lt;/div>");
+        html.html(content);
+        if (html.children().length > 0) {
+            html = html.children();
+        }
+        $(html).notification(options);
+    }
+
+    _layoutChanged() {
+        let previewLayout = [];
+        $(".overview-panel").find(".preview-area")
+            .find(".conlet-preview[data-conlet-id]").each(function() {
+                previewLayout.push($(this).attr("data-conlet-id"));
+            });
+        let tabsLayout = [];
+        let tabs = $("#conlet-tabs").tabs();
+        tabs.find(".ui-tabs-nav .ui-tabs-tab").each(function(index) {
+            if (index > 0) {
+                let tabId = $(this).attr("aria-controls");
+                let conletId = tabs.find("#" + tabId).attr("data-conlet-id");
+                tabsLayout.push(conletId);
+            }
+        });
+        let xtraInfo = {};
+
+        this.console.updateLayout(previewLayout, tabsLayout, xtraInfo);
+    }
+
+    /**
+     * Update the title of the conlet with the given id.
+     *
+     * @param {string} conletId the conlet id
+     * @param {string} title the new title
+     */
+    updateConletTitle(conletId, title) {
+        let tabs = $("#conlet-tabs").tabs();
+        let conletView = tabs.find("> .conlet-view[data-conlet-id='" + conletId + "']");
+        if (conletView.length > 0) {
+            conletView.find("[data-conlet-title]").attr("data-conlet-title", title);
+            let tabId = conletView.attr("id");
+            let conletTab = tabs.find("a[href='#" + tabId + "']");
+            conletTab.empty();
+            conletTab.append(title);
+        }
+        let conletPreview = this.findConletPreview(conletId);
+        if (conletPreview) {
+            let headerText = $(conletPreview.element()).find(".conlet-header-text");
+            headerText.empty();
+            headerText.append(title);
+        }
+    }
+
+    /**
+     * Update the modes of the conlet with the given id.
+     * 
+     * @param {string} conletId the conlet id
+     * @param {string[]} modes the modes
+     */
+    updateConletModes(conletId, modes) {
+        let conlet = this.findConletPreview(conletId);
+        if (!conlet) {
+            return;
+        }
+        this._setModeIcons($(conlet.element()), modes);
+    }
+
+    openModalDialog(container, options, content) {
+        let _this = this;
+        container = $(container);
+        let dialogContent = $(content);
+        container.append(dialogContent);
+        container.dialog({
+            modal: true,
+            width: "auto",
+            close: function(event, ui) {
+                _this.console.execOnAction(container[0], true, true);
+            }
+        });
+    }
+    
+    closeModalDialog(container) {
+        log.error("closeModalDialog not implemented");
+    }
+    
+}
+
+JQUIConsole.tooltip = function(nodeSet) {
+    nodeSet.tooltip({
+        items: "[data-tooltip-id], [title]",
+        content: function() {
+            let element = $(this);
+            if (element.is("[data-tooltip-id]")) {
+                let id = element.attr("data-tooltip-id");
+                let tooltip = $("#" + id);
+                if (tooltip) {
+                    tooltip = tooltip.clone(true);
+                    tooltip.removeClass("jgrapes-tooltip-prototype")
+                    return tooltip;
+                }
+                return "&lt;#" + id + ">";
+            }
+            if (element.is("[title]")) {
+                return element.attr("title");
+            }
+        }
+    });
+}
+
+/**
+ * A jQuery UI plugin for displaying notifications on the top of 
+ * the console page.
+ * 
+ * @name NotificationPlugin
+ * @namespace NotificationPlugin
+ */
+var notificationContainer = null;
+var notificationCounter = 0;
+
+$(function() {
+    let top = $("&lt;div>&lt;/div>");
+    notificationContainer = $("&lt;div class='ui-notification-container ui-front'>&lt;/div>");
+    top.append(notificationContainer);
+    $("body").prepend(top);
+});
+
+$.widget("ui.notification", {
+
+    /**
+     * &lt;dl>
+     * &lt;dt>error {Boolean}&lt;/dt>
+     *   &lt;dd>Indicates that the notification is to be display as error.&lt;/dd>
+     * &lt;dt>autoClose {integer}&lt;/dt>
+     *   &lt;dd>If specified, closes the botification automatically after
+     *   the given number of milliseconds.&lt;/dd>
+     * &lt;dt>destroyOnClose {Boolean}&lt;/dt>
+     *   &lt;dd>Indicates that the widget should be destroyed if the
+     *   notification is closed.&lt;/dd>
+     * &lt;dt>show {Object}&lt;/dt>
+     *   &lt;dd>If and how to animate the showing of the notification
+     *   (see the &lt;a href="https://api.jqueryui.com/jQuery.widget/#option-show">
+     *   jQuery UI&lt;/a> documentation). Defaults to: &lt;code>
+     *   { effect: "blind", direction: "up", duration: "fast", }&lt;/code>&lt;/dd>
+     * &lt;dt>hide {Object}&lt;/dt>
+     *   &lt;dd>If and how to animate the showing of the notification
+     *   (see the &lt;a href="https://api.jqueryui.com/jQuery.widget/#option-hide">
+     *   jQuery UI&lt;/a> documentation). Defaults to: &lt;code>
+     *   { effect: "blind", direction: "up", duration: "fast", }&lt;/dd>
+     * &lt;/dl>
+     * 
+     * @memberof NotificationPlugin
+     */
+    options: {
+        classes: {
+            "ui-notification": "ui-corner-all ui-widget-shadow",
+            "ui-notification-content": "ui-corner-all",
+        },
+        error: false,
+        icon: "circle-info",
+        autoOpen: true,
+        autoClose: null,
+        destroyOnClose: null,
+        show: {
+            effect: "blind",
+            direction: "up",
+            duration: "fast",
+        },
+        hide: {
+            effect: "blind",
+            direction: "up",
+            duration: "fast",
+        },
+    },
+
+    _create: function() {
+        let _this = this;
+        this._isOpen = false;
+        if (this.options.destroyOnClose === null) {
+            this.options.destroyOnClose = this.options.autoOpen;
+        }
+        // Options are already merged and stored in this.options
+        let widget = $("&lt;div>&lt;/div>");
+        let notificationId = "ui-notification-" + ++notificationCounter;
+        widget.attr("id", notificationId);
+        this._addClass(widget, "ui-notification");
+        widget.addClass("ui-widget-content");
+        widget.addClass("ui-widget");
+        if (this.options.error) {
+            widget.addClass("ui-state-error");
+        } else {
+            widget.addClass("ui-state-highlight");
+        }
+
+        // Close button (must be first for overflow: hidden to work).
+        let button = $("&lt;button>&lt;/button>");
+        button.addClass("ui-notification-close");
+        button.button({
+            icon: "ui-icon-close",
+            showLabel: false,
+        });
+        button.on("click", function() {
+            _this.close();
+        });
+        widget.append(button);
+
+        // Prepend icon
+        if (this.options.icon) {
+            widget.append($('&lt;span class="ui-notification-content ui-icon' +
+                ' ui-icon-' + this.options.icon + '">&lt;/span>'));
+        }
+        let widgetContent = $("&lt;div>&lt;/div>");
+        this._addClass(widgetContent, "ui-notification-content");
+        widget.append(widgetContent);
+        widgetContent.append(this.element.clone());
+        widgetContent.find(":first-child").show();
+        widget.hide();
+
+        // Optional auto close
+        this._autoCloseTimer = null;
+        if (this.options.autoClose) {
+            _this._autoCloseTimer = setTimeout(function() {
+                _this.close();
+            }, this.options.autoClose);
+        }
+
+        // Add to container
+        this.notification = widget;
+
+        // Open if desired
+        if (this.options.autoOpen) {
+            this.open();
+        }
+    },
+
+    open: function() {
+        notificationContainer.prepend(this.widget());
+        this._isOpen = true;
+        this._show(this.widget(), this.options.show);
+    },
+
+    widget: function() {
+        return this.notification;
+    },
+
+    close: function() {
+        let _this = this;
+        if (this._autoCloseTimer) {
+            clearTimeout(this._autoCloseTimer);
+        }
+        this._isOpen = false;
+        this._hide(this.widget(), this.options.hide, function() {
+            if (_this.options.destroyOnClose) {
+                _this.destroy();
+            }
+        });
+    },
+
+    _destroy: function() {
+        if (this._isOpen) {
+            this.close();
+        }
+    }
+});
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-jquiconsole.html">jquiconsole</a></li></ul><h3>Namespaces</h3><ul><li><a href="module-jquiconsole-NotificationPlugin.html">NotificationPlugin</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a> on Sun Oct 18 2026 12:42:01 GMT+0200 (Mitteleuropäische Sommerzeit)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

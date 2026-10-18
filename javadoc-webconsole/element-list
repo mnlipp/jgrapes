@@ -1,10 +1,10 @@
 org.jgrapes.webconlet.examples.formtest
+org.jgrapes.webconlet.examples.helloalpine
 org.jgrapes.webconlet.examples.hellosolid
 org.jgrapes.webconlet.examples.helloworld
 org.jgrapes.webconlet.examples.styletest
-org.jgrapes.webconlet.jmxbrowser
+org.jgrapes.webconlet.examples.styletest2
 org.jgrapes.webconlet.locallogin
-org.jgrapes.webconlet.logviewer
 org.jgrapes.webconlet.markdowndisplay
 org.jgrapes.webconlet.messagebox
 org.jgrapes.webconlet.oidclogin
@@ -18,7 +18,7 @@ org.jgrapes.webconsole.jqueryui
 org.jgrapes.webconsole.jqueryui.events
 org.jgrapes.webconsole.jqueryui.themes
 org.jgrapes.webconsole.jqueryui.themes.base
-org.jgrapes.webconsole.provider.browserrequire
+org.jgrapes.webconsole.provider.alpinejs
 org.jgrapes.webconsole.provider.chartjs
 org.jgrapes.webconsole.provider.datatables
 org.jgrapes.webconsole.provider.fontawesome
@@ -28,11 +28,11 @@ org.jgrapes.webconsole.provider.jgwcvuecomponents
 org.jgrapes.webconsole.provider.jquery
 org.jgrapes.webconsole.provider.jqueryui
 org.jgrapes.webconsole.provider.jquitouchpunch
-org.jgrapes.webconsole.provider.lodash
+org.jgrapes.webconsole.provider.lit
 org.jgrapes.webconsole.provider.luxon
 org.jgrapes.webconsole.provider.markdownit
 org.jgrapes.webconsole.provider.moment
-org.jgrapes.webconsole.provider.solidjs
+org.jgrapes.webconsole.provider.rcwebcomponents
 org.jgrapes.webconsole.provider.vue
 org.jgrapes.webconsole.provider.vuejs
 org.jgrapes.webconsole.provider.vuex
