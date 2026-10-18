@@ -32,10 +32,10 @@
 <span class="source-line-no">018</span><span id="line-18"></span>
 <span class="source-line-no">019</span><span id="line-19">package org.jgrapes.webconsole.base;</span>
 <span class="source-line-no">020</span><span id="line-20"></span>
-<span class="source-line-no">021</span><span id="line-21">import java.io.UnsupportedEncodingException;</span>
-<span class="source-line-no">022</span><span id="line-22">import java.net.URI;</span>
-<span class="source-line-no">023</span><span id="line-23">import java.net.URISyntaxException;</span>
-<span class="source-line-no">024</span><span id="line-24">import java.net.URLEncoder;</span>
+<span class="source-line-no">021</span><span id="line-21">import java.net.URI;</span>
+<span class="source-line-no">022</span><span id="line-22">import java.net.URISyntaxException;</span>
+<span class="source-line-no">023</span><span id="line-23">import java.net.URLEncoder;</span>
+<span class="source-line-no">024</span><span id="line-24">import java.nio.charset.StandardCharsets;</span>
 <span class="source-line-no">025</span><span id="line-25">import java.util.ArrayList;</span>
 <span class="source-line-no">026</span><span id="line-26">import java.util.Arrays;</span>
 <span class="source-line-no">027</span><span id="line-27">import java.util.Collection;</span>
@@ -164,14 +164,9 @@
 <span class="source-line-no">150</span><span id="line-150">     * @return the result</span>
 <span class="source-line-no">151</span><span id="line-151">     */</span>
 <span class="source-line-no">152</span><span id="line-152">    public static String isoEncode(String value) {</span>
-<span class="source-line-no">153</span><span id="line-153">        try {</span>
-<span class="source-line-no">154</span><span id="line-154">            return URLEncoder.encode(value, "ISO-8859-1");</span>
-<span class="source-line-no">155</span><span id="line-155">        } catch (UnsupportedEncodingException e) {</span>
-<span class="source-line-no">156</span><span id="line-156">            // Cannot happen, ISO-8859-1 is specified to be supported</span>
-<span class="source-line-no">157</span><span id="line-157">            throw new IllegalStateException(e);</span>
-<span class="source-line-no">158</span><span id="line-158">        }</span>
-<span class="source-line-no">159</span><span id="line-159">    }</span>
-<span class="source-line-no">160</span><span id="line-160">}</span>
+<span class="source-line-no">153</span><span id="line-153">        return URLEncoder.encode(value, StandardCharsets.ISO_8859_1);</span>
+<span class="source-line-no">154</span><span id="line-154">    }</span>
+<span class="source-line-no">155</span><span id="line-155">}</span>
 
 
 
