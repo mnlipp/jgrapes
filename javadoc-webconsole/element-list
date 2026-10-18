@@ -9,6 +9,7 @@ org.jgrapes.webconlet.markdowndisplay
 org.jgrapes.webconlet.messagebox
 org.jgrapes.webconlet.oidclogin
 org.jgrapes.webconlet.sysinfo
+org.jgrapes.webconsole.alpinejs
 org.jgrapes.webconsole.base
 org.jgrapes.webconsole.base.events
 org.jgrapes.webconsole.base.freemarker
@@ -18,6 +19,7 @@ org.jgrapes.webconsole.jqueryui
 org.jgrapes.webconsole.jqueryui.events
 org.jgrapes.webconsole.jqueryui.themes
 org.jgrapes.webconsole.jqueryui.themes.base
+org.jgrapes.webconsole.provider.aashalpinejs
 org.jgrapes.webconsole.provider.alpinejs
 org.jgrapes.webconsole.provider.chartjs
 org.jgrapes.webconsole.provider.datatables
