@@ -33,868 +33,959 @@
 <span class="source-line-no">019</span><span id="line-19">package org.jgrapes.webconsole.base;</span>
 <span class="source-line-no">020</span><span id="line-20"></span>
 <span class="source-line-no">021</span><span id="line-21">import java.io.IOException;</span>
-<span class="source-line-no">022</span><span id="line-22">import java.net.URI;</span>
-<span class="source-line-no">023</span><span id="line-23">import java.net.URISyntaxException;</span>
-<span class="source-line-no">024</span><span id="line-24">import java.nio.CharBuffer;</span>
-<span class="source-line-no">025</span><span id="line-25">import java.nio.charset.StandardCharsets;</span>
-<span class="source-line-no">026</span><span id="line-26">import java.text.ParseException;</span>
-<span class="source-line-no">027</span><span id="line-27">import java.time.Duration;</span>
-<span class="source-line-no">028</span><span id="line-28">import java.util.ArrayList;</span>
-<span class="source-line-no">029</span><span id="line-29">import java.util.HashMap;</span>
-<span class="source-line-no">030</span><span id="line-30">import java.util.List;</span>
-<span class="source-line-no">031</span><span id="line-31">import java.util.Locale;</span>
-<span class="source-line-no">032</span><span id="line-32">import java.util.Map;</span>
-<span class="source-line-no">033</span><span id="line-33">import java.util.Optional;</span>
-<span class="source-line-no">034</span><span id="line-34">import java.util.ResourceBundle;</span>
-<span class="source-line-no">035</span><span id="line-35">import java.util.UUID;</span>
-<span class="source-line-no">036</span><span id="line-36">import java.util.concurrent.ConcurrentHashMap;</span>
-<span class="source-line-no">037</span><span id="line-37">import java.util.function.Supplier;</span>
-<span class="source-line-no">038</span><span id="line-38">import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;</span>
-<span class="source-line-no">039</span><span id="line-39">import org.jdrupes.httpcodec.protocols.http.HttpField;</span>
-<span class="source-line-no">040</span><span id="line-40">import org.jdrupes.httpcodec.protocols.http.HttpResponse;</span>
-<span class="source-line-no">041</span><span id="line-41">import org.jdrupes.httpcodec.types.Converters;</span>
-<span class="source-line-no">042</span><span id="line-42">import org.jgrapes.core.Channel;</span>
-<span class="source-line-no">043</span><span id="line-43">import org.jgrapes.core.ClassChannel;</span>
-<span class="source-line-no">044</span><span id="line-44">import org.jgrapes.core.Component;</span>
-<span class="source-line-no">045</span><span id="line-45">import org.jgrapes.core.EventPipeline;</span>
-<span class="source-line-no">046</span><span id="line-46">import org.jgrapes.core.Manager;</span>
-<span class="source-line-no">047</span><span id="line-47">import org.jgrapes.core.annotation.Handler;</span>
-<span class="source-line-no">048</span><span id="line-48">import org.jgrapes.core.annotation.HandlerDefinition.ChannelReplacements;</span>
-<span class="source-line-no">049</span><span id="line-49">import org.jgrapes.http.LanguageSelector.Selection;</span>
-<span class="source-line-no">050</span><span id="line-50">import org.jgrapes.http.ResourcePattern;</span>
-<span class="source-line-no">051</span><span id="line-51">import org.jgrapes.http.ResponseCreationSupport;</span>
-<span class="source-line-no">052</span><span id="line-52">import org.jgrapes.http.Session;</span>
-<span class="source-line-no">053</span><span id="line-53">import org.jgrapes.http.annotation.RequestHandler;</span>
-<span class="source-line-no">054</span><span id="line-54">import org.jgrapes.http.events.DiscardSession;</span>
-<span class="source-line-no">055</span><span id="line-55">import org.jgrapes.http.events.ProtocolSwitchAccepted;</span>
-<span class="source-line-no">056</span><span id="line-56">import org.jgrapes.http.events.Request;</span>
-<span class="source-line-no">057</span><span id="line-57">import org.jgrapes.http.events.Request.In.Get;</span>
-<span class="source-line-no">058</span><span id="line-58">import org.jgrapes.http.events.Response;</span>
-<span class="source-line-no">059</span><span id="line-59">import org.jgrapes.http.events.Upgraded;</span>
-<span class="source-line-no">060</span><span id="line-60">import org.jgrapes.io.IOSubchannel;</span>
-<span class="source-line-no">061</span><span id="line-61">import org.jgrapes.io.events.Close;</span>
-<span class="source-line-no">062</span><span id="line-62">import org.jgrapes.io.events.Closed;</span>
-<span class="source-line-no">063</span><span id="line-63">import org.jgrapes.io.events.Input;</span>
-<span class="source-line-no">064</span><span id="line-64">import org.jgrapes.io.events.Output;</span>
-<span class="source-line-no">065</span><span id="line-65">import org.jgrapes.io.util.CharBufferWriter;</span>
-<span class="source-line-no">066</span><span id="line-66">import org.jgrapes.io.util.LinkedIOSubchannel;</span>
-<span class="source-line-no">067</span><span id="line-67">import org.jgrapes.webconsole.base.events.ConletResourceRequest;</span>
-<span class="source-line-no">068</span><span id="line-68">import org.jgrapes.webconsole.base.events.ConsoleCommand;</span>
-<span class="source-line-no">069</span><span id="line-69">import org.jgrapes.webconsole.base.events.JsonInput;</span>
-<span class="source-line-no">070</span><span id="line-70">import org.jgrapes.webconsole.base.events.PageResourceRequest;</span>
-<span class="source-line-no">071</span><span id="line-71">import org.jgrapes.webconsole.base.events.ResourceRequestCompleted;</span>
-<span class="source-line-no">072</span><span id="line-72">import org.jgrapes.webconsole.base.events.SetLocale;</span>
-<span class="source-line-no">073</span><span id="line-73">import org.jgrapes.webconsole.base.events.SetLocaleCompleted;</span>
-<span class="source-line-no">074</span><span id="line-74">import org.jgrapes.webconsole.base.events.SimpleConsoleCommand;</span>
-<span class="source-line-no">075</span><span id="line-75"></span>
-<span class="source-line-no">076</span><span id="line-76">/**</span>
-<span class="source-line-no">077</span><span id="line-77"> * The server side base class for the web console single page </span>
-<span class="source-line-no">078</span><span id="line-78"> * application (SPA). Its main tasks are to provide resources using </span>
-<span class="source-line-no">079</span><span id="line-79"> * {@link Request}/{@link Response} events (see {@link #onGet}</span>
-<span class="source-line-no">080</span><span id="line-80"> * for details about the different kinds of resources), to create</span>
-<span class="source-line-no">081</span><span id="line-81"> * the {@link ConsoleConnection}s for new WebSocket connections</span>
-<span class="source-line-no">082</span><span id="line-82"> * (see {@link #onUpgraded}) and to convert the JSON RPC messages </span>
-<span class="source-line-no">083</span><span id="line-83"> * received from the browser via the web socket to {@link JsonInput} </span>
-<span class="source-line-no">084</span><span id="line-84"> * events and fire them on the corresponding {@link ConsoleConnection}</span>
-<span class="source-line-no">085</span><span id="line-85"> * channel.</span>
-<span class="source-line-no">086</span><span id="line-86"> * </span>
-<span class="source-line-no">087</span><span id="line-87"> * The class has a counter part in the browser, the `jgconsole`</span>
-<span class="source-line-no">088</span><span id="line-88"> * JavaScript module (see </span>
-<span class="source-line-no">089</span><span id="line-89"> * &lt;a href="jsdoc/classes/Console.html"&gt;functions&lt;/a&gt;)</span>
-<span class="source-line-no">090</span><span id="line-90"> * that can be loaded as `console-base-resource/jgconsole.js` </span>
-<span class="source-line-no">091</span><span id="line-91"> * (relative to the configured prefix). </span>
-<span class="source-line-no">092</span><span id="line-92"> * </span>
-<span class="source-line-no">093</span><span id="line-93"> * The class also provides handlers for some console related events</span>
-<span class="source-line-no">094</span><span id="line-94"> * (i.e. fired on the attached {@link WebConsole}'s channel) that </span>
-<span class="source-line-no">095</span><span id="line-95"> * affect the console representation in the browser. These handlers</span>
-<span class="source-line-no">096</span><span id="line-96"> * are declared with class channel {@link ConsoleConnection} which</span>
-<span class="source-line-no">097</span><span id="line-97"> * is replaced using the {@link ChannelReplacements} mechanism.</span>
-<span class="source-line-no">098</span><span id="line-98"> */</span>
-<span class="source-line-no">099</span><span id="line-99">@SuppressWarnings({ "PMD.ExcessiveImports", "PMD.TooManyMethods",</span>
-<span class="source-line-no">100</span><span id="line-100">    "PMD.GodClass", "PMD.CouplingBetweenObjects" })</span>
-<span class="source-line-no">101</span><span id="line-101">public abstract class ConsoleWeblet extends Component {</span>
-<span class="source-line-no">102</span><span id="line-102"></span>
-<span class="source-line-no">103</span><span id="line-103">    private static final String CONSOLE_SESSION_IDS</span>
-<span class="source-line-no">104</span><span id="line-104">        = ConsoleWeblet.class.getName() + ".consoleConnectionId";</span>
-<span class="source-line-no">105</span><span id="line-105">    private static final String UTF_8 = "utf-8";</span>
-<span class="source-line-no">106</span><span id="line-106"></span>
-<span class="source-line-no">107</span><span id="line-107">    private URI prefix;</span>
-<span class="source-line-no">108</span><span id="line-108">    private final WebConsole console;</span>
-<span class="source-line-no">109</span><span id="line-109">    private ResourcePattern requestPattern;</span>
-<span class="source-line-no">110</span><span id="line-110"></span>
-<span class="source-line-no">111</span><span id="line-111">    private final RenderSupport renderSupport = new RenderSupportImpl();</span>
-<span class="source-line-no">112</span><span id="line-112">    private boolean useMinifiedResources = true;</span>
-<span class="source-line-no">113</span><span id="line-113">    private long csNetworkTimeout = 45_000;</span>
-<span class="source-line-no">114</span><span id="line-114">    private long csRefreshInterval = 30_000;</span>
-<span class="source-line-no">115</span><span id="line-115">    private long csInactivityTimeout = -1;</span>
-<span class="source-line-no">116</span><span id="line-116"></span>
-<span class="source-line-no">117</span><span id="line-117">    private List&lt;Class&lt;?&gt;&gt; consoleResourceSearchSeq;</span>
-<span class="source-line-no">118</span><span id="line-118">    private final List&lt;Class&lt;?&gt;&gt; resourceClasses = new ArrayList&lt;&gt;();</span>
-<span class="source-line-no">119</span><span id="line-119">    private final ResourceBundle.Control resourceControl</span>
-<span class="source-line-no">120</span><span id="line-120">        = new ConsoleResourceBundleControl(resourceClasses);</span>
-<span class="source-line-no">121</span><span id="line-121">    @SuppressWarnings("PMD.UseConcurrentHashMap")</span>
-<span class="source-line-no">122</span><span id="line-122">    private final Map&lt;Locale, ResourceBundle&gt; supportedLocales</span>
-<span class="source-line-no">123</span><span id="line-123">        = new HashMap&lt;&gt;();</span>
-<span class="source-line-no">124</span><span id="line-124"></span>
-<span class="source-line-no">125</span><span id="line-125">    /**</span>
-<span class="source-line-no">126</span><span id="line-126">     * The class used in handler annotations to represent the </span>
-<span class="source-line-no">127</span><span id="line-127">     * console channel.</span>
-<span class="source-line-no">128</span><span id="line-128">     */</span>
-<span class="source-line-no">129</span><span id="line-129">    protected class ConsoleChannel extends ClassChannel {</span>
-<span class="source-line-no">130</span><span id="line-130">    }</span>
-<span class="source-line-no">131</span><span id="line-131"></span>
-<span class="source-line-no">132</span><span id="line-132">    /**</span>
-<span class="source-line-no">133</span><span id="line-133">     * Instantiates a new console weblet. The weblet handles</span>
-<span class="source-line-no">134</span><span id="line-134">     * {@link Get} events for URIs that start with the</span>
-<span class="source-line-no">135</span><span id="line-135">     * specified prefix (see </span>
-<span class="source-line-no">136</span><span id="line-136">     * {@link #onGet(org.jgrapes.http.events.Request.In.Get, IOSubchannel)}).</span>
-<span class="source-line-no">137</span><span id="line-137">     *</span>
-<span class="source-line-no">138</span><span id="line-138">     * @param webletChannel the weblet channel</span>
-<span class="source-line-no">139</span><span id="line-139">     * @param consoleChannel the console channel</span>
-<span class="source-line-no">140</span><span id="line-140">     * @param consolePrefix the console prefix</span>
-<span class="source-line-no">141</span><span id="line-141">     */</span>
-<span class="source-line-no">142</span><span id="line-142">    public ConsoleWeblet(Channel webletChannel, Channel consoleChannel,</span>
-<span class="source-line-no">143</span><span id="line-143">            URI consolePrefix) {</span>
-<span class="source-line-no">144</span><span id="line-144">        this(webletChannel, new WebConsole(consoleChannel));</span>
-<span class="source-line-no">145</span><span id="line-145"></span>
-<span class="source-line-no">146</span><span id="line-146">        prefix = URI.create(consolePrefix.getPath().endsWith("/")</span>
-<span class="source-line-no">147</span><span id="line-147">            ? consolePrefix.getPath()</span>
-<span class="source-line-no">148</span><span id="line-148">            : consolePrefix.getPath() + "/");</span>
-<span class="source-line-no">149</span><span id="line-149">        console.setView(this);</span>
-<span class="source-line-no">150</span><span id="line-150"></span>
-<span class="source-line-no">151</span><span id="line-151">        String consolePath = prefix.getPath();</span>
-<span class="source-line-no">152</span><span id="line-152">        if (consolePath.endsWith("/")) {</span>
-<span class="source-line-no">153</span><span id="line-153">            consolePath = consolePath.substring(0, consolePath.length() - 1);</span>
-<span class="source-line-no">154</span><span id="line-154">        }</span>
-<span class="source-line-no">155</span><span id="line-155">        consolePath = consolePath + "|**";</span>
-<span class="source-line-no">156</span><span id="line-156">        try {</span>
-<span class="source-line-no">157</span><span id="line-157">            requestPattern = new ResourcePattern(consolePath);</span>
-<span class="source-line-no">158</span><span id="line-158">        } catch (ParseException e) {</span>
-<span class="source-line-no">159</span><span id="line-159">            throw new IllegalArgumentException(e);</span>
-<span class="source-line-no">160</span><span id="line-160">        }</span>
-<span class="source-line-no">161</span><span id="line-161">        consoleResourceSearchSeq = consoleHierarchy();</span>
-<span class="source-line-no">162</span><span id="line-162"></span>
-<span class="source-line-no">163</span><span id="line-163">        resourceClasses.addAll(consoleHierarchy());</span>
-<span class="source-line-no">164</span><span id="line-164">        updateSupportedLocales();</span>
-<span class="source-line-no">165</span><span id="line-165"></span>
-<span class="source-line-no">166</span><span id="line-166">        RequestHandler.Evaluator.add(this, "onGet", prefix + "**");</span>
-<span class="source-line-no">167</span><span id="line-167">        RequestHandler.Evaluator.add(this, "onGetRedirect",</span>
-<span class="source-line-no">168</span><span id="line-168">            prefix.getPath().substring(</span>
-<span class="source-line-no">169</span><span id="line-169">                0, prefix.getPath().length() - 1));</span>
-<span class="source-line-no">170</span><span id="line-170">    }</span>
-<span class="source-line-no">171</span><span id="line-171"></span>
-<span class="source-line-no">172</span><span id="line-172">    @SuppressWarnings("PMD.ConstructorCallsOverridableMethod")</span>
-<span class="source-line-no">173</span><span id="line-173">    private ConsoleWeblet(Channel webletChannel, WebConsole console) {</span>
-<span class="source-line-no">174</span><span id="line-174">        super(webletChannel, ChannelReplacements.create()</span>
-<span class="source-line-no">175</span><span id="line-175">            .add(ConsoleChannel.class, console.channel()));</span>
-<span class="source-line-no">176</span><span id="line-176">        this.console = console;</span>
-<span class="source-line-no">177</span><span id="line-177">        attach(console);</span>
-<span class="source-line-no">178</span><span id="line-178">    }</span>
-<span class="source-line-no">179</span><span id="line-179"></span>
-<span class="source-line-no">180</span><span id="line-180">    /**</span>
-<span class="source-line-no">181</span><span id="line-181">     * Return the list of classes that form the current console</span>
-<span class="source-line-no">182</span><span id="line-182">     * weblet implementation. This consists of all classes from</span>
-<span class="source-line-no">183</span><span id="line-183">     * `getClass()` up to `ConsoleWeblet.class`. </span>
-<span class="source-line-no">184</span><span id="line-184">     *</span>
-<span class="source-line-no">185</span><span id="line-185">     * @return the list</span>
-<span class="source-line-no">186</span><span id="line-186">     */</span>
-<span class="source-line-no">187</span><span id="line-187">    protected final List&lt;Class&lt;?&gt;&gt; consoleHierarchy() {</span>
-<span class="source-line-no">188</span><span id="line-188">        List&lt;Class&lt;?&gt;&gt; result = new ArrayList&lt;&gt;();</span>
-<span class="source-line-no">189</span><span id="line-189">        Class&lt;?&gt; derivative = getClass();</span>
-<span class="source-line-no">190</span><span id="line-190">        while (true) {</span>
-<span class="source-line-no">191</span><span id="line-191">            result.add(derivative);</span>
-<span class="source-line-no">192</span><span id="line-192">            if (derivative.equals(ConsoleWeblet.class)) {</span>
-<span class="source-line-no">193</span><span id="line-193">                break;</span>
-<span class="source-line-no">194</span><span id="line-194">            }</span>
-<span class="source-line-no">195</span><span id="line-195">            derivative = derivative.getSuperclass();</span>
+<span class="source-line-no">022</span><span id="line-22">import java.io.InputStream;</span>
+<span class="source-line-no">023</span><span id="line-23">import java.net.URI;</span>
+<span class="source-line-no">024</span><span id="line-24">import java.net.URISyntaxException;</span>
+<span class="source-line-no">025</span><span id="line-25">import java.net.URL;</span>
+<span class="source-line-no">026</span><span id="line-26">import java.net.URLConnection;</span>
+<span class="source-line-no">027</span><span id="line-27">import java.nio.CharBuffer;</span>
+<span class="source-line-no">028</span><span id="line-28">import java.nio.charset.StandardCharsets;</span>
+<span class="source-line-no">029</span><span id="line-29">import java.text.ParseException;</span>
+<span class="source-line-no">030</span><span id="line-30">import java.time.Duration;</span>
+<span class="source-line-no">031</span><span id="line-31">import java.util.ArrayList;</span>
+<span class="source-line-no">032</span><span id="line-32">import java.util.Arrays;</span>
+<span class="source-line-no">033</span><span id="line-33">import java.util.HashMap;</span>
+<span class="source-line-no">034</span><span id="line-34">import java.util.HashSet;</span>
+<span class="source-line-no">035</span><span id="line-35">import java.util.List;</span>
+<span class="source-line-no">036</span><span id="line-36">import java.util.ListIterator;</span>
+<span class="source-line-no">037</span><span id="line-37">import java.util.Locale;</span>
+<span class="source-line-no">038</span><span id="line-38">import java.util.Map;</span>
+<span class="source-line-no">039</span><span id="line-39">import java.util.Optional;</span>
+<span class="source-line-no">040</span><span id="line-40">import java.util.ResourceBundle;</span>
+<span class="source-line-no">041</span><span id="line-41">import java.util.Set;</span>
+<span class="source-line-no">042</span><span id="line-42">import java.util.UUID;</span>
+<span class="source-line-no">043</span><span id="line-43">import java.util.concurrent.CompletableFuture;</span>
+<span class="source-line-no">044</span><span id="line-44">import java.util.concurrent.ConcurrentHashMap;</span>
+<span class="source-line-no">045</span><span id="line-45">import java.util.concurrent.ExecutorService;</span>
+<span class="source-line-no">046</span><span id="line-46">import java.util.concurrent.Executors;</span>
+<span class="source-line-no">047</span><span id="line-47">import java.util.function.Supplier;</span>
+<span class="source-line-no">048</span><span id="line-48">import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;</span>
+<span class="source-line-no">049</span><span id="line-49">import org.jdrupes.httpcodec.protocols.http.HttpField;</span>
+<span class="source-line-no">050</span><span id="line-50">import org.jdrupes.httpcodec.protocols.http.HttpResponse;</span>
+<span class="source-line-no">051</span><span id="line-51">import org.jdrupes.httpcodec.types.Converters;</span>
+<span class="source-line-no">052</span><span id="line-52">import org.jgrapes.core.Channel;</span>
+<span class="source-line-no">053</span><span id="line-53">import org.jgrapes.core.ClassChannel;</span>
+<span class="source-line-no">054</span><span id="line-54">import org.jgrapes.core.Component;</span>
+<span class="source-line-no">055</span><span id="line-55">import org.jgrapes.core.EventPipeline;</span>
+<span class="source-line-no">056</span><span id="line-56">import org.jgrapes.core.Manager;</span>
+<span class="source-line-no">057</span><span id="line-57">import org.jgrapes.core.annotation.Handler;</span>
+<span class="source-line-no">058</span><span id="line-58">import org.jgrapes.core.annotation.HandlerDefinition.ChannelReplacements;</span>
+<span class="source-line-no">059</span><span id="line-59">import org.jgrapes.http.LanguageSelector.Selection;</span>
+<span class="source-line-no">060</span><span id="line-60">import org.jgrapes.http.ResourcePattern;</span>
+<span class="source-line-no">061</span><span id="line-61">import org.jgrapes.http.ResponseCreationSupport;</span>
+<span class="source-line-no">062</span><span id="line-62">import org.jgrapes.http.Session;</span>
+<span class="source-line-no">063</span><span id="line-63">import org.jgrapes.http.annotation.RequestHandler;</span>
+<span class="source-line-no">064</span><span id="line-64">import org.jgrapes.http.events.DiscardSession;</span>
+<span class="source-line-no">065</span><span id="line-65">import org.jgrapes.http.events.ProtocolSwitchAccepted;</span>
+<span class="source-line-no">066</span><span id="line-66">import org.jgrapes.http.events.Request;</span>
+<span class="source-line-no">067</span><span id="line-67">import org.jgrapes.http.events.Request.In.Get;</span>
+<span class="source-line-no">068</span><span id="line-68">import org.jgrapes.http.events.Response;</span>
+<span class="source-line-no">069</span><span id="line-69">import org.jgrapes.http.events.Upgraded;</span>
+<span class="source-line-no">070</span><span id="line-70">import org.jgrapes.io.IOSubchannel;</span>
+<span class="source-line-no">071</span><span id="line-71">import org.jgrapes.io.events.Close;</span>
+<span class="source-line-no">072</span><span id="line-72">import org.jgrapes.io.events.Closed;</span>
+<span class="source-line-no">073</span><span id="line-73">import org.jgrapes.io.events.Input;</span>
+<span class="source-line-no">074</span><span id="line-74">import org.jgrapes.io.events.Output;</span>
+<span class="source-line-no">075</span><span id="line-75">import org.jgrapes.io.util.CharBufferWriter;</span>
+<span class="source-line-no">076</span><span id="line-76">import org.jgrapes.io.util.LinkedIOSubchannel;</span>
+<span class="source-line-no">077</span><span id="line-77">import org.jgrapes.webconsole.base.events.ConletResourceRequest;</span>
+<span class="source-line-no">078</span><span id="line-78">import org.jgrapes.webconsole.base.events.ConsoleCommand;</span>
+<span class="source-line-no">079</span><span id="line-79">import org.jgrapes.webconsole.base.events.JsonInput;</span>
+<span class="source-line-no">080</span><span id="line-80">import org.jgrapes.webconsole.base.events.PageResourceRequest;</span>
+<span class="source-line-no">081</span><span id="line-81">import org.jgrapes.webconsole.base.events.ResourceRequestCompleted;</span>
+<span class="source-line-no">082</span><span id="line-82">import org.jgrapes.webconsole.base.events.SetLocale;</span>
+<span class="source-line-no">083</span><span id="line-83">import org.jgrapes.webconsole.base.events.SetLocaleCompleted;</span>
+<span class="source-line-no">084</span><span id="line-84">import org.jgrapes.webconsole.base.events.SimpleConsoleCommand;</span>
+<span class="source-line-no">085</span><span id="line-85"></span>
+<span class="source-line-no">086</span><span id="line-86">/**</span>
+<span class="source-line-no">087</span><span id="line-87"> * The server side base class for the web console single page </span>
+<span class="source-line-no">088</span><span id="line-88"> * application (SPA). Its main tasks are to provide resources using </span>
+<span class="source-line-no">089</span><span id="line-89"> * {@link Request}/{@link Response} events (see {@link #onGet}</span>
+<span class="source-line-no">090</span><span id="line-90"> * for details about the different kinds of resources), to create</span>
+<span class="source-line-no">091</span><span id="line-91"> * the {@link ConsoleConnection}s for new WebSocket connections</span>
+<span class="source-line-no">092</span><span id="line-92"> * (see {@link #onUpgraded}) and to convert the JSON RPC messages </span>
+<span class="source-line-no">093</span><span id="line-93"> * received from the browser via the web socket to {@link JsonInput} </span>
+<span class="source-line-no">094</span><span id="line-94"> * events and fire them on the corresponding {@link ConsoleConnection}</span>
+<span class="source-line-no">095</span><span id="line-95"> * channel.</span>
+<span class="source-line-no">096</span><span id="line-96"> * </span>
+<span class="source-line-no">097</span><span id="line-97"> * The class has a counter part in the browser, the `jgconsole`</span>
+<span class="source-line-no">098</span><span id="line-98"> * JavaScript module (see </span>
+<span class="source-line-no">099</span><span id="line-99"> * &lt;a href="jsdoc/classes/Console.html"&gt;functions&lt;/a&gt;)</span>
+<span class="source-line-no">100</span><span id="line-100"> * that can be loaded as `console-base-resource/jgconsole.js` </span>
+<span class="source-line-no">101</span><span id="line-101"> * (relative to the configured prefix). </span>
+<span class="source-line-no">102</span><span id="line-102"> * </span>
+<span class="source-line-no">103</span><span id="line-103"> * The class also provides handlers for some console related events</span>
+<span class="source-line-no">104</span><span id="line-104"> * (i.e. fired on the attached {@link WebConsole}'s channel) that </span>
+<span class="source-line-no">105</span><span id="line-105"> * affect the console representation in the browser. These handlers</span>
+<span class="source-line-no">106</span><span id="line-106"> * are declared with class channel {@link ConsoleConnection} which</span>
+<span class="source-line-no">107</span><span id="line-107"> * is replaced using the {@link ChannelReplacements} mechanism.</span>
+<span class="source-line-no">108</span><span id="line-108"> */</span>
+<span class="source-line-no">109</span><span id="line-109">@SuppressWarnings({ "PMD.ExcessiveImports", "PMD.TooManyMethods",</span>
+<span class="source-line-no">110</span><span id="line-110">    "PMD.GodClass", "PMD.CouplingBetweenObjects" })</span>
+<span class="source-line-no">111</span><span id="line-111">public abstract class ConsoleWeblet extends Component {</span>
+<span class="source-line-no">112</span><span id="line-112"></span>
+<span class="source-line-no">113</span><span id="line-113">    private static final String CONSOLE_SESSION_IDS</span>
+<span class="source-line-no">114</span><span id="line-114">        = ConsoleWeblet.class.getName() + ".consoleConnectionId";</span>
+<span class="source-line-no">115</span><span id="line-115">    private static final String UTF_8 = "utf-8";</span>
+<span class="source-line-no">116</span><span id="line-116">    @SuppressWarnings({ "PMD.FieldNamingConventions",</span>
+<span class="source-line-no">117</span><span id="line-117">        "PMD.UseConcurrentHashMap" })</span>
+<span class="source-line-no">118</span><span id="line-118">    private static final Map&lt;Locale, List&lt;Locale&gt;&gt; localesByLanguage</span>
+<span class="source-line-no">119</span><span id="line-119">        = new HashMap&lt;&gt;();</span>
+<span class="source-line-no">120</span><span id="line-120"></span>
+<span class="source-line-no">121</span><span id="line-121">    static {</span>
+<span class="source-line-no">122</span><span id="line-122">        Set&lt;Locale&gt; available</span>
+<span class="source-line-no">123</span><span id="line-123">            = new HashSet&lt;&gt;(Arrays.asList(Locale.getAvailableLocales()));</span>
+<span class="source-line-no">124</span><span id="line-124">        for (Locale locale : available) {</span>
+<span class="source-line-no">125</span><span id="line-125">            String language = locale.getLanguage();</span>
+<span class="source-line-no">126</span><span id="line-126">            if (language.isEmpty()) {</span>
+<span class="source-line-no">127</span><span id="line-127">                continue;</span>
+<span class="source-line-no">128</span><span id="line-128">            }</span>
+<span class="source-line-no">129</span><span id="line-129">            @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")</span>
+<span class="source-line-no">130</span><span id="line-130">            Locale langOnlyLocale = new Locale.Builder()</span>
+<span class="source-line-no">131</span><span id="line-131">                .setLanguage(language).build();</span>
+<span class="source-line-no">132</span><span id="line-132">            if (!available.contains(langOnlyLocale)</span>
+<span class="source-line-no">133</span><span id="line-133">                || locale.equals(langOnlyLocale)) {</span>
+<span class="source-line-no">134</span><span id="line-134">                continue;</span>
+<span class="source-line-no">135</span><span id="line-135">            }</span>
+<span class="source-line-no">136</span><span id="line-136">            @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")</span>
+<span class="source-line-no">137</span><span id="line-137">            List&lt;Locale&gt; locales = localesByLanguage</span>
+<span class="source-line-no">138</span><span id="line-138">                .computeIfAbsent(langOnlyLocale, key -&gt; new ArrayList&lt;&gt;());</span>
+<span class="source-line-no">139</span><span id="line-139">            locales.add(locale);</span>
+<span class="source-line-no">140</span><span id="line-140">        }</span>
+<span class="source-line-no">141</span><span id="line-141">    }</span>
+<span class="source-line-no">142</span><span id="line-142"></span>
+<span class="source-line-no">143</span><span id="line-143">    private URI prefix;</span>
+<span class="source-line-no">144</span><span id="line-144">    private final WebConsole console;</span>
+<span class="source-line-no">145</span><span id="line-145">    private ResourcePattern requestPattern;</span>
+<span class="source-line-no">146</span><span id="line-146"></span>
+<span class="source-line-no">147</span><span id="line-147">    private final RenderSupport renderSupport = new RenderSupportImpl();</span>
+<span class="source-line-no">148</span><span id="line-148">    private boolean useMinifiedResources = true;</span>
+<span class="source-line-no">149</span><span id="line-149">    private long csNetworkTimeout = 45_000;</span>
+<span class="source-line-no">150</span><span id="line-150">    private long csRefreshInterval = 30_000;</span>
+<span class="source-line-no">151</span><span id="line-151">    private long csInactivityTimeout = -1;</span>
+<span class="source-line-no">152</span><span id="line-152"></span>
+<span class="source-line-no">153</span><span id="line-153">    private List&lt;Class&lt;?&gt;&gt; consoleResourceSearchSeq;</span>
+<span class="source-line-no">154</span><span id="line-154">    private final List&lt;Class&lt;?&gt;&gt; resourceClasses = new ArrayList&lt;&gt;();</span>
+<span class="source-line-no">155</span><span id="line-155">    private final ResourceBundle.Control resourceControl</span>
+<span class="source-line-no">156</span><span id="line-156">        = new ConsoleResourceBundleControl(resourceClasses);</span>
+<span class="source-line-no">157</span><span id="line-157">    @SuppressWarnings("PMD.UseConcurrentHashMap")</span>
+<span class="source-line-no">158</span><span id="line-158">    private Map&lt;Locale, ResourceBundle&gt; supportedLocales</span>
+<span class="source-line-no">159</span><span id="line-159">        = new HashMap&lt;&gt;();</span>
+<span class="source-line-no">160</span><span id="line-160"></span>
+<span class="source-line-no">161</span><span id="line-161">    /**</span>
+<span class="source-line-no">162</span><span id="line-162">     * The class used in handler annotations to represent the </span>
+<span class="source-line-no">163</span><span id="line-163">     * console channel.</span>
+<span class="source-line-no">164</span><span id="line-164">     */</span>
+<span class="source-line-no">165</span><span id="line-165">    protected class ConsoleChannel extends ClassChannel {</span>
+<span class="source-line-no">166</span><span id="line-166">    }</span>
+<span class="source-line-no">167</span><span id="line-167"></span>
+<span class="source-line-no">168</span><span id="line-168">    /**</span>
+<span class="source-line-no">169</span><span id="line-169">     * Instantiates a new console weblet. The weblet handles</span>
+<span class="source-line-no">170</span><span id="line-170">     * {@link Get} events for URIs that start with the</span>
+<span class="source-line-no">171</span><span id="line-171">     * specified prefix (see </span>
+<span class="source-line-no">172</span><span id="line-172">     * {@link #onGet(org.jgrapes.http.events.Request.In.Get, IOSubchannel)}).</span>
+<span class="source-line-no">173</span><span id="line-173">     *</span>
+<span class="source-line-no">174</span><span id="line-174">     * @param webletChannel the weblet channel</span>
+<span class="source-line-no">175</span><span id="line-175">     * @param consoleChannel the console channel</span>
+<span class="source-line-no">176</span><span id="line-176">     * @param consolePrefix the console prefix</span>
+<span class="source-line-no">177</span><span id="line-177">     */</span>
+<span class="source-line-no">178</span><span id="line-178">    public ConsoleWeblet(Channel webletChannel, Channel consoleChannel,</span>
+<span class="source-line-no">179</span><span id="line-179">            URI consolePrefix) {</span>
+<span class="source-line-no">180</span><span id="line-180">        this(webletChannel, new WebConsole(consoleChannel));</span>
+<span class="source-line-no">181</span><span id="line-181"></span>
+<span class="source-line-no">182</span><span id="line-182">        prefix = URI.create(consolePrefix.getPath().endsWith("/")</span>
+<span class="source-line-no">183</span><span id="line-183">            ? consolePrefix.getPath()</span>
+<span class="source-line-no">184</span><span id="line-184">            : consolePrefix.getPath() + "/");</span>
+<span class="source-line-no">185</span><span id="line-185">        console.setView(this);</span>
+<span class="source-line-no">186</span><span id="line-186"></span>
+<span class="source-line-no">187</span><span id="line-187">        String consolePath = prefix.getPath();</span>
+<span class="source-line-no">188</span><span id="line-188">        if (consolePath.endsWith("/")) {</span>
+<span class="source-line-no">189</span><span id="line-189">            consolePath = consolePath.substring(0, consolePath.length() - 1);</span>
+<span class="source-line-no">190</span><span id="line-190">        }</span>
+<span class="source-line-no">191</span><span id="line-191">        consolePath = consolePath + "|**";</span>
+<span class="source-line-no">192</span><span id="line-192">        try {</span>
+<span class="source-line-no">193</span><span id="line-193">            requestPattern = new ResourcePattern(consolePath);</span>
+<span class="source-line-no">194</span><span id="line-194">        } catch (ParseException e) {</span>
+<span class="source-line-no">195</span><span id="line-195">            throw new IllegalArgumentException(e);</span>
 <span class="source-line-no">196</span><span id="line-196">        }</span>
-<span class="source-line-no">197</span><span id="line-197">        return result;</span>
-<span class="source-line-no">198</span><span id="line-198">    }</span>
-<span class="source-line-no">199</span><span id="line-199"></span>
-<span class="source-line-no">200</span><span id="line-200">    /**</span>
-<span class="source-line-no">201</span><span id="line-201">     * Returns the name of the styling library or toolkit used by the console.</span>
-<span class="source-line-no">202</span><span id="line-202">     * This value is informative. It may, however, be used by</span>
-<span class="source-line-no">203</span><span id="line-203">     * a {@link PageResourceProviderFactory} to influence the creation</span>
-<span class="source-line-no">204</span><span id="line-204">     * of {@link PageResourceProvider}s.</span>
-<span class="source-line-no">205</span><span id="line-205">     *</span>
-<span class="source-line-no">206</span><span id="line-206">     * @return the value</span>
-<span class="source-line-no">207</span><span id="line-207">     */</span>
-<span class="source-line-no">208</span><span id="line-208">    public abstract String styling();</span>
-<span class="source-line-no">209</span><span id="line-209"></span>
-<span class="source-line-no">210</span><span id="line-210">    /**</span>
-<span class="source-line-no">211</span><span id="line-211">     * @return the prefix</span>
-<span class="source-line-no">212</span><span id="line-212">     */</span>
-<span class="source-line-no">213</span><span id="line-213">    public URI prefix() {</span>
-<span class="source-line-no">214</span><span id="line-214">        return prefix;</span>
-<span class="source-line-no">215</span><span id="line-215">    }</span>
-<span class="source-line-no">216</span><span id="line-216"></span>
-<span class="source-line-no">217</span><span id="line-217">    /**</span>
-<span class="source-line-no">218</span><span id="line-218">     * Returns the automatically generated {@link WebConsole} component.</span>
-<span class="source-line-no">219</span><span id="line-219">     *</span>
-<span class="source-line-no">220</span><span id="line-220">     * @return the console</span>
-<span class="source-line-no">221</span><span id="line-221">     */</span>
-<span class="source-line-no">222</span><span id="line-222">    public WebConsole console() {</span>
-<span class="source-line-no">223</span><span id="line-223">        return console;</span>
-<span class="source-line-no">224</span><span id="line-224">    }</span>
-<span class="source-line-no">225</span><span id="line-225"></span>
-<span class="source-line-no">226</span><span id="line-226">    /**</span>
-<span class="source-line-no">227</span><span id="line-227">     * Sets the console connection network timeout. The console connection</span>
-<span class="source-line-no">228</span><span id="line-228">     * will be removed if no messages have been received from the </span>
-<span class="source-line-no">229</span><span id="line-229">     * console page for the given duration. The value defaults to 45 seconds.</span>
-<span class="source-line-no">230</span><span id="line-230">     * </span>
-<span class="source-line-no">231</span><span id="line-231">     * @param timeout the timeout in milli seconds</span>
-<span class="source-line-no">232</span><span id="line-232">     * @return the console view for easy chaining</span>
-<span class="source-line-no">233</span><span id="line-233">     */</span>
-<span class="source-line-no">234</span><span id="line-234">    public ConsoleWeblet setConnectionNetworkTimeout(Duration timeout) {</span>
-<span class="source-line-no">235</span><span id="line-235">        csNetworkTimeout = timeout.toMillis();</span>
-<span class="source-line-no">236</span><span id="line-236">        return this;</span>
-<span class="source-line-no">237</span><span id="line-237">    }</span>
-<span class="source-line-no">238</span><span id="line-238"></span>
-<span class="source-line-no">239</span><span id="line-239">    /**</span>
-<span class="source-line-no">240</span><span id="line-240">     * Returns the console connection network timeout.</span>
+<span class="source-line-no">197</span><span id="line-197">        consoleResourceSearchSeq = consoleHierarchy();</span>
+<span class="source-line-no">198</span><span id="line-198"></span>
+<span class="source-line-no">199</span><span id="line-199">        resourceClasses.addAll(consoleHierarchy());</span>
+<span class="source-line-no">200</span><span id="line-200">        updateSupportedLocales();</span>
+<span class="source-line-no">201</span><span id="line-201"></span>
+<span class="source-line-no">202</span><span id="line-202">        RequestHandler.Evaluator.add(this, "onGet", prefix + "**");</span>
+<span class="source-line-no">203</span><span id="line-203">        RequestHandler.Evaluator.add(this, "onGetRedirect",</span>
+<span class="source-line-no">204</span><span id="line-204">            prefix.getPath().substring(</span>
+<span class="source-line-no">205</span><span id="line-205">                0, prefix.getPath().length() - 1));</span>
+<span class="source-line-no">206</span><span id="line-206">    }</span>
+<span class="source-line-no">207</span><span id="line-207"></span>
+<span class="source-line-no">208</span><span id="line-208">    @SuppressWarnings("PMD.ConstructorCallsOverridableMethod")</span>
+<span class="source-line-no">209</span><span id="line-209">    private ConsoleWeblet(Channel webletChannel, WebConsole console) {</span>
+<span class="source-line-no">210</span><span id="line-210">        super(webletChannel, ChannelReplacements.create()</span>
+<span class="source-line-no">211</span><span id="line-211">            .add(ConsoleChannel.class, console.channel()));</span>
+<span class="source-line-no">212</span><span id="line-212">        this.console = console;</span>
+<span class="source-line-no">213</span><span id="line-213">        attach(console);</span>
+<span class="source-line-no">214</span><span id="line-214">    }</span>
+<span class="source-line-no">215</span><span id="line-215"></span>
+<span class="source-line-no">216</span><span id="line-216">    /**</span>
+<span class="source-line-no">217</span><span id="line-217">     * Return the list of classes that form the current console</span>
+<span class="source-line-no">218</span><span id="line-218">     * weblet implementation. This consists of all classes from</span>
+<span class="source-line-no">219</span><span id="line-219">     * `getClass()` up to `ConsoleWeblet.class`. </span>
+<span class="source-line-no">220</span><span id="line-220">     *</span>
+<span class="source-line-no">221</span><span id="line-221">     * @return the list</span>
+<span class="source-line-no">222</span><span id="line-222">     */</span>
+<span class="source-line-no">223</span><span id="line-223">    protected final List&lt;Class&lt;?&gt;&gt; consoleHierarchy() {</span>
+<span class="source-line-no">224</span><span id="line-224">        List&lt;Class&lt;?&gt;&gt; result = new ArrayList&lt;&gt;();</span>
+<span class="source-line-no">225</span><span id="line-225">        Class&lt;?&gt; derivative = getClass();</span>
+<span class="source-line-no">226</span><span id="line-226">        while (true) {</span>
+<span class="source-line-no">227</span><span id="line-227">            result.add(derivative);</span>
+<span class="source-line-no">228</span><span id="line-228">            if (derivative.equals(ConsoleWeblet.class)) {</span>
+<span class="source-line-no">229</span><span id="line-229">                break;</span>
+<span class="source-line-no">230</span><span id="line-230">            }</span>
+<span class="source-line-no">231</span><span id="line-231">            derivative = derivative.getSuperclass();</span>
+<span class="source-line-no">232</span><span id="line-232">        }</span>
+<span class="source-line-no">233</span><span id="line-233">        return result;</span>
+<span class="source-line-no">234</span><span id="line-234">    }</span>
+<span class="source-line-no">235</span><span id="line-235"></span>
+<span class="source-line-no">236</span><span id="line-236">    /**</span>
+<span class="source-line-no">237</span><span id="line-237">     * Returns the name of the styling library or toolkit used by the console.</span>
+<span class="source-line-no">238</span><span id="line-238">     * This value is informative. It may, however, be used by</span>
+<span class="source-line-no">239</span><span id="line-239">     * a {@link PageResourceProviderFactory} to influence the creation</span>
+<span class="source-line-no">240</span><span id="line-240">     * of {@link PageResourceProvider}s.</span>
 <span class="source-line-no">241</span><span id="line-241">     *</span>
-<span class="source-line-no">242</span><span id="line-242">     * @return the timeout</span>
+<span class="source-line-no">242</span><span id="line-242">     * @return the value</span>
 <span class="source-line-no">243</span><span id="line-243">     */</span>
-<span class="source-line-no">244</span><span id="line-244">    public Duration connectionNetworkTimeout() {</span>
-<span class="source-line-no">245</span><span id="line-245">        return Duration.ofMillis(csNetworkTimeout);</span>
-<span class="source-line-no">246</span><span id="line-246">    }</span>
-<span class="source-line-no">247</span><span id="line-247"></span>
-<span class="source-line-no">248</span><span id="line-248">    /**</span>
-<span class="source-line-no">249</span><span id="line-249">     * Sets the console connection refresh interval. The console code in the</span>
-<span class="source-line-no">250</span><span id="line-250">     * browser will send a keep alive packet if there has been no user</span>
-<span class="source-line-no">251</span><span id="line-251">     * activity for more than the given period. The value </span>
-<span class="source-line-no">252</span><span id="line-252">     * defaults to 30 seconds.</span>
-<span class="source-line-no">253</span><span id="line-253">     * </span>
-<span class="source-line-no">254</span><span id="line-254">     * @param interval the interval</span>
-<span class="source-line-no">255</span><span id="line-255">     * @return the console view for easy chaining</span>
-<span class="source-line-no">256</span><span id="line-256">     */</span>
-<span class="source-line-no">257</span><span id="line-257">    public ConsoleWeblet setConnectionRefreshInterval(Duration interval) {</span>
-<span class="source-line-no">258</span><span id="line-258">        csRefreshInterval = interval.toMillis();</span>
-<span class="source-line-no">259</span><span id="line-259">        return this;</span>
+<span class="source-line-no">244</span><span id="line-244">    public abstract String styling();</span>
+<span class="source-line-no">245</span><span id="line-245"></span>
+<span class="source-line-no">246</span><span id="line-246">    /**</span>
+<span class="source-line-no">247</span><span id="line-247">     * @return the prefix</span>
+<span class="source-line-no">248</span><span id="line-248">     */</span>
+<span class="source-line-no">249</span><span id="line-249">    public URI prefix() {</span>
+<span class="source-line-no">250</span><span id="line-250">        return prefix;</span>
+<span class="source-line-no">251</span><span id="line-251">    }</span>
+<span class="source-line-no">252</span><span id="line-252"></span>
+<span class="source-line-no">253</span><span id="line-253">    /**</span>
+<span class="source-line-no">254</span><span id="line-254">     * Returns the automatically generated {@link WebConsole} component.</span>
+<span class="source-line-no">255</span><span id="line-255">     *</span>
+<span class="source-line-no">256</span><span id="line-256">     * @return the console</span>
+<span class="source-line-no">257</span><span id="line-257">     */</span>
+<span class="source-line-no">258</span><span id="line-258">    public WebConsole console() {</span>
+<span class="source-line-no">259</span><span id="line-259">        return console;</span>
 <span class="source-line-no">260</span><span id="line-260">    }</span>
 <span class="source-line-no">261</span><span id="line-261"></span>
 <span class="source-line-no">262</span><span id="line-262">    /**</span>
-<span class="source-line-no">263</span><span id="line-263">     * Returns the console connection refresh interval.</span>
-<span class="source-line-no">264</span><span id="line-264">     *</span>
-<span class="source-line-no">265</span><span id="line-265">     * @return the interval</span>
-<span class="source-line-no">266</span><span id="line-266">     */</span>
-<span class="source-line-no">267</span><span id="line-267">    public Duration connectionRefreshInterval() {</span>
-<span class="source-line-no">268</span><span id="line-268">        return Duration.ofMillis(csRefreshInterval);</span>
-<span class="source-line-no">269</span><span id="line-269">    }</span>
-<span class="source-line-no">270</span><span id="line-270"></span>
-<span class="source-line-no">271</span><span id="line-271">    /**</span>
-<span class="source-line-no">272</span><span id="line-272">     * Sets the console connection inactivity timeout. If there has been no</span>
-<span class="source-line-no">273</span><span id="line-273">     * user activity for more than the given duration the</span>
-<span class="source-line-no">274</span><span id="line-274">     * console code stops sending keep alive packets and displays a</span>
-<span class="source-line-no">275</span><span id="line-275">     * message to the user. The value defaults to -1 (no timeout).</span>
-<span class="source-line-no">276</span><span id="line-276">     * </span>
-<span class="source-line-no">277</span><span id="line-277">     * @param timeout the timeout</span>
-<span class="source-line-no">278</span><span id="line-278">     * @return the console view for easy chaining</span>
+<span class="source-line-no">263</span><span id="line-263">     * Sets the console connection network timeout. The console connection</span>
+<span class="source-line-no">264</span><span id="line-264">     * will be removed if no messages have been received from the </span>
+<span class="source-line-no">265</span><span id="line-265">     * console page for the given duration. The value defaults to 45 seconds.</span>
+<span class="source-line-no">266</span><span id="line-266">     * </span>
+<span class="source-line-no">267</span><span id="line-267">     * @param timeout the timeout in milli seconds</span>
+<span class="source-line-no">268</span><span id="line-268">     * @return the console view for easy chaining</span>
+<span class="source-line-no">269</span><span id="line-269">     */</span>
+<span class="source-line-no">270</span><span id="line-270">    public ConsoleWeblet setConnectionNetworkTimeout(Duration timeout) {</span>
+<span class="source-line-no">271</span><span id="line-271">        csNetworkTimeout = timeout.toMillis();</span>
+<span class="source-line-no">272</span><span id="line-272">        return this;</span>
+<span class="source-line-no">273</span><span id="line-273">    }</span>
+<span class="source-line-no">274</span><span id="line-274"></span>
+<span class="source-line-no">275</span><span id="line-275">    /**</span>
+<span class="source-line-no">276</span><span id="line-276">     * Returns the console connection network timeout.</span>
+<span class="source-line-no">277</span><span id="line-277">     *</span>
+<span class="source-line-no">278</span><span id="line-278">     * @return the timeout</span>
 <span class="source-line-no">279</span><span id="line-279">     */</span>
-<span class="source-line-no">280</span><span id="line-280">    public ConsoleWeblet setConnectionInactivityTimeout(Duration timeout) {</span>
-<span class="source-line-no">281</span><span id="line-281">        csInactivityTimeout = timeout.toMillis();</span>
-<span class="source-line-no">282</span><span id="line-282">        return this;</span>
-<span class="source-line-no">283</span><span id="line-283">    }</span>
-<span class="source-line-no">284</span><span id="line-284"></span>
-<span class="source-line-no">285</span><span id="line-285">    /**</span>
-<span class="source-line-no">286</span><span id="line-286">     * Returns the console connection inactivity timeout.</span>
-<span class="source-line-no">287</span><span id="line-287">     *</span>
-<span class="source-line-no">288</span><span id="line-288">     * @return the timeout</span>
-<span class="source-line-no">289</span><span id="line-289">     */</span>
-<span class="source-line-no">290</span><span id="line-290">    public Duration connectionInactivityTimeout() {</span>
-<span class="source-line-no">291</span><span id="line-291">        return Duration.ofMillis(csInactivityTimeout);</span>
-<span class="source-line-no">292</span><span id="line-292">    }</span>
-<span class="source-line-no">293</span><span id="line-293"></span>
-<span class="source-line-no">294</span><span id="line-294">    /**</span>
-<span class="source-line-no">295</span><span id="line-295">     * Returns whether resources are minified.</span>
-<span class="source-line-no">296</span><span id="line-296">     *</span>
-<span class="source-line-no">297</span><span id="line-297">     * @return the useMinifiedResources</span>
-<span class="source-line-no">298</span><span id="line-298">     */</span>
-<span class="source-line-no">299</span><span id="line-299">    public boolean useMinifiedResources() {</span>
-<span class="source-line-no">300</span><span id="line-300">        return useMinifiedResources;</span>
-<span class="source-line-no">301</span><span id="line-301">    }</span>
-<span class="source-line-no">302</span><span id="line-302"></span>
-<span class="source-line-no">303</span><span id="line-303">    /**</span>
-<span class="source-line-no">304</span><span id="line-304">     * Determines if resources should be minified.</span>
-<span class="source-line-no">305</span><span id="line-305">     *</span>
-<span class="source-line-no">306</span><span id="line-306">     * @param useMinifiedResources the useMinifiedResources to set</span>
-<span class="source-line-no">307</span><span id="line-307">     */</span>
-<span class="source-line-no">308</span><span id="line-308">    public void setUseMinifiedResources(boolean useMinifiedResources) {</span>
-<span class="source-line-no">309</span><span id="line-309">        this.useMinifiedResources = useMinifiedResources;</span>
-<span class="source-line-no">310</span><span id="line-310">    }</span>
-<span class="source-line-no">311</span><span id="line-311"></span>
-<span class="source-line-no">312</span><span id="line-312">    /**</span>
-<span class="source-line-no">313</span><span id="line-313">     * Provides the render support.</span>
-<span class="source-line-no">314</span><span id="line-314">     * </span>
-<span class="source-line-no">315</span><span id="line-315">     * @return the render support</span>
-<span class="source-line-no">316</span><span id="line-316">     */</span>
-<span class="source-line-no">317</span><span id="line-317">    protected RenderSupport renderSupport() {</span>
-<span class="source-line-no">318</span><span id="line-318">        return renderSupport;</span>
+<span class="source-line-no">280</span><span id="line-280">    public Duration connectionNetworkTimeout() {</span>
+<span class="source-line-no">281</span><span id="line-281">        return Duration.ofMillis(csNetworkTimeout);</span>
+<span class="source-line-no">282</span><span id="line-282">    }</span>
+<span class="source-line-no">283</span><span id="line-283"></span>
+<span class="source-line-no">284</span><span id="line-284">    /**</span>
+<span class="source-line-no">285</span><span id="line-285">     * Sets the console connection refresh interval. The console code in the</span>
+<span class="source-line-no">286</span><span id="line-286">     * browser will send a keep alive packet if there has been no user</span>
+<span class="source-line-no">287</span><span id="line-287">     * activity for more than the given period. The value </span>
+<span class="source-line-no">288</span><span id="line-288">     * defaults to 30 seconds.</span>
+<span class="source-line-no">289</span><span id="line-289">     * </span>
+<span class="source-line-no">290</span><span id="line-290">     * @param interval the interval</span>
+<span class="source-line-no">291</span><span id="line-291">     * @return the console view for easy chaining</span>
+<span class="source-line-no">292</span><span id="line-292">     */</span>
+<span class="source-line-no">293</span><span id="line-293">    public ConsoleWeblet setConnectionRefreshInterval(Duration interval) {</span>
+<span class="source-line-no">294</span><span id="line-294">        csRefreshInterval = interval.toMillis();</span>
+<span class="source-line-no">295</span><span id="line-295">        return this;</span>
+<span class="source-line-no">296</span><span id="line-296">    }</span>
+<span class="source-line-no">297</span><span id="line-297"></span>
+<span class="source-line-no">298</span><span id="line-298">    /**</span>
+<span class="source-line-no">299</span><span id="line-299">     * Returns the console connection refresh interval.</span>
+<span class="source-line-no">300</span><span id="line-300">     *</span>
+<span class="source-line-no">301</span><span id="line-301">     * @return the interval</span>
+<span class="source-line-no">302</span><span id="line-302">     */</span>
+<span class="source-line-no">303</span><span id="line-303">    public Duration connectionRefreshInterval() {</span>
+<span class="source-line-no">304</span><span id="line-304">        return Duration.ofMillis(csRefreshInterval);</span>
+<span class="source-line-no">305</span><span id="line-305">    }</span>
+<span class="source-line-no">306</span><span id="line-306"></span>
+<span class="source-line-no">307</span><span id="line-307">    /**</span>
+<span class="source-line-no">308</span><span id="line-308">     * Sets the console connection inactivity timeout. If there has been no</span>
+<span class="source-line-no">309</span><span id="line-309">     * user activity for more than the given duration the</span>
+<span class="source-line-no">310</span><span id="line-310">     * console code stops sending keep alive packets and displays a</span>
+<span class="source-line-no">311</span><span id="line-311">     * message to the user. The value defaults to -1 (no timeout).</span>
+<span class="source-line-no">312</span><span id="line-312">     * </span>
+<span class="source-line-no">313</span><span id="line-313">     * @param timeout the timeout</span>
+<span class="source-line-no">314</span><span id="line-314">     * @return the console view for easy chaining</span>
+<span class="source-line-no">315</span><span id="line-315">     */</span>
+<span class="source-line-no">316</span><span id="line-316">    public ConsoleWeblet setConnectionInactivityTimeout(Duration timeout) {</span>
+<span class="source-line-no">317</span><span id="line-317">        csInactivityTimeout = timeout.toMillis();</span>
+<span class="source-line-no">318</span><span id="line-318">        return this;</span>
 <span class="source-line-no">319</span><span id="line-319">    }</span>
 <span class="source-line-no">320</span><span id="line-320"></span>
 <span class="source-line-no">321</span><span id="line-321">    /**</span>
-<span class="source-line-no">322</span><span id="line-322">     * Prepends a class to the list of classes used to lookup console</span>
-<span class="source-line-no">323</span><span id="line-323">     * resources. See {@link ConsoleResourceBundleControl#newBundle}.</span>
-<span class="source-line-no">324</span><span id="line-324">     * Affects the content of the resource bundle returned by</span>
-<span class="source-line-no">325</span><span id="line-325">     * {@link #consoleResourceBundle(Locale)}. </span>
-<span class="source-line-no">326</span><span id="line-326">     * </span>
-<span class="source-line-no">327</span><span id="line-327">     * @param cls the class to prepend.</span>
-<span class="source-line-no">328</span><span id="line-328">     * @return the console weblet for easy chaining</span>
-<span class="source-line-no">329</span><span id="line-329">     */</span>
-<span class="source-line-no">330</span><span id="line-330">    public ConsoleWeblet prependResourceBundleProvider(Class&lt;?&gt; cls) {</span>
-<span class="source-line-no">331</span><span id="line-331">        resourceClasses.add(0, cls);</span>
-<span class="source-line-no">332</span><span id="line-332">        updateSupportedLocales();</span>
-<span class="source-line-no">333</span><span id="line-333">        return this;</span>
-<span class="source-line-no">334</span><span id="line-334">    }</span>
-<span class="source-line-no">335</span><span id="line-335"></span>
-<span class="source-line-no">336</span><span id="line-336">    /**</span>
-<span class="source-line-no">337</span><span id="line-337">     * Update the supported locales.</span>
-<span class="source-line-no">338</span><span id="line-338">     */</span>
-<span class="source-line-no">339</span><span id="line-339">    @SuppressWarnings("PMD.AvoidLiteralsInIfCondition")</span>
-<span class="source-line-no">340</span><span id="line-340">    protected final void updateSupportedLocales() {</span>
-<span class="source-line-no">341</span><span id="line-341">        supportedLocales.clear();</span>
-<span class="source-line-no">342</span><span id="line-342">        ResourceBundle.clearCache(ConsoleWeblet.class.getClassLoader());</span>
-<span class="source-line-no">343</span><span id="line-343">        for (Locale locale : Locale.getAvailableLocales()) {</span>
-<span class="source-line-no">344</span><span id="line-344">            if ("".equals(locale.getLanguage())) {</span>
-<span class="source-line-no">345</span><span id="line-345">                continue;</span>
-<span class="source-line-no">346</span><span id="line-346">            }</span>
-<span class="source-line-no">347</span><span id="line-347">            ResourceBundle bundle = ResourceBundle.getBundle("l10n", locale,</span>
-<span class="source-line-no">348</span><span id="line-348">                ConsoleWeblet.class.getClassLoader(), resourceControl);</span>
-<span class="source-line-no">349</span><span id="line-349">            if (bundle.getLocale().equals(locale)) {</span>
-<span class="source-line-no">350</span><span id="line-350">                supportedLocales.put(locale, bundle);</span>
-<span class="source-line-no">351</span><span id="line-351">            }</span>
-<span class="source-line-no">352</span><span id="line-352">        }</span>
-<span class="source-line-no">353</span><span id="line-353">    }</span>
-<span class="source-line-no">354</span><span id="line-354"></span>
-<span class="source-line-no">355</span><span id="line-355">    /**</span>
-<span class="source-line-no">356</span><span id="line-356">     * Return the console resources for a given locale.</span>
-<span class="source-line-no">357</span><span id="line-357">     *</span>
-<span class="source-line-no">358</span><span id="line-358">     * @param locale the locale</span>
-<span class="source-line-no">359</span><span id="line-359">     * @return the resource bundle</span>
-<span class="source-line-no">360</span><span id="line-360">     */</span>
-<span class="source-line-no">361</span><span id="line-361">    public ResourceBundle consoleResourceBundle(Locale locale) {</span>
-<span class="source-line-no">362</span><span id="line-362">        return ResourceBundle.getBundle("l10n", locale,</span>
-<span class="source-line-no">363</span><span id="line-363">            ConsoleWeblet.class.getClassLoader(), resourceControl);</span>
-<span class="source-line-no">364</span><span id="line-364">    }</span>
-<span class="source-line-no">365</span><span id="line-365"></span>
-<span class="source-line-no">366</span><span id="line-366">    /**</span>
-<span class="source-line-no">367</span><span id="line-367">     * Returns the supported locales and their resource bundles.</span>
-<span class="source-line-no">368</span><span id="line-368">     *</span>
-<span class="source-line-no">369</span><span id="line-369">     * @return the set of locales supported by the console and their</span>
-<span class="source-line-no">370</span><span id="line-370">     * resource bundles</span>
-<span class="source-line-no">371</span><span id="line-371">     */</span>
-<span class="source-line-no">372</span><span id="line-372">    protected Map&lt;Locale, ResourceBundle&gt; supportedLocales() {</span>
-<span class="source-line-no">373</span><span id="line-373">        return supportedLocales;</span>
-<span class="source-line-no">374</span><span id="line-374">    }</span>
-<span class="source-line-no">375</span><span id="line-375"></span>
-<span class="source-line-no">376</span><span id="line-376">    /**</span>
-<span class="source-line-no">377</span><span id="line-377">     * Redirects `GET` requests without trailing slash.</span>
-<span class="source-line-no">378</span><span id="line-378">     *</span>
-<span class="source-line-no">379</span><span id="line-379">     * @param event the event</span>
-<span class="source-line-no">380</span><span id="line-380">     * @param channel the channel</span>
-<span class="source-line-no">381</span><span id="line-381">     * @throws InterruptedException the interrupted exception</span>
-<span class="source-line-no">382</span><span id="line-382">     * @throws IOException Signals that an I/O exception has occurred.</span>
-<span class="source-line-no">383</span><span id="line-383">     * @throws ParseException the parse exception</span>
-<span class="source-line-no">384</span><span id="line-384">     */</span>
-<span class="source-line-no">385</span><span id="line-385">    @RequestHandler(dynamic = true)</span>
-<span class="source-line-no">386</span><span id="line-386">    public void onGetRedirect(Request.In.Get event, IOSubchannel channel)</span>
-<span class="source-line-no">387</span><span id="line-387">            throws InterruptedException, IOException, ParseException {</span>
-<span class="source-line-no">388</span><span id="line-388">        HttpResponse response = event.httpRequest().response().get();</span>
-<span class="source-line-no">389</span><span id="line-389">        response.setStatus(HttpStatus.MOVED_PERMANENTLY)</span>
-<span class="source-line-no">390</span><span id="line-390">            .setContentType("text", "plain", UTF_8)</span>
-<span class="source-line-no">391</span><span id="line-391">            .setField(HttpField.LOCATION, prefix);</span>
-<span class="source-line-no">392</span><span id="line-392">        channel.respond(new Response(response));</span>
-<span class="source-line-no">393</span><span id="line-393">        channel.respond(Output.from(prefix.toString()</span>
-<span class="source-line-no">394</span><span id="line-394">            .getBytes(StandardCharsets.UTF_8), true));</span>
-<span class="source-line-no">395</span><span id="line-395">        event.setResult(true);</span>
-<span class="source-line-no">396</span><span id="line-396">        event.stop();</span>
-<span class="source-line-no">397</span><span id="line-397">    }</span>
-<span class="source-line-no">398</span><span id="line-398"></span>
-<span class="source-line-no">399</span><span id="line-399">    /**</span>
-<span class="source-line-no">400</span><span id="line-400">     * Handle the `GET` requests for the various resources. The requests</span>
-<span class="source-line-no">401</span><span id="line-401">     * have to start with the prefix passed to the constructor. Further</span>
-<span class="source-line-no">402</span><span id="line-402">     * processing depends on the next path segment:</span>
-<span class="source-line-no">403</span><span id="line-403">     * </span>
-<span class="source-line-no">404</span><span id="line-404">     * * `.../console-base-resource`: Provide a resource associated</span>
-<span class="source-line-no">405</span><span id="line-405">     *   with this class. The resources are:</span>
-<span class="source-line-no">406</span><span id="line-406">     *   </span>
-<span class="source-line-no">407</span><span id="line-407">     *   * `jgconsole.js`: The JavaScript module with helper classes</span>
-<span class="source-line-no">408</span><span id="line-408">     *   * `console.css`: Some basic styles for conlets</span>
+<span class="source-line-no">322</span><span id="line-322">     * Returns the console connection inactivity timeout.</span>
+<span class="source-line-no">323</span><span id="line-323">     *</span>
+<span class="source-line-no">324</span><span id="line-324">     * @return the timeout</span>
+<span class="source-line-no">325</span><span id="line-325">     */</span>
+<span class="source-line-no">326</span><span id="line-326">    public Duration connectionInactivityTimeout() {</span>
+<span class="source-line-no">327</span><span id="line-327">        return Duration.ofMillis(csInactivityTimeout);</span>
+<span class="source-line-no">328</span><span id="line-328">    }</span>
+<span class="source-line-no">329</span><span id="line-329"></span>
+<span class="source-line-no">330</span><span id="line-330">    /**</span>
+<span class="source-line-no">331</span><span id="line-331">     * Returns whether resources are minified.</span>
+<span class="source-line-no">332</span><span id="line-332">     *</span>
+<span class="source-line-no">333</span><span id="line-333">     * @return the useMinifiedResources</span>
+<span class="source-line-no">334</span><span id="line-334">     */</span>
+<span class="source-line-no">335</span><span id="line-335">    public boolean useMinifiedResources() {</span>
+<span class="source-line-no">336</span><span id="line-336">        return useMinifiedResources;</span>
+<span class="source-line-no">337</span><span id="line-337">    }</span>
+<span class="source-line-no">338</span><span id="line-338"></span>
+<span class="source-line-no">339</span><span id="line-339">    /**</span>
+<span class="source-line-no">340</span><span id="line-340">     * Determines if resources should be minified.</span>
+<span class="source-line-no">341</span><span id="line-341">     *</span>
+<span class="source-line-no">342</span><span id="line-342">     * @param useMinifiedResources the useMinifiedResources to set</span>
+<span class="source-line-no">343</span><span id="line-343">     */</span>
+<span class="source-line-no">344</span><span id="line-344">    public void setUseMinifiedResources(boolean useMinifiedResources) {</span>
+<span class="source-line-no">345</span><span id="line-345">        this.useMinifiedResources = useMinifiedResources;</span>
+<span class="source-line-no">346</span><span id="line-346">    }</span>
+<span class="source-line-no">347</span><span id="line-347"></span>
+<span class="source-line-no">348</span><span id="line-348">    /**</span>
+<span class="source-line-no">349</span><span id="line-349">     * Provides the render support.</span>
+<span class="source-line-no">350</span><span id="line-350">     * </span>
+<span class="source-line-no">351</span><span id="line-351">     * @return the render support</span>
+<span class="source-line-no">352</span><span id="line-352">     */</span>
+<span class="source-line-no">353</span><span id="line-353">    protected RenderSupport renderSupport() {</span>
+<span class="source-line-no">354</span><span id="line-354">        return renderSupport;</span>
+<span class="source-line-no">355</span><span id="line-355">    }</span>
+<span class="source-line-no">356</span><span id="line-356"></span>
+<span class="source-line-no">357</span><span id="line-357">    /**</span>
+<span class="source-line-no">358</span><span id="line-358">     * Prepends a class to the list of classes used to lookup console</span>
+<span class="source-line-no">359</span><span id="line-359">     * resources. See {@link ConsoleResourceBundleControl#newBundle}.</span>
+<span class="source-line-no">360</span><span id="line-360">     * Affects the content of the resource bundle returned by</span>
+<span class="source-line-no">361</span><span id="line-361">     * {@link #consoleResourceBundle(Locale)}. </span>
+<span class="source-line-no">362</span><span id="line-362">     * </span>
+<span class="source-line-no">363</span><span id="line-363">     * @param cls the class to prepend.</span>
+<span class="source-line-no">364</span><span id="line-364">     * @return the console weblet for easy chaining</span>
+<span class="source-line-no">365</span><span id="line-365">     */</span>
+<span class="source-line-no">366</span><span id="line-366">    public ConsoleWeblet prependResourceBundleProvider(Class&lt;?&gt; cls) {</span>
+<span class="source-line-no">367</span><span id="line-367">        resourceClasses.add(0, cls);</span>
+<span class="source-line-no">368</span><span id="line-368">        updateSupportedLocales();</span>
+<span class="source-line-no">369</span><span id="line-369">        return this;</span>
+<span class="source-line-no">370</span><span id="line-370">    }</span>
+<span class="source-line-no">371</span><span id="line-371"></span>
+<span class="source-line-no">372</span><span id="line-372">    /**</span>
+<span class="source-line-no">373</span><span id="line-373">     * Update the supported locales.</span>
+<span class="source-line-no">374</span><span id="line-374">     */</span>
+<span class="source-line-no">375</span><span id="line-375">    @SuppressWarnings("PMD.AvoidDuplicateLiterals")</span>
+<span class="source-line-no">376</span><span id="line-376">    protected final void updateSupportedLocales() {</span>
+<span class="source-line-no">377</span><span id="line-377">        Map&lt;Locale, ResourceBundle&gt; collected = new ConcurrentHashMap&lt;&gt;();</span>
+<span class="source-line-no">378</span><span id="line-378">        ResourceBundle.clearCache(ConsoleWeblet.class.getClassLoader());</span>
+<span class="source-line-no">379</span><span id="line-379">        try (ExecutorService executor</span>
+<span class="source-line-no">380</span><span id="line-380">            = Executors.newVirtualThreadPerTaskExecutor()) {</span>
+<span class="source-line-no">381</span><span id="line-381">            List&lt;CompletableFuture&lt;Void&gt;&gt; futures = new ArrayList&lt;&gt;();</span>
+<span class="source-line-no">382</span><span id="line-382">            for (var entry : localesByLanguage.entrySet()) {</span>
+<span class="source-line-no">383</span><span id="line-383">                futures.add(CompletableFuture.runAsync(() -&gt; {</span>
+<span class="source-line-no">384</span><span id="line-384">                    if (checkLocale(entry.getKey())) {</span>
+<span class="source-line-no">385</span><span id="line-385">                        collected.put(entry.getKey(),</span>
+<span class="source-line-no">386</span><span id="line-386">                            ResourceBundle.getBundle("l10n", entry.getKey(),</span>
+<span class="source-line-no">387</span><span id="line-387">                                ConsoleWeblet.class.getClassLoader(),</span>
+<span class="source-line-no">388</span><span id="line-388">                                resourceControl));</span>
+<span class="source-line-no">389</span><span id="line-389">                        for (var locale : entry.getValue()) {</span>
+<span class="source-line-no">390</span><span id="line-390">                            if (checkLocale(locale)) {</span>
+<span class="source-line-no">391</span><span id="line-391">                                collected.put(locale,</span>
+<span class="source-line-no">392</span><span id="line-392">                                    ResourceBundle.getBundle("l10n", locale,</span>
+<span class="source-line-no">393</span><span id="line-393">                                        ConsoleWeblet.class.getClassLoader(),</span>
+<span class="source-line-no">394</span><span id="line-394">                                        resourceControl));</span>
+<span class="source-line-no">395</span><span id="line-395">                            }</span>
+<span class="source-line-no">396</span><span id="line-396">                        }</span>
+<span class="source-line-no">397</span><span id="line-397">                    }</span>
+<span class="source-line-no">398</span><span id="line-398">                }, executor));</span>
+<span class="source-line-no">399</span><span id="line-399">            }</span>
+<span class="source-line-no">400</span><span id="line-400">            CompletableFuture.allOf(</span>
+<span class="source-line-no">401</span><span id="line-401">                futures.toArray(new CompletableFuture[0])).join();</span>
+<span class="source-line-no">402</span><span id="line-402">        }</span>
+<span class="source-line-no">403</span><span id="line-403">        supportedLocales = collected;</span>
+<span class="source-line-no">404</span><span id="line-404">    }</span>
+<span class="source-line-no">405</span><span id="line-405"></span>
+<span class="source-line-no">406</span><span id="line-406">    /**</span>
+<span class="source-line-no">407</span><span id="line-407">     * Check if a resource bundle for the locale exists. This is more</span>
+<span class="source-line-no">408</span><span id="line-408">     * efficient than actually trying to create the bundle.</span>
 <span class="source-line-no">409</span><span id="line-409">     *</span>
-<span class="source-line-no">410</span><span id="line-410">     * * `.../console-resource`: Invokes {@link #provideConsoleResource}</span>
-<span class="source-line-no">411</span><span id="line-411">     *   with the remainder of the path.</span>
-<span class="source-line-no">412</span><span id="line-412">     *   </span>
-<span class="source-line-no">413</span><span id="line-413">     * * `.../page-resource`: Invokes {@link #providePageResource}</span>
-<span class="source-line-no">414</span><span id="line-414">     *   with the remainder of the path.</span>
-<span class="source-line-no">415</span><span id="line-415">     *   </span>
-<span class="source-line-no">416</span><span id="line-416">     * * `.../conlet-resource`: Invokes {@link #provideConletResource}</span>
-<span class="source-line-no">417</span><span id="line-417">     *   with the remainder of the path.</span>
-<span class="source-line-no">418</span><span id="line-418">     *   </span>
-<span class="source-line-no">419</span><span id="line-419">     * * `.../console-connection`: Handled by this class. Used</span>
-<span class="source-line-no">420</span><span id="line-420">     *   e.g. for initiating the web socket connection.</span>
-<span class="source-line-no">421</span><span id="line-421">     *</span>
-<span class="source-line-no">422</span><span id="line-422">     * @param event the event</span>
-<span class="source-line-no">423</span><span id="line-423">     * @param channel the channel</span>
-<span class="source-line-no">424</span><span id="line-424">     * @throws InterruptedException the interrupted exception</span>
-<span class="source-line-no">425</span><span id="line-425">     * @throws IOException Signals that an I/O exception has occurred.</span>
-<span class="source-line-no">426</span><span id="line-426">     * @throws ParseException the parse exception</span>
-<span class="source-line-no">427</span><span id="line-427">     */</span>
-<span class="source-line-no">428</span><span id="line-428">    @RequestHandler(dynamic = true)</span>
-<span class="source-line-no">429</span><span id="line-429">    public void onGet(Request.In.Get event, IOSubchannel channel)</span>
-<span class="source-line-no">430</span><span id="line-430">            throws InterruptedException, IOException, ParseException {</span>
-<span class="source-line-no">431</span><span id="line-431">        // Already fulfilled?</span>
-<span class="source-line-no">432</span><span id="line-432">        if (event.fulfilled()) {</span>
-<span class="source-line-no">433</span><span id="line-433">            return;</span>
-<span class="source-line-no">434</span><span id="line-434">        }</span>
-<span class="source-line-no">435</span><span id="line-435"></span>
-<span class="source-line-no">436</span><span id="line-436">        // Request for console? (Only valid with session)</span>
-<span class="source-line-no">437</span><span id="line-437">        URI requestUri = event.requestUri();</span>
-<span class="source-line-no">438</span><span id="line-438">        int prefixSegs = requestPattern.matches(requestUri);</span>
-<span class="source-line-no">439</span><span id="line-439">        if (prefixSegs &lt; 0) {</span>
-<span class="source-line-no">440</span><span id="line-440">            return;</span>
+<span class="source-line-no">410</span><span id="line-410">     * @param locale the locale</span>
+<span class="source-line-no">411</span><span id="line-411">     * @return true, if successful</span>
+<span class="source-line-no">412</span><span id="line-412">     */</span>
+<span class="source-line-no">413</span><span id="line-413">    private boolean checkLocale(Locale locale) {</span>
+<span class="source-line-no">414</span><span id="line-414">        ListIterator&lt;Class&lt;?&gt;&gt; iter</span>
+<span class="source-line-no">415</span><span id="line-415">            = resourceClasses.listIterator(resourceClasses.size());</span>
+<span class="source-line-no">416</span><span id="line-416">        // Known to exists</span>
+<span class="source-line-no">417</span><span id="line-417">        while (iter.hasPrevious()) {</span>
+<span class="source-line-no">418</span><span id="line-418">            Class&lt;?&gt; cls = iter.previous();</span>
+<span class="source-line-no">419</span><span id="line-419">            String bundleName = resourceControl.toBundleName("l10n", locale);</span>
+<span class="source-line-no">420</span><span id="line-420">            var resourceName = resourceControl</span>
+<span class="source-line-no">421</span><span id="line-421">                .toResourceName(bundleName, "properties");</span>
+<span class="source-line-no">422</span><span id="line-422">            URL url = cls.getResource(resourceName);</span>
+<span class="source-line-no">423</span><span id="line-423">            if (url == null) {</span>
+<span class="source-line-no">424</span><span id="line-424">                continue;</span>
+<span class="source-line-no">425</span><span id="line-425">            }</span>
+<span class="source-line-no">426</span><span id="line-426">            URLConnection connection;</span>
+<span class="source-line-no">427</span><span id="line-427">            try {</span>
+<span class="source-line-no">428</span><span id="line-428">                connection = url.openConnection();</span>
+<span class="source-line-no">429</span><span id="line-429">                if (connection == null) {</span>
+<span class="source-line-no">430</span><span id="line-430">                    continue;</span>
+<span class="source-line-no">431</span><span id="line-431">                }</span>
+<span class="source-line-no">432</span><span id="line-432">                try (InputStream inStream = connection.getInputStream()) {</span>
+<span class="source-line-no">433</span><span id="line-433">                    if (inStream == null) {</span>
+<span class="source-line-no">434</span><span id="line-434">                        continue;</span>
+<span class="source-line-no">435</span><span id="line-435">                    }</span>
+<span class="source-line-no">436</span><span id="line-436">                }</span>
+<span class="source-line-no">437</span><span id="line-437">                return true;</span>
+<span class="source-line-no">438</span><span id="line-438">            } catch (IOException e) {</span>
+<span class="source-line-no">439</span><span id="line-439">                continue;</span>
+<span class="source-line-no">440</span><span id="line-440">            }</span>
 <span class="source-line-no">441</span><span id="line-441">        }</span>
-<span class="source-line-no">442</span><span id="line-442"></span>
-<span class="source-line-no">443</span><span id="line-443">        // Normalize and evaluate</span>
-<span class="source-line-no">444</span><span id="line-444">        String requestPath = ResourcePattern.removeSegments(</span>
-<span class="source-line-no">445</span><span id="line-445">            requestUri.getPath(), prefixSegs + 1);</span>
-<span class="source-line-no">446</span><span id="line-446">        String[] requestParts = ResourcePattern.split(requestPath, 1);</span>
-<span class="source-line-no">447</span><span id="line-447">        switch (requestParts[0]) {</span>
-<span class="source-line-no">448</span><span id="line-448">        case "":</span>
-<span class="source-line-no">449</span><span id="line-449">            // Because language is changed via websocket, locale cookie</span>
-<span class="source-line-no">450</span><span id="line-450">            // may be out-dated</span>
-<span class="source-line-no">451</span><span id="line-451">//            event.associated(Selection.class)</span>
-<span class="source-line-no">452</span><span id="line-452">//                .ifPresent(selection -&gt; selection.prefer(selection.get()[0]));</span>
-<span class="source-line-no">453</span><span id="line-453">            // This is a console connection now (can be connected to)</span>
-<span class="source-line-no">454</span><span id="line-454">            Session session = Session.from(event);</span>
-<span class="source-line-no">455</span><span id="line-455">            UUID consoleConnectionId = UUID.randomUUID();</span>
-<span class="source-line-no">456</span><span id="line-456">            @SuppressWarnings({ "unchecked", "PMD.AvoidDuplicateLiterals" })</span>
-<span class="source-line-no">457</span><span id="line-457">            Map&lt;URI, UUID&gt; knownIds = (Map&lt;URI, UUID&gt;) session.computeIfAbsent(</span>
-<span class="source-line-no">458</span><span id="line-458">                CONSOLE_SESSION_IDS,</span>
-<span class="source-line-no">459</span><span id="line-459">                newKey -&gt; new ConcurrentHashMap&lt;&gt;());</span>
-<span class="source-line-no">460</span><span id="line-460">            knownIds.put(prefix, consoleConnectionId);</span>
-<span class="source-line-no">461</span><span id="line-461">            // Finally render</span>
-<span class="source-line-no">462</span><span id="line-462">            renderConsole(event, channel, consoleConnectionId);</span>
-<span class="source-line-no">463</span><span id="line-463">            return;</span>
-<span class="source-line-no">464</span><span id="line-464">        case "console-resource":</span>
-<span class="source-line-no">465</span><span id="line-465">            provideConsoleResource(event, ResourcePattern.removeSegments(</span>
-<span class="source-line-no">466</span><span id="line-466">                requestUri.getPath(), prefixSegs + 2), channel);</span>
-<span class="source-line-no">467</span><span id="line-467">            return;</span>
-<span class="source-line-no">468</span><span id="line-468">        case "console-base-resource":</span>
-<span class="source-line-no">469</span><span id="line-469">            ResponseCreationSupport.sendStaticContent(event, channel,</span>
-<span class="source-line-no">470</span><span id="line-470">                path -&gt; ConsoleWeblet.class.getResource(requestParts[1]),</span>
-<span class="source-line-no">471</span><span id="line-471">                null);</span>
-<span class="source-line-no">472</span><span id="line-472">            return;</span>
-<span class="source-line-no">473</span><span id="line-473">        case "page-resource":</span>
-<span class="source-line-no">474</span><span id="line-474">            providePageResource(event, channel, requestParts[1]);</span>
-<span class="source-line-no">475</span><span id="line-475">            return;</span>
-<span class="source-line-no">476</span><span id="line-476">        case "console-connection":</span>
-<span class="source-line-no">477</span><span id="line-477">            handleSessionRequest(event, channel, requestParts[1]);</span>
-<span class="source-line-no">478</span><span id="line-478">            return;</span>
-<span class="source-line-no">479</span><span id="line-479">        case "conlet-resource":</span>
-<span class="source-line-no">480</span><span id="line-480">            provideConletResource(event, channel, URI.create(requestParts[1]));</span>
-<span class="source-line-no">481</span><span id="line-481">            return;</span>
-<span class="source-line-no">482</span><span id="line-482">        default:</span>
-<span class="source-line-no">483</span><span id="line-483">            break;</span>
-<span class="source-line-no">484</span><span id="line-484">        }</span>
-<span class="source-line-no">485</span><span id="line-485">    }</span>
-<span class="source-line-no">486</span><span id="line-486"></span>
-<span class="source-line-no">487</span><span id="line-487">    /**</span>
-<span class="source-line-no">488</span><span id="line-488">     * Render the console page.</span>
-<span class="source-line-no">489</span><span id="line-489">     *</span>
-<span class="source-line-no">490</span><span id="line-490">     * @param event the event</span>
-<span class="source-line-no">491</span><span id="line-491">     * @param channel the channel</span>
-<span class="source-line-no">492</span><span id="line-492">     * @throws IOException Signals that an I/O exception has occurred.</span>
-<span class="source-line-no">493</span><span id="line-493">     * @throws InterruptedException the interrupted exception</span>
-<span class="source-line-no">494</span><span id="line-494">     */</span>
-<span class="source-line-no">495</span><span id="line-495">    protected abstract void renderConsole(Request.In.Get event,</span>
-<span class="source-line-no">496</span><span id="line-496">            IOSubchannel channel, UUID consoleConnectionId)</span>
-<span class="source-line-no">497</span><span id="line-497">            throws IOException, InterruptedException;</span>
-<span class="source-line-no">498</span><span id="line-498"></span>
-<span class="source-line-no">499</span><span id="line-499">    /**</span>
-<span class="source-line-no">500</span><span id="line-500">     * Provide a console resource. The implementation tries to load the</span>
-<span class="source-line-no">501</span><span id="line-501">     * resource using {@link Class#getResource(String)} for each class</span>
-<span class="source-line-no">502</span><span id="line-502">     * in the class hierarchy, starting with the finally derived class.</span>
-<span class="source-line-no">503</span><span id="line-503">     *</span>
-<span class="source-line-no">504</span><span id="line-504">     * @param event the event</span>
-<span class="source-line-no">505</span><span id="line-505">     * @param requestPath the request path relativized to the </span>
-<span class="source-line-no">506</span><span id="line-506">     * common part for console resources</span>
-<span class="source-line-no">507</span><span id="line-507">     * @param channel the channel</span>
-<span class="source-line-no">508</span><span id="line-508">     */</span>
-<span class="source-line-no">509</span><span id="line-509">    protected void provideConsoleResource(Request.In.Get event,</span>
-<span class="source-line-no">510</span><span id="line-510">            String requestPath, IOSubchannel channel) {</span>
-<span class="source-line-no">511</span><span id="line-511">        for (Class&lt;?&gt; cls : consoleResourceSearchSeq) {</span>
-<span class="source-line-no">512</span><span id="line-512">            if (ResponseCreationSupport.sendStaticContent(event, channel,</span>
-<span class="source-line-no">513</span><span id="line-513">                path -&gt; cls.getResource(requestPath),</span>
-<span class="source-line-no">514</span><span id="line-514">                null)) {</span>
-<span class="source-line-no">515</span><span id="line-515">                break;</span>
-<span class="source-line-no">516</span><span id="line-516">            }</span>
-<span class="source-line-no">517</span><span id="line-517">        }</span>
-<span class="source-line-no">518</span><span id="line-518">    }</span>
-<span class="source-line-no">519</span><span id="line-519"></span>
-<span class="source-line-no">520</span><span id="line-520">    /**</span>
-<span class="source-line-no">521</span><span id="line-521">     * Prepends the given class to the list of classes searched by</span>
-<span class="source-line-no">522</span><span id="line-522">     * {@link #provideConsoleResource(Request.In.Get, String, IOSubchannel)}.</span>
-<span class="source-line-no">523</span><span id="line-523">     * </span>
-<span class="source-line-no">524</span><span id="line-524">     * @param cls the class to prepend</span>
-<span class="source-line-no">525</span><span id="line-525">     * @return the console weblet for easy chaining</span>
-<span class="source-line-no">526</span><span id="line-526">     */</span>
-<span class="source-line-no">527</span><span id="line-527">    public ConsoleWeblet prependConsoleResourceProvider(Class&lt;?&gt; cls) {</span>
-<span class="source-line-no">528</span><span id="line-528">        consoleResourceSearchSeq.add(0, cls);</span>
-<span class="source-line-no">529</span><span id="line-529">        return this;</span>
-<span class="source-line-no">530</span><span id="line-530">    }</span>
-<span class="source-line-no">531</span><span id="line-531"></span>
-<span class="source-line-no">532</span><span id="line-532">    private void providePageResource(Request.In.Get event, IOSubchannel channel,</span>
-<span class="source-line-no">533</span><span id="line-533">            String resource) throws InterruptedException {</span>
-<span class="source-line-no">534</span><span id="line-534">        // Send events to providers on console's channel</span>
-<span class="source-line-no">535</span><span id="line-535">        PageResourceRequest pageResourceRequest = new PageResourceRequest(</span>
-<span class="source-line-no">536</span><span id="line-536">            WebConsoleUtils.uriFromPath(resource),</span>
-<span class="source-line-no">537</span><span id="line-537">            event.httpRequest().findValue(HttpField.IF_MODIFIED_SINCE,</span>
-<span class="source-line-no">538</span><span id="line-538">                Converters.DATE_TIME).orElse(null),</span>
-<span class="source-line-no">539</span><span id="line-539">            event.httpRequest(), channel, Session.from(event), renderSupport());</span>
-<span class="source-line-no">540</span><span id="line-540">        event.setResult(true);</span>
-<span class="source-line-no">541</span><span id="line-541">        event.stop();</span>
-<span class="source-line-no">542</span><span id="line-542">        fire(pageResourceRequest, consoleChannel(channel));</span>
-<span class="source-line-no">543</span><span id="line-543">    }</span>
-<span class="source-line-no">544</span><span id="line-544"></span>
-<span class="source-line-no">545</span><span id="line-545">    @SuppressWarnings("PMD.EmptyCatchBlock")</span>
-<span class="source-line-no">546</span><span id="line-546">    private void provideConletResource(Request.In.Get event,</span>
-<span class="source-line-no">547</span><span id="line-547">            IOSubchannel channel,</span>
-<span class="source-line-no">548</span><span id="line-548">            URI resource) throws InterruptedException {</span>
-<span class="source-line-no">549</span><span id="line-549">        try {</span>
-<span class="source-line-no">550</span><span id="line-550">            String resPath = resource.getPath();</span>
-<span class="source-line-no">551</span><span id="line-551">            int sep = resPath.indexOf('/');</span>
-<span class="source-line-no">552</span><span id="line-552">            // Send events to web console components on console's channel</span>
-<span class="source-line-no">553</span><span id="line-553">            ConletResourceRequest conletRequest</span>
-<span class="source-line-no">554</span><span id="line-554">                = new ConletResourceRequest(</span>
-<span class="source-line-no">555</span><span id="line-555">                    resPath.substring(0, sep),</span>
-<span class="source-line-no">556</span><span id="line-556">                    new URI(null, null, resPath.substring(sep + 1),</span>
-<span class="source-line-no">557</span><span id="line-557">                        event.requestUri().getQuery(),</span>
-<span class="source-line-no">558</span><span id="line-558">                        event.requestUri().getFragment()),</span>
-<span class="source-line-no">559</span><span id="line-559">                    event.httpRequest().findValue(HttpField.IF_MODIFIED_SINCE,</span>
-<span class="source-line-no">560</span><span id="line-560">                        Converters.DATE_TIME).orElse(null),</span>
-<span class="source-line-no">561</span><span id="line-561">                    event.httpRequest(), channel,</span>
-<span class="source-line-no">562</span><span id="line-562">                    Session.from(event), renderSupport());</span>
-<span class="source-line-no">563</span><span id="line-563">            // Make session available (associate with event, this is not</span>
-<span class="source-line-no">564</span><span id="line-564">            // a websocket request).</span>
-<span class="source-line-no">565</span><span id="line-565">            event.associated(Session.class, Supplier.class).ifPresent(</span>
-<span class="source-line-no">566</span><span id="line-566">                supplier -&gt; conletRequest.setAssociated(Session.class,</span>
-<span class="source-line-no">567</span><span id="line-567">                    supplier));</span>
-<span class="source-line-no">568</span><span id="line-568">            event.setResult(true);</span>
-<span class="source-line-no">569</span><span id="line-569">            event.stop();</span>
-<span class="source-line-no">570</span><span id="line-570">            fire(conletRequest, consoleChannel(channel));</span>
-<span class="source-line-no">571</span><span id="line-571">        } catch (URISyntaxException e) {</span>
-<span class="source-line-no">572</span><span id="line-572">            // Won't happen, new URI derived from existing</span>
-<span class="source-line-no">573</span><span id="line-573">        }</span>
-<span class="source-line-no">574</span><span id="line-574">    }</span>
-<span class="source-line-no">575</span><span id="line-575"></span>
-<span class="source-line-no">576</span><span id="line-576">    /**</span>
-<span class="source-line-no">577</span><span id="line-577">     * The console channel for getting resources. Resource providers</span>
-<span class="source-line-no">578</span><span id="line-578">     * respond on the same event pipeline as they receive, because</span>
-<span class="source-line-no">579</span><span id="line-579">     * handling is just a mapping to {@link ResourceRequestCompleted}.</span>
+<span class="source-line-no">442</span><span id="line-442">        return false;</span>
+<span class="source-line-no">443</span><span id="line-443">    }</span>
+<span class="source-line-no">444</span><span id="line-444"></span>
+<span class="source-line-no">445</span><span id="line-445">    /**</span>
+<span class="source-line-no">446</span><span id="line-446">     * Return the console resources for a given locale.</span>
+<span class="source-line-no">447</span><span id="line-447">     *</span>
+<span class="source-line-no">448</span><span id="line-448">     * @param locale the locale</span>
+<span class="source-line-no">449</span><span id="line-449">     * @return the resource bundle</span>
+<span class="source-line-no">450</span><span id="line-450">     */</span>
+<span class="source-line-no">451</span><span id="line-451">    public ResourceBundle consoleResourceBundle(Locale locale) {</span>
+<span class="source-line-no">452</span><span id="line-452">        return Optional.ofNullable(supportedLocales.get(locale))</span>
+<span class="source-line-no">453</span><span id="line-453">            .orElseGet(() -&gt; ResourceBundle.getBundle("l10n", locale,</span>
+<span class="source-line-no">454</span><span id="line-454">                ConsoleWeblet.class.getClassLoader(), resourceControl));</span>
+<span class="source-line-no">455</span><span id="line-455">    }</span>
+<span class="source-line-no">456</span><span id="line-456"></span>
+<span class="source-line-no">457</span><span id="line-457">    /**</span>
+<span class="source-line-no">458</span><span id="line-458">     * Returns the supported locales and their resource bundles.</span>
+<span class="source-line-no">459</span><span id="line-459">     *</span>
+<span class="source-line-no">460</span><span id="line-460">     * @return the set of locales supported by the console and their</span>
+<span class="source-line-no">461</span><span id="line-461">     * resource bundles</span>
+<span class="source-line-no">462</span><span id="line-462">     */</span>
+<span class="source-line-no">463</span><span id="line-463">    protected Map&lt;Locale, ResourceBundle&gt; supportedLocales() {</span>
+<span class="source-line-no">464</span><span id="line-464">        return supportedLocales;</span>
+<span class="source-line-no">465</span><span id="line-465">    }</span>
+<span class="source-line-no">466</span><span id="line-466"></span>
+<span class="source-line-no">467</span><span id="line-467">    /**</span>
+<span class="source-line-no">468</span><span id="line-468">     * Redirects `GET` requests without trailing slash.</span>
+<span class="source-line-no">469</span><span id="line-469">     *</span>
+<span class="source-line-no">470</span><span id="line-470">     * @param event the event</span>
+<span class="source-line-no">471</span><span id="line-471">     * @param channel the channel</span>
+<span class="source-line-no">472</span><span id="line-472">     * @throws InterruptedException the interrupted exception</span>
+<span class="source-line-no">473</span><span id="line-473">     * @throws IOException Signals that an I/O exception has occurred.</span>
+<span class="source-line-no">474</span><span id="line-474">     * @throws ParseException the parse exception</span>
+<span class="source-line-no">475</span><span id="line-475">     */</span>
+<span class="source-line-no">476</span><span id="line-476">    @RequestHandler(dynamic = true)</span>
+<span class="source-line-no">477</span><span id="line-477">    public void onGetRedirect(Request.In.Get event, IOSubchannel channel)</span>
+<span class="source-line-no">478</span><span id="line-478">            throws InterruptedException, IOException, ParseException {</span>
+<span class="source-line-no">479</span><span id="line-479">        HttpResponse response = event.httpRequest().response().get();</span>
+<span class="source-line-no">480</span><span id="line-480">        response.setStatus(HttpStatus.MOVED_PERMANENTLY)</span>
+<span class="source-line-no">481</span><span id="line-481">            .setContentType("text", "plain", UTF_8)</span>
+<span class="source-line-no">482</span><span id="line-482">            .setField(HttpField.LOCATION, prefix);</span>
+<span class="source-line-no">483</span><span id="line-483">        channel.respond(new Response(response));</span>
+<span class="source-line-no">484</span><span id="line-484">        channel.respond(Output.from(prefix.toString()</span>
+<span class="source-line-no">485</span><span id="line-485">            .getBytes(StandardCharsets.UTF_8), true));</span>
+<span class="source-line-no">486</span><span id="line-486">        event.setResult(true);</span>
+<span class="source-line-no">487</span><span id="line-487">        event.stop();</span>
+<span class="source-line-no">488</span><span id="line-488">    }</span>
+<span class="source-line-no">489</span><span id="line-489"></span>
+<span class="source-line-no">490</span><span id="line-490">    /**</span>
+<span class="source-line-no">491</span><span id="line-491">     * Handle the `GET` requests for the various resources. The requests</span>
+<span class="source-line-no">492</span><span id="line-492">     * have to start with the prefix passed to the constructor. Further</span>
+<span class="source-line-no">493</span><span id="line-493">     * processing depends on the next path segment:</span>
+<span class="source-line-no">494</span><span id="line-494">     * </span>
+<span class="source-line-no">495</span><span id="line-495">     * * `.../console-base-resource`: Provide a resource associated</span>
+<span class="source-line-no">496</span><span id="line-496">     *   with this class. The resources are:</span>
+<span class="source-line-no">497</span><span id="line-497">     *   </span>
+<span class="source-line-no">498</span><span id="line-498">     *   * `jgconsole.js`: The JavaScript module with helper classes</span>
+<span class="source-line-no">499</span><span id="line-499">     *   * `console.css`: Some basic styles for conlets</span>
+<span class="source-line-no">500</span><span id="line-500">     *</span>
+<span class="source-line-no">501</span><span id="line-501">     * * `.../console-resource`: Invokes {@link #provideConsoleResource}</span>
+<span class="source-line-no">502</span><span id="line-502">     *   with the remainder of the path.</span>
+<span class="source-line-no">503</span><span id="line-503">     *   </span>
+<span class="source-line-no">504</span><span id="line-504">     * * `.../page-resource`: Invokes {@link #providePageResource}</span>
+<span class="source-line-no">505</span><span id="line-505">     *   with the remainder of the path.</span>
+<span class="source-line-no">506</span><span id="line-506">     *   </span>
+<span class="source-line-no">507</span><span id="line-507">     * * `.../conlet-resource`: Invokes {@link #provideConletResource}</span>
+<span class="source-line-no">508</span><span id="line-508">     *   with the remainder of the path.</span>
+<span class="source-line-no">509</span><span id="line-509">     *   </span>
+<span class="source-line-no">510</span><span id="line-510">     * * `.../console-connection`: Handled by this class. Used</span>
+<span class="source-line-no">511</span><span id="line-511">     *   e.g. for initiating the web socket connection.</span>
+<span class="source-line-no">512</span><span id="line-512">     *</span>
+<span class="source-line-no">513</span><span id="line-513">     * @param event the event</span>
+<span class="source-line-no">514</span><span id="line-514">     * @param channel the channel</span>
+<span class="source-line-no">515</span><span id="line-515">     * @throws InterruptedException the interrupted exception</span>
+<span class="source-line-no">516</span><span id="line-516">     * @throws IOException Signals that an I/O exception has occurred.</span>
+<span class="source-line-no">517</span><span id="line-517">     * @throws ParseException the parse exception</span>
+<span class="source-line-no">518</span><span id="line-518">     */</span>
+<span class="source-line-no">519</span><span id="line-519">    @RequestHandler(dynamic = true)</span>
+<span class="source-line-no">520</span><span id="line-520">    public void onGet(Request.In.Get event, IOSubchannel channel)</span>
+<span class="source-line-no">521</span><span id="line-521">            throws InterruptedException, IOException, ParseException {</span>
+<span class="source-line-no">522</span><span id="line-522">        // Already fulfilled?</span>
+<span class="source-line-no">523</span><span id="line-523">        if (event.fulfilled()) {</span>
+<span class="source-line-no">524</span><span id="line-524">            return;</span>
+<span class="source-line-no">525</span><span id="line-525">        }</span>
+<span class="source-line-no">526</span><span id="line-526"></span>
+<span class="source-line-no">527</span><span id="line-527">        // Request for console? (Only valid with session)</span>
+<span class="source-line-no">528</span><span id="line-528">        URI requestUri = event.requestUri();</span>
+<span class="source-line-no">529</span><span id="line-529">        int prefixSegs = requestPattern.matches(requestUri);</span>
+<span class="source-line-no">530</span><span id="line-530">        if (prefixSegs &lt; 0) {</span>
+<span class="source-line-no">531</span><span id="line-531">            return;</span>
+<span class="source-line-no">532</span><span id="line-532">        }</span>
+<span class="source-line-no">533</span><span id="line-533"></span>
+<span class="source-line-no">534</span><span id="line-534">        // Normalize and evaluate</span>
+<span class="source-line-no">535</span><span id="line-535">        String requestPath = ResourcePattern.removeSegments(</span>
+<span class="source-line-no">536</span><span id="line-536">            requestUri.getPath(), prefixSegs + 1);</span>
+<span class="source-line-no">537</span><span id="line-537">        String[] requestParts = ResourcePattern.split(requestPath, 1);</span>
+<span class="source-line-no">538</span><span id="line-538">        switch (requestParts[0]) {</span>
+<span class="source-line-no">539</span><span id="line-539">        case "":</span>
+<span class="source-line-no">540</span><span id="line-540">            // Because language is changed via websocket, locale cookie</span>
+<span class="source-line-no">541</span><span id="line-541">            // may be out-dated</span>
+<span class="source-line-no">542</span><span id="line-542">//            event.associated(Selection.class)</span>
+<span class="source-line-no">543</span><span id="line-543">//                .ifPresent(selection -&gt; selection.prefer(selection.get()[0]));</span>
+<span class="source-line-no">544</span><span id="line-544">            // This is a console connection now (can be connected to)</span>
+<span class="source-line-no">545</span><span id="line-545">            Session session = Session.from(event);</span>
+<span class="source-line-no">546</span><span id="line-546">            UUID consoleConnectionId = UUID.randomUUID();</span>
+<span class="source-line-no">547</span><span id="line-547">            @SuppressWarnings({ "unchecked", "PMD.AvoidDuplicateLiterals" })</span>
+<span class="source-line-no">548</span><span id="line-548">            Map&lt;URI, UUID&gt; knownIds = (Map&lt;URI, UUID&gt;) session.computeIfAbsent(</span>
+<span class="source-line-no">549</span><span id="line-549">                CONSOLE_SESSION_IDS,</span>
+<span class="source-line-no">550</span><span id="line-550">                newKey -&gt; new ConcurrentHashMap&lt;&gt;());</span>
+<span class="source-line-no">551</span><span id="line-551">            knownIds.put(prefix, consoleConnectionId);</span>
+<span class="source-line-no">552</span><span id="line-552">            // Finally render</span>
+<span class="source-line-no">553</span><span id="line-553">            renderConsole(event, channel, consoleConnectionId);</span>
+<span class="source-line-no">554</span><span id="line-554">            return;</span>
+<span class="source-line-no">555</span><span id="line-555">        case "console-resource":</span>
+<span class="source-line-no">556</span><span id="line-556">            provideConsoleResource(event, ResourcePattern.removeSegments(</span>
+<span class="source-line-no">557</span><span id="line-557">                requestUri.getPath(), prefixSegs + 2), channel);</span>
+<span class="source-line-no">558</span><span id="line-558">            return;</span>
+<span class="source-line-no">559</span><span id="line-559">        case "console-base-resource":</span>
+<span class="source-line-no">560</span><span id="line-560">            ResponseCreationSupport.sendStaticContent(event, channel,</span>
+<span class="source-line-no">561</span><span id="line-561">                path -&gt; ConsoleWeblet.class.getResource(requestParts[1]),</span>
+<span class="source-line-no">562</span><span id="line-562">                null);</span>
+<span class="source-line-no">563</span><span id="line-563">            return;</span>
+<span class="source-line-no">564</span><span id="line-564">        case "page-resource":</span>
+<span class="source-line-no">565</span><span id="line-565">            providePageResource(event, channel, requestParts[1]);</span>
+<span class="source-line-no">566</span><span id="line-566">            return;</span>
+<span class="source-line-no">567</span><span id="line-567">        case "console-connection":</span>
+<span class="source-line-no">568</span><span id="line-568">            handleSessionRequest(event, channel, requestParts[1]);</span>
+<span class="source-line-no">569</span><span id="line-569">            return;</span>
+<span class="source-line-no">570</span><span id="line-570">        case "conlet-resource":</span>
+<span class="source-line-no">571</span><span id="line-571">            provideConletResource(event, channel, URI.create(requestParts[1]));</span>
+<span class="source-line-no">572</span><span id="line-572">            return;</span>
+<span class="source-line-no">573</span><span id="line-573">        default:</span>
+<span class="source-line-no">574</span><span id="line-574">            break;</span>
+<span class="source-line-no">575</span><span id="line-575">        }</span>
+<span class="source-line-no">576</span><span id="line-576">    }</span>
+<span class="source-line-no">577</span><span id="line-577"></span>
+<span class="source-line-no">578</span><span id="line-578">    /**</span>
+<span class="source-line-no">579</span><span id="line-579">     * Render the console page.</span>
 <span class="source-line-no">580</span><span id="line-580">     *</span>
-<span class="source-line-no">581</span><span id="line-581">     * @param channel the channel</span>
-<span class="source-line-no">582</span><span id="line-582">     * @return the IO subchannel</span>
-<span class="source-line-no">583</span><span id="line-583">     */</span>
-<span class="source-line-no">584</span><span id="line-584">    private IOSubchannel consoleChannel(IOSubchannel channel) {</span>
-<span class="source-line-no">585</span><span id="line-585">        @SuppressWarnings("unchecked")</span>
-<span class="source-line-no">586</span><span id="line-586">        Optional&lt;LinkedIOSubchannel&gt; consoleChannel</span>
-<span class="source-line-no">587</span><span id="line-587">            = (Optional&lt;LinkedIOSubchannel&gt;) LinkedIOSubchannel</span>
-<span class="source-line-no">588</span><span id="line-588">                .downstreamChannel(console, channel);</span>
-<span class="source-line-no">589</span><span id="line-589">        return consoleChannel.orElseGet(</span>
-<span class="source-line-no">590</span><span id="line-590">            () -&gt; new ConsoleResourceChannel(</span>
-<span class="source-line-no">591</span><span id="line-591">                console, channel, activeEventPipeline()));</span>
-<span class="source-line-no">592</span><span id="line-592">    }</span>
-<span class="source-line-no">593</span><span id="line-593"></span>
-<span class="source-line-no">594</span><span id="line-594">    /**</span>
-<span class="source-line-no">595</span><span id="line-595">     * Handles the {@link ResourceRequestCompleted} event.</span>
-<span class="source-line-no">596</span><span id="line-596">     *</span>
-<span class="source-line-no">597</span><span id="line-597">     * @param event the event</span>
+<span class="source-line-no">581</span><span id="line-581">     * @param event the event</span>
+<span class="source-line-no">582</span><span id="line-582">     * @param channel the channel</span>
+<span class="source-line-no">583</span><span id="line-583">     * @throws IOException Signals that an I/O exception has occurred.</span>
+<span class="source-line-no">584</span><span id="line-584">     * @throws InterruptedException the interrupted exception</span>
+<span class="source-line-no">585</span><span id="line-585">     */</span>
+<span class="source-line-no">586</span><span id="line-586">    protected abstract void renderConsole(Request.In.Get event,</span>
+<span class="source-line-no">587</span><span id="line-587">            IOSubchannel channel, UUID consoleConnectionId)</span>
+<span class="source-line-no">588</span><span id="line-588">            throws IOException, InterruptedException;</span>
+<span class="source-line-no">589</span><span id="line-589"></span>
+<span class="source-line-no">590</span><span id="line-590">    /**</span>
+<span class="source-line-no">591</span><span id="line-591">     * Provide a console resource. The implementation tries to load the</span>
+<span class="source-line-no">592</span><span id="line-592">     * resource using {@link Class#getResource(String)} for each class</span>
+<span class="source-line-no">593</span><span id="line-593">     * in the class hierarchy, starting with the finally derived class.</span>
+<span class="source-line-no">594</span><span id="line-594">     *</span>
+<span class="source-line-no">595</span><span id="line-595">     * @param event the event</span>
+<span class="source-line-no">596</span><span id="line-596">     * @param requestPath the request path relativized to the </span>
+<span class="source-line-no">597</span><span id="line-597">     * common part for console resources</span>
 <span class="source-line-no">598</span><span id="line-598">     * @param channel the channel</span>
-<span class="source-line-no">599</span><span id="line-599">     * @throws IOException Signals that an I/O exception has occurred.</span>
-<span class="source-line-no">600</span><span id="line-600">     * @throws InterruptedException the interrupted exception</span>
-<span class="source-line-no">601</span><span id="line-601">     */</span>
-<span class="source-line-no">602</span><span id="line-602">    @Handler(channels = ConsoleChannel.class)</span>
-<span class="source-line-no">603</span><span id="line-603">    public void onResourceRequestCompleted(</span>
-<span class="source-line-no">604</span><span id="line-604">            ResourceRequestCompleted event, ConsoleResourceChannel channel)</span>
-<span class="source-line-no">605</span><span id="line-605">            throws IOException, InterruptedException {</span>
-<span class="source-line-no">606</span><span id="line-606">        event.stop();</span>
-<span class="source-line-no">607</span><span id="line-607">        if (event.event().get() == null) {</span>
-<span class="source-line-no">608</span><span id="line-608">            ResponseCreationSupport.sendResponse(event.event().httpRequest(),</span>
-<span class="source-line-no">609</span><span id="line-609">                event.event().httpChannel(), HttpStatus.NOT_FOUND);</span>
-<span class="source-line-no">610</span><span id="line-610">            return;</span>
-<span class="source-line-no">611</span><span id="line-611">        }</span>
-<span class="source-line-no">612</span><span id="line-612">        event.event().get().process();</span>
-<span class="source-line-no">613</span><span id="line-613">    }</span>
-<span class="source-line-no">614</span><span id="line-614"></span>
-<span class="source-line-no">615</span><span id="line-615">    private void handleSessionRequest(Request.In.Get event,</span>
-<span class="source-line-no">616</span><span id="line-616">            IOSubchannel channel, String consoleConnectionId)</span>
-<span class="source-line-no">617</span><span id="line-617">            throws InterruptedException, IOException, ParseException {</span>
-<span class="source-line-no">618</span><span id="line-618">        // Must be WebSocket request.</span>
-<span class="source-line-no">619</span><span id="line-619">        if (!event.httpRequest().findField(</span>
-<span class="source-line-no">620</span><span id="line-620">            HttpField.UPGRADE, Converters.STRING_LIST)</span>
-<span class="source-line-no">621</span><span id="line-621">            .map(fld -&gt; fld.value().containsIgnoreCase("websocket"))</span>
-<span class="source-line-no">622</span><span id="line-622">            .orElse(false)) {</span>
-<span class="source-line-no">623</span><span id="line-623">            return;</span>
-<span class="source-line-no">624</span><span id="line-624">        }</span>
-<span class="source-line-no">625</span><span id="line-625"></span>
-<span class="source-line-no">626</span><span id="line-626">        // Can only connect to sessions that have been prepared</span>
-<span class="source-line-no">627</span><span id="line-627">        // by loading the console. (Prevents using a newly created</span>
-<span class="source-line-no">628</span><span id="line-628">        // browser session from being (re-)connected to after a</span>
-<span class="source-line-no">629</span><span id="line-629">        // long disconnect or restart and, of course, CSF).</span>
-<span class="source-line-no">630</span><span id="line-630">        final Session browserSession = Session.from(event);</span>
-<span class="source-line-no">631</span><span id="line-631">        @SuppressWarnings("unchecked")</span>
-<span class="source-line-no">632</span><span id="line-632">        Map&lt;URI, UUID&gt; knownIds = (Map&lt;URI, UUID&gt;) browserSession</span>
-<span class="source-line-no">633</span><span id="line-633">            .computeIfAbsent(CONSOLE_SESSION_IDS,</span>
-<span class="source-line-no">634</span><span id="line-634">                newKey -&gt; new ConcurrentHashMap&lt;&gt;());</span>
-<span class="source-line-no">635</span><span id="line-635">        if (!UUID.fromString(consoleConnectionId) // NOPMD, note negation</span>
-<span class="source-line-no">636</span><span id="line-636">            .equals(knownIds.get(prefix))) {</span>
-<span class="source-line-no">637</span><span id="line-637">            channel.setAssociated(this, new String[2]);</span>
-<span class="source-line-no">638</span><span id="line-638">        } else {</span>
-<span class="source-line-no">639</span><span id="line-639">            channel.setAssociated(this, new String[] {</span>
-<span class="source-line-no">640</span><span id="line-640">                consoleConnectionId,</span>
-<span class="source-line-no">641</span><span id="line-641">                Optional.ofNullable(event.httpRequest().queryData()</span>
-<span class="source-line-no">642</span><span id="line-642">                    .get("was")).map(vals -&gt; vals.get(0)).orElse(null)</span>
-<span class="source-line-no">643</span><span id="line-643">            });</span>
-<span class="source-line-no">644</span><span id="line-644">        }</span>
-<span class="source-line-no">645</span><span id="line-645">        channel.respond(new ProtocolSwitchAccepted(event, "websocket"));</span>
-<span class="source-line-no">646</span><span id="line-646">        event.stop();</span>
-<span class="source-line-no">647</span><span id="line-647">    }</span>
-<span class="source-line-no">648</span><span id="line-648"></span>
-<span class="source-line-no">649</span><span id="line-649">    /**</span>
-<span class="source-line-no">650</span><span id="line-650">     * Handles a change of Locale for the console.</span>
-<span class="source-line-no">651</span><span id="line-651">     *</span>
-<span class="source-line-no">652</span><span id="line-652">     * @param event the event</span>
-<span class="source-line-no">653</span><span id="line-653">     * @param channel the channel</span>
-<span class="source-line-no">654</span><span id="line-654">     * @throws InterruptedException the interrupted exception</span>
-<span class="source-line-no">655</span><span id="line-655">     * @throws IOException Signals that an I/O exception has occurred.</span>
-<span class="source-line-no">656</span><span id="line-656">     */</span>
-<span class="source-line-no">657</span><span id="line-657">    @Handler(channels = ConsoleChannel.class, priority = 10_000)</span>
-<span class="source-line-no">658</span><span id="line-658">    public void onSetLocale(SetLocale event, ConsoleConnection channel)</span>
-<span class="source-line-no">659</span><span id="line-659">            throws InterruptedException, IOException {</span>
-<span class="source-line-no">660</span><span id="line-660">        channel.setLocale(event.locale());</span>
-<span class="source-line-no">661</span><span id="line-661">        Optional.ofNullable(channel.session()).flatMap(</span>
-<span class="source-line-no">662</span><span id="line-662">            s -&gt; Optional.ofNullable((Selection) s.get(Selection.class)))</span>
-<span class="source-line-no">663</span><span id="line-663">            .ifPresent(selection -&gt; {</span>
-<span class="source-line-no">664</span><span id="line-664">                supportedLocales.keySet().stream()</span>
-<span class="source-line-no">665</span><span id="line-665">                    .filter(lang -&gt; lang.equals(event.locale())).findFirst()</span>
-<span class="source-line-no">666</span><span id="line-666">                    .ifPresent(selection::prefer);</span>
-<span class="source-line-no">667</span><span id="line-667">                channel.respond(new SimpleConsoleCommand("setLocalesCookie",</span>
-<span class="source-line-no">668</span><span id="line-668">                    Converters.SET_COOKIE_STRING</span>
-<span class="source-line-no">669</span><span id="line-669">                        .get(selection.getCookieSameSite())</span>
-<span class="source-line-no">670</span><span id="line-670">                        .asFieldValue(selection.getCookie())));</span>
-<span class="source-line-no">671</span><span id="line-671">            });</span>
-<span class="source-line-no">672</span><span id="line-672">        if (event.reload()) {</span>
-<span class="source-line-no">673</span><span id="line-673">            channel.respond(new SimpleConsoleCommand("reload"));</span>
-<span class="source-line-no">674</span><span id="line-674">        }</span>
-<span class="source-line-no">675</span><span id="line-675">    }</span>
-<span class="source-line-no">676</span><span id="line-676"></span>
-<span class="source-line-no">677</span><span id="line-677">    /**</span>
-<span class="source-line-no">678</span><span id="line-678">     * Sends a reload if the change of locale could not be handled by</span>
-<span class="source-line-no">679</span><span id="line-679">     * all conlets.</span>
-<span class="source-line-no">680</span><span id="line-680">     *</span>
-<span class="source-line-no">681</span><span id="line-681">     * @param event the event</span>
-<span class="source-line-no">682</span><span id="line-682">     * @param channel the channel</span>
-<span class="source-line-no">683</span><span id="line-683">     */</span>
-<span class="source-line-no">684</span><span id="line-684">    @Handler(channels = ConsoleChannel.class)</span>
-<span class="source-line-no">685</span><span id="line-685">    public void onSetLocaleCompleted(SetLocaleCompleted event,</span>
-<span class="source-line-no">686</span><span id="line-686">            ConsoleConnection channel) {</span>
-<span class="source-line-no">687</span><span id="line-687">        if (event.event().reload()) {</span>
-<span class="source-line-no">688</span><span id="line-688">            channel.respond(new SimpleConsoleCommand("reload"));</span>
-<span class="source-line-no">689</span><span id="line-689">        }</span>
-<span class="source-line-no">690</span><span id="line-690">    }</span>
-<span class="source-line-no">691</span><span id="line-691"></span>
-<span class="source-line-no">692</span><span id="line-692">    /**</span>
-<span class="source-line-no">693</span><span id="line-693">     * Called when the connection has been upgraded.</span>
-<span class="source-line-no">694</span><span id="line-694">     *</span>
-<span class="source-line-no">695</span><span id="line-695">     * @param event the event</span>
-<span class="source-line-no">696</span><span id="line-696">     * @param wsChannel the ws channel</span>
-<span class="source-line-no">697</span><span id="line-697">     * @throws IOException Signals that an I/O exception has occurred.</span>
-<span class="source-line-no">698</span><span id="line-698">     */</span>
-<span class="source-line-no">699</span><span id="line-699">    @Handler</span>
-<span class="source-line-no">700</span><span id="line-700">    public void onUpgraded(Upgraded event, IOSubchannel wsChannel)</span>
-<span class="source-line-no">701</span><span id="line-701">            throws IOException {</span>
-<span class="source-line-no">702</span><span id="line-702">        Optional&lt;String[]&gt; passedIn</span>
-<span class="source-line-no">703</span><span id="line-703">            = wsChannel.associated(this, String[].class);</span>
-<span class="source-line-no">704</span><span id="line-704">        if (!passedIn.isPresent()) {</span>
-<span class="source-line-no">705</span><span id="line-705">            return;</span>
-<span class="source-line-no">706</span><span id="line-706">        }</span>
-<span class="source-line-no">707</span><span id="line-707"></span>
-<span class="source-line-no">708</span><span id="line-708">        // Check if reload required</span>
-<span class="source-line-no">709</span><span id="line-709">        String[] connectionIds = passedIn.get();</span>
-<span class="source-line-no">710</span><span id="line-710">        if (connectionIds[0] == null) {</span>
-<span class="source-line-no">711</span><span id="line-711">            @SuppressWarnings({ "resource", "PMD.CloseResource" })</span>
-<span class="source-line-no">712</span><span id="line-712">            CharBufferWriter out = new CharBufferWriter(wsChannel,</span>
-<span class="source-line-no">713</span><span id="line-713">                wsChannel.responsePipeline()).suppressClose();</span>
-<span class="source-line-no">714</span><span id="line-714">            new SimpleConsoleCommand("reload").emitJson(out);</span>
-<span class="source-line-no">715</span><span id="line-715">            out.close();</span>
-<span class="source-line-no">716</span><span id="line-716">            event.stop();</span>
-<span class="source-line-no">717</span><span id="line-717">            return;</span>
-<span class="source-line-no">718</span><span id="line-718">        }</span>
-<span class="source-line-no">719</span><span id="line-719"></span>
-<span class="source-line-no">720</span><span id="line-720">        // Get session</span>
-<span class="source-line-no">721</span><span id="line-721">        @SuppressWarnings("unchecked")</span>
-<span class="source-line-no">722</span><span id="line-722">        final Supplier&lt;Optional&lt;Session&gt;&gt; sessionSupplier</span>
-<span class="source-line-no">723</span><span id="line-723">            = (Supplier&lt;Optional&lt;Session&gt;&gt;) wsChannel</span>
-<span class="source-line-no">724</span><span id="line-724">                .associated(Session.class, Supplier.class).get();</span>
-<span class="source-line-no">725</span><span id="line-725">        // Reuse old console connection if still available</span>
-<span class="source-line-no">726</span><span id="line-726">        ConsoleConnection connection</span>
-<span class="source-line-no">727</span><span id="line-727">            = Optional.ofNullable(connectionIds[1])</span>
-<span class="source-line-no">728</span><span id="line-728">                .flatMap(ConsoleConnection::lookup)</span>
-<span class="source-line-no">729</span><span id="line-729">                .map(conn -&gt; conn.replaceId(connectionIds[0]))</span>
-<span class="source-line-no">730</span><span id="line-730">                .orElseGet(</span>
-<span class="source-line-no">731</span><span id="line-731">                    () -&gt; ConsoleConnection.lookupOrCreate(connectionIds[0],</span>
-<span class="source-line-no">732</span><span id="line-732">                        console, supportedLocales.keySet(), csNetworkTimeout))</span>
-<span class="source-line-no">733</span><span id="line-733">                .setUpstreamChannel(wsChannel)</span>
-<span class="source-line-no">734</span><span id="line-734">                .setSessionSupplier(sessionSupplier);</span>
-<span class="source-line-no">735</span><span id="line-735">        wsChannel.setAssociated(ConsoleConnection.class, connection);</span>
-<span class="source-line-no">736</span><span id="line-736">        // Channel now used as JSON input</span>
-<span class="source-line-no">737</span><span id="line-737">        wsChannel.setAssociated(this, new WebSocketInputSink(</span>
-<span class="source-line-no">738</span><span id="line-738">            event.processedBy().get(), connection));</span>
-<span class="source-line-no">739</span><span id="line-739">        // From now on, only consoleConnection.respond may be used to send on</span>
-<span class="source-line-no">740</span><span id="line-740">        // the upstream channel.</span>
-<span class="source-line-no">741</span><span id="line-741">        connection.upstreamChannel().responsePipeline()</span>
-<span class="source-line-no">742</span><span id="line-742">            .restrictEventSource(connection.responsePipeline());</span>
-<span class="source-line-no">743</span><span id="line-743">    }</span>
-<span class="source-line-no">744</span><span id="line-744"></span>
-<span class="source-line-no">745</span><span id="line-745">    /**</span>
-<span class="source-line-no">746</span><span id="line-746">     * Discard the session referenced in the event.</span>
-<span class="source-line-no">747</span><span id="line-747">     *</span>
-<span class="source-line-no">748</span><span id="line-748">     * @param event the event</span>
-<span class="source-line-no">749</span><span id="line-749">     */</span>
-<span class="source-line-no">750</span><span id="line-750">    @Handler(channels = Channel.class)</span>
-<span class="source-line-no">751</span><span id="line-751">    public void onDiscardSession(DiscardSession event) {</span>
-<span class="source-line-no">752</span><span id="line-752">        final Session session = event.session();</span>
-<span class="source-line-no">753</span><span id="line-753">        ConsoleConnection.byConsole(console).stream()</span>
-<span class="source-line-no">754</span><span id="line-754">            .filter(cs -&gt; cs != null &amp;&amp; cs.session().equals(session))</span>
-<span class="source-line-no">755</span><span id="line-755">            .forEach(cs -&gt; {</span>
-<span class="source-line-no">756</span><span id="line-756">                cs.responsePipeline().fire(new Close(), cs.upstreamChannel());</span>
-<span class="source-line-no">757</span><span id="line-757">            });</span>
-<span class="source-line-no">758</span><span id="line-758">    }</span>
-<span class="source-line-no">759</span><span id="line-759"></span>
-<span class="source-line-no">760</span><span id="line-760">    /**</span>
-<span class="source-line-no">761</span><span id="line-761">     * Handles network input (JSON data).</span>
-<span class="source-line-no">762</span><span id="line-762">     *</span>
-<span class="source-line-no">763</span><span id="line-763">     * @param event the event</span>
-<span class="source-line-no">764</span><span id="line-764">     * @param wsChannel the ws channel</span>
-<span class="source-line-no">765</span><span id="line-765">     * @throws IOException Signals that an I/O exception has occurred.</span>
-<span class="source-line-no">766</span><span id="line-766">     */</span>
-<span class="source-line-no">767</span><span id="line-767">    @Handler</span>
-<span class="source-line-no">768</span><span id="line-768">    public void onInput(Input&lt;CharBuffer&gt; event, IOSubchannel wsChannel)</span>
-<span class="source-line-no">769</span><span id="line-769">            throws IOException {</span>
-<span class="source-line-no">770</span><span id="line-770">        Optional&lt;WebSocketInputSink&gt; optWsInputReader</span>
-<span class="source-line-no">771</span><span id="line-771">            = wsChannel.associated(this, WebSocketInputSink.class);</span>
-<span class="source-line-no">772</span><span id="line-772">        if (optWsInputReader.isPresent()) {</span>
-<span class="source-line-no">773</span><span id="line-773">            optWsInputReader.get().feed(event.buffer());</span>
-<span class="source-line-no">774</span><span id="line-774">        }</span>
-<span class="source-line-no">775</span><span id="line-775">    }</span>
-<span class="source-line-no">776</span><span id="line-776"></span>
-<span class="source-line-no">777</span><span id="line-777">    /**</span>
-<span class="source-line-no">778</span><span id="line-778">     * Handles the closed event from the web socket.</span>
-<span class="source-line-no">779</span><span id="line-779">     *</span>
-<span class="source-line-no">780</span><span id="line-780">     * @param event the event</span>
-<span class="source-line-no">781</span><span id="line-781">     * @param wsChannel the WebSocket channel</span>
-<span class="source-line-no">782</span><span id="line-782">     * @throws IOException Signals that an I/O exception has occurred.</span>
-<span class="source-line-no">783</span><span id="line-783">     */</span>
-<span class="source-line-no">784</span><span id="line-784">    @Handler</span>
-<span class="source-line-no">785</span><span id="line-785">    public void onClosed(</span>
-<span class="source-line-no">786</span><span id="line-786">            Closed&lt;?&gt; event, IOSubchannel wsChannel) throws IOException {</span>
-<span class="source-line-no">787</span><span id="line-787">        Optional&lt;WebSocketInputSink&gt; optWsInputReader</span>
-<span class="source-line-no">788</span><span id="line-788">            = wsChannel.associated(this, WebSocketInputSink.class);</span>
-<span class="source-line-no">789</span><span id="line-789">        if (optWsInputReader.isPresent()) {</span>
-<span class="source-line-no">790</span><span id="line-790">            wsChannel.setAssociated(this, null);</span>
-<span class="source-line-no">791</span><span id="line-791">            optWsInputReader.get().feed(null);</span>
-<span class="source-line-no">792</span><span id="line-792">        }</span>
-<span class="source-line-no">793</span><span id="line-793">        wsChannel.associated(ConsoleConnection.class).ifPresent(connection -&gt; {</span>
-<span class="source-line-no">794</span><span id="line-794">            // Restore channel to normal mode, see onConsoleReady</span>
-<span class="source-line-no">795</span><span id="line-795">            connection.responsePipeline().restrictEventSource(null);</span>
-<span class="source-line-no">796</span><span id="line-796">            connection.disconnected();</span>
-<span class="source-line-no">797</span><span id="line-797">        });</span>
-<span class="source-line-no">798</span><span id="line-798">    }</span>
-<span class="source-line-no">799</span><span id="line-799"></span>
-<span class="source-line-no">800</span><span id="line-800">    /**</span>
-<span class="source-line-no">801</span><span id="line-801">     * Sends a command to the console.</span>
-<span class="source-line-no">802</span><span id="line-802">     *</span>
-<span class="source-line-no">803</span><span id="line-803">     * @param event the event</span>
-<span class="source-line-no">804</span><span id="line-804">     * @param channel the channel</span>
-<span class="source-line-no">805</span><span id="line-805">     * @throws InterruptedException the interrupted exception</span>
-<span class="source-line-no">806</span><span id="line-806">     * @throws IOException Signals that an I/O exception has occurred.</span>
-<span class="source-line-no">807</span><span id="line-807">     */</span>
-<span class="source-line-no">808</span><span id="line-808">    @Handler(channels = ConsoleChannel.class, priority = -1000)</span>
-<span class="source-line-no">809</span><span id="line-809">    public void onConsoleCommand(</span>
-<span class="source-line-no">810</span><span id="line-810">            ConsoleCommand event, ConsoleConnection channel)</span>
-<span class="source-line-no">811</span><span id="line-811">            throws InterruptedException, IOException {</span>
-<span class="source-line-no">812</span><span id="line-812">        IOSubchannel upstream = channel.upstreamChannel();</span>
-<span class="source-line-no">813</span><span id="line-813">        @SuppressWarnings({ "resource", "PMD.CloseResource" })</span>
-<span class="source-line-no">814</span><span id="line-814">        CharBufferWriter out = new CharBufferWriter(upstream,</span>
-<span class="source-line-no">815</span><span id="line-815">            upstream.responsePipeline()).suppressClose();</span>
-<span class="source-line-no">816</span><span id="line-816">        event.emitJson(out);</span>
-<span class="source-line-no">817</span><span id="line-817">    }</span>
-<span class="source-line-no">818</span><span id="line-818"></span>
-<span class="source-line-no">819</span><span id="line-819">    /**</span>
-<span class="source-line-no">820</span><span id="line-820">     * The channel used to send {@link PageResourceRequest}s and</span>
-<span class="source-line-no">821</span><span id="line-821">     * {@link ConletResourceRequest}s to the web console components (via the</span>
-<span class="source-line-no">822</span><span id="line-822">     * console).</span>
-<span class="source-line-no">823</span><span id="line-823">     */</span>
-<span class="source-line-no">824</span><span id="line-824">    public class ConsoleResourceChannel extends LinkedIOSubchannel {</span>
-<span class="source-line-no">825</span><span id="line-825"></span>
-<span class="source-line-no">826</span><span id="line-826">        /**</span>
-<span class="source-line-no">827</span><span id="line-827">         * Instantiates a new console resource channel.</span>
-<span class="source-line-no">828</span><span id="line-828">         *</span>
-<span class="source-line-no">829</span><span id="line-829">         * @param hub the hub</span>
-<span class="source-line-no">830</span><span id="line-830">         * @param upstreamChannel the upstream channel</span>
-<span class="source-line-no">831</span><span id="line-831">         * @param responsePipeline the response pipeline</span>
-<span class="source-line-no">832</span><span id="line-832">         */</span>
-<span class="source-line-no">833</span><span id="line-833">        public ConsoleResourceChannel(Manager hub,</span>
-<span class="source-line-no">834</span><span id="line-834">                IOSubchannel upstreamChannel, EventPipeline responsePipeline) {</span>
-<span class="source-line-no">835</span><span id="line-835">            super(hub, hub.channel(), upstreamChannel, responsePipeline);</span>
-<span class="source-line-no">836</span><span id="line-836">        }</span>
-<span class="source-line-no">837</span><span id="line-837">    }</span>
-<span class="source-line-no">838</span><span id="line-838"></span>
-<span class="source-line-no">839</span><span id="line-839">    /**</span>
-<span class="source-line-no">840</span><span id="line-840">     * The implementation of {@link RenderSupport} used by this class.</span>
-<span class="source-line-no">841</span><span id="line-841">     */</span>
-<span class="source-line-no">842</span><span id="line-842">    private final class RenderSupportImpl implements RenderSupport {</span>
-<span class="source-line-no">843</span><span id="line-843"></span>
-<span class="source-line-no">844</span><span id="line-844">        @Override</span>
-<span class="source-line-no">845</span><span id="line-845">        public URI consoleBaseResource(URI uri) {</span>
-<span class="source-line-no">846</span><span id="line-846">            return prefix</span>
-<span class="source-line-no">847</span><span id="line-847">                .resolve(WebConsoleUtils.uriFromPath("console-base-resource/"))</span>
-<span class="source-line-no">848</span><span id="line-848">                .resolve(uri);</span>
-<span class="source-line-no">849</span><span id="line-849">        }</span>
+<span class="source-line-no">599</span><span id="line-599">     */</span>
+<span class="source-line-no">600</span><span id="line-600">    protected void provideConsoleResource(Request.In.Get event,</span>
+<span class="source-line-no">601</span><span id="line-601">            String requestPath, IOSubchannel channel) {</span>
+<span class="source-line-no">602</span><span id="line-602">        for (Class&lt;?&gt; cls : consoleResourceSearchSeq) {</span>
+<span class="source-line-no">603</span><span id="line-603">            if (ResponseCreationSupport.sendStaticContent(event, channel,</span>
+<span class="source-line-no">604</span><span id="line-604">                path -&gt; cls.getResource(requestPath),</span>
+<span class="source-line-no">605</span><span id="line-605">                null)) {</span>
+<span class="source-line-no">606</span><span id="line-606">                break;</span>
+<span class="source-line-no">607</span><span id="line-607">            }</span>
+<span class="source-line-no">608</span><span id="line-608">        }</span>
+<span class="source-line-no">609</span><span id="line-609">    }</span>
+<span class="source-line-no">610</span><span id="line-610"></span>
+<span class="source-line-no">611</span><span id="line-611">    /**</span>
+<span class="source-line-no">612</span><span id="line-612">     * Prepends the given class to the list of classes searched by</span>
+<span class="source-line-no">613</span><span id="line-613">     * {@link #provideConsoleResource(Request.In.Get, String, IOSubchannel)}.</span>
+<span class="source-line-no">614</span><span id="line-614">     * </span>
+<span class="source-line-no">615</span><span id="line-615">     * @param cls the class to prepend</span>
+<span class="source-line-no">616</span><span id="line-616">     * @return the console weblet for easy chaining</span>
+<span class="source-line-no">617</span><span id="line-617">     */</span>
+<span class="source-line-no">618</span><span id="line-618">    public ConsoleWeblet prependConsoleResourceProvider(Class&lt;?&gt; cls) {</span>
+<span class="source-line-no">619</span><span id="line-619">        consoleResourceSearchSeq.add(0, cls);</span>
+<span class="source-line-no">620</span><span id="line-620">        return this;</span>
+<span class="source-line-no">621</span><span id="line-621">    }</span>
+<span class="source-line-no">622</span><span id="line-622"></span>
+<span class="source-line-no">623</span><span id="line-623">    private void providePageResource(Request.In.Get event, IOSubchannel channel,</span>
+<span class="source-line-no">624</span><span id="line-624">            String resource) throws InterruptedException {</span>
+<span class="source-line-no">625</span><span id="line-625">        // Send events to providers on console's channel</span>
+<span class="source-line-no">626</span><span id="line-626">        PageResourceRequest pageResourceRequest = new PageResourceRequest(</span>
+<span class="source-line-no">627</span><span id="line-627">            WebConsoleUtils.uriFromPath(resource),</span>
+<span class="source-line-no">628</span><span id="line-628">            event.httpRequest().findValue(HttpField.IF_MODIFIED_SINCE,</span>
+<span class="source-line-no">629</span><span id="line-629">                Converters.DATE_TIME).orElse(null),</span>
+<span class="source-line-no">630</span><span id="line-630">            event.httpRequest(), channel, Session.from(event), renderSupport());</span>
+<span class="source-line-no">631</span><span id="line-631">        event.setResult(true);</span>
+<span class="source-line-no">632</span><span id="line-632">        event.stop();</span>
+<span class="source-line-no">633</span><span id="line-633">        fire(pageResourceRequest, consoleChannel(channel));</span>
+<span class="source-line-no">634</span><span id="line-634">    }</span>
+<span class="source-line-no">635</span><span id="line-635"></span>
+<span class="source-line-no">636</span><span id="line-636">    @SuppressWarnings("PMD.EmptyCatchBlock")</span>
+<span class="source-line-no">637</span><span id="line-637">    private void provideConletResource(Request.In.Get event,</span>
+<span class="source-line-no">638</span><span id="line-638">            IOSubchannel channel,</span>
+<span class="source-line-no">639</span><span id="line-639">            URI resource) throws InterruptedException {</span>
+<span class="source-line-no">640</span><span id="line-640">        try {</span>
+<span class="source-line-no">641</span><span id="line-641">            String resPath = resource.getPath();</span>
+<span class="source-line-no">642</span><span id="line-642">            int sep = resPath.indexOf('/');</span>
+<span class="source-line-no">643</span><span id="line-643">            // Send events to web console components on console's channel</span>
+<span class="source-line-no">644</span><span id="line-644">            ConletResourceRequest conletRequest</span>
+<span class="source-line-no">645</span><span id="line-645">                = new ConletResourceRequest(</span>
+<span class="source-line-no">646</span><span id="line-646">                    resPath.substring(0, sep),</span>
+<span class="source-line-no">647</span><span id="line-647">                    new URI(null, null, resPath.substring(sep + 1),</span>
+<span class="source-line-no">648</span><span id="line-648">                        event.requestUri().getQuery(),</span>
+<span class="source-line-no">649</span><span id="line-649">                        event.requestUri().getFragment()),</span>
+<span class="source-line-no">650</span><span id="line-650">                    event.httpRequest().findValue(HttpField.IF_MODIFIED_SINCE,</span>
+<span class="source-line-no">651</span><span id="line-651">                        Converters.DATE_TIME).orElse(null),</span>
+<span class="source-line-no">652</span><span id="line-652">                    event.httpRequest(), channel,</span>
+<span class="source-line-no">653</span><span id="line-653">                    Session.from(event), renderSupport());</span>
+<span class="source-line-no">654</span><span id="line-654">            // Make session available (associate with event, this is not</span>
+<span class="source-line-no">655</span><span id="line-655">            // a websocket request).</span>
+<span class="source-line-no">656</span><span id="line-656">            event.associated(Session.class, Supplier.class).ifPresent(</span>
+<span class="source-line-no">657</span><span id="line-657">                supplier -&gt; conletRequest.setAssociated(Session.class,</span>
+<span class="source-line-no">658</span><span id="line-658">                    supplier));</span>
+<span class="source-line-no">659</span><span id="line-659">            event.setResult(true);</span>
+<span class="source-line-no">660</span><span id="line-660">            event.stop();</span>
+<span class="source-line-no">661</span><span id="line-661">            fire(conletRequest, consoleChannel(channel));</span>
+<span class="source-line-no">662</span><span id="line-662">        } catch (URISyntaxException e) {</span>
+<span class="source-line-no">663</span><span id="line-663">            // Won't happen, new URI derived from existing</span>
+<span class="source-line-no">664</span><span id="line-664">        }</span>
+<span class="source-line-no">665</span><span id="line-665">    }</span>
+<span class="source-line-no">666</span><span id="line-666"></span>
+<span class="source-line-no">667</span><span id="line-667">    /**</span>
+<span class="source-line-no">668</span><span id="line-668">     * The console channel for getting resources. Resource providers</span>
+<span class="source-line-no">669</span><span id="line-669">     * respond on the same event pipeline as they receive, because</span>
+<span class="source-line-no">670</span><span id="line-670">     * handling is just a mapping to {@link ResourceRequestCompleted}.</span>
+<span class="source-line-no">671</span><span id="line-671">     *</span>
+<span class="source-line-no">672</span><span id="line-672">     * @param channel the channel</span>
+<span class="source-line-no">673</span><span id="line-673">     * @return the IO subchannel</span>
+<span class="source-line-no">674</span><span id="line-674">     */</span>
+<span class="source-line-no">675</span><span id="line-675">    private IOSubchannel consoleChannel(IOSubchannel channel) {</span>
+<span class="source-line-no">676</span><span id="line-676">        @SuppressWarnings("unchecked")</span>
+<span class="source-line-no">677</span><span id="line-677">        Optional&lt;LinkedIOSubchannel&gt; consoleChannel</span>
+<span class="source-line-no">678</span><span id="line-678">            = (Optional&lt;LinkedIOSubchannel&gt;) LinkedIOSubchannel</span>
+<span class="source-line-no">679</span><span id="line-679">                .downstreamChannel(console, channel);</span>
+<span class="source-line-no">680</span><span id="line-680">        return consoleChannel.orElseGet(</span>
+<span class="source-line-no">681</span><span id="line-681">            () -&gt; new ConsoleResourceChannel(</span>
+<span class="source-line-no">682</span><span id="line-682">                console, channel, activeEventPipeline()));</span>
+<span class="source-line-no">683</span><span id="line-683">    }</span>
+<span class="source-line-no">684</span><span id="line-684"></span>
+<span class="source-line-no">685</span><span id="line-685">    /**</span>
+<span class="source-line-no">686</span><span id="line-686">     * Handles the {@link ResourceRequestCompleted} event.</span>
+<span class="source-line-no">687</span><span id="line-687">     *</span>
+<span class="source-line-no">688</span><span id="line-688">     * @param event the event</span>
+<span class="source-line-no">689</span><span id="line-689">     * @param channel the channel</span>
+<span class="source-line-no">690</span><span id="line-690">     * @throws IOException Signals that an I/O exception has occurred.</span>
+<span class="source-line-no">691</span><span id="line-691">     * @throws InterruptedException the interrupted exception</span>
+<span class="source-line-no">692</span><span id="line-692">     */</span>
+<span class="source-line-no">693</span><span id="line-693">    @Handler(channels = ConsoleChannel.class)</span>
+<span class="source-line-no">694</span><span id="line-694">    public void onResourceRequestCompleted(</span>
+<span class="source-line-no">695</span><span id="line-695">            ResourceRequestCompleted event, ConsoleResourceChannel channel)</span>
+<span class="source-line-no">696</span><span id="line-696">            throws IOException, InterruptedException {</span>
+<span class="source-line-no">697</span><span id="line-697">        event.stop();</span>
+<span class="source-line-no">698</span><span id="line-698">        if (event.event().get() == null) {</span>
+<span class="source-line-no">699</span><span id="line-699">            ResponseCreationSupport.sendResponse(event.event().httpRequest(),</span>
+<span class="source-line-no">700</span><span id="line-700">                event.event().httpChannel(), HttpStatus.NOT_FOUND);</span>
+<span class="source-line-no">701</span><span id="line-701">            return;</span>
+<span class="source-line-no">702</span><span id="line-702">        }</span>
+<span class="source-line-no">703</span><span id="line-703">        event.event().get().process();</span>
+<span class="source-line-no">704</span><span id="line-704">    }</span>
+<span class="source-line-no">705</span><span id="line-705"></span>
+<span class="source-line-no">706</span><span id="line-706">    private void handleSessionRequest(Request.In.Get event,</span>
+<span class="source-line-no">707</span><span id="line-707">            IOSubchannel channel, String consoleConnectionId)</span>
+<span class="source-line-no">708</span><span id="line-708">            throws InterruptedException, IOException, ParseException {</span>
+<span class="source-line-no">709</span><span id="line-709">        // Must be WebSocket request.</span>
+<span class="source-line-no">710</span><span id="line-710">        if (!event.httpRequest().findField(</span>
+<span class="source-line-no">711</span><span id="line-711">            HttpField.UPGRADE, Converters.STRING_LIST)</span>
+<span class="source-line-no">712</span><span id="line-712">            .map(fld -&gt; fld.value().containsIgnoreCase("websocket"))</span>
+<span class="source-line-no">713</span><span id="line-713">            .orElse(false)) {</span>
+<span class="source-line-no">714</span><span id="line-714">            return;</span>
+<span class="source-line-no">715</span><span id="line-715">        }</span>
+<span class="source-line-no">716</span><span id="line-716"></span>
+<span class="source-line-no">717</span><span id="line-717">        // Can only connect to sessions that have been prepared</span>
+<span class="source-line-no">718</span><span id="line-718">        // by loading the console. (Prevents using a newly created</span>
+<span class="source-line-no">719</span><span id="line-719">        // browser session from being (re-)connected to after a</span>
+<span class="source-line-no">720</span><span id="line-720">        // long disconnect or restart and, of course, CSF).</span>
+<span class="source-line-no">721</span><span id="line-721">        final Session browserSession = Session.from(event);</span>
+<span class="source-line-no">722</span><span id="line-722">        @SuppressWarnings("unchecked")</span>
+<span class="source-line-no">723</span><span id="line-723">        Map&lt;URI, UUID&gt; knownIds = (Map&lt;URI, UUID&gt;) browserSession</span>
+<span class="source-line-no">724</span><span id="line-724">            .computeIfAbsent(CONSOLE_SESSION_IDS,</span>
+<span class="source-line-no">725</span><span id="line-725">                newKey -&gt; new ConcurrentHashMap&lt;&gt;());</span>
+<span class="source-line-no">726</span><span id="line-726">        if (!UUID.fromString(consoleConnectionId) // NOPMD, note negation</span>
+<span class="source-line-no">727</span><span id="line-727">            .equals(knownIds.get(prefix))) {</span>
+<span class="source-line-no">728</span><span id="line-728">            channel.setAssociated(this, new String[2]);</span>
+<span class="source-line-no">729</span><span id="line-729">        } else {</span>
+<span class="source-line-no">730</span><span id="line-730">            channel.setAssociated(this, new String[] {</span>
+<span class="source-line-no">731</span><span id="line-731">                consoleConnectionId,</span>
+<span class="source-line-no">732</span><span id="line-732">                Optional.ofNullable(event.httpRequest().queryData()</span>
+<span class="source-line-no">733</span><span id="line-733">                    .get("was")).map(vals -&gt; vals.get(0)).orElse(null)</span>
+<span class="source-line-no">734</span><span id="line-734">            });</span>
+<span class="source-line-no">735</span><span id="line-735">        }</span>
+<span class="source-line-no">736</span><span id="line-736">        channel.respond(new ProtocolSwitchAccepted(event, "websocket"));</span>
+<span class="source-line-no">737</span><span id="line-737">        event.stop();</span>
+<span class="source-line-no">738</span><span id="line-738">    }</span>
+<span class="source-line-no">739</span><span id="line-739"></span>
+<span class="source-line-no">740</span><span id="line-740">    /**</span>
+<span class="source-line-no">741</span><span id="line-741">     * Handles a change of Locale for the console.</span>
+<span class="source-line-no">742</span><span id="line-742">     *</span>
+<span class="source-line-no">743</span><span id="line-743">     * @param event the event</span>
+<span class="source-line-no">744</span><span id="line-744">     * @param channel the channel</span>
+<span class="source-line-no">745</span><span id="line-745">     * @throws InterruptedException the interrupted exception</span>
+<span class="source-line-no">746</span><span id="line-746">     * @throws IOException Signals that an I/O exception has occurred.</span>
+<span class="source-line-no">747</span><span id="line-747">     */</span>
+<span class="source-line-no">748</span><span id="line-748">    @Handler(channels = ConsoleChannel.class, priority = 10_000)</span>
+<span class="source-line-no">749</span><span id="line-749">    public void onSetLocale(SetLocale event, ConsoleConnection channel)</span>
+<span class="source-line-no">750</span><span id="line-750">            throws InterruptedException, IOException {</span>
+<span class="source-line-no">751</span><span id="line-751">        channel.setLocale(event.locale());</span>
+<span class="source-line-no">752</span><span id="line-752">        Optional.ofNullable(channel.session()).flatMap(</span>
+<span class="source-line-no">753</span><span id="line-753">            s -&gt; Optional.ofNullable((Selection) s.get(Selection.class)))</span>
+<span class="source-line-no">754</span><span id="line-754">            .ifPresent(selection -&gt; {</span>
+<span class="source-line-no">755</span><span id="line-755">                supportedLocales.keySet().stream()</span>
+<span class="source-line-no">756</span><span id="line-756">                    .filter(lang -&gt; lang.equals(event.locale())).findFirst()</span>
+<span class="source-line-no">757</span><span id="line-757">                    .ifPresent(selection::prefer);</span>
+<span class="source-line-no">758</span><span id="line-758">                channel.respond(new SimpleConsoleCommand("setLocalesCookie",</span>
+<span class="source-line-no">759</span><span id="line-759">                    Converters.SET_COOKIE_STRING</span>
+<span class="source-line-no">760</span><span id="line-760">                        .get(selection.getCookieSameSite())</span>
+<span class="source-line-no">761</span><span id="line-761">                        .asFieldValue(selection.getCookie())));</span>
+<span class="source-line-no">762</span><span id="line-762">            });</span>
+<span class="source-line-no">763</span><span id="line-763">        if (event.reload()) {</span>
+<span class="source-line-no">764</span><span id="line-764">            channel.respond(new SimpleConsoleCommand("reload"));</span>
+<span class="source-line-no">765</span><span id="line-765">        }</span>
+<span class="source-line-no">766</span><span id="line-766">    }</span>
+<span class="source-line-no">767</span><span id="line-767"></span>
+<span class="source-line-no">768</span><span id="line-768">    /**</span>
+<span class="source-line-no">769</span><span id="line-769">     * Sends a reload if the change of locale could not be handled by</span>
+<span class="source-line-no">770</span><span id="line-770">     * all conlets.</span>
+<span class="source-line-no">771</span><span id="line-771">     *</span>
+<span class="source-line-no">772</span><span id="line-772">     * @param event the event</span>
+<span class="source-line-no">773</span><span id="line-773">     * @param channel the channel</span>
+<span class="source-line-no">774</span><span id="line-774">     */</span>
+<span class="source-line-no">775</span><span id="line-775">    @Handler(channels = ConsoleChannel.class)</span>
+<span class="source-line-no">776</span><span id="line-776">    public void onSetLocaleCompleted(SetLocaleCompleted event,</span>
+<span class="source-line-no">777</span><span id="line-777">            ConsoleConnection channel) {</span>
+<span class="source-line-no">778</span><span id="line-778">        if (event.event().reload()) {</span>
+<span class="source-line-no">779</span><span id="line-779">            channel.respond(new SimpleConsoleCommand("reload"));</span>
+<span class="source-line-no">780</span><span id="line-780">        }</span>
+<span class="source-line-no">781</span><span id="line-781">    }</span>
+<span class="source-line-no">782</span><span id="line-782"></span>
+<span class="source-line-no">783</span><span id="line-783">    /**</span>
+<span class="source-line-no">784</span><span id="line-784">     * Called when the connection has been upgraded.</span>
+<span class="source-line-no">785</span><span id="line-785">     *</span>
+<span class="source-line-no">786</span><span id="line-786">     * @param event the event</span>
+<span class="source-line-no">787</span><span id="line-787">     * @param wsChannel the ws channel</span>
+<span class="source-line-no">788</span><span id="line-788">     * @throws IOException Signals that an I/O exception has occurred.</span>
+<span class="source-line-no">789</span><span id="line-789">     */</span>
+<span class="source-line-no">790</span><span id="line-790">    @Handler</span>
+<span class="source-line-no">791</span><span id="line-791">    public void onUpgraded(Upgraded event, IOSubchannel wsChannel)</span>
+<span class="source-line-no">792</span><span id="line-792">            throws IOException {</span>
+<span class="source-line-no">793</span><span id="line-793">        Optional&lt;String[]&gt; passedIn</span>
+<span class="source-line-no">794</span><span id="line-794">            = wsChannel.associated(this, String[].class);</span>
+<span class="source-line-no">795</span><span id="line-795">        if (!passedIn.isPresent()) {</span>
+<span class="source-line-no">796</span><span id="line-796">            return;</span>
+<span class="source-line-no">797</span><span id="line-797">        }</span>
+<span class="source-line-no">798</span><span id="line-798"></span>
+<span class="source-line-no">799</span><span id="line-799">        // Check if reload required</span>
+<span class="source-line-no">800</span><span id="line-800">        String[] connectionIds = passedIn.get();</span>
+<span class="source-line-no">801</span><span id="line-801">        if (connectionIds[0] == null) {</span>
+<span class="source-line-no">802</span><span id="line-802">            @SuppressWarnings({ "resource", "PMD.CloseResource" })</span>
+<span class="source-line-no">803</span><span id="line-803">            CharBufferWriter out = new CharBufferWriter(wsChannel,</span>
+<span class="source-line-no">804</span><span id="line-804">                wsChannel.responsePipeline()).suppressClose();</span>
+<span class="source-line-no">805</span><span id="line-805">            new SimpleConsoleCommand("reload").emitJson(out);</span>
+<span class="source-line-no">806</span><span id="line-806">            out.close();</span>
+<span class="source-line-no">807</span><span id="line-807">            event.stop();</span>
+<span class="source-line-no">808</span><span id="line-808">            return;</span>
+<span class="source-line-no">809</span><span id="line-809">        }</span>
+<span class="source-line-no">810</span><span id="line-810"></span>
+<span class="source-line-no">811</span><span id="line-811">        // Get session</span>
+<span class="source-line-no">812</span><span id="line-812">        @SuppressWarnings("unchecked")</span>
+<span class="source-line-no">813</span><span id="line-813">        final Supplier&lt;Optional&lt;Session&gt;&gt; sessionSupplier</span>
+<span class="source-line-no">814</span><span id="line-814">            = (Supplier&lt;Optional&lt;Session&gt;&gt;) wsChannel</span>
+<span class="source-line-no">815</span><span id="line-815">                .associated(Session.class, Supplier.class).get();</span>
+<span class="source-line-no">816</span><span id="line-816">        // Reuse old console connection if still available</span>
+<span class="source-line-no">817</span><span id="line-817">        ConsoleConnection connection</span>
+<span class="source-line-no">818</span><span id="line-818">            = Optional.ofNullable(connectionIds[1])</span>
+<span class="source-line-no">819</span><span id="line-819">                .flatMap(ConsoleConnection::lookup)</span>
+<span class="source-line-no">820</span><span id="line-820">                .map(conn -&gt; conn.replaceId(connectionIds[0]))</span>
+<span class="source-line-no">821</span><span id="line-821">                .orElseGet(</span>
+<span class="source-line-no">822</span><span id="line-822">                    () -&gt; ConsoleConnection.lookupOrCreate(connectionIds[0],</span>
+<span class="source-line-no">823</span><span id="line-823">                        console, supportedLocales.keySet(), csNetworkTimeout))</span>
+<span class="source-line-no">824</span><span id="line-824">                .setUpstreamChannel(wsChannel)</span>
+<span class="source-line-no">825</span><span id="line-825">                .setSessionSupplier(sessionSupplier);</span>
+<span class="source-line-no">826</span><span id="line-826">        wsChannel.setAssociated(ConsoleConnection.class, connection);</span>
+<span class="source-line-no">827</span><span id="line-827">        // Channel now used as JSON input</span>
+<span class="source-line-no">828</span><span id="line-828">        wsChannel.setAssociated(this, new WebSocketInputSink(</span>
+<span class="source-line-no">829</span><span id="line-829">            event.processedBy().get(), connection));</span>
+<span class="source-line-no">830</span><span id="line-830">        // From now on, only consoleConnection.respond may be used to send on</span>
+<span class="source-line-no">831</span><span id="line-831">        // the upstream channel.</span>
+<span class="source-line-no">832</span><span id="line-832">        connection.upstreamChannel().responsePipeline()</span>
+<span class="source-line-no">833</span><span id="line-833">            .restrictEventSource(connection.responsePipeline());</span>
+<span class="source-line-no">834</span><span id="line-834">    }</span>
+<span class="source-line-no">835</span><span id="line-835"></span>
+<span class="source-line-no">836</span><span id="line-836">    /**</span>
+<span class="source-line-no">837</span><span id="line-837">     * Discard the session referenced in the event.</span>
+<span class="source-line-no">838</span><span id="line-838">     *</span>
+<span class="source-line-no">839</span><span id="line-839">     * @param event the event</span>
+<span class="source-line-no">840</span><span id="line-840">     */</span>
+<span class="source-line-no">841</span><span id="line-841">    @Handler(channels = Channel.class)</span>
+<span class="source-line-no">842</span><span id="line-842">    public void onDiscardSession(DiscardSession event) {</span>
+<span class="source-line-no">843</span><span id="line-843">        final Session session = event.session();</span>
+<span class="source-line-no">844</span><span id="line-844">        ConsoleConnection.byConsole(console).stream()</span>
+<span class="source-line-no">845</span><span id="line-845">            .filter(cs -&gt; cs != null &amp;&amp; cs.session().equals(session))</span>
+<span class="source-line-no">846</span><span id="line-846">            .forEach(cs -&gt; {</span>
+<span class="source-line-no">847</span><span id="line-847">                cs.responsePipeline().fire(new Close(), cs.upstreamChannel());</span>
+<span class="source-line-no">848</span><span id="line-848">            });</span>
+<span class="source-line-no">849</span><span id="line-849">    }</span>
 <span class="source-line-no">850</span><span id="line-850"></span>
-<span class="source-line-no">851</span><span id="line-851">        @Override</span>
-<span class="source-line-no">852</span><span id="line-852">        public URI consoleResource(URI uri) {</span>
-<span class="source-line-no">853</span><span id="line-853">            return prefix</span>
-<span class="source-line-no">854</span><span id="line-854">                .resolve(WebConsoleUtils.uriFromPath("console-resource/"))</span>
-<span class="source-line-no">855</span><span id="line-855">                .resolve(uri);</span>
-<span class="source-line-no">856</span><span id="line-856">        }</span>
-<span class="source-line-no">857</span><span id="line-857"></span>
-<span class="source-line-no">858</span><span id="line-858">        @Override</span>
-<span class="source-line-no">859</span><span id="line-859">        public URI conletResource(String conletType, URI uri) {</span>
-<span class="source-line-no">860</span><span id="line-860">            return prefix.resolve(WebConsoleUtils.uriFromPath(</span>
-<span class="source-line-no">861</span><span id="line-861">                "conlet-resource/" + conletType + "/")).resolve(uri);</span>
-<span class="source-line-no">862</span><span id="line-862">        }</span>
-<span class="source-line-no">863</span><span id="line-863"></span>
-<span class="source-line-no">864</span><span id="line-864">        @Override</span>
-<span class="source-line-no">865</span><span id="line-865">        public URI pageResource(URI uri) {</span>
-<span class="source-line-no">866</span><span id="line-866">            return prefix.resolve(WebConsoleUtils.uriFromPath(</span>
-<span class="source-line-no">867</span><span id="line-867">                "page-resource/")).resolve(uri);</span>
-<span class="source-line-no">868</span><span id="line-868">        }</span>
-<span class="source-line-no">869</span><span id="line-869"></span>
-<span class="source-line-no">870</span><span id="line-870">        /*</span>
-<span class="source-line-no">871</span><span id="line-871">         * (non-Javadoc)</span>
-<span class="source-line-no">872</span><span id="line-872">         * </span>
-<span class="source-line-no">873</span><span id="line-873">         * @see</span>
-<span class="source-line-no">874</span><span id="line-874">         * org.jgrapes.webconsole.base.base.RenderSupport#useMinifiedResources()</span>
-<span class="source-line-no">875</span><span id="line-875">         */</span>
-<span class="source-line-no">876</span><span id="line-876">        @Override</span>
-<span class="source-line-no">877</span><span id="line-877">        public boolean useMinifiedResources() {</span>
-<span class="source-line-no">878</span><span id="line-878">            return useMinifiedResources;</span>
-<span class="source-line-no">879</span><span id="line-879">        }</span>
-<span class="source-line-no">880</span><span id="line-880"></span>
-<span class="source-line-no">881</span><span id="line-881">    }</span>
-<span class="source-line-no">882</span><span id="line-882"></span>
-<span class="source-line-no">883</span><span id="line-883">}</span>
+<span class="source-line-no">851</span><span id="line-851">    /**</span>
+<span class="source-line-no">852</span><span id="line-852">     * Handles network input (JSON data).</span>
+<span class="source-line-no">853</span><span id="line-853">     *</span>
+<span class="source-line-no">854</span><span id="line-854">     * @param event the event</span>
+<span class="source-line-no">855</span><span id="line-855">     * @param wsChannel the ws channel</span>
+<span class="source-line-no">856</span><span id="line-856">     * @throws IOException Signals that an I/O exception has occurred.</span>
+<span class="source-line-no">857</span><span id="line-857">     */</span>
+<span class="source-line-no">858</span><span id="line-858">    @Handler</span>
+<span class="source-line-no">859</span><span id="line-859">    public void onInput(Input&lt;CharBuffer&gt; event, IOSubchannel wsChannel)</span>
+<span class="source-line-no">860</span><span id="line-860">            throws IOException {</span>
+<span class="source-line-no">861</span><span id="line-861">        Optional&lt;WebSocketInputSink&gt; optWsInputReader</span>
+<span class="source-line-no">862</span><span id="line-862">            = wsChannel.associated(this, WebSocketInputSink.class);</span>
+<span class="source-line-no">863</span><span id="line-863">        if (optWsInputReader.isPresent()) {</span>
+<span class="source-line-no">864</span><span id="line-864">            optWsInputReader.get().feed(event.buffer());</span>
+<span class="source-line-no">865</span><span id="line-865">        }</span>
+<span class="source-line-no">866</span><span id="line-866">    }</span>
+<span class="source-line-no">867</span><span id="line-867"></span>
+<span class="source-line-no">868</span><span id="line-868">    /**</span>
+<span class="source-line-no">869</span><span id="line-869">     * Handles the closed event from the web socket.</span>
+<span class="source-line-no">870</span><span id="line-870">     *</span>
+<span class="source-line-no">871</span><span id="line-871">     * @param event the event</span>
+<span class="source-line-no">872</span><span id="line-872">     * @param wsChannel the WebSocket channel</span>
+<span class="source-line-no">873</span><span id="line-873">     * @throws IOException Signals that an I/O exception has occurred.</span>
+<span class="source-line-no">874</span><span id="line-874">     */</span>
+<span class="source-line-no">875</span><span id="line-875">    @Handler</span>
+<span class="source-line-no">876</span><span id="line-876">    public void onClosed(</span>
+<span class="source-line-no">877</span><span id="line-877">            Closed&lt;?&gt; event, IOSubchannel wsChannel) throws IOException {</span>
+<span class="source-line-no">878</span><span id="line-878">        Optional&lt;WebSocketInputSink&gt; optWsInputReader</span>
+<span class="source-line-no">879</span><span id="line-879">            = wsChannel.associated(this, WebSocketInputSink.class);</span>
+<span class="source-line-no">880</span><span id="line-880">        if (optWsInputReader.isPresent()) {</span>
+<span class="source-line-no">881</span><span id="line-881">            wsChannel.setAssociated(this, null);</span>
+<span class="source-line-no">882</span><span id="line-882">            optWsInputReader.get().feed(null);</span>
+<span class="source-line-no">883</span><span id="line-883">        }</span>
+<span class="source-line-no">884</span><span id="line-884">        wsChannel.associated(ConsoleConnection.class).ifPresent(connection -&gt; {</span>
+<span class="source-line-no">885</span><span id="line-885">            // Restore channel to normal mode, see onConsoleReady</span>
+<span class="source-line-no">886</span><span id="line-886">            connection.responsePipeline().restrictEventSource(null);</span>
+<span class="source-line-no">887</span><span id="line-887">            connection.disconnected();</span>
+<span class="source-line-no">888</span><span id="line-888">        });</span>
+<span class="source-line-no">889</span><span id="line-889">    }</span>
+<span class="source-line-no">890</span><span id="line-890"></span>
+<span class="source-line-no">891</span><span id="line-891">    /**</span>
+<span class="source-line-no">892</span><span id="line-892">     * Sends a command to the console.</span>
+<span class="source-line-no">893</span><span id="line-893">     *</span>
+<span class="source-line-no">894</span><span id="line-894">     * @param event the event</span>
+<span class="source-line-no">895</span><span id="line-895">     * @param channel the channel</span>
+<span class="source-line-no">896</span><span id="line-896">     * @throws InterruptedException the interrupted exception</span>
+<span class="source-line-no">897</span><span id="line-897">     * @throws IOException Signals that an I/O exception has occurred.</span>
+<span class="source-line-no">898</span><span id="line-898">     */</span>
+<span class="source-line-no">899</span><span id="line-899">    @Handler(channels = ConsoleChannel.class, priority = -1000)</span>
+<span class="source-line-no">900</span><span id="line-900">    public void onConsoleCommand(</span>
+<span class="source-line-no">901</span><span id="line-901">            ConsoleCommand event, ConsoleConnection channel)</span>
+<span class="source-line-no">902</span><span id="line-902">            throws InterruptedException, IOException {</span>
+<span class="source-line-no">903</span><span id="line-903">        IOSubchannel upstream = channel.upstreamChannel();</span>
+<span class="source-line-no">904</span><span id="line-904">        @SuppressWarnings({ "resource", "PMD.CloseResource" })</span>
+<span class="source-line-no">905</span><span id="line-905">        CharBufferWriter out = new CharBufferWriter(upstream,</span>
+<span class="source-line-no">906</span><span id="line-906">            upstream.responsePipeline()).suppressClose();</span>
+<span class="source-line-no">907</span><span id="line-907">        event.emitJson(out);</span>
+<span class="source-line-no">908</span><span id="line-908">    }</span>
+<span class="source-line-no">909</span><span id="line-909"></span>
+<span class="source-line-no">910</span><span id="line-910">    /**</span>
+<span class="source-line-no">911</span><span id="line-911">     * The channel used to send {@link PageResourceRequest}s and</span>
+<span class="source-line-no">912</span><span id="line-912">     * {@link ConletResourceRequest}s to the web console components (via the</span>
+<span class="source-line-no">913</span><span id="line-913">     * console).</span>
+<span class="source-line-no">914</span><span id="line-914">     */</span>
+<span class="source-line-no">915</span><span id="line-915">    public class ConsoleResourceChannel extends LinkedIOSubchannel {</span>
+<span class="source-line-no">916</span><span id="line-916"></span>
+<span class="source-line-no">917</span><span id="line-917">        /**</span>
+<span class="source-line-no">918</span><span id="line-918">         * Instantiates a new console resource channel.</span>
+<span class="source-line-no">919</span><span id="line-919">         *</span>
+<span class="source-line-no">920</span><span id="line-920">         * @param hub the hub</span>
+<span class="source-line-no">921</span><span id="line-921">         * @param upstreamChannel the upstream channel</span>
+<span class="source-line-no">922</span><span id="line-922">         * @param responsePipeline the response pipeline</span>
+<span class="source-line-no">923</span><span id="line-923">         */</span>
+<span class="source-line-no">924</span><span id="line-924">        public ConsoleResourceChannel(Manager hub,</span>
+<span class="source-line-no">925</span><span id="line-925">                IOSubchannel upstreamChannel, EventPipeline responsePipeline) {</span>
+<span class="source-line-no">926</span><span id="line-926">            super(hub, hub.channel(), upstreamChannel, responsePipeline);</span>
+<span class="source-line-no">927</span><span id="line-927">        }</span>
+<span class="source-line-no">928</span><span id="line-928">    }</span>
+<span class="source-line-no">929</span><span id="line-929"></span>
+<span class="source-line-no">930</span><span id="line-930">    /**</span>
+<span class="source-line-no">931</span><span id="line-931">     * The implementation of {@link RenderSupport} used by this class.</span>
+<span class="source-line-no">932</span><span id="line-932">     */</span>
+<span class="source-line-no">933</span><span id="line-933">    private final class RenderSupportImpl implements RenderSupport {</span>
+<span class="source-line-no">934</span><span id="line-934"></span>
+<span class="source-line-no">935</span><span id="line-935">        @Override</span>
+<span class="source-line-no">936</span><span id="line-936">        public URI consoleBaseResource(URI uri) {</span>
+<span class="source-line-no">937</span><span id="line-937">            return prefix</span>
+<span class="source-line-no">938</span><span id="line-938">                .resolve(WebConsoleUtils.uriFromPath("console-base-resource/"))</span>
+<span class="source-line-no">939</span><span id="line-939">                .resolve(uri);</span>
+<span class="source-line-no">940</span><span id="line-940">        }</span>
+<span class="source-line-no">941</span><span id="line-941"></span>
+<span class="source-line-no">942</span><span id="line-942">        @Override</span>
+<span class="source-line-no">943</span><span id="line-943">        public URI consoleResource(URI uri) {</span>
+<span class="source-line-no">944</span><span id="line-944">            return prefix</span>
+<span class="source-line-no">945</span><span id="line-945">                .resolve(WebConsoleUtils.uriFromPath("console-resource/"))</span>
+<span class="source-line-no">946</span><span id="line-946">                .resolve(uri);</span>
+<span class="source-line-no">947</span><span id="line-947">        }</span>
+<span class="source-line-no">948</span><span id="line-948"></span>
+<span class="source-line-no">949</span><span id="line-949">        @Override</span>
+<span class="source-line-no">950</span><span id="line-950">        public URI conletResource(String conletType, URI uri) {</span>
+<span class="source-line-no">951</span><span id="line-951">            return prefix.resolve(WebConsoleUtils.uriFromPath(</span>
+<span class="source-line-no">952</span><span id="line-952">                "conlet-resource/" + conletType + "/")).resolve(uri);</span>
+<span class="source-line-no">953</span><span id="line-953">        }</span>
+<span class="source-line-no">954</span><span id="line-954"></span>
+<span class="source-line-no">955</span><span id="line-955">        @Override</span>
+<span class="source-line-no">956</span><span id="line-956">        public URI pageResource(URI uri) {</span>
+<span class="source-line-no">957</span><span id="line-957">            return prefix.resolve(WebConsoleUtils.uriFromPath(</span>
+<span class="source-line-no">958</span><span id="line-958">                "page-resource/")).resolve(uri);</span>
+<span class="source-line-no">959</span><span id="line-959">        }</span>
+<span class="source-line-no">960</span><span id="line-960"></span>
+<span class="source-line-no">961</span><span id="line-961">        /*</span>
+<span class="source-line-no">962</span><span id="line-962">         * (non-Javadoc)</span>
+<span class="source-line-no">963</span><span id="line-963">         * </span>
+<span class="source-line-no">964</span><span id="line-964">         * @see</span>
+<span class="source-line-no">965</span><span id="line-965">         * org.jgrapes.webconsole.base.base.RenderSupport#useMinifiedResources()</span>
+<span class="source-line-no">966</span><span id="line-966">         */</span>
+<span class="source-line-no">967</span><span id="line-967">        @Override</span>
+<span class="source-line-no">968</span><span id="line-968">        public boolean useMinifiedResources() {</span>
+<span class="source-line-no">969</span><span id="line-969">            return useMinifiedResources;</span>
+<span class="source-line-no">970</span><span id="line-970">        }</span>
+<span class="source-line-no">971</span><span id="line-971"></span>
+<span class="source-line-no">972</span><span id="line-972">    }</span>
+<span class="source-line-no">973</span><span id="line-973"></span>
+<span class="source-line-no">974</span><span id="line-974">}</span>
 
 
 
