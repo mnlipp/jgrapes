@@ -22,11 +22,13 @@ it favors a common, exchangeable styling for all components.</p>
 <p>This prohibits the usage of the wide spread &quot;invasive&quot; CSS frameworks that
 spread their presentation classes all over the HTML. The alternative is
 to use the information provided by the (semantic) HTML for selecting
-the styles to be applied. The problem is that even semantic HTML 5 doesn’t
-provide enough context to reliably style GUI widgets. If however, you add
+the styles to be applied. (At about 2020 the term &quot;unstyled&quot; came
+up for this type of libraries.)</p>
+<p>The problem is that even semantic HTML 5 doesn’t provide enough context
+to reliably style GUI widgets. If however, you add
 <a href="https://www.w3.org/WAI/standards-guidelines/aria/">WAI-ARIA</a> attributes
 to the markup (as you should anyway), it turns out that almost all styling
-can be based on the HTML without adding presentation classes.
+can be based on the HTML without adding classes to control the presentation.
 (A rough outline of the idea can also be found on
 &quot;<a href="https://css-tricks.com/aria-in-css/">css-tricks.com</a>&quot;.)</p>
 <p>As it turns out, writing ARIA compliant HTML isn't as easy as you might think.
@@ -35,7 +37,8 @@ W3C maintains a document about
 includes
 <a href="https://www.w3.org/TR/wai-aria-practices-1.1/examples/">some examples</a>.
 Looking at the examples, it is obvious that ARIA compliant UI elements
-must be generated from templates. This is where this library comes in.</p>
+must be generated from templates (although some &quot;libraries&quot; really suggest a
+copy/paste approach). This is where this library comes in.</p>
 <h2 id="status" class="tsd-anchor-link">Status<a href="#status" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2>
 <p>This project is currently maintained as a subproject of the
 JGrapes Web Console project. It is continued as need (for the web console)

@@ -1,0 +1,168 @@
+<!DOCTYPE html><html class="default" lang="en" data-base="../"><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>Using Icons with unstyled components | Components for AaSH (ARIA augmented Semantic HTML)</title><meta name="description" content="Documentation for Components for AaSH (ARIA augmented Semantic HTML)"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script defer src="../assets/main.js"></script><script async src="../assets/icons.js" id="tsd-icons-script"></script><script async src="../assets/search.js" id="tsd-search-script"></script><script async src="../assets/navigation.js" id="tsd-nav-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os";document.body.style.display="none";setTimeout(() => window.app?app.showPage():document.body.style.removeProperty("display"),500)</script><header class="tsd-page-toolbar">
+<div class="tsd-toolbar-contents container"><a href="../index.html" class="title">Components for AaSH (ARIA augmented Semantic HTML)</a>
+<div id="tsd-toolbar-links"></div><button id="tsd-search-trigger" class="tsd-widget" aria-label="Search"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-search"></use></svg></button><dialog id="tsd-search" aria-label="Search"><input role="combobox" id="tsd-search-input" aria-controls="tsd-search-results" aria-autocomplete="list" aria-expanded="true" autocapitalize="off" autocomplete="off" placeholder="Search the docs" maxLength="100"/>
+<ul role="listbox" id="tsd-search-results"></ul>
+<div id="tsd-search-status" aria-live="polite" aria-atomic="true">
+<div>Preparing search index...</div></div></dialog><a href="#" class="tsd-widget menu" id="tsd-toolbar-menu-trigger" data-toggle="menu" aria-label="Menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-menu"></use></svg></a></div></header>
+<div class="container container-main">
+<div class="col-content">
+<div class="tsd-page-title">
+<ul class="tsd-breadcrumb" aria-label="Breadcrumb">
+<li><a href="" aria-current="page">Using Icons with unstyled components</a></li></ul></div>
+<div class="tsd-panel tsd-typography"><h1 id="using-icons-with-unstyled-components" class="tsd-anchor-link">Using Icons with unstyled components<a href="#using-icons-with-unstyled-components" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h1>
+<p>A common approach to displaying icons is to assign a class to an element
+that determines which icon to display. This makes it difficult to change
+the icon later using CSS.</p>
+<h2 id="replacing-text-with-an-icon" class="tsd-anchor-link">Replacing text with an icon<a href="#replacing-text-with-an-icon" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>The approach proposed here is to treat an icon as an alternative visual
+representation of text. We start with a textual description of an action
+such as <code>&lt;button&gt;&lt;span&gt;Select language&lt;/span&gt;&lt;/button&gt;</code>. For a more compact
+presentation, the text can be visually replaced with an icon. This can
+be achieved with CSS like this:</p>
+<pre><code class="scss">button {
+    // Make text invisible, but preserve it for screen readers
+    * {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+        border: 0;
+    }
+
+    &::before {
+        content: "";
+        display: inline-block;
+        width: 1em;
+        height: 1em;
+        vertical-align: middle;
+
+        background-color: currentColor;
+        mask-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0i...");
+        mask-repeat: no-repeat;
+        mask-position: center;
+        mask-size: contain;
+    }
+}
+</code><button type="button">Copy</button></pre>
+
+<p>Of course, using <code>button</code> as selector is too broad. It must be replaced
+with a more specific selector that targets only the button used for
+choosing the language.</p>
+<p>Also note that any text must be wrapped in a child element to make
+it invisible. There is no way to make DOM text (child) nodes invisible
+without making the element itself invisible. Using <code>content: &quot;&quot;</code> comes
+to mind, but using it on an element (not a pseudo-element) has no effect.</p>
+<h2 id="selecting-elements" class="tsd-anchor-link">Selecting elements<a href="#selecting-elements" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>Unfortunately, neither HTML elements with their attributes nor ARIA
+attributes (such as <code>role</code>) provide a reliable way to identify an element's
+specific purpose. Users typically infer an element's purpose from its
+text or, when no visible text is available, from an accessible name
+provided through an attribute such as <code>aria-label</code>. However, both may be
+localized, making them unsuitable for identifying elements in CSS selectors.</p>
+<p>The approach proposed here is to use a <code>data-purpose</code> attribute to
+specify an element's purpose. Possible values include:</p>
+<table>
+  <thead>
+    <tr>
+      <th>Value</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>add-card</code></td>
+      <td>Add a card to e.g. a dashboard.</td>
+    </tr>
+    <tr>
+      <td><code>choose-language</code></td>
+      <td>Choose a language.</td>
+    </tr>
+    <tr>
+      <td><code>open-help</code></td>
+      <td>Open a help dialog.</td>
+    </tr>
+    <tr>
+      <td><code>open-settings</code></td>
+      <td>Open a settings dialog.</td>
+    </tr>
+    <tr>
+      <td><code>remove-item</code></td>
+      <td>Remove an item. The common representation as an icon is "x".
+        Removing should be interpreted in the widest sense. "Closing a
+        dialog" is also considered "removing".</td>
+    </tr>
+    <tr>
+      <td><code>show-expanded</code></td>
+      <td>Display an expanded view.</td>
+    </tr>
+  </tbody>
+</table>
+<p>These values are based on practical experience with the JGrapes Web Console
+framework and are by no means exhaustive.</p>
+<p>Since <code>data-purpose</code> can also be useful for styling the UI independently of
+icon selection, it should not, by itself, imply that an element must be
+represented by an icon. Instead, icon styling should be activated explicitly
+through the <code>as-icon</code> class. The resulting CSS might look like this:</p>
+<pre><code class="scss">.as-icon {
+    // Make text invisible, but preserve it for screen readers
+    * {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+        border: 0;
+    }
+    
+    &::before {
+        content: "";
+        display: inline-block;
+        width: 1em;
+        height: 1em;
+        vertical-align: middle;
+
+        background-color: currentColor;
+
+        mask-repeat: no-repeat;
+        mask-position: center;
+        mask-size: contain;
+    }
+
+    &[data-purpose="choose-language"]::before {
+        mask-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0i...");
+    }
+}
+</code><button type="button">Copy</button></pre>
+
+</div></div>
+<div class="col-sidebar">
+<div class="page-menu">
+<div class="tsd-navigation settings">
+<details class="tsd-accordion"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
+<h3>Settings</h3></summary>
+<div class="tsd-accordion-details">
+<div class="tsd-filter-visibility"><span class="settings-label">Member Visibility</span>
+<ul id="tsd-filter-options">
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-protected" name="protected"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Protected</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-inherited" name="inherited" checked/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Inherited</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-external" name="external"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>External</span></label></li></ul></div>
+<div class="tsd-theme-toggle"><label class="settings-label" for="tsd-theme">Theme</label><select id="tsd-theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></div></div></details></div>
+<details open class="tsd-accordion tsd-page-navigation"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
+<h3>On This Page</h3></summary>
+<div class="tsd-accordion-details"><a href="#using-icons-with-unstyled-components"><span>Using <wbr/>Icons with unstyled components</span></a>
+<ul>
+<li><a href="#replacing-text-with-an-icon"><span>Replacing text with an icon</span></a></li>
+<li><a href="#selecting-elements"><span>Selecting elements</span></a></li></ul></div></details></div>
+<div class="site-menu">
+<nav class="tsd-navigation"><a href="../modules.html">Components for AaSH (ARIA augmented Semantic HTML)</a>
+<ul class="tsd-small-nested-navigation" id="tsd-nav-container">
+<li>Loading...</li></ul></nav></div></div></div><footer>
+<p class="tsd-generator">Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></footer>
+<div class="overlay"></div></body></html>
