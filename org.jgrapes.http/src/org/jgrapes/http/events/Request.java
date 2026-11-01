@@ -58,7 +58,7 @@ public class Request<R> extends MessageReceived<R> {
      * request flow downstream and are served by the framework. 
      * 
      * A result of `true` indicates that the request has been processed, 
-     * i.e. a response has been sent or will sent. Händlers MUST
+     * i.e. a response has been sent or will be sent. Handlers MUST
      * check that a request has not been {@link fulfilled} before
      * firing a {@link Response} event to avoid duplicate response
      * events. Handlers that have fired a response event and all
