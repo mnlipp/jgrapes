@@ -19,6 +19,8 @@
 package jdbld;
 
 import static org.jdrupes.builder.api.Intent.*;
+import static org.jdrupes.builder.mvnrepo.MvnProperties.LookupRepositories;
+
 import org.jdrupes.builder.api.MergedTestProject;
 import org.jdrupes.builder.core.AbstractProject;
 import org.jdrupes.builder.java.JavaLibraryProject;
@@ -31,8 +33,9 @@ public class IO extends AbstractProject implements JavaLibraryProject {
         super(name("org.jgrapes.io"));
         dependency(Expose, project(Core.class));
         dependency(Expose, project(Util.class));
-        dependency(Expose, new MvnRepoLookup().resolve(
-            "com.fasterxml.jackson.core:jackson-databind:[2.13,3)"));
+        dependency(Expose, new MvnRepoLookup()
+            .addRepositories(get(LookupRepositories))
+            .resolve("com.fasterxml.jackson.core:jackson-databind:[2.13,3)"));
     }
 
     public static class IOTest extends AbstractProject
@@ -41,10 +44,11 @@ public class IO extends AbstractProject implements JavaLibraryProject {
         public IOTest() {
             super(parent(IO.class));
             dependency(Consume, parentProject().get());
-            dependency(Consume, new MvnRepoLookup().resolve(
-                "jakarta.json:jakarta.json-api:2.1.2",
-                "jakarta.json.bind:jakarta.json.bind-api:3.0.1",
-                "org.apache.johnzon:johnzon-jsonb:2.0.1"));
+            dependency(Consume, new MvnRepoLookup()
+                .addRepositories(get(LookupRepositories)).resolve(
+                    "jakarta.json:jakarta.json-api:2.1.2",
+                    "jakarta.json.bind:jakarta.json.bind-api:3.0.1",
+                    "org.apache.johnzon:johnzon-jsonb:2.0.1"));
         }
     }
 }

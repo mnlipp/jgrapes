@@ -32,6 +32,7 @@ import org.jdrupes.httpcodec.Decoder;
 import org.jdrupes.httpcodec.MessageHeader;
 import org.jdrupes.httpcodec.ProtocolException;
 import org.jdrupes.httpcodec.protocols.http.HttpField;
+import org.jdrupes.httpcodec.protocols.http.HttpOptions;
 import org.jdrupes.httpcodec.protocols.http.HttpResponse;
 import org.jdrupes.httpcodec.protocols.http.client.HttpRequestEncoder;
 import org.jdrupes.httpcodec.protocols.http.client.HttpResponseDecoder;
@@ -75,6 +76,7 @@ public class HttpConnector extends Component {
     private final Channel netSecureChannel;
     private final PoolingIndex<SocketAddress, SocketIOChannel> pooled
         = new PoolingIndex<>();
+    private HttpOptions httpOptions;
 
     /**
      * Denotes the network channel in handler annotations.
@@ -118,12 +120,23 @@ public class HttpConnector extends Component {
     }
 
     /**
+     * Sets the [HttpOptions] to use.
+     *
+     * @param options the options
+     * @return the http connector for easy chaining
+     */
+    public HttpConnector setHttpOptions(HttpOptions options) {
+        this.httpOptions = options;
+        return this;
+    }
+
+    /**
      * Sets the size of the buffers used for {@link Input} events
      * on the application channel. Defaults to the upstream buffer size
      * minus 512 (estimate for added protocol overhead).
      * 
      * @param applicationBufferSize the size to set
-     * @return the http server for easy chaining
+     * @return the http connector for easy chaining
      */
     public HttpConnector setApplicationBufferSize(int applicationBufferSize) {
         this.applicationBufferSize = applicationBufferSize;
@@ -317,6 +330,7 @@ public class HttpConnector extends Component {
         public WebAppMsgChannel(Request.Out event)
                 throws InterruptedException, IOException {
             super(channel(), newEventPipeline());
+            engine.responseDecoder().options(httpOptions);
 
             // Downstream pipeline, needed even if connection fails
             downPipeline = newEventPipeline();

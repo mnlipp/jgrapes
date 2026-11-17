@@ -43,6 +43,8 @@ import org.jdrupes.builder.java.CodeContribution;
 import org.jdrupes.builder.java.JarFile;
 import org.jdrupes.builder.java.JavadocDirectory;
 import static org.jdrupes.builder.java.JavaTypes.*;
+import static org.jdrupes.builder.mvnrepo.MvnProperties.LookupRepositories;
+
 import org.jdrupes.builder.mvnrepo.MvnRepoLookup;
 
 /// Very special javadoc generation.
@@ -120,6 +122,7 @@ public class JGrapesJavadoc extends AbstractGenerator implements Renamable {
             "--add-exports=jdk.javadoc/jdk.javadoc.internal.doclets.formats.html=ALL-UNNAMED",
             "-doclet", "org.jdrupes.mdoclet.MDoclet",
             "-docletpath", elementsToPath(new MvnRepoLookup()
+                .addRepositories(project().get(LookupRepositories))
                 .resolve("org.jdrupes.mdoclet:doclet:4.2.0")
                 .resources(of(CodeContributionType).using(Supply, Expose))),
             "--disable-auto-highlight",
@@ -127,6 +130,7 @@ public class JGrapesJavadoc extends AbstractGenerator implements Renamable {
             "-taglet", "org.jdrupes.taglets.plantUml.StartUml",
             "-taglet", "org.jdrupes.taglets.plantUml.EndUml",
             "-tagletpath", elementsToPath(new MvnRepoLookup()
+                .addRepositories(project().get(LookupRepositories))
                 .resolve("org.jdrupes.taglets:plantuml-taglet:3.1.0")
                 .resources(of(CodeContributionType).using(Supply, Expose))),
             "-overview", project().rootProject()

@@ -19,6 +19,8 @@
 package jdbld;
 
 import static org.jdrupes.builder.api.Intent.*;
+import static org.jdrupes.builder.mvnrepo.MvnProperties.LookupRepositories;
+
 import org.jdrupes.builder.core.AbstractProject;
 import org.jdrupes.builder.java.JavaLibraryProject;
 import org.jdrupes.builder.mvnrepo.MvnRepoLookup;
@@ -30,9 +32,11 @@ public class Mail extends AbstractProject implements JavaLibraryProject {
         dependency(Expose, project(Core.class));
         dependency(Expose, project(Util.class));
         dependency(Expose, project(IO.class));
-        dependency(Expose, new MvnRepoLookup().resolve(
-            "jakarta.mail:jakarta.mail-api:[2.1.4,2.2.0)"));
-        dependency(Reveal, new MvnRepoLookup().resolve(
-            "org.eclipse.angus:imap:[2.0.4,2.1.0)"));
+        dependency(Expose, new MvnRepoLookup()
+            .addRepositories(get(LookupRepositories))
+            .resolve("jakarta.mail:jakarta.mail-api:[2.1.4,2.2.0)"));
+        dependency(Reveal, new MvnRepoLookup()
+            .addRepositories(get(LookupRepositories))
+            .resolve("org.eclipse.angus:imap:[2.0.4,2.1.0)"));
     }
 }

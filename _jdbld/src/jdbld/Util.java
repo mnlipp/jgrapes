@@ -19,6 +19,8 @@
 package jdbld;
 
 import static org.jdrupes.builder.api.Intent.*;
+import static org.jdrupes.builder.mvnrepo.MvnProperties.LookupRepositories;
+
 import org.jdrupes.builder.api.MergedTestProject;
 import org.jdrupes.builder.core.AbstractProject;
 import org.jdrupes.builder.java.JavaLibraryProject;
@@ -30,13 +32,14 @@ public class Util extends AbstractProject implements JavaLibraryProject {
     public Util() {
         super(name("org.jgrapes.util"));
         dependency(Expose, project(Core.class));
-        dependency(Reveal, new MvnRepoLookup().resolve(
-            "com.electronwill.night-config:core:[3.6.7,3.7.0)",
-            "com.electronwill.night-config:json:[3.6.7,3.7.0)",
-            "com.electronwill.night-config:toml:[3.6.7,3.7.0)",
-            "com.electronwill.night-config:yaml:[3.6.7,3.7.0)",
-            // https://security.snyk.io/package/maven/org.yaml:snakeyaml
-            "org.yaml:snakeyaml:[1.33,2)"));
+        dependency(Reveal, new MvnRepoLookup()
+            .addRepositories(get(LookupRepositories)).resolve(
+                "com.electronwill.night-config:core:[3.6.7,3.7.0)",
+                "com.electronwill.night-config:json:[3.6.7,3.7.0)",
+                "com.electronwill.night-config:toml:[3.6.7,3.7.0)",
+                "com.electronwill.night-config:yaml:[3.6.7,3.7.0)",
+                // https://security.snyk.io/package/maven/org.yaml:snakeyaml
+                "org.yaml:snakeyaml:[1.33,2)"));
     }
 
     public static class UtilTest extends AbstractProject
@@ -45,10 +48,11 @@ public class Util extends AbstractProject implements JavaLibraryProject {
         public UtilTest() {
             super(parent(Util.class));
             dependency(Consume, parentProject().get());
-            dependency(Consume, new MvnRepoLookup().resolve(
-                "jakarta.json:jakarta.json-api:2.1.2",
-                "jakarta.json.bind:jakarta.json.bind-api:3.0.1",
-                "org.apache.johnzon:johnzon-jsonb:2.0.1"));
+            dependency(Consume, new MvnRepoLookup()
+                .addRepositories(get(LookupRepositories)).resolve(
+                    "jakarta.json:jakarta.json-api:2.1.2",
+                    "jakarta.json.bind:jakarta.json.bind-api:3.0.1",
+                    "org.apache.johnzon:johnzon-jsonb:2.0.1"));
         }
     }
 }

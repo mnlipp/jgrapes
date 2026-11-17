@@ -32,6 +32,7 @@ import static jdbld.ExtProps.GitApi;
 import org.apache.maven.model.Developer;
 import org.apache.maven.model.License;
 import org.apache.maven.model.Scm;
+import org.eclipse.aether.repository.RemoteRepository;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.errors.InvalidPatternException;
@@ -48,6 +49,7 @@ import org.jdrupes.builder.ext.bnd.BndAnalyzer;
 import org.jdrupes.builder.ext.bnd.BndBaselineEvaluation;
 import org.jdrupes.builder.ext.bnd.BndBaseliner;
 import org.jdrupes.builder.core.AbstractRootProject;
+import org.jdrupes.builder.core.VersionReporter;
 import org.jdrupes.builder.eclipse.EclipseConfiguration;
 import org.jdrupes.builder.eclipse.EclipseConfigurator;
 import org.jdrupes.builder.java.JavaCompiler;
@@ -59,10 +61,12 @@ import static org.jdrupes.builder.java.JavaTypes.*;
 import org.jdrupes.builder.java.LibraryBuilder;
 import org.jdrupes.builder.junit.JUnitTestRunner;
 import org.jdrupes.builder.mvnrepo.JavadocJarBuilder;
+import org.jdrupes.builder.mvnrepo.MavenContext;
 import static org.jdrupes.builder.mvnrepo.MvnRepoTypes.*;
-import static org.jdrupes.builder.mvnrepo.MvnProperties.GroupId;
+import static org.jdrupes.builder.mvnrepo.MvnProperties.*;
 import org.jdrupes.builder.mvnrepo.MvnPublisher;
 import org.jdrupes.builder.mvnrepo.MvnRepoLookup;
+import org.jdrupes.builder.mvnrepo.MvnVersionType;
 import org.jdrupes.builder.mvnrepo.PomFileGenerator;
 import org.jdrupes.builder.mvnrepo.SourcesJarBuilder;
 import org.jdrupes.gitversioning.api.VersionEvaluator;
@@ -83,6 +87,15 @@ public class Root extends AbstractRootProject {
 
     public Root() throws IOException {
         super(name("JGrapes"));
+        set(LookupRepositories, new RemoteRepository[] {
+            MavenContext.mavenCentral(),
+            new RemoteRepository.Builder("jdrupes-distribution", "default",
+                "https://codeberg.org/api/packages/JDrupes/maven")
+                    .setReleasePolicy(MavenContext
+                        .createDefaultPolicy(MvnVersionType.RELEASE, true))
+                    .setSnapshotPolicy(MavenContext.createDefaultPolicy(
+                        MvnVersionType.SNAPSHOT, true))
+                    .build() });
 
         dependency(Expose, project(Core.class));
         dependency(Expose, project(Util.class));
@@ -98,10 +111,15 @@ public class Root extends AbstractRootProject {
         generator(GhPagesPublisher::new);
 
         // Commands
+        commandAlias("version").projects("**")
+            .resources(of(ProjectVersionType).using(Supply));
         commandAlias("build").projects("**")
             .resources(of(LibraryJarFileType).using(Supply));
         commandAlias("javadoc").resources(of(JavadocDirectoryType));
         commandAlias("pomFile").resources(of(PomFileType));
+        commandAlias("mavenInstallation")
+            .description("Install artifacts in local maven repository")
+            .projects("**").resources(of(MvnInstallationType).using(Supply));
         commandAlias("mavenPublication").resources(of(MvnPublicationType));
         commandAlias("test").resources(of(TestResultType));
         commandAlias("eclipse")
@@ -143,11 +161,13 @@ public class Root extends AbstractRootProject {
             .forRepository(project.<Git> get(GitApi).getRepository())
             .tagFilter(new DefaultTagFilter().prepend(tagPrefix))
             .tagProcessor(new MavenStyleTagProcessor()
-                .ignoreBranches("testing/.*", "release/.*", "develop/.*"));
+                .ignoreBranches("testing/.*", "release/.*", "develop/.*"))
+            .subDirectory(project.directory());
         project.set(Version, evaluator.version());
     }
 
     private static void setupCommonGenerators(Project project) {
+        project.generator(VersionReporter::new);
         if (project instanceof JavaProject) {
             if (!(project instanceof MergedTestProject)) {
                 project.generator(JavaCompiler::new)
@@ -161,6 +181,7 @@ public class Root extends AbstractRootProject {
                 project.generator(JavaResourceCollector::new).add(Path.of(
                     "test-resources"), "**/*");
                 project.dependency(Consume, new MvnRepoLookup()
+                    .addRepositories(project.get(LookupRepositories))
                     .resolve("junit:junit:4.13.2")
                     .bom("org.junit:junit-bom:5.14.2")
                     .resolve("org.junit.jupiter:junit-jupiter-api")

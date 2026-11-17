@@ -27,6 +27,7 @@ import org.jdrupes.builder.java.JavaExecutor;
 import org.jdrupes.builder.java.JavaLibraryProject;
 import org.jdrupes.builder.java.JavaResourceCollector;
 import org.jdrupes.builder.mvnrepo.MvnRepoLookup;
+import static org.jdrupes.builder.mvnrepo.MvnProperties.*;
 
 public class Examples extends AbstractProject implements JavaLibraryProject {
 
@@ -34,8 +35,9 @@ public class Examples extends AbstractProject implements JavaLibraryProject {
         super(name("examples"));
         dependency(Reveal, project(Http.class));
         dependency(Reveal, project(Mail.class));
-        dependency(Reveal, new MvnRepoLookup().resolve(
-            "org.osgi:osgi.core:6.0.0"));
+        dependency(Reveal, new MvnRepoLookup()
+            .addRepositories(get(LookupRepositories))
+            .resolve("org.osgi:osgi.core:6.0.0"));
         dependency(Supply, JavaExecutor::new).name("Greeter")
             .addFrom(providers().select(Supply, Reveal))
             .mainClass("org.jgrapes.examples.core.helloworld.Greeter");

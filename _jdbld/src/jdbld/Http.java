@@ -19,6 +19,7 @@
 package jdbld;
 
 import static org.jdrupes.builder.api.Intent.*;
+import static org.jdrupes.builder.mvnrepo.MvnProperties.LookupRepositories;
 import org.jdrupes.builder.api.MergedTestProject;
 import org.jdrupes.builder.core.AbstractProject;
 import org.jdrupes.builder.java.JavaLibraryProject;
@@ -31,8 +32,9 @@ public class Http extends AbstractProject implements JavaLibraryProject {
         super(name("org.jgrapes.http"));
         dependency(Expose, project(Core.class));
         dependency(Expose, project(IO.class));
-        dependency(Expose, new MvnRepoLookup().resolve(
-            "org.jdrupes.httpcodec:httpcodec:[3.1.0,4.0.0)"));
+        dependency(Expose, new MvnRepoLookup()
+            .addRepositories(get(LookupRepositories))
+            .resolve("org.jdrupes.httpcodec:httpcodec:[3.2.0,4)"));
     }
 
     public static class HttpTest extends AbstractProject
@@ -41,8 +43,9 @@ public class Http extends AbstractProject implements JavaLibraryProject {
         public HttpTest() {
             super(parent(Http.class));
             dependency(Consume, parentProject().get());
-            dependency(Consume, new MvnRepoLookup().resolve(
-                "org.eclipse.angus:angus-activation:[1.0.0,2.0.0)"));
+            dependency(Consume, new MvnRepoLookup()
+                .addRepositories(get(LookupRepositories))
+                .resolve("org.eclipse.angus:angus-activation:[1.0.0,2.0.0)"));
         }
     }
 }
